@@ -1,95 +1,86 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Construction-themed design system */
+/* TerraFusion Elite - Dark Sovereign Design System */
+/* "Government. Transcended." */
 
 @layer base {
   :root {
-    --background: 250 250 249;
-    --foreground: 41 37 36;
+    /* Dark Sovereign Substrate */
+    --background: 220 50% 4%;              /* #0b1020 - Receptive Void */
+    --foreground: 210 20% 90%;             /* Light text */
 
-    --card: 255 255 255;
-    --card-foreground: 41 37 36;
+    --card: 222 47% 8%;                    /* #0A0E1A - Surface */
+    --card-foreground: 210 20% 90%;
 
-    --popover: 255 255 255;
-    --popover-foreground: 41 37 36;
+    --popover: 220 33% 10%;                /* #1A1F2E - Elevated */
+    --popover-foreground: 210 20% 90%;
 
-    --primary: 234 88 12;
-    --primary-foreground: 255 255 255;
+    /* Earned Light - Quantum Energy */
+    --primary: 180 100% 43%;               /* #00D9D9 - Transcend Cyan */
+    --primary-foreground: 220 50% 4%;
 
-    --secondary: 120 113 108;
-    --secondary-foreground: 255 255 255;
+    --secondary: 220 33% 15%;              /* Elevated Surface */
+    --secondary-foreground: 210 20% 90%;
 
-    --muted: 245 245 244;
-    --muted-foreground: 120 113 108;
+    --muted: 222 30% 12%;
+    --muted-foreground: 210 15% 60%;
 
-    --accent: 251 146 60;
-    --accent-foreground: 41 37 36;
+    --accent: 180 100% 50%;                /* #00FFEE - Bright Cyan */
+    --accent-foreground: 220 50% 4%;
 
-    --destructive: 239 68 68;
-    --destructive-foreground: 255 255 255;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 210 20% 98%;
 
-    --border: 231 229 228;
-    --input: 231 229 228;
-    --ring: 234 88 12;
+    --border: 220 30% 18%;
+    --input: 220 30% 15%;
+    --ring: 180 100% 43%;
 
-    --radius: 0.5rem;
+    --radius: 0.75rem;
 
-    --sidebar-background: 255 255 255;
-    --sidebar-foreground: 41 37 36;
-    --sidebar-primary: 234 88 12;
-    --sidebar-primary-foreground: 255 255 255;
-    --sidebar-accent: 245 245 244;
-    --sidebar-accent-foreground: 41 37 36;
-    --sidebar-border: 231 229 228;
-    --sidebar-ring: 234 88 12;
+    /* TerraFusion Sovereign Colors */
+    --tf-substrate: 220 50% 4%;            /* #0b1020 */
+    --tf-surface: 222 47% 8%;              /* #0A0E1A */
+    --tf-elevated: 220 33% 15%;            /* #1A1F2E */
+    --tf-transcend-cyan: 180 100% 43%;     /* #00D9D9 */
+    --tf-bright-cyan: 180 100% 50%;        /* #00FFEE */
+    --tf-optimized-green: 145 80% 45%;     /* Verified state */
+    --tf-anomaly-amber: 38 95% 55%;        /* Alert state */
+    --tf-warning-red: 0 72% 51%;           /* Error state */
 
-    /* Custom construction colors */
-    --terra-orange: 234 88 12;
-    --terra-brown: 120 113 108;
-    --terra-steel: 71 85 105;
-    --terra-earth: 168 162 158;
-  }
+    /* VEI Metrics Colors */
+    --vei-excellent: 145 80% 45%;          /* Green - Excellent */
+    --vei-good: 180 100% 43%;              /* Cyan - Good */
+    --vei-caution: 38 95% 55%;             /* Amber - Caution */
+    --vei-concern: 0 72% 51%;              /* Red - Concern */
 
-  .dark {
-    --background: 28 25 23;
-    --foreground: 250 250 249;
+    /* Tier Colors */
+    --tier-q1: 180 100% 50%;
+    --tier-q2: 160 70% 45%;
+    --tier-q3: 38 95% 55%;
+    --tier-q4: 0 72% 51%;
 
-    --card: 41 37 36;
-    --card-foreground: 250 250 249;
+    /* Sacred Geometry Constants */
+    --phi: 1.618;
+    --phi-inverse: 0.618;
 
-    --popover: 41 37 36;
-    --popover-foreground: 250 250 249;
+    /* Sidebar - Sovereign */
+    --sidebar-background: 222 47% 6%;
+    --sidebar-foreground: 210 20% 90%;
+    --sidebar-primary: 180 100% 43%;
+    --sidebar-primary-foreground: 220 50% 4%;
+    --sidebar-accent: 220 33% 15%;
+    --sidebar-accent-foreground: 210 20% 90%;
+    --sidebar-border: 220 30% 18%;
+    --sidebar-ring: 180 100% 43%;
 
-    --primary: 251 146 60;
-    --primary-foreground: 28 25 23;
-
-    --secondary: 87 83 78;
-    --secondary-foreground: 250 250 249;
-
-    --muted: 41 37 36;
-    --muted-foreground: 168 162 158;
-
-    --accent: 234 88 12;
-    --accent-foreground: 250 250 249;
-
-    --destructive: 220 38 38;
-    --destructive-foreground: 250 250 249;
-
-    --border: 87 83 78;
-    --input: 87 83 78;
-    --ring: 251 146 60;
-
-    --sidebar-background: 28 25 23;
-    --sidebar-foreground: 250 250 249;
-    --sidebar-primary: 251 146 60;
-    --sidebar-primary-foreground: 28 25 23;
-    --sidebar-accent: 41 37 36;
-    --sidebar-accent-foreground: 250 250 249;
-    --sidebar-border: 87 83 78;
-    --sidebar-ring: 251 146 60;
+    /* Chart Colors */
+    --chart-1: 180 100% 43%;
+    --chart-2: 145 80% 45%;
+    --chart-3: 38 95% 55%;
+    --chart-4: 280 70% 55%;
+    --chart-5: 0 72% 51%;
   }
 }
 
@@ -99,20 +90,227 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Inter', system-ui, sans-serif;
   }
 
-  .terra-gradient {
-    background: linear-gradient(135deg, rgb(234 88 12) 0%, rgb(251 146 60) 100%);
+  /* Sovereign Scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
   }
 
-  .construction-pattern {
-    background-image: repeating-linear-gradient(
-      45deg,
-      transparent,
-      transparent 10px,
-      rgba(234, 88, 12, 0.1) 10px,
-      rgba(234, 88, 12, 0.1) 20px
+  ::-webkit-scrollbar-track {
+    background: hsl(var(--tf-substrate));
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--tf-elevated));
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--tf-transcend-cyan) / 0.5);
+  }
+}
+
+@layer components {
+  /* Glass Morphism - Sovereign Card */
+  .glass-card {
+    background: hsl(var(--tf-surface) / 0.8);
+    backdrop-filter: blur(20px);
+    border: 1px solid hsl(var(--tf-transcend-cyan) / 0.1);
+    box-shadow: 
+      0 0 30px hsl(var(--tf-transcend-cyan) / 0.05),
+      inset 0 1px 0 hsl(var(--tf-transcend-cyan) / 0.05);
+  }
+
+  .glass-card-hover:hover {
+    border-color: hsl(var(--tf-transcend-cyan) / 0.3);
+    box-shadow: 
+      0 0 40px hsl(var(--tf-transcend-cyan) / 0.1),
+      inset 0 1px 0 hsl(var(--tf-transcend-cyan) / 0.1);
+  }
+
+  /* Quantum Glow Effects */
+  .quantum-glow {
+    box-shadow: 
+      0 0 20px hsl(var(--tf-transcend-cyan) / 0.3),
+      0 0 40px hsl(var(--tf-transcend-cyan) / 0.1);
+  }
+
+  .quantum-glow-pulse {
+    animation: quantum-pulse 3s ease-in-out infinite;
+  }
+
+  /* Sovereign Button */
+  .btn-sovereign {
+    background: linear-gradient(135deg, 
+      hsl(var(--tf-transcend-cyan)) 0%, 
+      hsl(var(--tf-bright-cyan)) 100%
     );
+    color: hsl(var(--tf-substrate));
+    font-weight: 600;
+    transition: all 0.3s ease;
+  }
+
+  .btn-sovereign:hover {
+    box-shadow: 0 0 30px hsl(var(--tf-transcend-cyan) / 0.5);
+    transform: translateY(-1px);
+  }
+
+  /* VEI Metric Card */
+  .metric-card {
+    background: hsl(var(--tf-surface));
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+  }
+
+  .metric-card:hover {
+    border-color: hsl(var(--tf-transcend-cyan) / 0.3);
+  }
+
+  /* Status Indicators */
+  .status-verified {
+    color: hsl(var(--tf-optimized-green));
+  }
+
+  .status-pending {
+    color: hsl(var(--tf-anomaly-amber));
+  }
+
+  .status-anomaly {
+    color: hsl(var(--tf-warning-red));
+  }
+
+  /* Sovereign Text Gradient */
+  .text-gradient-sovereign {
+    background: linear-gradient(135deg, 
+      hsl(var(--tf-transcend-cyan)) 0%, 
+      hsl(var(--tf-bright-cyan)) 50%,
+      hsl(var(--tf-optimized-green)) 100%
+    );
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Radial Menu Node */
+  .sovereign-node {
+    background: hsl(var(--tf-surface));
+    border: 2px solid hsl(var(--tf-transcend-cyan) / 0.3);
+    border-radius: 50%;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .sovereign-node:hover {
+    border-color: hsl(var(--tf-transcend-cyan));
+    box-shadow: 0 0 20px hsl(var(--tf-transcend-cyan) / 0.4);
+    transform: scale(1.05);
+  }
+
+  /* Chart Grid Lines */
+  .chart-grid {
+    stroke: hsl(var(--border));
+    stroke-width: 1;
+    stroke-dasharray: 4 4;
+  }
+
+  /* Progress Bar - Sacred */
+  .progress-sacred {
+    background: hsl(var(--tf-elevated));
+    border-radius: 9999px;
+    overflow: hidden;
+  }
+
+  .progress-sacred-fill {
+    background: linear-gradient(90deg, 
+      hsl(var(--tf-transcend-cyan)) 0%, 
+      hsl(var(--tf-optimized-green)) 100%
+    );
+    height: 100%;
+    transition: width 0.5s ease;
+  }
+
+  /* Data Table - Government Grade */
+  .table-sovereign {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+
+  .table-sovereign th {
+    background: hsl(var(--tf-elevated));
+    padding: 0.75rem 1rem;
+    text-align: left;
+    font-weight: 500;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .table-sovereign td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid hsl(var(--border));
+  }
+
+  .table-sovereign tr:hover td {
+    background: hsl(var(--tf-surface));
+  }
+}
+
+@layer utilities {
+  /* Phi-based spacing */
+  .gap-phi {
+    gap: calc(1rem * 1.618);
+  }
+
+  .p-phi {
+    padding: calc(1rem * 1.618);
+  }
+
+  .m-phi {
+    margin: calc(1rem * 1.618);
+  }
+
+  /* Animation keyframes */
+  @keyframes quantum-pulse {
+    0%, 100% {
+      box-shadow: 
+        0 0 20px hsl(var(--tf-transcend-cyan) / 0.3),
+        0 0 40px hsl(var(--tf-transcend-cyan) / 0.1);
+    }
+    50% {
+      box-shadow: 
+        0 0 30px hsl(var(--tf-transcend-cyan) / 0.5),
+        0 0 60px hsl(var(--tf-transcend-cyan) / 0.2);
+    }
+  }
+
+  @keyframes orb-rotate {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  @keyframes fade-in-up {
+    0% {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-fade-in-up {
+    animation: fade-in-up 0.5s ease-out forwards;
+  }
+
+  .animate-orb-rotate {
+    animation: orb-rotate 20s linear infinite;
   }
 }
