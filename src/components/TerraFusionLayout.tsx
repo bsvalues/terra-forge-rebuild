@@ -5,17 +5,7 @@ import { SovereignSidebar } from "./navigation/SovereignSidebar";
 import { SovereignHeader } from "./navigation/SovereignHeader";
 import { SovereignOrb } from "./navigation/SovereignOrb";
 import { VEIDashboard } from "./vei/VEIDashboard";
-
-// Placeholder components for future modules
-const CostForgePlaceholder = () => (
-  <div className="p-6">
-    <div className="glass-card p-12 rounded-lg text-center">
-      <h2 className="text-2xl font-light text-gradient-sovereign mb-4">CostForge AI</h2>
-      <p className="text-muted-foreground">3-6-9 Quantum Valuation Engine</p>
-      <p className="text-sm text-muted-foreground mt-2">Coming in Phase 2</p>
-    </div>
-  </div>
-);
+import { CostForgeDashboard } from "./costforge/CostForgeDashboard";
 
 const AVMStudioPlaceholder = () => (
   <div className="p-6">
@@ -66,7 +56,7 @@ const moduleConfig: Record<string, { title: string; description: string; compone
   costforge: {
     title: "CostForge AI",
     description: "3-6-9 Quantum Valuation Engine",
-    component: CostForgePlaceholder,
+    component: CostForgeDashboard,
   },
   avm: {
     title: "AVM Studio",
