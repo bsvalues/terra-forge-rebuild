@@ -6,16 +6,7 @@ import { SovereignHeader } from "./navigation/SovereignHeader";
 import { SovereignOrb } from "./navigation/SovereignOrb";
 import { VEIDashboard } from "./vei/VEIDashboard";
 import { CostForgeDashboard } from "./costforge/CostForgeDashboard";
-
-const AVMStudioPlaceholder = () => (
-  <div className="p-6">
-    <div className="glass-card p-12 rounded-lg text-center">
-      <h2 className="text-2xl font-light text-gradient-sovereign mb-4">AVM Studio</h2>
-      <p className="text-muted-foreground">Machine Learning Model Laboratory</p>
-      <p className="text-sm text-muted-foreground mt-2">Coming in Phase 3</p>
-    </div>
-  </div>
-);
+import { AVMStudioDashboard } from "./avm/AVMStudioDashboard";
 
 const AxiomFSPlaceholder = () => (
   <div className="p-6">
@@ -61,7 +52,7 @@ const moduleConfig: Record<string, { title: string; description: string; compone
   avm: {
     title: "AVM Studio",
     description: "Machine Learning Model Laboratory",
-    component: AVMStudioPlaceholder,
+    component: AVMStudioDashboard,
   },
   axiom: {
     title: "AxiomFS",
