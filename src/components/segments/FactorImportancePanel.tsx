@@ -63,6 +63,8 @@ export function FactorImportancePanel({ studyPeriodId }: FactorImportancePanelPr
     );
   }
 
+  // Check if any factors came from regression
+  const hasRegressionData = factors.some(f => f.fromRegression);
   const maxImportance = Math.max(...factors.map(f => f.importance), 0.01);
 
   return (
@@ -71,14 +73,24 @@ export function FactorImportancePanel({ studyPeriodId }: FactorImportancePanelPr
         <div className="flex items-center justify-between">
           <CardTitle className="text-base flex items-center gap-2">
             <TrendingUp className="w-4 h-4 text-tf-cyan" />
-            Factor Importance — Regression Analysis
+            Factor Importance — {hasRegressionData ? "Regression Studio" : "Regression Analysis"}
           </CardTitle>
-          <Badge variant="outline" className="text-xs">
-            Variance Explained (R²)
-          </Badge>
+          <div className="flex items-center gap-2">
+            {hasRegressionData && (
+              <Badge className="bg-tf-optimized-green/20 text-tf-optimized-green text-xs">
+                From Regression
+              </Badge>
+            )}
+            <Badge variant="outline" className="text-xs">
+              Variance Explained (R²)
+            </Badge>
+          </div>
         </div>
         <p className="text-xs text-muted-foreground mt-1">
-          Identifies which property characteristics most impact assessment ratio variation
+          {hasRegressionData 
+            ? "Coefficients from Regression Studio — click 'Run Analysis' in Regression Studio to update"
+            : "Identifies which property characteristics most impact assessment ratio variation"
+          }
         </p>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -136,8 +148,18 @@ function FactorRow({
           ) : (
             <X className="w-3 h-3 text-muted-foreground" />
           )}
+          {factor.fromRegression && (
+            <Badge variant="outline" className="text-[10px] px-1 py-0 h-4">
+              β̂
+            </Badge>
+          )}
         </div>
         <div className="flex items-center gap-2">
+          {factor.fromRegression && factor.coefficient !== 0 && (
+            <span className={`text-xs font-mono ${factor.coefficient > 0 ? 'text-tf-caution-amber' : 'text-tf-transcend-cyan'}`}>
+              {factor.coefficient > 0 ? '+' : ''}{factor.coefficient.toFixed(4)}
+            </span>
+          )}
           <span className={`text-sm font-mono ${factor.significant ? 'text-tf-transcend-cyan' : 'text-muted-foreground'}`}>
             {(factor.importance * 100).toFixed(1)}%
           </span>
@@ -173,6 +195,13 @@ function FactorRow({
       <p className="text-xs text-muted-foreground italic">
         {factor.segmentRecommendation}
       </p>
+
+      {/* VIF warning if high */}
+      {factor.vif > 2.5 && (
+        <p className="text-xs text-tf-caution-amber">
+          ⚠️ VIF: {factor.vif.toFixed(2)} — potential multicollinearity
+        </p>
+      )}
     </motion.div>
   );
 }

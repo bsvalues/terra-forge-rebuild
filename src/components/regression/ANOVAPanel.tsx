@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Check, AlertCircle } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   BarChart,
   Bar,
@@ -13,46 +14,46 @@ import {
   ResponsiveContainer,
   Cell,
 } from "recharts";
+import { ANOVARow, RegressionResult } from "@/hooks/useRegressionAnalysis";
 
-interface ANOVARow {
-  source: string;
-  df: number;
-  sumSq: number;
-  meanSq: number;
-  fValue: number | null;
-  pValue: number | null;
-  etaSq: number | null;
+interface ANOVAPanelProps {
+  result: RegressionResult | undefined;
+  isLoading: boolean;
 }
-
-const anovaData: ANOVARow[] = [
-  { source: "Living_Area", df: 1, sumSq: 8.45e12, meanSq: 8.45e12, fValue: 5456.32, pValue: 0.0001, etaSq: 0.412 },
-  { source: "Lot_Size", df: 1, sumSq: 2.34e12, meanSq: 2.34e12, fValue: 1512.45, pValue: 0.0001, etaSq: 0.114 },
-  { source: "Year_Built", df: 1, sumSq: 1.89e12, meanSq: 1.89e12, fValue: 1221.87, pValue: 0.0001, etaSq: 0.092 },
-  { source: "Bedrooms", df: 1, sumSq: 1.23e12, meanSq: 1.23e12, fValue: 795.23, pValue: 0.0001, etaSq: 0.060 },
-  { source: "Bathrooms", df: 1, sumSq: 1.67e12, meanSq: 1.67e12, fValue: 1078.45, pValue: 0.0001, etaSq: 0.081 },
-  { source: "Garage_Spaces", df: 1, sumSq: 0.89e12, meanSq: 0.89e12, fValue: 574.56, pValue: 0.0001, etaSq: 0.043 },
-  { source: "Pool", df: 1, sumSq: 1.12e12, meanSq: 1.12e12, fValue: 723.89, pValue: 0.0001, etaSq: 0.055 },
-  { source: "Distance_CBD", df: 1, sumSq: 0.67e12, meanSq: 0.67e12, fValue: 432.78, pValue: 0.0001, etaSq: 0.033 },
-  { source: "School_Rating", df: 1, sumSq: 0.12e12, meanSq: 0.12e12, fValue: 77.45, pValue: 0.0234, etaSq: 0.006 },
-  { source: "Residuals", df: 2837, sumSq: 4.39e12, meanSq: 1.55e9, fValue: null, pValue: null, etaSq: null },
-];
-
-const effectSizeData = anovaData
-  .filter(d => d.etaSq !== null)
-  .map(d => ({
-    variable: d.source.replace("_", " "),
-    etaSq: (d.etaSq! * 100),
-  }))
-  .sort((a, b) => b.etaSq - a.etaSq);
 
 const formatNumber = (num: number): string => {
   if (num >= 1e12) return `${(num / 1e12).toFixed(2)}×10¹²`;
   if (num >= 1e9) return `${(num / 1e9).toFixed(2)}×10⁹`;
   if (num >= 1e6) return `${(num / 1e6).toFixed(2)}×10⁶`;
-  return num.toLocaleString();
+  if (num >= 1000) return num.toLocaleString(undefined, { maximumFractionDigits: 2 });
+  return num.toFixed(4);
 };
 
-export function ANOVAPanel() {
+export function ANOVAPanel({ result, isLoading }: ANOVAPanelProps) {
+  if (isLoading) {
+    return <ANOVASkeleton />;
+  }
+
+  if (!result) {
+    return (
+      <div className="glass-card rounded-lg p-8 text-center">
+        <p className="text-muted-foreground">
+          No ANOVA results available. Run regression analysis first.
+        </p>
+      </div>
+    );
+  }
+
+  const { anova, diagnostics } = result;
+
+  const effectSizeData = anova
+    .filter(d => d.etaSq !== null)
+    .map(d => ({
+      variable: d.source.replace("_", " "),
+      etaSq: (d.etaSq! * 100),
+    }))
+    .sort((a, b) => b.etaSq - a.etaSq);
+
   return (
     <div className="space-y-6">
       {/* Type III ANOVA Table */}
@@ -89,7 +90,7 @@ export function ANOVAPanel() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {anovaData.map((row) => (
+                  {anova.map((row) => (
                     <TableRow 
                       key={row.source} 
                       className={`border-border/30 ${row.source === 'Residuals' ? 'bg-tf-elevated/30' : ''}`}
@@ -145,8 +146,8 @@ export function ANOVAPanel() {
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border) / 0.3)" />
                 <XAxis
                   type="number"
-                  domain={[0, 50]}
-                  tickFormatter={(v) => `${v}%`}
+                  domain={[0, Math.max(50, ...effectSizeData.map(d => d.etaSq)) * 1.1]}
+                  tickFormatter={(v) => `${v.toFixed(0)}%`}
                   tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
                 />
                 <YAxis
@@ -198,7 +199,7 @@ export function ANOVAPanel() {
           </div>
         </motion.div>
 
-        {/* Post-Hoc Tests */}
+        {/* Model Assumptions Check */}
         <motion.div
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
@@ -209,62 +210,99 @@ export function ANOVAPanel() {
             Model Assumptions Check
           </h3>
           <div className="space-y-4">
-            <div className="flex items-center justify-between p-3 bg-tf-elevated/30 rounded-lg">
-              <div className="flex items-center gap-3">
-                <Check className="w-5 h-5 text-tf-optimized-green" />
-                <div>
-                  <p className="text-sm font-medium">Linearity</p>
-                  <p className="text-xs text-muted-foreground">Rainbow test: p = 0.234</p>
-                </div>
-              </div>
-              <Badge className="bg-tf-optimized-green/20 text-tf-optimized-green">Pass</Badge>
-            </div>
-
-            <div className="flex items-center justify-between p-3 bg-tf-elevated/30 rounded-lg">
-              <div className="flex items-center gap-3">
-                <Check className="w-5 h-5 text-tf-optimized-green" />
-                <div>
-                  <p className="text-sm font-medium">Normality</p>
-                  <p className="text-xs text-muted-foreground">Shapiro-Wilk: p = 0.087</p>
-                </div>
-              </div>
-              <Badge className="bg-tf-optimized-green/20 text-tf-optimized-green">Pass</Badge>
-            </div>
-
-            <div className="flex items-center justify-between p-3 bg-tf-elevated/30 rounded-lg">
-              <div className="flex items-center gap-3">
-                <AlertCircle className="w-5 h-5 text-tf-caution-amber" />
-                <div>
-                  <p className="text-sm font-medium">Homoscedasticity</p>
-                  <p className="text-xs text-muted-foreground">Breusch-Pagan: p = 0.042</p>
-                </div>
-              </div>
-              <Badge className="bg-tf-caution-amber/20 text-tf-caution-amber">Marginal</Badge>
-            </div>
-
-            <div className="flex items-center justify-between p-3 bg-tf-elevated/30 rounded-lg">
-              <div className="flex items-center gap-3">
-                <Check className="w-5 h-5 text-tf-optimized-green" />
-                <div>
-                  <p className="text-sm font-medium">Independence</p>
-                  <p className="text-xs text-muted-foreground">Durbin-Watson: 1.987</p>
-                </div>
-              </div>
-              <Badge className="bg-tf-optimized-green/20 text-tf-optimized-green">Pass</Badge>
-            </div>
-
-            <div className="flex items-center justify-between p-3 bg-tf-elevated/30 rounded-lg">
-              <div className="flex items-center gap-3">
-                <Check className="w-5 h-5 text-tf-optimized-green" />
-                <div>
-                  <p className="text-sm font-medium">No Multicollinearity</p>
-                  <p className="text-xs text-muted-foreground">Max VIF: 3.12 (&lt; 5)</p>
-                </div>
-              </div>
-              <Badge className="bg-tf-optimized-green/20 text-tf-optimized-green">Pass</Badge>
-            </div>
+            <DiagnosticRow
+              label="Linearity"
+              description={`Rainbow test: p = ${diagnostics.linearityPValue.toFixed(3)}`}
+              passed={diagnostics.linearityPassed}
+            />
+            <DiagnosticRow
+              label="Normality"
+              description={`Shapiro-Wilk: p = ${diagnostics.normalityPValue.toFixed(3)}`}
+              passed={diagnostics.normalityPassed}
+            />
+            <DiagnosticRow
+              label="Homoscedasticity"
+              description={`Breusch-Pagan: p = ${diagnostics.homoscedasticityPValue.toFixed(3)}`}
+              passed={diagnostics.homoscedasticityPassed}
+              marginal={!diagnostics.homoscedasticityPassed && diagnostics.homoscedasticityPValue > 0.01}
+            />
+            <DiagnosticRow
+              label="Independence"
+              description={`Durbin-Watson: ${diagnostics.durbinWatson.toFixed(3)}`}
+              passed={diagnostics.independencePassed}
+            />
+            <DiagnosticRow
+              label="No Multicollinearity"
+              description={`Max VIF: ${diagnostics.maxVIF.toFixed(2)} (< 5)`}
+              passed={diagnostics.multicollinearityPassed}
+            />
           </div>
         </motion.div>
+      </div>
+    </div>
+  );
+}
+
+function DiagnosticRow({ 
+  label, 
+  description, 
+  passed, 
+  marginal 
+}: { 
+  label: string; 
+  description: string; 
+  passed: boolean;
+  marginal?: boolean;
+}) {
+  const status = passed ? "Pass" : marginal ? "Marginal" : "Fail";
+  const statusClass = passed 
+    ? "bg-tf-optimized-green/20 text-tf-optimized-green"
+    : marginal 
+    ? "bg-tf-caution-amber/20 text-tf-caution-amber"
+    : "bg-tf-alert-red/20 text-tf-alert-red";
+  const Icon = passed ? Check : AlertCircle;
+  const iconClass = passed 
+    ? "text-tf-optimized-green" 
+    : marginal 
+    ? "text-tf-caution-amber" 
+    : "text-tf-alert-red";
+
+  return (
+    <div className="flex items-center justify-between p-3 bg-tf-elevated/30 rounded-lg">
+      <div className="flex items-center gap-3">
+        <Icon className={`w-5 h-5 ${iconClass}`} />
+        <div>
+          <p className="text-sm font-medium">{label}</p>
+          <p className="text-xs text-muted-foreground">{description}</p>
+        </div>
+      </div>
+      <Badge className={statusClass}>{status}</Badge>
+    </div>
+  );
+}
+
+function ANOVASkeleton() {
+  return (
+    <div className="space-y-6">
+      <Card className="glass-card">
+        <CardHeader>
+          <Skeleton className="h-5 w-64" />
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-2">
+            {[1, 2, 3, 4, 5, 6].map(i => (
+              <Skeleton key={i} className="h-10 w-full" />
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="glass-card rounded-lg p-5">
+          <Skeleton className="h-64 w-full" />
+        </div>
+        <div className="glass-card rounded-lg p-5">
+          <Skeleton className="h-64 w-full" />
+        </div>
       </div>
     </div>
   );
