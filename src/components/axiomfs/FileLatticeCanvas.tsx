@@ -1,6 +1,6 @@
 import { useRef, useMemo, useState } from "react";
-import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { OrbitControls, Text, Float } from "@react-three/drei";
+import { Canvas, useFrame } from "@react-three/fiber";
+import { OrbitControls, Text, Float, Line } from "@react-three/drei";
 import * as THREE from "three";
 import type { FileNode } from "./AxiomFSDashboard";
 
@@ -177,17 +177,15 @@ function PhiLattice({ files, selectedFile, onSelectFile }: PhiLatticeProps) {
           const childPos = filePositions.find((fp) => fp.file.id === child.id);
           if (!childPos) return null;
           
-          const points = [
-            new THREE.Vector3(...position),
-            new THREE.Vector3(...childPos.position),
-          ];
-          const geometry = new THREE.BufferGeometry().setFromPoints(points);
-          
           return (
-            <line key={`${file.id}-${child.id}`}>
-              <bufferGeometry attach="geometry" {...geometry} />
-              <lineBasicMaterial attach="material" color="#00D9D9" opacity={0.2} transparent />
-            </line>
+            <Line
+              key={`${file.id}-${child.id}`}
+              points={[position, childPos.position]}
+              color="#00D9D9"
+              lineWidth={1}
+              transparent
+              opacity={0.3}
+            />
           );
         });
       })}
