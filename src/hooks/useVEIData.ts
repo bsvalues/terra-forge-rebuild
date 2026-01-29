@@ -213,10 +213,13 @@ export function useSampleSize(studyPeriodId: string | undefined) {
 // Helper functions
 function getTierColor(tier: string): string {
   const colors: Record<string, string> = {
+    "low": "var(--tier-q1)",
     "Q1": "var(--tier-q1)",
     "Q1 (Low)": "var(--tier-q1)",
+    "medium": "var(--tier-q2)",
     "Q2": "var(--tier-q2)",
     "Q3": "var(--tier-q3)",
+    "high": "var(--tier-q4)",
     "Q4": "var(--tier-q4)",
     "Q4 (High)": "var(--tier-q4)",
   };
@@ -225,12 +228,25 @@ function getTierColor(tier: string): string {
 
 function getTierOrder(tier: string): number {
   const order: Record<string, number> = {
+    "low": 1,
     "Q1": 1,
     "Q1 (Low)": 1,
+    "medium": 2,
     "Q2": 2,
     "Q3": 3,
+    "high": 4,
     "Q4": 4,
     "Q4 (High)": 4,
   };
   return order[tier] || 99;
+}
+
+// Normalize tier names for display
+export function normalizeTierName(tier: string): string {
+  const mapping: Record<string, string> = {
+    "low": "Q1 (Low)",
+    "medium": "Q2/Q3",
+    "high": "Q4 (High)",
+  };
+  return mapping[tier] || tier;
 }
