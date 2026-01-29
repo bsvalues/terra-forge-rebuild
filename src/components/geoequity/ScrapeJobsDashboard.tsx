@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   Globe,
   Play,
@@ -18,10 +19,12 @@ import {
   Calendar,
   RefreshCw,
   Zap,
+  BarChart3,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { CountyDataQualityReport } from "./CountyDataQualityReport";
 
 interface ScrapeJob {
   id: string;
@@ -155,8 +158,7 @@ export function ScrapeJobsDashboard() {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header Actions */}
+    <Tabs defaultValue="jobs" className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-lg font-medium text-foreground flex items-center gap-2">
@@ -167,7 +169,17 @@ export function ScrapeJobsDashboard() {
             Background job processing for all 39 Washington counties
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex items-center gap-2">
+          <TabsList className="bg-tf-elevated/50">
+            <TabsTrigger value="jobs" className="gap-2 data-[state=active]:bg-tf-cyan/20">
+              <Zap className="w-4 h-4" />
+              Jobs
+            </TabsTrigger>
+            <TabsTrigger value="quality" className="gap-2 data-[state=active]:bg-tf-sacred-gold/20">
+              <BarChart3 className="w-4 h-4" />
+              Data Quality
+            </TabsTrigger>
+          </TabsList>
           <Button
             variant="outline"
             size="sm"
@@ -192,205 +204,211 @@ export function ScrapeJobsDashboard() {
         </div>
       </div>
 
-      {/* Active Job Card */}
-      {activeJob && (
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="glass-card rounded-lg p-4 border-2 border-tf-cyan/50"
-        >
-          <div className="flex items-start justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-tf-cyan/20 flex items-center justify-center">
-                <Loader2 className="w-5 h-5 text-tf-cyan animate-spin" />
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="font-medium text-foreground">
-                    {activeJob.job_type === "statewide" ? "Statewide Collection" : activeJob.job_type}
-                  </span>
-                  <Badge className={STATUS_COLORS[activeJob.status]}>
-                    {STATUS_ICONS[activeJob.status]}
-                    <span className="ml-1 capitalize">{activeJob.status}</span>
-                  </Badge>
+      <TabsContent value="jobs" className="mt-0 space-y-6">
+        {/* Active Job Card */}
+        {activeJob && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="glass-card rounded-lg p-4 border-2 border-tf-cyan/50"
+          >
+            <div className="flex items-start justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-tf-cyan/20 flex items-center justify-center">
+                  <Loader2 className="w-5 h-5 text-tf-cyan animate-spin" />
                 </div>
-                <p className="text-sm text-muted-foreground">
-                  Processing {activeJob.current_county || "..."} County
-                </p>
-              </div>
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => cancelJobMutation.mutate(activeJob.id)}
-              disabled={cancelJobMutation.isPending}
-              className="text-destructive hover:text-destructive"
-            >
-              <Square className="w-4 h-4 mr-1" />
-              Cancel
-            </Button>
-          </div>
-
-          <div className="space-y-3">
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">Progress</span>
-              <span className="font-medium">
-                {activeJob.counties_completed} / {activeJob.counties_total} counties
-              </span>
-            </div>
-            <Progress
-              value={(activeJob.counties_completed / activeJob.counties_total) * 100}
-              className="h-2"
-            />
-            <div className="grid grid-cols-3 gap-4 mt-4">
-              <div className="text-center">
-                <div className="text-2xl font-light text-tf-optimized-green">
-                  {activeJob.parcels_enriched}
-                </div>
-                <div className="text-xs text-muted-foreground">Parcels Enriched</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-light text-tf-sacred-gold">
-                  {activeJob.sales_added}
-                </div>
-                <div className="text-xs text-muted-foreground">Sales Added</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-light text-foreground">
-                  {formatDuration(activeJob.started_at, null)}
-                </div>
-                <div className="text-xs text-muted-foreground">Elapsed Time</div>
-              </div>
-            </div>
-          </div>
-        </motion.div>
-      )}
-
-      {/* Quick Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card className="bg-tf-elevated border-tf-border">
-          <CardContent className="pt-4">
-            <div className="flex items-center gap-2 text-muted-foreground text-xs mb-1">
-              <Globe className="w-4 h-4" />
-              Total Jobs
-            </div>
-            <div className="text-2xl font-light text-foreground">{jobs.length}</div>
-          </CardContent>
-        </Card>
-        <Card className="bg-tf-elevated border-tf-border">
-          <CardContent className="pt-4">
-            <div className="flex items-center gap-2 text-muted-foreground text-xs mb-1">
-              <TrendingUp className="w-4 h-4" />
-              Parcels Enriched
-            </div>
-            <div className="text-2xl font-light text-tf-optimized-green">
-              {jobs.reduce((sum, j) => sum + (j.parcels_enriched || 0), 0).toLocaleString()}
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="bg-tf-elevated border-tf-border">
-          <CardContent className="pt-4">
-            <div className="flex items-center gap-2 text-muted-foreground text-xs mb-1">
-              <Database className="w-4 h-4" />
-              Sales Added
-            </div>
-            <div className="text-2xl font-light text-tf-sacred-gold">
-              {jobs.reduce((sum, j) => sum + (j.sales_added || 0), 0).toLocaleString()}
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="bg-tf-elevated border-tf-border">
-          <CardContent className="pt-4">
-            <div className="flex items-center gap-2 text-muted-foreground text-xs mb-1">
-              <CheckCircle className="w-4 h-4" />
-              Success Rate
-            </div>
-            <div className="text-2xl font-light text-tf-cyan">
-              {completedJobs.length > 0
-                ? Math.round(
-                    (completedJobs.filter((j) => j.status === "completed").length /
-                      completedJobs.length) *
-                      100
-                  )
-                : 0}
-              %
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Job History */}
-      <Card className="bg-tf-elevated border-tf-border">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base flex items-center gap-2">
-            <Calendar className="w-4 h-4 text-tf-cyan" />
-            Job History
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ScrollArea className="h-[300px]">
-            <div className="space-y-2">
-              {jobs.map((job) => (
-                <div
-                  key={job.id}
-                  className="flex items-center justify-between p-3 rounded-lg bg-tf-substrate hover:bg-tf-substrate/80 transition-colors"
-                >
-                  <div className="flex items-center gap-3">
-                    <div
-                      className={`w-8 h-8 rounded-full flex items-center justify-center ${STATUS_COLORS[job.status]}`}
-                    >
-                      {STATUS_ICONS[job.status]}
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium text-sm capitalize">
-                          {job.job_type}
-                        </span>
-                        <Badge variant="outline" className="text-xs">
-                          {job.counties_total} counties
-                        </Badge>
-                      </div>
-                      <p className="text-xs text-muted-foreground">
-                        {formatDate(job.created_at)}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-6 text-sm">
-                    <div className="text-right">
-                      <div className="font-medium text-tf-optimized-green">
-                        +{job.parcels_enriched || 0}
-                      </div>
-                      <div className="text-xs text-muted-foreground">parcels</div>
-                    </div>
-                    <div className="text-right">
-                      <div className="font-medium text-tf-sacred-gold">
-                        +{job.sales_added || 0}
-                      </div>
-                      <div className="text-xs text-muted-foreground">sales</div>
-                    </div>
-                    <div className="text-right min-w-[60px]">
-                      <div className="font-medium text-foreground">
-                        {formatDuration(job.started_at, job.completed_at)}
-                      </div>
-                      <div className="text-xs text-muted-foreground">duration</div>
-                    </div>
-                    <Badge className={`${STATUS_COLORS[job.status]} min-w-[80px] justify-center`}>
-                      {job.status}
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium text-foreground">
+                      {activeJob.job_type === "statewide" ? "Statewide Collection" : activeJob.job_type}
+                    </span>
+                    <Badge className={STATUS_COLORS[activeJob.status]}>
+                      {STATUS_ICONS[activeJob.status]}
+                      <span className="ml-1 capitalize">{activeJob.status}</span>
                     </Badge>
                   </div>
+                  <p className="text-sm text-muted-foreground">
+                    Processing {activeJob.current_county || "..."} County
+                  </p>
                 </div>
-              ))}
-              {jobs.length === 0 && (
-                <div className="text-center py-8 text-muted-foreground">
-                  <Globe className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                  <p>No scrape jobs yet</p>
-                  <p className="text-xs">Click "Scrape All Counties" to start</p>
-                </div>
-              )}
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => cancelJobMutation.mutate(activeJob.id)}
+                disabled={cancelJobMutation.isPending}
+                className="text-destructive hover:text-destructive"
+              >
+                <Square className="w-4 h-4 mr-1" />
+                Cancel
+              </Button>
             </div>
-          </ScrollArea>
-        </CardContent>
-      </Card>
-    </div>
+
+            <div className="space-y-3">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">Progress</span>
+                <span className="font-medium">
+                  {activeJob.counties_completed} / {activeJob.counties_total} counties
+                </span>
+              </div>
+              <Progress
+                value={(activeJob.counties_completed / activeJob.counties_total) * 100}
+                className="h-2"
+              />
+              <div className="grid grid-cols-3 gap-4 mt-4">
+                <div className="text-center">
+                  <div className="text-2xl font-light text-tf-optimized-green">
+                    {activeJob.parcels_enriched}
+                  </div>
+                  <div className="text-xs text-muted-foreground">Parcels Enriched</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-light text-tf-sacred-gold">
+                    {activeJob.sales_added}
+                  </div>
+                  <div className="text-xs text-muted-foreground">Sales Added</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-light text-foreground">
+                    {formatDuration(activeJob.started_at, null)}
+                  </div>
+                  <div className="text-xs text-muted-foreground">Elapsed Time</div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Quick Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <Card className="bg-tf-elevated border-tf-border">
+            <CardContent className="pt-4">
+              <div className="flex items-center gap-2 text-muted-foreground text-xs mb-1">
+                <Globe className="w-4 h-4" />
+                Total Jobs
+              </div>
+              <div className="text-2xl font-light text-foreground">{jobs.length}</div>
+            </CardContent>
+          </Card>
+          <Card className="bg-tf-elevated border-tf-border">
+            <CardContent className="pt-4">
+              <div className="flex items-center gap-2 text-muted-foreground text-xs mb-1">
+                <TrendingUp className="w-4 h-4" />
+                Parcels Enriched
+              </div>
+              <div className="text-2xl font-light text-tf-optimized-green">
+                {jobs.reduce((sum, j) => sum + (j.parcels_enriched || 0), 0).toLocaleString()}
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="bg-tf-elevated border-tf-border">
+            <CardContent className="pt-4">
+              <div className="flex items-center gap-2 text-muted-foreground text-xs mb-1">
+                <Database className="w-4 h-4" />
+                Sales Added
+              </div>
+              <div className="text-2xl font-light text-tf-sacred-gold">
+                {jobs.reduce((sum, j) => sum + (j.sales_added || 0), 0).toLocaleString()}
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="bg-tf-elevated border-tf-border">
+            <CardContent className="pt-4">
+              <div className="flex items-center gap-2 text-muted-foreground text-xs mb-1">
+                <CheckCircle className="w-4 h-4" />
+                Success Rate
+              </div>
+              <div className="text-2xl font-light text-tf-cyan">
+                {completedJobs.length > 0
+                  ? Math.round(
+                      (completedJobs.filter((j) => j.status === "completed").length /
+                        completedJobs.length) *
+                        100
+                    )
+                  : 0}
+                %
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Job History */}
+        <Card className="bg-tf-elevated border-tf-border">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Calendar className="w-4 h-4 text-tf-cyan" />
+              Job History
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ScrollArea className="h-[300px]">
+              <div className="space-y-2">
+                {jobs.map((job) => (
+                  <div
+                    key={job.id}
+                    className="flex items-center justify-between p-3 rounded-lg bg-tf-substrate hover:bg-tf-substrate/80 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div
+                        className={`w-8 h-8 rounded-full flex items-center justify-center ${STATUS_COLORS[job.status]}`}
+                      >
+                        {STATUS_ICONS[job.status]}
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium text-sm capitalize">
+                            {job.job_type}
+                          </span>
+                          <Badge variant="outline" className="text-xs">
+                            {job.counties_total} counties
+                          </Badge>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          {formatDate(job.created_at)}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-6 text-sm">
+                      <div className="text-right">
+                        <div className="font-medium text-tf-optimized-green">
+                          +{job.parcels_enriched || 0}
+                        </div>
+                        <div className="text-xs text-muted-foreground">parcels</div>
+                      </div>
+                      <div className="text-right">
+                        <div className="font-medium text-tf-sacred-gold">
+                          +{job.sales_added || 0}
+                        </div>
+                        <div className="text-xs text-muted-foreground">sales</div>
+                      </div>
+                      <div className="text-right min-w-[60px]">
+                        <div className="font-medium text-foreground">
+                          {formatDuration(job.started_at, job.completed_at)}
+                        </div>
+                        <div className="text-xs text-muted-foreground">duration</div>
+                      </div>
+                      <Badge className={`${STATUS_COLORS[job.status]} min-w-[80px] justify-center`}>
+                        {job.status}
+                      </Badge>
+                    </div>
+                  </div>
+                ))}
+                {jobs.length === 0 && (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <Globe className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                    <p>No scrape jobs yet</p>
+                    <p className="text-xs">Click "Scrape All Counties" to start</p>
+                  </div>
+                )}
+              </div>
+            </ScrollArea>
+          </CardContent>
+        </Card>
+      </TabsContent>
+
+      <TabsContent value="quality" className="mt-0">
+        <CountyDataQualityReport />
+      </TabsContent>
+    </Tabs>
   );
 }
