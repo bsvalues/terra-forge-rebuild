@@ -1,1 +1,13 @@
 project_id = "jzuculrmjuwrshramgye"
+
+[functions.gis-parse]
+verify_jwt = false
+
+[functions.valuation-ai]
+verify_jwt = false
+
+[functions.gis-sync]
+verify_jwt = false
+
+[functions.arcgis-parcel-sync]
+verify_jwt = false
