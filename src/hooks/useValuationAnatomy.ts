@@ -26,6 +26,8 @@ export interface ParcelValuation {
   propertyClass: string;
   yearBuilt: number | null;
   buildingArea: number | null;
+  latitude: number | null;
+  longitude: number | null;
 }
 
 export interface ValuationSegment {
@@ -65,7 +67,9 @@ export function useParcelValuations(studyPeriodId: string | undefined, limit = 1
             building_area,
             land_area,
             bedrooms,
-            bathrooms
+            bathrooms,
+            latitude,
+            longitude
           )
         `)
         .eq("study_period_id", studyPeriodId)
@@ -97,6 +101,8 @@ export function useParcelValuations(studyPeriodId: string | undefined, limit = 1
           propertyClass: parcel?.property_class || "Residential",
           yearBuilt: parcel?.year_built,
           buildingArea: parcel?.building_area,
+          latitude: parcel?.latitude ? Number(parcel.latitude) : null,
+          longitude: parcel?.longitude ? Number(parcel.longitude) : null,
         };
       });
     },

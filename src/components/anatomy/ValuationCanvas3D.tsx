@@ -577,67 +577,70 @@ function Scene({
     });
   }, [parcels]);
 
-  // Generate geographic positions from lat/lng
-  const geoPositions = useMemo(() => {
-    // Filter parcels with coordinates (using yearBuilt and buildingArea as proxy since we don't have lat/lng in the type yet)
-    // In production, use actual lat/lng from parcel data
-    const parcelsWithCoords = parcels.filter(p => p.neighborhood);
+  // Generate geographic positions from real lat/lng coordinates
+  const { geoPositions, geoBounds } = useMemo(() => {
+    // Filter parcels with actual coordinates
+    const parcelsWithCoords = parcels.filter(p => 
+      p.latitude !== null && p.longitude !== null && 
+      !isNaN(p.latitude) && !isNaN(p.longitude)
+    );
     
     if (parcelsWithCoords.length === 0) {
-      // Fallback to random geographic distribution for demo
-      return parcels.slice(0, 100).map((parcel, index) => {
-        // Simulate geographic distribution based on neighborhood
-        const nbhdHash = parcel.neighborhood.split('').reduce((a, c) => a + c.charCodeAt(0), 0);
-        const baseX = (nbhdHash % 10) - 5;
-        const baseZ = (Math.floor(nbhdHash / 10) % 10) - 5;
-        const jitterX = (Math.random() - 0.5) * 2;
-        const jitterZ = (Math.random() - 0.5) * 2;
+      // Fallback: distribute by neighborhood hash if no real coordinates
+      const fallbackPositions = parcels.slice(0, 150).map((parcel, index) => {
+        const nbhdHash = (parcel.neighborhood || "X").split('').reduce((a, c) => a + c.charCodeAt(0), 0);
+        const baseX = ((nbhdHash % 10) - 5) * 1.5;
+        const baseZ = ((Math.floor(nbhdHash / 10) % 10) - 5) * 1.5;
+        // Deterministic jitter based on parcel id
+        const idHash = parcel.id.split('').reduce((a, c) => a + c.charCodeAt(0), 0);
+        const jitterX = ((idHash % 100) / 100 - 0.5) * 2;
+        const jitterZ = (((idHash * 7) % 100) / 100 - 0.5) * 2;
         
         return {
           parcel,
           position: [baseX + jitterX, 0, baseZ + jitterZ] as [number, number, number],
         };
       });
+
+      return {
+        geoPositions: fallbackPositions,
+        geoBounds: null,
+      };
     }
 
-    // Calculate bounds
-    const lats = parcelsWithCoords.map((_, i) => 32 + (i % 20) * 0.01);
-    const lngs = parcelsWithCoords.map((_, i) => -97 + (Math.floor(i / 20)) * 0.01);
+    // Calculate actual geographic bounds
+    const lats = parcelsWithCoords.map(p => p.latitude!);
+    const lngs = parcelsWithCoords.map(p => p.longitude!);
     
     const minLat = Math.min(...lats);
     const maxLat = Math.max(...lats);
     const minLng = Math.min(...lngs);
     const maxLng = Math.max(...lngs);
     
-    const latRange = maxLat - minLat || 1;
-    const lngRange = maxLng - minLng || 1;
+    const latRange = maxLat - minLat || 0.01;
+    const lngRange = maxLng - minLng || 0.01;
 
-    return parcelsWithCoords.slice(0, 100).map((parcel, index) => {
-      const lat = lats[index];
-      const lng = lngs[index];
-      
-      // Normalize to -10 to 10 range
-      const x = ((lng - minLng) / lngRange) * 18 - 9;
-      const z = ((lat - minLat) / latRange) * 18 - 9;
+    // Map real coordinates to 3D space (-9 to 9 range)
+    const positions = parcelsWithCoords.slice(0, 200).map((parcel) => {
+      const x = ((parcel.longitude! - minLng) / lngRange) * 18 - 9;
+      const z = -((parcel.latitude! - minLat) / latRange) * 18 + 9; // Flip Z for north-up
       
       return {
         parcel,
         position: [x, 0, z] as [number, number, number],
       };
     });
-  }, [parcels]);
 
-  // Calculate geographic bounds for terrain labels
-  const geoBounds = useMemo(() => {
-    if (geoPositions.length === 0) return null;
-    // Simulated bounds for demo
     return {
-      minLat: 32.0,
-      maxLat: 32.2,
-      minLng: -97.2,
-      maxLng: -97.0,
+      geoPositions: positions,
+      geoBounds: {
+        minLat,
+        maxLat,
+        minLng,
+        maxLng,
+      },
     };
-  }, [geoPositions]);
+  }, [parcels]);
 
   // Group parcels by neighborhood for geographic view
   const neighborhoodGroups = useMemo(() => {
