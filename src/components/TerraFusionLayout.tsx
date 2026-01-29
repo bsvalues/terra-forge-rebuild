@@ -11,6 +11,7 @@ import { RegressionStudioDashboard } from "./regression/RegressionStudioDashboar
 import { AxiomFSDashboard } from "./axiomfs/AxiomFSDashboard";
 import { SegmentDiscoveryDashboard } from "./segments";
 import { ValuationAnatomyDashboard } from "./anatomy";
+import { GeoEquityDashboard } from "./geoequity";
 import { StudyPeriodManager } from "./admin";
 
 const SettingsPlaceholder = () => (
@@ -33,6 +34,11 @@ const moduleConfig: Record<string, { title: string; description: string; compone
     title: "Segment Discovery",
     description: "Data-Driven Factor Analysis",
     component: SegmentDiscoveryDashboard,
+  },
+  geoequity: {
+    title: "GeoEquity",
+    description: "Geographic Equity Analysis & GIS Integration",
+    component: GeoEquityDashboard,
   },
   anatomy: {
     title: "Valuation Anatomy",
