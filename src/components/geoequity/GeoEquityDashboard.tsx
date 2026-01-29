@@ -11,6 +11,7 @@ import {
   Upload,
   Server,
   MapPin,
+  Search,
 } from "lucide-react";
 import { StudyPeriodSelector } from "@/components/vei/StudyPeriodSelector";
 import { useStudyPeriods } from "@/hooks/useVEIData";
@@ -19,6 +20,7 @@ import { DataSourcesPanel } from "./DataSourcesPanel";
 import { GISLayersPanel } from "./GISLayersPanel";
 import { GISImportDialog } from "./GISImportDialog";
 import { ArcGISImportDialog } from "./ArcGISImportDialog";
+import { AssessorScrapeDialog } from "./AssessorScrapeDialog";
 import { useGISDataSources, useGISLayers, useNeighborhoodGeoStats } from "@/hooks/useGISData";
 
 export function GeoEquityDashboard() {
@@ -26,6 +28,7 @@ export function GeoEquityDashboard() {
   const [activeTab, setActiveTab] = useState<"map" | "sources" | "layers">("map");
   const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [arcgisImportOpen, setArcgisImportOpen] = useState(false);
+  const [assessorScrapeOpen, setAssessorScrapeOpen] = useState(false);
 
   const { data: studyPeriods, isLoading: isLoadingPeriods } = useStudyPeriods();
   const { data: dataSources = [], isLoading: isLoadingSources } = useGISDataSources();
@@ -84,6 +87,15 @@ export function GeoEquityDashboard() {
           >
             <MapPin className="w-4 h-4" />
             Sync Coords
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-2 border-tf-sacred-gold/50 text-tf-sacred-gold hover:bg-tf-sacred-gold/10"
+            onClick={() => setAssessorScrapeOpen(true)}
+          >
+            <Search className="w-4 h-4" />
+            Scrape Assessor
           </Button>
           <Button variant="outline" size="sm" className="gap-2">
             <Download className="w-4 h-4" />
@@ -189,6 +201,12 @@ export function GeoEquityDashboard() {
         open={arcgisImportOpen}
         onOpenChange={setArcgisImportOpen}
         dataSources={dataSources}
+      />
+
+      {/* Assessor Website Scrape Dialog */}
+      <AssessorScrapeDialog
+        open={assessorScrapeOpen}
+        onOpenChange={setAssessorScrapeOpen}
       />
     </div>
   );
