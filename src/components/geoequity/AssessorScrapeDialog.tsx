@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Dialog,
   DialogContent,
@@ -27,6 +27,8 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { ParcelFiltersPanel, type ParcelFilters } from "./ParcelFilters";
+import { BatchSizeSelector } from "./BatchSizeSelector";
 
 // Washington State County Assessor URLs
 const WA_COUNTY_ASSESSORS = [
@@ -87,7 +89,6 @@ interface ScrapeResult {
   salesAdded?: number;
   failedIds?: string[];
   error?: string;
-  county?: string;
 }
 
 interface BatchResult {
@@ -110,36 +111,71 @@ export function AssessorScrapeDialog({
   const [batchResults, setBatchResults] = useState<BatchResult[]>([]);
   const [parcelsToEnrich, setParcelsToEnrich] = useState<string[]>([]);
   const [loadingParcels, setLoadingParcels] = useState(false);
+  const [filters, setFilters] = useState<ParcelFilters>({});
+  const [batchSize, setBatchSize] = useState(50);
+  const [totalMatchingParcels, setTotalMatchingParcels] = useState(0);
 
   // Persist selected counties to localStorage
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(selectedCounties));
   }, [selectedCounties]);
 
-  // Auto-fetch parcels that need enrichment
-  useEffect(() => {
-    if (open && action === "enrich") {
-      fetchParcelsNeedingEnrichment();
-    }
-  }, [open, action]);
-
-  const fetchParcelsNeedingEnrichment = async () => {
+  // Fetch parcels with filters
+  const fetchParcelsNeedingEnrichment = useCallback(async () => {
     setLoadingParcels(true);
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from("parcels")
-        .select("parcel_number")
-        .or("building_area.is.null,year_built.is.null,bedrooms.is.null")
-        .limit(50);
+        .select("parcel_number", { count: "exact" })
+        .or("building_area.is.null,year_built.is.null,bedrooms.is.null");
+
+      // Apply filters
+      if (filters.neighborhood) {
+        query = query.eq("neighborhood_code", filters.neighborhood);
+      }
+      if (filters.city) {
+        query = query.eq("city", filters.city);
+      }
+      if (filters.propertyClass) {
+        query = query.eq("property_class", filters.propertyClass);
+      }
+      if (filters.minSqft) {
+        query = query.gte("building_area", filters.minSqft);
+      }
+      if (filters.maxSqft) {
+        query = query.lte("building_area", filters.maxSqft);
+      }
+      if (filters.minYear) {
+        query = query.gte("year_built", filters.minYear);
+      }
+      if (filters.maxYear) {
+        query = query.lte("year_built", filters.maxYear);
+      }
+      if (filters.minBeds) {
+        query = query.gte("bedrooms", filters.minBeds);
+      }
+      if (filters.maxBeds) {
+        query = query.lte("bedrooms", filters.maxBeds);
+      }
+
+      const { data, error, count } = await query.limit(batchSize);
 
       if (error) throw error;
       setParcelsToEnrich(data?.map((p) => p.parcel_number) || []);
+      setTotalMatchingParcels(count || 0);
     } catch (err) {
       console.error("Error fetching parcels:", err);
     } finally {
       setLoadingParcels(false);
     }
-  };
+  }, [filters, batchSize]);
+
+  // Auto-fetch parcels on open or when filters/batch size change
+  useEffect(() => {
+    if (open && action === "enrich") {
+      fetchParcelsNeedingEnrichment();
+    }
+  }, [open, action, fetchParcelsNeedingEnrichment]);
 
   const toggleCounty = (county: string) => {
     setSelectedCounties((prev) =>
@@ -164,7 +200,7 @@ export function AssessorScrapeDialog({
     }
 
     if (action === "enrich" && parcelsToEnrich.length === 0) {
-      toast.info("No parcels need enrichment - all have complete data");
+      toast.info("No parcels need enrichment - adjust filters or import data first");
       return;
     }
 
@@ -240,7 +276,7 @@ export function AssessorScrapeDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="bg-tf-elevated border-tf-border max-w-xl max-h-[90vh] overflow-hidden flex flex-col">
+      <DialogContent className="bg-tf-elevated border-tf-border max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Globe className="w-5 h-5 text-tf-cyan" />
@@ -248,7 +284,7 @@ export function AssessorScrapeDialog({
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4 pt-2 flex-1 overflow-hidden flex flex-col">
+        <div className="space-y-3 pt-2 flex-1 overflow-hidden flex flex-col">
           {/* Action Tabs */}
           <Tabs value={action} onValueChange={(v) => setAction(v as typeof action)}>
             <TabsList className="grid grid-cols-3 w-full">
@@ -267,84 +303,170 @@ export function AssessorScrapeDialog({
             </TabsList>
           </Tabs>
 
-          {/* County Multi-Selector */}
-          <div className="space-y-2 flex-1 overflow-hidden flex flex-col">
-            <div className="flex items-center justify-between">
-              <Label className="flex items-center gap-2">
-                <MapPin className="w-4 h-4" />
-                Washington Counties
-                <Badge variant="secondary" className="ml-2">
-                  {selectedCounties.length} selected
-                </Badge>
-              </Label>
-              <div className="flex gap-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={selectAll}
-                  className="h-7 px-2 text-xs"
-                >
-                  <CheckSquare className="w-3 h-3 mr-1" />
-                  All
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={clearAll}
-                  className="h-7 px-2 text-xs"
-                >
-                  <Square className="w-3 h-3 mr-1" />
-                  Clear
-                </Button>
-              </div>
-            </div>
-            <ScrollArea className="h-[180px] rounded-md border border-tf-border bg-tf-substrate p-3">
-              <div className="grid grid-cols-2 gap-2">
-                {WA_COUNTY_ASSESSORS.map((c) => (
-                  <div
-                    key={c.county}
-                    className="flex items-center space-x-2 cursor-pointer hover:bg-tf-elevated/50 rounded p-1.5"
-                    onClick={() => toggleCounty(c.county)}
-                  >
-                    <Checkbox
-                      id={c.county}
-                      checked={selectedCounties.includes(c.county)}
-                      onCheckedChange={() => toggleCounty(c.county)}
-                    />
-                    <label
-                      htmlFor={c.county}
-                      className="text-sm cursor-pointer flex-1"
-                    >
-                      {c.county}
-                    </label>
-                  </div>
-                ))}
-              </div>
-            </ScrollArea>
-          </div>
-
-          {/* Auto-detected parcels info */}
-          {action === "enrich" && (
-            <div className="glass-card rounded-lg p-3 flex items-start gap-3">
-              <Database className="w-5 h-5 text-tf-cyan flex-shrink-0 mt-0.5" />
-              <div className="flex-1">
-                <div className="flex items-center justify-between">
-                  <p className="font-medium text-foreground text-sm">
-                    {loadingParcels ? "Finding parcels..." : `${parcelsToEnrich.length} parcels need enrichment`}
-                  </p>
+          {/* Two-column layout */}
+          <div className="grid grid-cols-2 gap-4 flex-1 overflow-hidden">
+            {/* Left: County Selector */}
+            <div className="space-y-2 flex flex-col overflow-hidden">
+              <div className="flex items-center justify-between">
+                <Label className="flex items-center gap-2 text-sm">
+                  <MapPin className="w-4 h-4" />
+                  Counties
+                  <Badge variant="secondary" className="ml-1">
+                    {selectedCounties.length}
+                  </Badge>
+                </Label>
+                <div className="flex gap-1">
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={fetchParcelsNeedingEnrichment}
-                    disabled={loadingParcels}
-                    className="h-6 px-2"
+                    onClick={selectAll}
+                    className="h-6 px-2 text-xs"
                   >
-                    <RefreshCw className={`w-3 h-3 ${loadingParcels ? "animate-spin" : ""}`} />
+                    <CheckSquare className="w-3 h-3 mr-1" />
+                    All
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={clearAll}
+                    className="h-6 px-2 text-xs"
+                  >
+                    <Square className="w-3 h-3 mr-1" />
+                    Clear
                   </Button>
                 </div>
               </div>
+              <ScrollArea className="flex-1 rounded-md border border-tf-border bg-tf-substrate p-2">
+                <div className="grid grid-cols-1 gap-1">
+                  {WA_COUNTY_ASSESSORS.map((c) => (
+                    <div
+                      key={c.county}
+                      className="flex items-center space-x-2 cursor-pointer hover:bg-tf-elevated/50 rounded p-1.5"
+                      onClick={() => toggleCounty(c.county)}
+                    >
+                      <Checkbox
+                        id={c.county}
+                        checked={selectedCounties.includes(c.county)}
+                        onCheckedChange={() => toggleCounty(c.county)}
+                      />
+                      <label
+                        htmlFor={c.county}
+                        className="text-xs cursor-pointer flex-1"
+                      >
+                        {c.county}
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
             </div>
-          )}
+
+            {/* Right: Filters & Batch Settings */}
+            <div className="space-y-3 flex flex-col overflow-hidden">
+              {/* Parcel Filters */}
+              {action === "enrich" && (
+                <>
+                  <ParcelFiltersPanel
+                    filters={filters}
+                    onChange={setFilters}
+                    onApply={fetchParcelsNeedingEnrichment}
+                    parcelCount={totalMatchingParcels}
+                    loading={loadingParcels}
+                  />
+
+                  {/* Batch Size */}
+                  <div className="glass-card rounded-lg p-3">
+                    <BatchSizeSelector
+                      value={batchSize}
+                      onChange={setBatchSize}
+                      max={totalMatchingParcels}
+                    />
+                  </div>
+
+                  {/* Parcel Summary */}
+                  <div className="glass-card rounded-lg p-3 flex items-start gap-3">
+                    <Database className="w-5 h-5 text-tf-cyan flex-shrink-0 mt-0.5" />
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between">
+                        <p className="font-medium text-foreground text-sm">
+                          {loadingParcels
+                            ? "Finding parcels..."
+                            : `${parcelsToEnrich.length} parcels ready`}
+                        </p>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={fetchParcelsNeedingEnrichment}
+                          disabled={loadingParcels}
+                          className="h-6 px-2"
+                        >
+                          <RefreshCw
+                            className={`w-3 h-3 ${loadingParcels ? "animate-spin" : ""}`}
+                          />
+                        </Button>
+                      </div>
+                      <p className="text-muted-foreground text-xs mt-1">
+                        {totalMatchingParcels > batchSize
+                          ? `${totalMatchingParcels} total match filters (batch limited to ${batchSize})`
+                          : "All matching parcels will be enriched"}
+                      </p>
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {/* Info for non-enrich modes */}
+              {action !== "enrich" && (
+                <div className="glass-card rounded-lg p-4 flex items-start gap-3">
+                  <Globe className="w-5 h-5 text-tf-cyan flex-shrink-0 mt-0.5" />
+                  <div className="text-sm">
+                    <p className="font-medium text-foreground">
+                      {action === "validate" ? "Validation Mode" : "Import Mode"}
+                    </p>
+                    <p className="text-muted-foreground text-xs mt-1">
+                      {action === "validate"
+                        ? "Compares your data against the public record and flags discrepancies."
+                        : "Discovers and imports new parcels from the assessor website."}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Batch Results */}
+              {batchResults.length > 0 && (
+                <ScrollArea className="flex-1 rounded-lg border border-tf-border bg-tf-substrate p-2">
+                  <div className="space-y-1">
+                    {batchResults.map(({ county, result }) => (
+                      <div
+                        key={county}
+                        className={`flex items-center gap-2 text-xs p-2 rounded ${
+                          result.success
+                            ? "bg-tf-optimized-green/10"
+                            : "bg-destructive/10"
+                        }`}
+                      >
+                        {result.success ? (
+                          <CheckCircle className="w-3 h-3 text-tf-optimized-green flex-shrink-0" />
+                        ) : (
+                          <AlertCircle className="w-3 h-3 text-destructive flex-shrink-0" />
+                        )}
+                        <span className="font-medium truncate">{county}</span>
+                        {result.success ? (
+                          <span className="text-muted-foreground ml-auto text-[10px]">
+                            +{result.enriched} / {result.salesAdded} sales
+                          </span>
+                        ) : (
+                          <span className="text-destructive ml-auto truncate max-w-[120px] text-[10px]">
+                            {result.error}
+                          </span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </ScrollArea>
+              )}
+            </div>
+          </div>
 
           {/* Progress */}
           {scraping && (
@@ -359,45 +481,15 @@ export function AssessorScrapeDialog({
             </div>
           )}
 
-          {/* Batch Results */}
-          {batchResults.length > 0 && (
-            <ScrollArea className="h-[120px] rounded-lg border border-tf-border bg-tf-substrate p-3">
-              <div className="space-y-2">
-                {batchResults.map(({ county, result }) => (
-                  <div
-                    key={county}
-                    className={`flex items-center gap-2 text-xs p-2 rounded ${
-                      result.success
-                        ? "bg-tf-optimized-green/10"
-                        : "bg-destructive/10"
-                    }`}
-                  >
-                    {result.success ? (
-                      <CheckCircle className="w-3.5 h-3.5 text-tf-optimized-green flex-shrink-0" />
-                    ) : (
-                      <AlertCircle className="w-3.5 h-3.5 text-destructive flex-shrink-0" />
-                    )}
-                    <span className="font-medium">{county}</span>
-                    {result.success ? (
-                      <span className="text-muted-foreground ml-auto">
-                        {result.enriched} enriched, {result.salesAdded} sales
-                      </span>
-                    ) : (
-                      <span className="text-destructive ml-auto truncate max-w-[200px]">
-                        {result.error}
-                      </span>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </ScrollArea>
-          )}
-
           {/* Scrape Button */}
           <Button
             onClick={handleScrape}
             className="w-full gap-2 bg-tf-cyan hover:bg-tf-cyan/90"
-            disabled={scraping || selectedCounties.length === 0 || (action === "enrich" && parcelsToEnrich.length === 0)}
+            disabled={
+              scraping ||
+              selectedCounties.length === 0 ||
+              (action === "enrich" && parcelsToEnrich.length === 0)
+            }
           >
             {scraping ? (
               <>
@@ -408,7 +500,7 @@ export function AssessorScrapeDialog({
               <>
                 <Globe className="w-4 h-4" />
                 {action === "enrich"
-                  ? `Enrich from ${selectedCounties.length} Counties`
+                  ? `Enrich ${parcelsToEnrich.length} Parcels from ${selectedCounties.length} Counties`
                   : action === "validate"
                   ? `Validate ${selectedCounties.length} Counties`
                   : `Import from ${selectedCounties.length} Counties`}
