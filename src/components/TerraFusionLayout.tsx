@@ -10,6 +10,7 @@ import { AVMStudioDashboard } from "./avm/AVMStudioDashboard";
 import { RegressionStudioDashboard } from "./regression/RegressionStudioDashboard";
 import { AxiomFSDashboard } from "./axiomfs/AxiomFSDashboard";
 import { SegmentDiscoveryDashboard } from "./segments";
+import { ValuationAnatomyDashboard } from "./anatomy";
 import { StudyPeriodManager } from "./admin";
 
 const SettingsPlaceholder = () => (
@@ -32,6 +33,11 @@ const moduleConfig: Record<string, { title: string; description: string; compone
     title: "Segment Discovery",
     description: "Data-Driven Factor Analysis",
     component: SegmentDiscoveryDashboard,
+  },
+  anatomy: {
+    title: "Valuation Anatomy",
+    description: "3D Property Value Driver Visualization",
+    component: ValuationAnatomyDashboard,
   },
   costforge: {
     title: "CostForge AI",
