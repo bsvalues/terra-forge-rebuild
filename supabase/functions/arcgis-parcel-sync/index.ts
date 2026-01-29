@@ -10,6 +10,7 @@ interface SyncRequest {
   arcgisUrl: string;
   parcelNumberField?: string; // Field name in ArcGIS that contains parcel number
   sourceId?: string; // Optional: link to gis_data_sources record
+  maxFeatures?: number; // Limit features to process (default: 5000)
 }
 
 interface ArcGISFeature {
@@ -32,7 +33,7 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const { arcgisUrl, parcelNumberField = "PARCEL_ID", sourceId }: SyncRequest = await req.json();
+    const { arcgisUrl, parcelNumberField = "PARCEL_ID", sourceId, maxFeatures = 5000 }: SyncRequest = await req.json();
 
     if (!arcgisUrl) {
       throw new Error("arcgisUrl is required");
@@ -77,15 +78,20 @@ serve(async (req) => {
     const actualParcelField = parcelField?.name || parcelNumberField;
     console.log(`Resolved parcel field: ${actualParcelField}`);
 
-    // Step 2: Query features with pagination
+    // Step 2: Query features with pagination (limited for CPU constraints)
     let allFeatures: ArcGISFeature[] = [];
     let offset = 0;
-    const pageSize = 1000;
+    const pageSize = 500; // Smaller pages for efficiency
     let hasMore = true;
+    const featureLimit = Math.min(maxFeatures, 10000); // Cap at 10k per request
 
-    while (hasMore) {
-      const queryUrl = `${arcgisUrl}/query?where=1=1&outFields=${actualParcelField}&returnGeometry=true&outSR=4326&f=json&resultOffset=${offset}&resultRecordCount=${pageSize}`;
-      console.log(`Fetching page at offset ${offset}...`);
+    console.log(`Fetching up to ${featureLimit} features...`);
+
+    while (hasMore && allFeatures.length < featureLimit) {
+      const remaining = featureLimit - allFeatures.length;
+      const batchSize = Math.min(pageSize, remaining);
+      
+      const queryUrl = `${arcgisUrl}/query?where=1=1&outFields=${actualParcelField}&returnGeometry=true&outSR=4326&f=json&resultOffset=${offset}&resultRecordCount=${batchSize}`;
       
       const queryResponse = await fetch(queryUrl);
       if (!queryResponse.ok) {
@@ -101,17 +107,10 @@ serve(async (req) => {
       const features = queryResult.features || [];
       allFeatures = allFeatures.concat(features);
       
-      // Check if there are more results
-      hasMore = features.length === pageSize && queryResult.exceededTransferLimit !== false;
-      offset += pageSize;
+      hasMore = features.length === batchSize && queryResult.exceededTransferLimit !== false;
+      offset += batchSize;
 
-      console.log(`Fetched ${features.length} features (total: ${allFeatures.length})`);
-      
-      // Safety limit
-      if (allFeatures.length >= 50000) {
-        console.log("Reached 50k feature limit, stopping pagination");
-        break;
-      }
+      console.log(`Fetched ${allFeatures.length}/${featureLimit} features`);
     }
 
     console.log(`Total features retrieved: ${allFeatures.length}`);
@@ -182,20 +181,22 @@ serve(async (req) => {
 
     console.log(`Matched ${matchedCount} parcels, ${updates.length} need coordinate updates`);
 
-    // Step 6: Batch update parcels
-    for (let i = 0; i < updates.length; i += 100) {
-      const batch = updates.slice(i, i + 100);
+    // Step 6: Batch update parcels using upsert for efficiency
+    const batchSize = 50;
+    for (let i = 0; i < updates.length; i += batchSize) {
+      const batch = updates.slice(i, i + batchSize);
       
-      for (const update of batch) {
-        const { error: updateError } = await supabase
-          .from("parcels")
-          .update({ latitude: update.latitude, longitude: update.longitude })
-          .eq("id", update.id);
-        
-        if (!updateError) {
-          updatedCount++;
-        }
-      }
+      // Update in parallel within batch
+      const results = await Promise.all(
+        batch.map(update =>
+          supabase
+            .from("parcels")
+            .update({ latitude: update.latitude, longitude: update.longitude })
+            .eq("id", update.id)
+        )
+      );
+      
+      updatedCount += results.filter(r => !r.error).length;
     }
 
     const result = {
