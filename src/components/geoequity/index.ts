@@ -8,3 +8,4 @@ export { ScrapeJobsDashboard } from "./ScrapeJobsDashboard";
 export { NotificationBell } from "./NotificationBell";
 export { ParcelFiltersPanel } from "./ParcelFilters";
 export { BatchSizeSelector } from "./BatchSizeSelector";
+export { CountyDataQualityReport } from "./CountyDataQualityReport";
