@@ -11,3 +11,6 @@ verify_jwt = false
 
 [functions.arcgis-parcel-sync]
 verify_jwt = false
+
+[functions.arcgis-import-parcels]
+verify_jwt = false
