@@ -409,6 +409,63 @@ export type Database = {
           },
         ]
       }
+      scrape_jobs: {
+        Row: {
+          completed_at: string | null
+          counties: Json
+          counties_completed: number
+          counties_total: number
+          created_at: string
+          created_by: string | null
+          current_county: string | null
+          errors: Json
+          estimated_completion: string | null
+          id: string
+          job_type: string
+          parcels_enriched: number
+          sales_added: number
+          started_at: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          completed_at?: string | null
+          counties?: Json
+          counties_completed?: number
+          counties_total?: number
+          created_at?: string
+          created_by?: string | null
+          current_county?: string | null
+          errors?: Json
+          estimated_completion?: string | null
+          id?: string
+          job_type?: string
+          parcels_enriched?: number
+          sales_added?: number
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          completed_at?: string | null
+          counties?: Json
+          counties_completed?: number
+          counties_total?: number
+          created_at?: string
+          created_by?: string | null
+          current_county?: string | null
+          errors?: Json
+          estimated_completion?: string | null
+          id?: string
+          job_type?: string
+          parcels_enriched?: number
+          sales_added?: number
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       study_periods: {
         Row: {
           created_at: string
