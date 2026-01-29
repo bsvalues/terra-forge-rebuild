@@ -9,7 +9,7 @@ const corsHeaders = {
 interface ScrapeRequest {
   parcelId?: string;
   assessorUrl: string;
-  parcelIds?: string[]; // Batch mode
+  parcelIds?: string[];
   action: "enrich" | "validate" | "import";
 }
 
@@ -36,6 +36,38 @@ interface ParcelData {
   }>;
 }
 
+// JSON schema for AI-powered extraction
+const PARCEL_EXTRACTION_SCHEMA = {
+  type: "object",
+  properties: {
+    address: { type: "string", description: "Full property address" },
+    assessed_value: { type: "number", description: "Total assessed/appraised value in dollars" },
+    land_value: { type: "number", description: "Land value portion in dollars" },
+    improvement_value: { type: "number", description: "Building/improvement value in dollars" },
+    year_built: { type: "integer", description: "Year the building was constructed" },
+    building_area: { type: "number", description: "Living/heated square footage" },
+    land_area: { type: "number", description: "Lot size in square feet" },
+    bedrooms: { type: "integer", description: "Number of bedrooms" },
+    bathrooms: { type: "number", description: "Number of bathrooms" },
+    property_class: { type: "string", description: "Property classification code" },
+    sales: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          sale_date: { type: "string", description: "Sale date in YYYY-MM-DD format" },
+          sale_price: { type: "number", description: "Sale price in dollars" },
+          grantor: { type: "string", description: "Seller name" },
+          grantee: { type: "string", description: "Buyer name" },
+          deed_type: { type: "string", description: "Type of deed" },
+        },
+      },
+      description: "Historical sales transactions",
+    },
+  },
+  required: [],
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -45,7 +77,7 @@ serve(async (req) => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const firecrawlKey = Deno.env.get("FIRECRAWL_API_KEY");
-    
+
     if (!firecrawlKey) {
       throw new Error("FIRECRAWL_API_KEY not configured. Please connect Firecrawl in Settings.");
     }
@@ -58,40 +90,42 @@ serve(async (req) => {
     }
 
     const idsToProcess = parcelIds || (parcelId ? [parcelId] : []);
-    
+
     if (idsToProcess.length === 0) {
       throw new Error("At least one parcelId is required");
     }
 
     console.log(`Scraping ${idsToProcess.length} parcels from: ${assessorUrl}`);
 
-    const results: { success: string[]; failed: string[]; enriched: number; salesAdded: number } = {
-      success: [],
-      failed: [],
+    const results = {
+      success: [] as string[],
+      failed: [] as string[],
       enriched: 0,
       salesAdded: 0,
     };
 
-    // Process each parcel
-    for (const pid of idsToProcess.slice(0, 50)) { // Limit to 50 per request
+    // Process each parcel (limit to 20 for AI extraction to avoid timeouts)
+    for (const pid of idsToProcess.slice(0, 20)) {
       try {
-        // Construct the parcel lookup URL (common patterns)
         const searchUrl = buildParcelUrl(assessorUrl, pid);
-        
         console.log(`Scraping parcel ${pid}: ${searchUrl}`);
 
-        // Scrape the page
+        // Use Firecrawl with extract format for AI-powered extraction
         const scrapeResponse = await fetch("https://api.firecrawl.dev/v1/scrape", {
           method: "POST",
           headers: {
-            "Authorization": `Bearer ${firecrawlKey}`,
+            Authorization: `Bearer ${firecrawlKey}`,
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
             url: searchUrl,
-            formats: ["markdown"],
+            formats: ["extract"],
+            extract: {
+              schema: PARCEL_EXTRACTION_SCHEMA,
+              prompt: "Extract all property assessment data including values, building details, and sales history. Convert all monetary values to numbers without currency symbols. Convert dates to YYYY-MM-DD format."
+            },
             onlyMainContent: true,
-            waitFor: 2000, // Wait for dynamic content
+            waitFor: 3000,
           }),
         });
 
@@ -103,35 +137,47 @@ serve(async (req) => {
         }
 
         const scrapeData = await scrapeResponse.json();
-        const markdown = scrapeData.data?.markdown || scrapeData.markdown || "";
+        const extracted = scrapeData.data?.extract || scrapeData.extract;
 
-        if (!markdown) {
-          console.log(`No content found for ${pid}`);
+        if (!extracted || Object.keys(extracted).length === 0) {
+          console.log(`No structured data extracted for ${pid}`);
           results.failed.push(pid);
           continue;
         }
 
-        // Extract structured data from markdown
-        const extracted = extractParcelData(markdown, pid);
-        
-        if (!extracted) {
-          results.failed.push(pid);
-          continue;
-        }
+        console.log(`Extracted data for ${pid}:`, JSON.stringify(extracted).substring(0, 200));
 
         // Update parcel in database
         if (action === "enrich" || action === "import") {
           const updateData: Record<string, unknown> = {};
-          
-          if (extracted.assessed_value) updateData.assessed_value = extracted.assessed_value;
-          if (extracted.land_value) updateData.land_value = extracted.land_value;
-          if (extracted.improvement_value) updateData.improvement_value = extracted.improvement_value;
-          if (extracted.land_area) updateData.land_area = extracted.land_area;
-          if (extracted.building_area) updateData.building_area = extracted.building_area;
-          if (extracted.year_built) updateData.year_built = extracted.year_built;
-          if (extracted.bedrooms) updateData.bedrooms = extracted.bedrooms;
-          if (extracted.bathrooms) updateData.bathrooms = extracted.bathrooms;
-          if (extracted.address) updateData.address = extracted.address;
+
+          if (extracted.assessed_value && extracted.assessed_value > 0) {
+            updateData.assessed_value = extracted.assessed_value;
+          }
+          if (extracted.land_value && extracted.land_value > 0) {
+            updateData.land_value = extracted.land_value;
+          }
+          if (extracted.improvement_value && extracted.improvement_value > 0) {
+            updateData.improvement_value = extracted.improvement_value;
+          }
+          if (extracted.land_area && extracted.land_area > 0) {
+            updateData.land_area = extracted.land_area;
+          }
+          if (extracted.building_area && extracted.building_area > 0) {
+            updateData.building_area = extracted.building_area;
+          }
+          if (extracted.year_built && extracted.year_built >= 1800 && extracted.year_built <= new Date().getFullYear()) {
+            updateData.year_built = extracted.year_built;
+          }
+          if (extracted.bedrooms && extracted.bedrooms > 0) {
+            updateData.bedrooms = extracted.bedrooms;
+          }
+          if (extracted.bathrooms && extracted.bathrooms > 0) {
+            updateData.bathrooms = extracted.bathrooms;
+          }
+          if (extracted.address) {
+            updateData.address = extracted.address;
+          }
 
           if (Object.keys(updateData).length > 0) {
             const { error: updateError } = await supabase
@@ -141,21 +187,24 @@ serve(async (req) => {
 
             if (!updateError) {
               results.enriched++;
+              console.log(`Enriched parcel ${pid} with ${Object.keys(updateData).length} fields`);
+            } else {
+              console.error(`Failed to update ${pid}:`, updateError);
             }
           }
 
           // Add sales records
-          if (extracted.sales && extracted.sales.length > 0) {
-            // Get parcel ID from database
+          if (extracted.sales && Array.isArray(extracted.sales) && extracted.sales.length > 0) {
             const { data: parcelRecord } = await supabase
               .from("parcels")
               .select("id")
               .eq("parcel_number", pid)
-              .single();
+              .maybeSingle();
 
             if (parcelRecord) {
               for (const sale of extracted.sales) {
-                // Check if sale already exists
+                if (!sale.sale_date || !sale.sale_price) continue;
+
                 const { data: existingSale } = await supabase
                   .from("sales")
                   .select("id")
@@ -165,18 +214,15 @@ serve(async (req) => {
                   .maybeSingle();
 
                 if (!existingSale) {
-                  const { error: saleError } = await supabase
-                    .from("sales")
-                    .insert({
-                      parcel_id: parcelRecord.id,
-                      sale_date: sale.sale_date,
-                      sale_price: sale.sale_price,
-                      grantor: sale.grantor,
-                      grantee: sale.grantee,
-                      deed_type: sale.deed_type,
-                      instrument_number: sale.instrument_number,
-                      is_qualified: true,
-                    });
+                  const { error: saleError } = await supabase.from("sales").insert({
+                    parcel_id: parcelRecord.id,
+                    sale_date: sale.sale_date,
+                    sale_price: sale.sale_price,
+                    grantor: sale.grantor,
+                    grantee: sale.grantee,
+                    deed_type: sale.deed_type,
+                    is_qualified: true,
+                  });
 
                   if (!saleError) {
                     results.salesAdded++;
@@ -188,10 +234,9 @@ serve(async (req) => {
         }
 
         results.success.push(pid);
-        
-        // Rate limit protection
-        await new Promise(r => setTimeout(r, 500));
-        
+
+        // Rate limit: 1 second between requests for AI extraction
+        await new Promise((r) => setTimeout(r, 1000));
       } catch (err) {
         console.error(`Error processing ${pid}:`, err);
         results.failed.push(pid);
@@ -227,130 +272,41 @@ serve(async (req) => {
 // Build URL for parcel lookup based on common assessor website patterns
 function buildParcelUrl(baseUrl: string, parcelId: string): string {
   const cleanBase = baseUrl.replace(/\/$/, "");
-  
-  // Detect common patterns
-  if (cleanBase.includes("propertyaccess.trueautomation.com")) {
-    // TrueAutomation pattern (common in WA)
-    const clientId = cleanBase.match(/ClientDB=([^&]+)/)?.[1] || "";
-    return `${cleanBase.split("?")[0]}?cid=1&p=${encodeURIComponent(parcelId)}&ClientDB=${clientId}`;
+
+  // TrueAutomation pattern (common in WA)
+  if (cleanBase.includes("propertyaccess.trueautomation.com") || cleanBase.includes("ClientDB")) {
+    const clientMatch = cleanBase.match(/ClientDB[=/]([^&/]+)/i);
+    const clientId = clientMatch ? clientMatch[1] : "";
+    const baseUrlClean = cleanBase.split("?")[0].replace(/\/ClientDB.*$/i, "");
+    return `${baseUrlClean}/ClientDB/${clientId}/Property/Index?cid=1&p=${encodeURIComponent(parcelId)}`;
   }
-  
+
+  // Beacon/Schneider pattern
   if (cleanBase.includes("beacon.schneidercorp.com")) {
-    // Beacon/Schneider pattern
     return `${cleanBase}/Parcel/Details/${encodeURIComponent(parcelId)}`;
   }
-  
+
+  // QPublic pattern
   if (cleanBase.includes("qpublic.net")) {
-    // QPublic pattern
     return `${cleanBase}/search.php?parcel=${encodeURIComponent(parcelId)}`;
   }
-  
+
+  // TaxSifter pattern
+  if (cleanBase.includes("taxsifter")) {
+    return `${cleanBase}/Search/Results?parcel=${encodeURIComponent(parcelId)}`;
+  }
+
+  // King County pattern
+  if (cleanBase.includes("kingcounty.com")) {
+    return `${cleanBase}/Detail.aspx?ParcelNbr=${encodeURIComponent(parcelId)}`;
+  }
+
+  // Pierce County pattern
+  if (cleanBase.includes("piercecountywa.gov")) {
+    return `${cleanBase}/Property/Details/${encodeURIComponent(parcelId)}`;
+  }
+
   // Default: append as query parameter
   const separator = cleanBase.includes("?") ? "&" : "?";
   return `${cleanBase}${separator}parcel=${encodeURIComponent(parcelId)}`;
-}
-
-// Extract structured parcel data from scraped markdown
-function extractParcelData(markdown: string, parcelId: string): ParcelData | null {
-  const data: ParcelData = { parcel_number: parcelId };
-  const text = markdown.toLowerCase();
-  
-  // Extract assessed/appraised value
-  const valuePatterns = [
-    /(?:total|appraised|assessed|market)\s*(?:value)?[:\s]*\$?([\d,]+)/gi,
-    /\$\s*([\d,]+)\s*(?:total|appraised|assessed)/gi,
-  ];
-  for (const pattern of valuePatterns) {
-    const match = pattern.exec(text);
-    if (match) {
-      const value = parseInt(match[1].replace(/,/g, ""), 10);
-      if (value > 1000 && value < 100000000) {
-        data.assessed_value = value;
-        break;
-      }
-    }
-  }
-
-  // Extract land value
-  const landValueMatch = /(?:land|lot)\s*(?:value)?[:\s]*\$?([\d,]+)/i.exec(text);
-  if (landValueMatch) {
-    data.land_value = parseInt(landValueMatch[1].replace(/,/g, ""), 10);
-  }
-
-  // Extract improvement value
-  const impValueMatch = /(?:improvement|building|structure)\s*(?:value)?[:\s]*\$?([\d,]+)/i.exec(text);
-  if (impValueMatch) {
-    data.improvement_value = parseInt(impValueMatch[1].replace(/,/g, ""), 10);
-  }
-
-  // Extract year built
-  const yearMatch = /(?:year\s*built|built|constructed)[:\s]*(\d{4})/i.exec(text);
-  if (yearMatch) {
-    const year = parseInt(yearMatch[1], 10);
-    if (year >= 1800 && year <= new Date().getFullYear()) {
-      data.year_built = year;
-    }
-  }
-
-  // Extract square footage
-  const sqftMatch = /(?:living\s*area|heated\s*area|building\s*(?:area|size)|(?:sq\s*ft|square\s*feet?))[:\s]*([\d,]+)/i.exec(text);
-  if (sqftMatch) {
-    data.building_area = parseInt(sqftMatch[1].replace(/,/g, ""), 10);
-  }
-
-  // Extract land area (acres or sqft)
-  const landAreaMatch = /(?:land\s*area|lot\s*size|acreage)[:\s]*([\d,.]+)\s*(?:acres?|ac)?/i.exec(text);
-  if (landAreaMatch) {
-    const area = parseFloat(landAreaMatch[1].replace(/,/g, ""));
-    // If small number, assume acres
-    data.land_area = area < 100 ? area * 43560 : area;
-  }
-
-  // Extract bedrooms
-  const bedsMatch = /(?:bedrooms?|beds?|br)[:\s]*(\d+)/i.exec(text);
-  if (bedsMatch) {
-    data.bedrooms = parseInt(bedsMatch[1], 10);
-  }
-
-  // Extract bathrooms
-  const bathsMatch = /(?:bathrooms?|baths?|ba)[:\s]*([\d.]+)/i.exec(text);
-  if (bathsMatch) {
-    data.bathrooms = parseFloat(bathsMatch[1]);
-  }
-
-  // Extract sales history
-  const sales: ParcelData["sales"] = [];
-  const salePattern = /(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})\s*[:\s]*\$?([\d,]+)/g;
-  let saleMatch;
-  while ((saleMatch = salePattern.exec(text)) !== null) {
-    const price = parseInt(saleMatch[2].replace(/,/g, ""), 10);
-    if (price > 10000 && price < 100000000) {
-      try {
-        const dateParts = saleMatch[1].split(/[\/\-]/);
-        let year = parseInt(dateParts[2], 10);
-        if (year < 100) year += 2000;
-        const month = dateParts[0].padStart(2, "0");
-        const day = dateParts[1].padStart(2, "0");
-        const saleDate = `${year}-${month}-${day}`;
-        
-        sales.push({
-          sale_date: saleDate,
-          sale_price: price,
-        });
-      } catch {
-        // Skip invalid dates
-      }
-    }
-  }
-  
-  if (sales.length > 0) {
-    data.sales = sales;
-  }
-
-  // Only return if we found useful data
-  if (data.assessed_value || data.year_built || data.building_area || sales.length > 0) {
-    return data;
-  }
-
-  return null;
 }
