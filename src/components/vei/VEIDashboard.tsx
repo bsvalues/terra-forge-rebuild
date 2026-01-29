@@ -72,8 +72,8 @@ export function VEIDashboard() {
     return <VEIDashboardSkeleton />;
   }
 
-  // Show empty state if no study periods exist
-  if (!studyPeriods || studyPeriods.length === 0) {
+  // Show empty state if no study periods exist or selected period not found yet
+  if (!studyPeriods || studyPeriods.length === 0 || !studyPeriod) {
     return <VEIEmptyState />;
   }
 
