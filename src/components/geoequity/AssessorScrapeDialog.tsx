@@ -6,23 +6,72 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Globe,
   CheckCircle,
   AlertCircle,
   Loader2,
-  Info,
   Database,
   FileCheck,
   Search,
   RefreshCw,
+  MapPin,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+
+// Washington State County Assessor URLs
+const WA_COUNTY_ASSESSORS = [
+  { county: "Adams", url: "https://propertysearch.adamscountywa.gov" },
+  { county: "Asotin", url: "https://taxsifter.co.asotin.wa.us" },
+  { county: "Benton", url: "https://propertyaccess.trueautomation.com/ClientDB/BentonWA" },
+  { county: "Chelan", url: "https://propertyaccess.trueautomation.com/ClientDB/ChelanWA" },
+  { county: "Clallam", url: "https://propertyaccess.trueautomation.com/ClientDB/ClallamWA" },
+  { county: "Clark", url: "https://gis.clark.wa.gov/gishome/property" },
+  { county: "Columbia", url: "https://taxsifter.co.columbia.wa.us" },
+  { county: "Cowlitz", url: "https://www.cowlitzinfo.net/epic" },
+  { county: "Douglas", url: "https://taxsifter.co.douglas.wa.us" },
+  { county: "Ferry", url: "https://taxsifter.co.ferry.wa.us" },
+  { county: "Franklin", url: "https://taxsifter.co.franklin.wa.us" },
+  { county: "Garfield", url: "https://www.co.garfield.wa.us/assessor" },
+  { county: "Grant", url: "https://taxsifter.co.grant.wa.us" },
+  { county: "Grays Harbor", url: "https://taxsifter.co.grays-harbor.wa.us" },
+  { county: "Island", url: "https://propertyaccess.islandcountywa.gov" },
+  { county: "Jefferson", url: "https://propertysearch.co.jefferson.wa.us" },
+  { county: "King", url: "https://blue.kingcounty.com/Assessor/eRealProperty" },
+  { county: "Kitsap", url: "https://psearch.kitsapgov.com" },
+  { county: "Kittitas", url: "https://taxsifter.co.kittitas.wa.us" },
+  { county: "Klickitat", url: "https://propertysearch.klickitatcounty.org" },
+  { county: "Lewis", url: "https://lewiscountywa.gov/assessor/property-search" },
+  { county: "Lincoln", url: "https://taxsifter.co.lincoln.wa.us" },
+  { county: "Mason", url: "https://parcels.co.mason.wa.us" },
+  { county: "Okanogan", url: "https://taxsifter.okanogancounty.org" },
+  { county: "Pacific", url: "https://taxsifter.co.pacific.wa.us" },
+  { county: "Pend Oreille", url: "https://propertysearch.pendoreille.org" },
+  { county: "Pierce", url: "https://atip.piercecountywa.gov" },
+  { county: "San Juan", url: "https://parcelsearch.sanjuanco.com" },
+  { county: "Skagit", url: "https://www.skagitcounty.net/Search/Property" },
+  { county: "Skamania", url: "https://mapsifter.skamania.net" },
+  { county: "Snohomish", url: "https://scopi.snoco.org" },
+  { county: "Spokane", url: "https://cp.spokanecounty.org/scout" },
+  { county: "Stevens", url: "https://propertysearch.co.stevens.wa.us" },
+  { county: "Thurston", url: "https://tcproperty.co.thurston.wa.us" },
+  { county: "Wahkiakum", url: "https://taxsifter.co.wahkiakum.wa.us" },
+  { county: "Walla Walla", url: "https://propertysearch.co.walla-walla.wa.us" },
+  { county: "Whatcom", url: "https://property.whatcomcounty.us" },
+  { county: "Whitman", url: "https://taxsifter.whitmancounty.net" },
+  { county: "Yakima", url: "https://propertysearch.co.yakima.wa.us" },
+];
 
 interface AssessorScrapeDialogProps {
   open: boolean;
@@ -44,13 +93,15 @@ export function AssessorScrapeDialog({
   open,
   onOpenChange,
 }: AssessorScrapeDialogProps) {
-  const [assessorUrl, setAssessorUrl] = useState("");
+  const [selectedCounty, setSelectedCounty] = useState("");
   const [action, setAction] = useState<"enrich" | "validate" | "import">("enrich");
   const [scraping, setScraping] = useState(false);
   const [progress, setProgress] = useState(0);
   const [result, setResult] = useState<ScrapeResult | null>(null);
   const [parcelsToEnrich, setParcelsToEnrich] = useState<string[]>([]);
   const [loadingParcels, setLoadingParcels] = useState(false);
+
+  const assessorUrl = WA_COUNTY_ASSESSORS.find((c) => c.county === selectedCounty)?.url || "";
 
   // Auto-fetch parcels that need enrichment
   useEffect(() => {
@@ -173,18 +224,29 @@ export function AssessorScrapeDialog({
             </TabsList>
           </Tabs>
 
-          {/* Assessor URL */}
+          {/* County Selector */}
           <div className="space-y-2">
-            <Label>Assessor Property Search URL</Label>
-            <Input
-              placeholder="https://propertyaccess.trueautomation.com/ClientDB=BentonWA"
-              value={assessorUrl}
-              onChange={(e) => setAssessorUrl(e.target.value)}
-              className="bg-tf-substrate border-tf-border font-mono text-sm"
-            />
-            <p className="text-xs text-muted-foreground">
-              Enter the base URL for the county's property search page
-            </p>
+            <Label className="flex items-center gap-2">
+              <MapPin className="w-4 h-4" />
+              Washington County
+            </Label>
+            <Select value={selectedCounty} onValueChange={setSelectedCounty}>
+              <SelectTrigger className="bg-tf-substrate border-tf-border">
+                <SelectValue placeholder="Select a county..." />
+              </SelectTrigger>
+              <SelectContent className="max-h-[300px]">
+                {WA_COUNTY_ASSESSORS.map((c) => (
+                  <SelectItem key={c.county} value={c.county}>
+                    {c.county} County
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {selectedCounty && (
+              <p className="text-xs text-muted-foreground font-mono truncate">
+                {assessorUrl}
+              </p>
+            )}
           </div>
 
           {/* Auto-detected parcels info */}
@@ -220,7 +282,7 @@ export function AssessorScrapeDialog({
           {/* Info Box for other modes */}
           {action !== "enrich" && (
             <div className="glass-card rounded-lg p-4 flex items-start gap-3">
-              <Info className="w-5 h-5 text-tf-cyan flex-shrink-0 mt-0.5" />
+              <Globe className="w-5 h-5 text-tf-cyan flex-shrink-0 mt-0.5" />
               <div className="text-sm">
                 <p className="font-medium text-foreground">
                   {action === "validate" && "Validation Mode"}
