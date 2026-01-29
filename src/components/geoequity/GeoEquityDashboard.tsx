@@ -23,6 +23,8 @@ import { GISImportDialog } from "./GISImportDialog";
 import { ArcGISImportDialog } from "./ArcGISImportDialog";
 import { AssessorScrapeDialog } from "./AssessorScrapeDialog";
 import { ScrapeJobsDashboard } from "./ScrapeJobsDashboard";
+import { NotificationBell } from "./NotificationBell";
+import { useScrapeJobNotifications } from "@/hooks/useScrapeJobNotifications";
 import { useGISDataSources, useGISLayers, useNeighborhoodGeoStats } from "@/hooks/useGISData";
 
 export function GeoEquityDashboard() {
@@ -36,6 +38,9 @@ export function GeoEquityDashboard() {
   const { data: dataSources = [], isLoading: isLoadingSources } = useGISDataSources();
   const { data: layers = [], isLoading: isLoadingLayers } = useGISLayers();
   const { data: neighborhoodStats = [], isLoading: isLoadingStats } = useNeighborhoodGeoStats(selectedPeriodId);
+
+  // Enable job notifications (toast + browser)
+  useScrapeJobNotifications();
 
   // Auto-select active period
   useEffect(() => {
@@ -103,6 +108,7 @@ export function GeoEquityDashboard() {
             <Download className="w-4 h-4" />
             Export
           </Button>
+          <NotificationBell />
         </div>
       </motion.div>
 
