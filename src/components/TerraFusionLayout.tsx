@@ -9,6 +9,7 @@ import { CostForgeDashboard } from "./costforge/CostForgeDashboard";
 import { AVMStudioDashboard } from "./avm/AVMStudioDashboard";
 import { RegressionStudioDashboard } from "./regression/RegressionStudioDashboard";
 import { AxiomFSDashboard } from "./axiomfs/AxiomFSDashboard";
+import { StudyPeriodManager } from "./admin";
 
 const SettingsPlaceholder = () => (
   <div className="p-6">
@@ -45,6 +46,11 @@ const moduleConfig: Record<string, { title: string; description: string; compone
     title: "Regression Studio",
     description: "PhD-Level Statistical Analytics",
     component: RegressionStudioDashboard,
+  },
+  admin: {
+    title: "Administration",
+    description: "Study Period & System Management",
+    component: StudyPeriodManager,
   },
   settings: {
     title: "Settings",

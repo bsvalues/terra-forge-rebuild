@@ -8,6 +8,7 @@ import {
   LayoutDashboard,
   Settings,
   ChevronRight,
+  CalendarCog,
 } from "lucide-react";
 
 interface SovereignSidebarProps {
@@ -23,6 +24,7 @@ const modules = [
   { id: "avm", label: "AVM Studio", icon: Brain, description: "ML Model Laboratory" },
   { id: "axiom", label: "AxiomFS", icon: FolderTree, description: "Sovereign File Lattice" },
   { id: "regression", label: "Regression", icon: LayoutDashboard, description: "PhD Analytics" },
+  { id: "admin", label: "Administration", icon: CalendarCog, description: "Study Period Manager" },
 ];
 
 const bottomModules = [
