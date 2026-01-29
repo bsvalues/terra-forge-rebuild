@@ -8,14 +8,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Badge } from "@/components/ui/badge";
 import {
   Globe,
   CheckCircle,
@@ -26,6 +22,8 @@ import {
   Search,
   RefreshCw,
   MapPin,
+  CheckSquare,
+  Square,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -73,6 +71,8 @@ const WA_COUNTY_ASSESSORS = [
   { county: "Yakima", url: "https://propertysearch.co.yakima.wa.us" },
 ];
 
+const STORAGE_KEY = "terrafusion_selected_counties";
+
 interface AssessorScrapeDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -87,21 +87,34 @@ interface ScrapeResult {
   salesAdded?: number;
   failedIds?: string[];
   error?: string;
+  county?: string;
+}
+
+interface BatchResult {
+  county: string;
+  result: ScrapeResult;
 }
 
 export function AssessorScrapeDialog({
   open,
   onOpenChange,
 }: AssessorScrapeDialogProps) {
-  const [selectedCounty, setSelectedCounty] = useState("");
+  const [selectedCounties, setSelectedCounties] = useState<string[]>(() => {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    return saved ? JSON.parse(saved) : [];
+  });
   const [action, setAction] = useState<"enrich" | "validate" | "import">("enrich");
   const [scraping, setScraping] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [result, setResult] = useState<ScrapeResult | null>(null);
+  const [currentCounty, setCurrentCounty] = useState("");
+  const [batchResults, setBatchResults] = useState<BatchResult[]>([]);
   const [parcelsToEnrich, setParcelsToEnrich] = useState<string[]>([]);
   const [loadingParcels, setLoadingParcels] = useState(false);
 
-  const assessorUrl = WA_COUNTY_ASSESSORS.find((c) => c.county === selectedCounty)?.url || "";
+  // Persist selected counties to localStorage
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(selectedCounties));
+  }, [selectedCounties]);
 
   // Auto-fetch parcels that need enrichment
   useEffect(() => {
@@ -113,7 +126,6 @@ export function AssessorScrapeDialog({
   const fetchParcelsNeedingEnrichment = async () => {
     setLoadingParcels(true);
     try {
-      // Get parcels missing key data fields
       const { data, error } = await supabase
         .from("parcels")
         .select("parcel_number")
@@ -129,9 +141,25 @@ export function AssessorScrapeDialog({
     }
   };
 
+  const toggleCounty = (county: string) => {
+    setSelectedCounties((prev) =>
+      prev.includes(county)
+        ? prev.filter((c) => c !== county)
+        : [...prev, county]
+    );
+  };
+
+  const selectAll = () => {
+    setSelectedCounties(WA_COUNTY_ASSESSORS.map((c) => c.county));
+  };
+
+  const clearAll = () => {
+    setSelectedCounties([]);
+  };
+
   const handleScrape = async () => {
-    if (!assessorUrl) {
-      toast.error("Please enter an assessor website URL");
+    if (selectedCounties.length === 0) {
+      toast.error("Please select at least one county");
       return;
     }
 
@@ -141,71 +169,86 @@ export function AssessorScrapeDialog({
     }
 
     setScraping(true);
-    setProgress(10);
-    setResult(null);
+    setProgress(0);
+    setBatchResults([]);
 
-    const progressInterval = setInterval(() => {
-      setProgress((p) => Math.min(p + 2, 85));
-    }, 500);
+    const results: BatchResult[] = [];
+    const totalCounties = selectedCounties.length;
 
-    try {
-      const { data, error } = await supabase.functions.invoke("assessor-scrape", {
-        body: {
-          assessorUrl,
-          parcelIds: parcelsToEnrich,
-          action,
-        },
-      });
+    for (let i = 0; i < totalCounties; i++) {
+      const county = selectedCounties[i];
+      const assessorUrl = WA_COUNTY_ASSESSORS.find((c) => c.county === county)?.url;
+      
+      if (!assessorUrl) continue;
 
-      clearInterval(progressInterval);
+      setCurrentCounty(county);
+      setProgress(Math.round(((i) / totalCounties) * 100));
 
-      if (error) {
-        throw new Error(error.message);
-      }
+      try {
+        const { data, error } = await supabase.functions.invoke("assessor-scrape", {
+          body: {
+            assessorUrl,
+            parcelIds: parcelsToEnrich,
+            action,
+          },
+        });
 
-      setProgress(100);
-      setResult(data as ScrapeResult);
-
-      if (data.success) {
-        toast.success(
-          `Scraped ${data.successful} parcels, enriched ${data.enriched}, added ${data.salesAdded} sales`
-        );
-        // Refresh the list after successful scrape
-        if (action === "enrich") {
-          fetchParcelsNeedingEnrichment();
+        if (error) {
+          results.push({ county, result: { success: false, error: error.message } });
+        } else {
+          results.push({ county, result: data as ScrapeResult });
         }
-      } else {
-        toast.error(data.error || "Scrape failed");
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "Scrape failed";
+        results.push({ county, result: { success: false, error: message } });
       }
-    } catch (error) {
-      clearInterval(progressInterval);
-      const message = error instanceof Error ? error.message : "Scrape failed";
-      setResult({ success: false, error: message });
-      toast.error(message);
-    } finally {
-      setScraping(false);
+
+      // Small delay between counties to avoid rate limits
+      if (i < totalCounties - 1) {
+        await new Promise((r) => setTimeout(r, 1000));
+      }
+    }
+
+    setBatchResults(results);
+    setProgress(100);
+    setCurrentCounty("");
+    setScraping(false);
+
+    const successCount = results.filter((r) => r.result.success).length;
+    const totalEnriched = results.reduce((sum, r) => sum + (r.result.enriched || 0), 0);
+    const totalSales = results.reduce((sum, r) => sum + (r.result.salesAdded || 0), 0);
+
+    if (successCount > 0) {
+      toast.success(
+        `Scraped ${successCount}/${totalCounties} counties, enriched ${totalEnriched} parcels, added ${totalSales} sales`
+      );
+      if (action === "enrich") {
+        fetchParcelsNeedingEnrichment();
+      }
+    } else {
+      toast.error("All scrape attempts failed");
     }
   };
 
   const handleClose = () => {
     if (!scraping) {
       onOpenChange(false);
-      setResult(null);
+      setBatchResults([]);
       setProgress(0);
     }
   };
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="bg-tf-elevated border-tf-border max-w-lg">
+      <DialogContent className="bg-tf-elevated border-tf-border max-w-xl max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Globe className="w-5 h-5 text-tf-cyan" />
-            Scrape Assessor Website
+            Scrape Assessor Websites
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4 pt-2">
+        <div className="space-y-4 pt-2 flex-1 overflow-hidden flex flex-col">
           {/* Action Tabs */}
           <Tabs value={action} onValueChange={(v) => setAction(v as typeof action)}>
             <TabsList className="grid grid-cols-3 w-full">
@@ -224,38 +267,69 @@ export function AssessorScrapeDialog({
             </TabsList>
           </Tabs>
 
-          {/* County Selector */}
-          <div className="space-y-2">
-            <Label className="flex items-center gap-2">
-              <MapPin className="w-4 h-4" />
-              Washington County
-            </Label>
-            <Select value={selectedCounty} onValueChange={setSelectedCounty}>
-              <SelectTrigger className="bg-tf-substrate border-tf-border">
-                <SelectValue placeholder="Select a county..." />
-              </SelectTrigger>
-              <SelectContent className="max-h-[300px]">
+          {/* County Multi-Selector */}
+          <div className="space-y-2 flex-1 overflow-hidden flex flex-col">
+            <div className="flex items-center justify-between">
+              <Label className="flex items-center gap-2">
+                <MapPin className="w-4 h-4" />
+                Washington Counties
+                <Badge variant="secondary" className="ml-2">
+                  {selectedCounties.length} selected
+                </Badge>
+              </Label>
+              <div className="flex gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={selectAll}
+                  className="h-7 px-2 text-xs"
+                >
+                  <CheckSquare className="w-3 h-3 mr-1" />
+                  All
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={clearAll}
+                  className="h-7 px-2 text-xs"
+                >
+                  <Square className="w-3 h-3 mr-1" />
+                  Clear
+                </Button>
+              </div>
+            </div>
+            <ScrollArea className="h-[180px] rounded-md border border-tf-border bg-tf-substrate p-3">
+              <div className="grid grid-cols-2 gap-2">
                 {WA_COUNTY_ASSESSORS.map((c) => (
-                  <SelectItem key={c.county} value={c.county}>
-                    {c.county} County
-                  </SelectItem>
+                  <div
+                    key={c.county}
+                    className="flex items-center space-x-2 cursor-pointer hover:bg-tf-elevated/50 rounded p-1.5"
+                    onClick={() => toggleCounty(c.county)}
+                  >
+                    <Checkbox
+                      id={c.county}
+                      checked={selectedCounties.includes(c.county)}
+                      onCheckedChange={() => toggleCounty(c.county)}
+                    />
+                    <label
+                      htmlFor={c.county}
+                      className="text-sm cursor-pointer flex-1"
+                    >
+                      {c.county}
+                    </label>
+                  </div>
                 ))}
-              </SelectContent>
-            </Select>
-            {selectedCounty && (
-              <p className="text-xs text-muted-foreground font-mono truncate">
-                {assessorUrl}
-              </p>
-            )}
+              </div>
+            </ScrollArea>
           </div>
 
           {/* Auto-detected parcels info */}
           {action === "enrich" && (
-            <div className="glass-card rounded-lg p-4 flex items-start gap-3">
+            <div className="glass-card rounded-lg p-3 flex items-start gap-3">
               <Database className="w-5 h-5 text-tf-cyan flex-shrink-0 mt-0.5" />
               <div className="flex-1">
                 <div className="flex items-center justify-between">
-                  <p className="font-medium text-foreground">
+                  <p className="font-medium text-foreground text-sm">
                     {loadingParcels ? "Finding parcels..." : `${parcelsToEnrich.length} parcels need enrichment`}
                   </p>
                   <Button
@@ -263,37 +337,11 @@ export function AssessorScrapeDialog({
                     size="sm"
                     onClick={fetchParcelsNeedingEnrichment}
                     disabled={loadingParcels}
-                    className="h-7 px-2"
+                    className="h-6 px-2"
                   >
-                    <RefreshCw className={`w-3.5 h-3.5 ${loadingParcels ? "animate-spin" : ""}`} />
+                    <RefreshCw className={`w-3 h-3 ${loadingParcels ? "animate-spin" : ""}`} />
                   </Button>
                 </div>
-                <p className="text-muted-foreground text-xs mt-1">
-                  {loadingParcels
-                    ? "Checking database for parcels missing building details..."
-                    : parcelsToEnrich.length > 0
-                    ? `Parcels missing sqft, year built, or bedroom count will be enriched automatically.`
-                    : "All parcels have complete data. Import new parcels first."}
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* Info Box for other modes */}
-          {action !== "enrich" && (
-            <div className="glass-card rounded-lg p-4 flex items-start gap-3">
-              <Globe className="w-5 h-5 text-tf-cyan flex-shrink-0 mt-0.5" />
-              <div className="text-sm">
-                <p className="font-medium text-foreground">
-                  {action === "validate" && "Validation Mode"}
-                  {action === "import" && "Import Mode"}
-                </p>
-                <p className="text-muted-foreground text-xs mt-1">
-                  {action === "validate" &&
-                    "Compares your data against the public record and flags discrepancies."}
-                  {action === "import" &&
-                    "Discovers and imports new parcels from the assessor website."}
-                </p>
               </div>
             </div>
           )}
@@ -303,7 +351,7 @@ export function AssessorScrapeDialog({
             <div className="space-y-2">
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">
-                  Scraping {parcelsToEnrich.length} parcels...
+                  Scraping {currentCounty} County...
                 </span>
                 <span className="text-tf-cyan">{progress}%</span>
               </div>
@@ -311,65 +359,59 @@ export function AssessorScrapeDialog({
             </div>
           )}
 
-          {/* Result */}
-          {result && (
-            <div
-              className={`rounded-lg p-4 ${
-                result.success
-                  ? "bg-tf-optimized-green/10 border border-tf-optimized-green/30"
-                  : "bg-destructive/10 border border-destructive/30"
-              }`}
-            >
-              <div className="flex items-start gap-3">
-                {result.success ? (
-                  <CheckCircle className="w-5 h-5 text-tf-optimized-green flex-shrink-0" />
-                ) : (
-                  <AlertCircle className="w-5 h-5 text-destructive flex-shrink-0" />
-                )}
-                <div className="text-sm">
-                  {result.success ? (
-                    <>
-                      <p className="font-medium text-foreground">Scrape Complete</p>
-                      <ul className="text-muted-foreground text-xs mt-2 space-y-1">
-                        <li>• Parcels processed: {result.processed}</li>
-                        <li>• Successfully scraped: {result.successful}</li>
-                        <li>• Parcels enriched: {result.enriched}</li>
-                        <li>• Sales records added: {result.salesAdded}</li>
-                        {result.failed && result.failed > 0 && (
-                          <li className="text-amber-400">• Failed: {result.failed}</li>
-                        )}
-                      </ul>
-                    </>
-                  ) : (
-                    <>
-                      <p className="font-medium text-foreground">Scrape Failed</p>
-                      <p className="text-muted-foreground text-xs mt-1">{result.error}</p>
-                    </>
-                  )}
-                </div>
+          {/* Batch Results */}
+          {batchResults.length > 0 && (
+            <ScrollArea className="h-[120px] rounded-lg border border-tf-border bg-tf-substrate p-3">
+              <div className="space-y-2">
+                {batchResults.map(({ county, result }) => (
+                  <div
+                    key={county}
+                    className={`flex items-center gap-2 text-xs p-2 rounded ${
+                      result.success
+                        ? "bg-tf-optimized-green/10"
+                        : "bg-destructive/10"
+                    }`}
+                  >
+                    {result.success ? (
+                      <CheckCircle className="w-3.5 h-3.5 text-tf-optimized-green flex-shrink-0" />
+                    ) : (
+                      <AlertCircle className="w-3.5 h-3.5 text-destructive flex-shrink-0" />
+                    )}
+                    <span className="font-medium">{county}</span>
+                    {result.success ? (
+                      <span className="text-muted-foreground ml-auto">
+                        {result.enriched} enriched, {result.salesAdded} sales
+                      </span>
+                    ) : (
+                      <span className="text-destructive ml-auto truncate max-w-[200px]">
+                        {result.error}
+                      </span>
+                    )}
+                  </div>
+                ))}
               </div>
-            </div>
+            </ScrollArea>
           )}
 
           {/* Scrape Button */}
           <Button
             onClick={handleScrape}
             className="w-full gap-2 bg-tf-cyan hover:bg-tf-cyan/90"
-            disabled={scraping || !assessorUrl || (action === "enrich" && parcelsToEnrich.length === 0)}
+            disabled={scraping || selectedCounties.length === 0 || (action === "enrich" && parcelsToEnrich.length === 0)}
           >
             {scraping ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
-                Scraping...
+                Scraping {currentCounty}...
               </>
             ) : (
               <>
                 <Globe className="w-4 h-4" />
                 {action === "enrich"
-                  ? `Enrich ${parcelsToEnrich.length} Parcels`
+                  ? `Enrich from ${selectedCounties.length} Counties`
                   : action === "validate"
-                  ? "Validate Data"
-                  : "Import Parcels"}
+                  ? `Validate ${selectedCounties.length} Counties`
+                  : `Import from ${selectedCounties.length} Counties`}
               </>
             )}
           </Button>
