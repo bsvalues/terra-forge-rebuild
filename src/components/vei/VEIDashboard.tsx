@@ -103,13 +103,13 @@ export function VEIDashboard() {
     color: t.color,
   })) ?? [];
 
-  // Calculate tier slope (Q4 - Q1 median difference)
-  const q1Median = tierMedians.find((t) => t.tier.includes("Q1"))?.median ?? 1.0;
-  const q4Median = tierMedians.find((t) => t.tier.includes("Q4"))?.median ?? 1.0;
-  const tierSlope = q4Median - q1Median;
+  // Calculate tier slope (high - low median difference)
+  const lowMedian = tierMedians.find((t) => t.tier === "low" || t.tier.includes("Q1"))?.median ?? 1.0;
+  const highMedian = tierMedians.find((t) => t.tier === "high" || t.tier.includes("Q4"))?.median ?? 1.0;
+  const tierSlope = highMedian - lowMedian;
 
-  // Get Q4 appeal rate
-  const q4AppealsRate = appealsData?.find((a) => a.tier.includes("Q4"))?.rate ?? 0;
+  // Get high-value tier appeal rate
+  const highTierAppealsRate = appealsData?.find((a) => a.tier === "high" || a.tier.includes("Q4"))?.rate ?? 0;
 
   // Status helpers
   const getPRDStatus = (prd: number) => {
@@ -145,7 +145,7 @@ export function VEIDashboard() {
   const prdStatus = getPRDStatus(metrics?.prd ?? 1.0);
   const codStatus = getCODStatus(metrics?.cod ?? 0);
   const tierSlopeStatus = getTierSlopeStatus(tierSlope);
-  const appealsStatus = getAppealsStatus(q4AppealsRate);
+  const appealsStatus = getAppealsStatus(highTierAppealsRate);
 
   // Format study period dates
   const studyPeriodLabel = `${new Date(studyPeriod.start_date).toLocaleDateString("en-US", { month: "long", year: "numeric" })} - ${new Date(studyPeriod.end_date).toLocaleDateString("en-US", { month: "long", year: "numeric" })}`;
@@ -233,8 +233,8 @@ export function VEIDashboard() {
         />
         <VEIMetricCard
           title="Appeals Concentration"
-          value={`${q4AppealsRate.toFixed(1)}%`}
-          subtitle="Q4 Appeal Rate"
+          value={`${highTierAppealsRate.toFixed(1)}%`}
+          subtitle="High-Value Appeal Rate"
           status={appealsStatus.status as "excellent" | "good" | "caution" | "concern"}
           statusLabel={appealsStatus.label}
           icon={AlertTriangle}
