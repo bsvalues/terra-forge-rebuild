@@ -26,12 +26,13 @@ import { AssessorScrapeDialog } from "./AssessorScrapeDialog";
 import { ScrapeJobsDashboard } from "./ScrapeJobsDashboard";
 import { NotificationBell } from "./NotificationBell";
 import { ParcelImportWizard } from "./ParcelImportWizard";
+import { ParcelSearchPanel } from "./ParcelSearchPanel";
 import { useScrapeJobNotifications } from "@/hooks/useScrapeJobNotifications";
 import { useGISDataSources, useGISLayers, useNeighborhoodGeoStats } from "@/hooks/useGISData";
 
 export function GeoEquityDashboard() {
   const [selectedPeriodId, setSelectedPeriodId] = useState<string | undefined>();
-  const [activeTab, setActiveTab] = useState<"map" | "sources" | "layers" | "jobs">("map");
+  const [activeTab, setActiveTab] = useState<"map" | "sources" | "layers" | "jobs" | "search">("map");
   const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [arcgisImportOpen, setArcgisImportOpen] = useState(false);
   const [assessorScrapeOpen, setAssessorScrapeOpen] = useState(false);
@@ -168,6 +169,10 @@ export function GeoEquityDashboard() {
             <Map className="w-4 h-4" />
             Equity Map
           </TabsTrigger>
+          <TabsTrigger value="search" className="gap-2 data-[state=active]:bg-tf-optimized-green/20">
+            <Search className="w-4 h-4" />
+            Parcel Search
+          </TabsTrigger>
           <TabsTrigger value="sources" className="gap-2 data-[state=active]:bg-tf-cyan/20">
             <Database className="w-4 h-4" />
             Data Sources
@@ -195,6 +200,10 @@ export function GeoEquityDashboard() {
               isLoading={isLoading}
             />
           </motion.div>
+        </TabsContent>
+
+        <TabsContent value="search" className="mt-4">
+          <ParcelSearchPanel />
         </TabsContent>
 
         <TabsContent value="sources" className="mt-4">
