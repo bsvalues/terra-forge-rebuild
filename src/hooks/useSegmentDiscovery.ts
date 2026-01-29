@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { getCachedRegressionResult, CoefficientRow } from "./useRegressionAnalysis";
+import { getCachedRegressionResult, CoefficientRow, NeighborhoodEffect } from "./useRegressionAnalysis";
 
 export interface FactorAnalysis {
   factor: string;
@@ -55,8 +55,12 @@ export function useFactorAnalysis(studyPeriodId: string | undefined) {
       const regressionResult = getCachedRegressionResult();
       
       if (regressionResult) {
-        // Use regression coefficients for factor analysis
-        return convertRegressionToFactors(regressionResult.coefficients, regressionResult.anova);
+        // Use regression coefficients for factor analysis (includes neighborhood effects)
+        return convertRegressionToFactors(
+          regressionResult.coefficients, 
+          regressionResult.anova,
+          regressionResult.neighborhoodEffects
+        );
       }
 
       // Fallback: Get assessment ratios with parcel data for the study period
@@ -92,13 +96,18 @@ export function useFactorAnalysis(studyPeriodId: string | undefined) {
 }
 
 // Convert Regression Studio results to factor analysis format
-function convertRegressionToFactors(coefficients: CoefficientRow[], anova: any[]): FactorAnalysis[] {
+function convertRegressionToFactors(
+  coefficients: CoefficientRow[], 
+  anova: any[],
+  neighborhoodEffects?: NeighborhoodEffect[]
+): FactorAnalysis[] {
   const factorLabelMap: Record<string, string> = {
     "Building_Area": "Square Footage",
     "Land_Area": "Land Area / Lot Size",
     "Age": "Year Built / Age",
     "Bedrooms": "Bedrooms",
     "Bathrooms": "Bathrooms",
+    "Neighborhood": "Neighborhood / Location",
   };
 
   const factorKeyMap: Record<string, string> = {
@@ -107,6 +116,7 @@ function convertRegressionToFactors(coefficients: CoefficientRow[], anova: any[]
     "Age": "year_built",
     "Bedrooms": "bedrooms",
     "Bathrooms": "bathrooms",
+    "Neighborhood": "neighborhood_code",
   };
 
   // Get eta-squared values from ANOVA for importance
@@ -117,12 +127,29 @@ function convertRegressionToFactors(coefficients: CoefficientRow[], anova: any[]
     }
   });
 
-  return coefficients
+  const factors = coefficients
     .filter(c => c.variable !== "(Intercept)")
     .map(coef => {
       const label = factorLabelMap[coef.variable] || coef.variable.replace("_", " ");
       const factor = factorKeyMap[coef.variable] || coef.variable.toLowerCase();
       const importance = etaSquaredMap[coef.variable] || Math.abs(coef.tStatistic) / 100;
+
+      // Special handling for neighborhood - include detailed recommendation
+      let recommendation = getSegmentRecommendationFromRegression(factor, importance, coef.coefficient, coef.significant);
+      
+      if (coef.variable === "Neighborhood" && neighborhoodEffects) {
+        const significantNbhds = neighborhoodEffects.filter(n => n.significant && n.coefficient !== 0);
+        const overAssessed = significantNbhds.filter(n => n.coefficient > 0.03);
+        const underAssessed = significantNbhds.filter(n => n.coefficient < -0.03);
+        
+        if (overAssessed.length > 0 || underAssessed.length > 0) {
+          recommendation = `Geographic inequity detected: ${overAssessed.length} over-assessed, ${underAssessed.length} under-assessed neighborhoods. Use geographic segments for targeted revaluation.`;
+        } else if (significantNbhds.length > 0) {
+          recommendation = `Minor geographic variation in ${significantNbhds.length} neighborhoods — consider neighborhood-based adjustments`;
+        } else {
+          recommendation = "No significant geographic inequity detected — uniform assessment across neighborhoods";
+        }
+      }
 
       return {
         factor,
@@ -134,11 +161,13 @@ function convertRegressionToFactors(coefficients: CoefficientRow[], anova: any[]
         tStatistic: coef.tStatistic,
         vif: coef.vif,
         significant: coef.significant,
-        segmentRecommendation: getSegmentRecommendationFromRegression(factor, importance, coef.coefficient, coef.significant),
+        segmentRecommendation: recommendation,
         fromRegression: true,
       };
     })
     .sort((a, b) => b.importance - a.importance);
+
+  return factors;
 }
 
 function getSegmentRecommendationFromRegression(

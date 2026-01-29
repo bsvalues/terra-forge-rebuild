@@ -46,6 +46,7 @@ export interface DiagnosticPoint {
 export interface RegressionResult {
   coefficients: CoefficientRow[];
   anova: ANOVARow[];
+  neighborhoodEffects: NeighborhoodEffect[]; // New: geographic equity analysis
   modelStats: {
     rSquared: number;
     rSquaredAdj: number;
@@ -67,6 +68,18 @@ export interface RegressionResult {
   };
   equation: string;
   computedAt: string;
+}
+
+// New interface for neighborhood effects
+export interface NeighborhoodEffect {
+  code: string;
+  coefficient: number;
+  stdError: number;
+  tStatistic: number;
+  pValue: number;
+  significant: boolean;
+  count: number;
+  interpretation: string;
 }
 
 // Shared state for regression results (feeds to Segment Discovery)
@@ -182,32 +195,71 @@ function computeMultipleRegression(data: any[]): RegressionResult {
   // Extract dependent variable (assessment ratio)
   const y = data.map(d => d.ratio as number);
   
-  // Extract predictors (standardized for numerical stability)
+  // Extract continuous predictors (standardized for numerical stability)
   const buildingAreas = data.map(d => d.parcels?.building_area || 0);
   const landAreas = data.map(d => d.parcels?.land_area || 0);
   const ages = data.map(d => d.parcels?.year_built ? currentYear - d.parcels.year_built : 0);
   const bedrooms = data.map(d => d.parcels?.bedrooms || 0);
   const bathrooms = data.map(d => d.parcels?.bathrooms || 0);
 
-  // Standardize predictors
+  // Extract neighborhood codes for categorical variable
+  const neighborhoods = data.map(d => d.parcels?.neighborhood_code || "Unknown");
+  const uniqueNeighborhoods = [...new Set(neighborhoods)].filter(n => n !== "Unknown").sort();
+  
+  // Count observations per neighborhood
+  const neighborhoodCounts: Record<string, number> = {};
+  neighborhoods.forEach(n => {
+    neighborhoodCounts[n] = (neighborhoodCounts[n] || 0) + 1;
+  });
+  
+  // Filter neighborhoods with sufficient observations (at least 5)
+  const validNeighborhoods = uniqueNeighborhoods.filter(n => (neighborhoodCounts[n] || 0) >= 5);
+  
+  // Limit to top 10 neighborhoods by count to avoid overfitting
+  const topNeighborhoods = validNeighborhoods
+    .sort((a, b) => (neighborhoodCounts[b] || 0) - (neighborhoodCounts[a] || 0))
+    .slice(0, 10);
+  
+  // Reference neighborhood is the one with most observations (absorbed into intercept)
+  const referenceNeighborhood = topNeighborhoods[0] || "Unknown";
+  const dummyNeighborhoods = topNeighborhoods.slice(1);
+
+  // Standardize continuous predictors
   const stdBuildingArea = standardize(buildingAreas);
   const stdLandArea = standardize(landAreas);
   const stdAge = standardize(ages);
   const stdBedrooms = standardize(bedrooms);
   const stdBathrooms = standardize(bathrooms);
 
-  // Build design matrix [1, x1, x2, x3, x4, x5]
-  const X: number[][] = data.map((_, i) => [
-    1, // Intercept
-    stdBuildingArea.values[i],
-    stdLandArea.values[i],
-    stdAge.values[i],
-    stdBedrooms.values[i],
-    stdBathrooms.values[i],
-  ]);
+  // Build design matrix with continuous and categorical variables
+  // [1, building_area, land_area, age, bedrooms, bathrooms, nbhd_1, nbhd_2, ...]
+  const X: number[][] = data.map((d, i) => {
+    const row = [
+      1, // Intercept
+      stdBuildingArea.values[i],
+      stdLandArea.values[i],
+      stdAge.values[i],
+      stdBedrooms.values[i],
+      stdBathrooms.values[i],
+    ];
+    
+    // Add dummy variables for neighborhoods (reference category omitted)
+    const parcelNeighborhood = d.parcels?.neighborhood_code || "Unknown";
+    dummyNeighborhoods.forEach(nbhd => {
+      row.push(parcelNeighborhood === nbhd ? 1 : 0);
+    });
+    
+    return row;
+  });
 
-  const variableNames = ["(Intercept)", "Building_Area", "Land_Area", "Age", "Bedrooms", "Bathrooms"];
-  const k = variableNames.length - 1; // Number of predictors (excluding intercept)
+  // Variable names including neighborhood dummies
+  const continuousVarNames = ["(Intercept)", "Building_Area", "Land_Area", "Age", "Bedrooms", "Bathrooms"];
+  const neighborhoodVarNames = dummyNeighborhoods.map(n => `Nbhd_${n}`);
+  const variableNames = [...continuousVarNames, ...neighborhoodVarNames];
+  
+  const numContinuous = continuousVarNames.length - 1; // Exclude intercept
+  const numNeighborhoods = dummyNeighborhoods.length;
+  const k = numContinuous + numNeighborhoods; // Total predictors
 
   // Solve normal equations: β = (X'X)^(-1) X'y
   const XtX = matrixMultiply(transpose(X), X);
@@ -238,15 +290,16 @@ function computeMultipleRegression(data: any[]): RegressionResult {
   const fPValue = approximateFPValue(fStatistic, k, n - k - 1);
 
   // Calculate standard errors and t-statistics for coefficients
-  const coefficients: CoefficientRow[] = variableNames.map((name, i) => {
-    const se = Math.sqrt(mse * XtXInv[i][i]);
+  const stds = [stdBuildingArea, stdLandArea, stdAge, stdBedrooms, stdBathrooms];
+  
+  const coefficients: CoefficientRow[] = continuousVarNames.map((name, i) => {
+    const se = Math.sqrt(Math.max(0, mse * XtXInv[i][i]));
     const t = se > 0 ? beta[i] / se : 0;
     const pValue = approximateTwoPValue(Math.abs(t), n - k - 1);
     
     // Unstandardize coefficient for interpretability
     let unstdCoef = beta[i];
-    if (i > 0) {
-      const stds = [stdBuildingArea, stdLandArea, stdAge, stdBedrooms, stdBathrooms];
+    if (i > 0 && i <= stds.length) {
       unstdCoef = beta[i] / stds[i - 1].std;
     }
 
@@ -261,10 +314,81 @@ function computeMultipleRegression(data: any[]): RegressionResult {
     };
   });
 
-  // ANOVA table
+  // Add neighborhood as a single categorical coefficient (overall effect)
+  if (numNeighborhoods > 0) {
+    // Calculate neighborhood F-test (joint significance)
+    const nbhdStartIdx = continuousVarNames.length;
+    const nbhdBetas = beta.slice(nbhdStartIdx);
+    const avgNbhdEffect = mean(nbhdBetas.map(Math.abs));
+    const nbhdFStat = computeNeighborhoodFStat(X, y, beta, nbhdStartIdx, numNeighborhoods, mse);
+    const nbhdPValue = approximateFPValue(nbhdFStat, numNeighborhoods, n - k - 1);
+    
+    coefficients.push({
+      variable: "Neighborhood",
+      coefficient: avgNbhdEffect,
+      stdError: 0,
+      tStatistic: nbhdFStat,
+      pValue: nbhdPValue,
+      vif: 1.0,
+      significant: nbhdPValue < 0.05,
+    });
+  }
+
+  // Extract neighborhood-specific effects
+  const neighborhoodEffects: NeighborhoodEffect[] = [];
+  
+  // Add reference neighborhood (coefficient = 0 by definition)
+  neighborhoodEffects.push({
+    code: referenceNeighborhood,
+    coefficient: 0,
+    stdError: 0,
+    tStatistic: 0,
+    pValue: 1,
+    significant: false,
+    count: neighborhoodCounts[referenceNeighborhood] || 0,
+    interpretation: "Reference category — baseline for comparison",
+  });
+  
+  // Add other neighborhoods with their coefficients
+  dummyNeighborhoods.forEach((nbhd, i) => {
+    const idx = continuousVarNames.length + i;
+    const se = Math.sqrt(Math.max(0, mse * XtXInv[idx][idx]));
+    const coef = beta[idx];
+    const t = se > 0 ? coef / se : 0;
+    const pValue = approximateTwoPValue(Math.abs(t), n - k - 1);
+    const significant = pValue < 0.05;
+    
+    let interpretation = "";
+    if (!significant) {
+      interpretation = `No significant difference from ${referenceNeighborhood}`;
+    } else if (coef > 0.05) {
+      interpretation = `Over-assessed by ${(coef * 100).toFixed(1)}% vs ${referenceNeighborhood} — potential regressivity`;
+    } else if (coef < -0.05) {
+      interpretation = `Under-assessed by ${(Math.abs(coef) * 100).toFixed(1)}% vs ${referenceNeighborhood} — potential progressivity`;
+    } else if (coef > 0) {
+      interpretation = `Slightly higher ratios (+${(coef * 100).toFixed(1)}%) vs ${referenceNeighborhood}`;
+    } else {
+      interpretation = `Slightly lower ratios (${(coef * 100).toFixed(1)}%) vs ${referenceNeighborhood}`;
+    }
+    
+    neighborhoodEffects.push({
+      code: nbhd,
+      coefficient: coef,
+      stdError: se,
+      tStatistic: t,
+      pValue,
+      significant,
+      count: neighborhoodCounts[nbhd] || 0,
+      interpretation,
+    });
+  });
+  
+  // Sort by absolute coefficient (largest effects first)
+  neighborhoodEffects.sort((a, b) => Math.abs(b.coefficient) - Math.abs(a.coefficient));
+
+  // ANOVA table - continuous variables
   const anova: ANOVARow[] = [
-    ...variableNames.slice(1).map((name, i) => {
-      // Individual sum of squares (Type III)
+    ...continuousVarNames.slice(1).map((name, i) => {
       const ssVar = computePartialSS(X, y, i + 1, beta, yMean);
       const msVar = ssVar;
       const fVar = msVar / mse;
@@ -280,16 +404,36 @@ function computeMultipleRegression(data: any[]): RegressionResult {
         etaSq,
       };
     }),
-    {
-      source: "Residuals",
-      df: n - k - 1,
-      sumSq: sse,
-      meanSq: mse,
-      fValue: null,
-      pValue: null,
-      etaSq: null,
-    },
   ];
+  
+  // Add neighborhood as a single ANOVA row (joint effect)
+  if (numNeighborhoods > 0) {
+    const nbhdSS = computeNeighborhoodSS(X, y, beta, continuousVarNames.length, numNeighborhoods, yMean);
+    const nbhdMS = nbhdSS / numNeighborhoods;
+    const nbhdF = nbhdMS / mse;
+    const nbhdEtaSq = nbhdSS / sst;
+    
+    anova.push({
+      source: "Neighborhood",
+      df: numNeighborhoods,
+      sumSq: nbhdSS,
+      meanSq: nbhdMS,
+      fValue: nbhdF,
+      pValue: approximateFPValue(nbhdF, numNeighborhoods, n - k - 1),
+      etaSq: nbhdEtaSq,
+    });
+  }
+  
+  // Add residuals
+  anova.push({
+    source: "Residuals",
+    df: n - k - 1,
+    sumSq: sse,
+    meanSq: mse,
+    fValue: null,
+    pValue: null,
+    etaSq: null,
+  });
 
   // Diagnostic tests
   const diagnostics = computeDiagnostics(residuals, yHat, X, coefficients);
@@ -298,9 +442,7 @@ function computeMultipleRegression(data: any[]): RegressionResult {
   const diagnosticPlots = computeDiagnosticPlots(residuals, yHat, X, beta, mse);
 
   // Build equation string
-  const equation = buildEquationString(coefficients, [
-    stdBuildingArea, stdLandArea, stdAge, stdBedrooms, stdBathrooms
-  ]);
+  const equation = buildEquationString(coefficients, stds, referenceNeighborhood);
 
   // Calculate AIC
   const aic = n * Math.log(sse / n) + 2 * (k + 1);
@@ -308,6 +450,7 @@ function computeMultipleRegression(data: any[]): RegressionResult {
   return {
     coefficients,
     anova,
+    neighborhoodEffects,
     modelStats: {
       rSquared,
       rSquaredAdj,
@@ -325,6 +468,49 @@ function computeMultipleRegression(data: any[]): RegressionResult {
     equation,
     computedAt: new Date().toISOString(),
   };
+}
+
+// Compute F-statistic for neighborhood variables jointly
+function computeNeighborhoodFStat(
+  X: number[][],
+  y: number[],
+  beta: number[],
+  startIdx: number,
+  numVars: number,
+  mse: number
+): number {
+  // Sum of squares attributable to neighborhood variables
+  let ssNbhd = 0;
+  for (let i = 0; i < X.length; i++) {
+    let nbhdContrib = 0;
+    for (let j = 0; j < numVars; j++) {
+      nbhdContrib += beta[startIdx + j] * X[i][startIdx + j];
+    }
+    ssNbhd += nbhdContrib * nbhdContrib;
+  }
+  
+  const msNbhd = ssNbhd / numVars;
+  return msNbhd / mse;
+}
+
+// Compute sum of squares for neighborhood variables
+function computeNeighborhoodSS(
+  X: number[][],
+  y: number[],
+  beta: number[],
+  startIdx: number,
+  numVars: number,
+  yMean: number
+): number {
+  let ss = 0;
+  for (let i = 0; i < X.length; i++) {
+    let nbhdContrib = 0;
+    for (let j = 0; j < numVars; j++) {
+      nbhdContrib += beta[startIdx + j] * X[i][startIdx + j];
+    }
+    ss += nbhdContrib * nbhdContrib;
+  }
+  return ss;
 }
 
 // Helper functions
@@ -657,15 +843,24 @@ function approximateFPValue(f: number, df1: number, df2: number): number {
 
 function buildEquationString(
   coefficients: CoefficientRow[],
-  stds: { mean: number; std: number }[]
+  stds: { mean: number; std: number }[],
+  referenceNeighborhood?: string
 ): string {
   const intercept = coefficients[0];
   let eq = `ŷ = ${intercept.coefficient.toFixed(4)}`;
   
-  coefficients.slice(1).forEach((c, i) => {
-    const sign = c.coefficient >= 0 ? " + " : " - ";
-    const varName = c.variable.replace("_", "");
-    eq += `${sign}${Math.abs(c.coefficient).toFixed(6)}(${varName})`;
+  coefficients.slice(1).forEach((c) => {
+    if (c.variable === "Neighborhood") {
+      // Show neighborhood as categorical with reference
+      eq += ` + Σβ(Neighborhood)`;
+      if (referenceNeighborhood) {
+        eq += ` [ref: ${referenceNeighborhood}]`;
+      }
+    } else {
+      const sign = c.coefficient >= 0 ? " + " : " - ";
+      const varName = c.variable.replace("_", "");
+      eq += `${sign}${Math.abs(c.coefficient).toFixed(6)}(${varName})`;
+    }
   });
   
   return eq;

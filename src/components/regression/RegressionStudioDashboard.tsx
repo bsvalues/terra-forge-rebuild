@@ -6,9 +6,11 @@ import { MultipleRegressionPanel } from "./MultipleRegressionPanel";
 import { ANOVAPanel } from "./ANOVAPanel";
 import { DiagnosticPlotsPanel } from "./DiagnosticPlotsPanel";
 import { RegressionSummaryCards } from "./RegressionSummaryCards";
+import { NeighborhoodEffectsPanel } from "./NeighborhoodEffectsPanel";
 import { useRegressionAnalysis, useRunRegressionAnalysis } from "@/hooks/useRegressionAnalysis";
 import { useStudyPeriods } from "@/hooks/useVEIData";
 import { StudyPeriodSelector } from "@/components/vei/StudyPeriodSelector";
+import { MapPin } from "lucide-react";
 
 export function RegressionStudioDashboard() {
   const [activeTab, setActiveTab] = useState("regression");
@@ -72,9 +74,13 @@ export function RegressionStudioDashboard() {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full max-w-lg grid-cols-3 bg-tf-elevated/50">
+        <TabsList className="grid w-full max-w-2xl grid-cols-4 bg-tf-elevated/50">
           <TabsTrigger value="regression" className="data-[state=active]:bg-tf-transcend-cyan/20">
             Multiple Regression
+          </TabsTrigger>
+          <TabsTrigger value="neighborhoods" className="data-[state=active]:bg-tf-transcend-cyan/20 gap-1">
+            <MapPin className="w-3 h-3" />
+            Geographic
           </TabsTrigger>
           <TabsTrigger value="anova" className="data-[state=active]:bg-tf-transcend-cyan/20">
             ANOVA
@@ -87,6 +93,13 @@ export function RegressionStudioDashboard() {
         <TabsContent value="regression" className="mt-6">
           <MultipleRegressionPanel 
             result={regressionResult} 
+            isLoading={isLoadingRegression || runAnalysis.isPending} 
+          />
+        </TabsContent>
+
+        <TabsContent value="neighborhoods" className="mt-6">
+          <NeighborhoodEffectsPanel 
+            effects={regressionResult?.neighborhoodEffects} 
             isLoading={isLoadingRegression || runAnalysis.isPending} 
           />
         </TabsContent>
