@@ -11,6 +11,7 @@ import {
   CalendarCog,
   FlaskConical,
   Atom,
+  Globe,
 } from "lucide-react";
 
 interface SovereignSidebarProps {
@@ -23,6 +24,7 @@ interface SovereignSidebarProps {
 const modules = [
   { id: "vei", label: "VEI Suite", icon: TrendingUp, description: "Vertical Equity Index" },
   { id: "segments", label: "Segments", icon: FlaskConical, description: "Factor Analysis" },
+  { id: "geoequity", label: "GeoEquity", icon: Globe, description: "GIS & Spatial Analysis" },
   { id: "anatomy", label: "Anatomy", icon: Atom, description: "3D Value Drivers" },
   { id: "costforge", label: "CostForge", icon: Calculator, description: "3-6-9 Valuation Engine" },
   { id: "avm", label: "AVM Studio", icon: Brain, description: "ML Model Laboratory" },

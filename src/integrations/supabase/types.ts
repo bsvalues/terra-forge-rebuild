@@ -141,6 +141,149 @@ export type Database = {
           },
         ]
       }
+      gis_data_sources: {
+        Row: {
+          connection_url: string | null
+          created_at: string
+          credentials_encrypted: string | null
+          id: string
+          last_sync_at: string | null
+          metadata: Json | null
+          name: string
+          source_type: string
+          sync_error: string | null
+          sync_status: string | null
+          updated_at: string
+        }
+        Insert: {
+          connection_url?: string | null
+          created_at?: string
+          credentials_encrypted?: string | null
+          id?: string
+          last_sync_at?: string | null
+          metadata?: Json | null
+          name: string
+          source_type: string
+          sync_error?: string | null
+          sync_status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          connection_url?: string | null
+          created_at?: string
+          credentials_encrypted?: string | null
+          id?: string
+          last_sync_at?: string | null
+          metadata?: Json | null
+          name?: string
+          source_type?: string
+          sync_error?: string | null
+          sync_status?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      gis_features: {
+        Row: {
+          centroid_lat: number | null
+          centroid_lng: number | null
+          coordinates: Json
+          created_at: string
+          geometry_type: string
+          id: string
+          layer_id: string
+          parcel_id: string | null
+          properties: Json | null
+        }
+        Insert: {
+          centroid_lat?: number | null
+          centroid_lng?: number | null
+          coordinates: Json
+          created_at?: string
+          geometry_type: string
+          id?: string
+          layer_id: string
+          parcel_id?: string | null
+          properties?: Json | null
+        }
+        Update: {
+          centroid_lat?: number | null
+          centroid_lng?: number | null
+          coordinates?: Json
+          created_at?: string
+          geometry_type?: string
+          id?: string
+          layer_id?: string
+          parcel_id?: string | null
+          properties?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gis_features_layer_id_fkey"
+            columns: ["layer_id"]
+            isOneToOne: false
+            referencedRelation: "gis_layers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gis_features_parcel_id_fkey"
+            columns: ["parcel_id"]
+            isOneToOne: false
+            referencedRelation: "parcels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gis_layers: {
+        Row: {
+          bounds: Json | null
+          created_at: string
+          data_source_id: string | null
+          feature_count: number | null
+          file_format: string | null
+          id: string
+          layer_type: string
+          name: string
+          properties_schema: Json | null
+          srid: number | null
+          updated_at: string
+        }
+        Insert: {
+          bounds?: Json | null
+          created_at?: string
+          data_source_id?: string | null
+          feature_count?: number | null
+          file_format?: string | null
+          id?: string
+          layer_type: string
+          name: string
+          properties_schema?: Json | null
+          srid?: number | null
+          updated_at?: string
+        }
+        Update: {
+          bounds?: Json | null
+          created_at?: string
+          data_source_id?: string | null
+          feature_count?: number | null
+          file_format?: string | null
+          id?: string
+          layer_type?: string
+          name?: string
+          properties_schema?: Json | null
+          srid?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gis_layers_data_source_id_fkey"
+            columns: ["data_source_id"]
+            isOneToOne: false
+            referencedRelation: "gis_data_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       parcels: {
         Row: {
           address: string
