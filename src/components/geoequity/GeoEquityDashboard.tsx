@@ -7,10 +7,10 @@ import {
   Map,
   Layers,
   Database,
-  RefreshCw,
   Download,
   Upload,
   Server,
+  MapPin,
 } from "lucide-react";
 import { StudyPeriodSelector } from "@/components/vei/StudyPeriodSelector";
 import { useStudyPeriods } from "@/hooks/useVEIData";
@@ -18,12 +18,14 @@ import { GeoEquityMap } from "./GeoEquityMap";
 import { DataSourcesPanel } from "./DataSourcesPanel";
 import { GISLayersPanel } from "./GISLayersPanel";
 import { GISImportDialog } from "./GISImportDialog";
+import { ArcGISImportDialog } from "./ArcGISImportDialog";
 import { useGISDataSources, useGISLayers, useNeighborhoodGeoStats } from "@/hooks/useGISData";
 
 export function GeoEquityDashboard() {
   const [selectedPeriodId, setSelectedPeriodId] = useState<string | undefined>();
   const [activeTab, setActiveTab] = useState<"map" | "sources" | "layers">("map");
   const [importDialogOpen, setImportDialogOpen] = useState(false);
+  const [arcgisImportOpen, setArcgisImportOpen] = useState(false);
 
   const { data: studyPeriods, isLoading: isLoadingPeriods } = useStudyPeriods();
   const { data: dataSources = [], isLoading: isLoadingSources } = useGISDataSources();
@@ -73,6 +75,15 @@ export function GeoEquityDashboard() {
           >
             <Upload className="w-4 h-4" />
             Import GIS
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-2 border-tf-cyan/50 text-tf-cyan hover:bg-tf-cyan/10"
+            onClick={() => setArcgisImportOpen(true)}
+          >
+            <MapPin className="w-4 h-4" />
+            Sync Coords
           </Button>
           <Button variant="outline" size="sm" className="gap-2">
             <Download className="w-4 h-4" />
@@ -171,6 +182,13 @@ export function GeoEquityDashboard() {
       <GISImportDialog
         open={importDialogOpen}
         onOpenChange={setImportDialogOpen}
+      />
+
+      {/* ArcGIS Coordinate Import Dialog */}
+      <ArcGISImportDialog
+        open={arcgisImportOpen}
+        onOpenChange={setArcgisImportOpen}
+        dataSources={dataSources}
       />
     </div>
   );
