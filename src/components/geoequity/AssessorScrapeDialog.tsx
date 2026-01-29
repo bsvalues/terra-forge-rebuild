@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -8,7 +8,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -17,9 +16,10 @@ import {
   AlertCircle,
   Loader2,
   Info,
-  Search,
   Database,
   FileCheck,
+  Search,
+  RefreshCw,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -45,11 +45,38 @@ export function AssessorScrapeDialog({
   onOpenChange,
 }: AssessorScrapeDialogProps) {
   const [assessorUrl, setAssessorUrl] = useState("");
-  const [parcelIds, setParcelIds] = useState("");
   const [action, setAction] = useState<"enrich" | "validate" | "import">("enrich");
   const [scraping, setScraping] = useState(false);
   const [progress, setProgress] = useState(0);
   const [result, setResult] = useState<ScrapeResult | null>(null);
+  const [parcelsToEnrich, setParcelsToEnrich] = useState<string[]>([]);
+  const [loadingParcels, setLoadingParcels] = useState(false);
+
+  // Auto-fetch parcels that need enrichment
+  useEffect(() => {
+    if (open && action === "enrich") {
+      fetchParcelsNeedingEnrichment();
+    }
+  }, [open, action]);
+
+  const fetchParcelsNeedingEnrichment = async () => {
+    setLoadingParcels(true);
+    try {
+      // Get parcels missing key data fields
+      const { data, error } = await supabase
+        .from("parcels")
+        .select("parcel_number")
+        .or("building_area.is.null,year_built.is.null,bedrooms.is.null")
+        .limit(50);
+
+      if (error) throw error;
+      setParcelsToEnrich(data?.map((p) => p.parcel_number) || []);
+    } catch (err) {
+      console.error("Error fetching parcels:", err);
+    } finally {
+      setLoadingParcels(false);
+    }
+  };
 
   const handleScrape = async () => {
     if (!assessorUrl) {
@@ -57,13 +84,8 @@ export function AssessorScrapeDialog({
       return;
     }
 
-    const ids = parcelIds
-      .split(/[\n,]+/)
-      .map((id) => id.trim())
-      .filter((id) => id.length > 0);
-
-    if (ids.length === 0) {
-      toast.error("Please enter at least one parcel ID");
+    if (action === "enrich" && parcelsToEnrich.length === 0) {
+      toast.info("No parcels need enrichment - all have complete data");
       return;
     }
 
@@ -79,7 +101,7 @@ export function AssessorScrapeDialog({
       const { data, error } = await supabase.functions.invoke("assessor-scrape", {
         body: {
           assessorUrl,
-          parcelIds: ids,
+          parcelIds: parcelsToEnrich,
           action,
         },
       });
@@ -97,6 +119,10 @@ export function AssessorScrapeDialog({
         toast.success(
           `Scraped ${data.successful} parcels, enriched ${data.enriched}, added ${data.salesAdded} sales`
         );
+        // Refresh the list after successful scrape
+        if (action === "enrich") {
+          fetchParcelsNeedingEnrichment();
+        }
       } else {
         toast.error(data.error || "Scrape failed");
       }
@@ -161,45 +187,62 @@ export function AssessorScrapeDialog({
             </p>
           </div>
 
-          {/* Parcel IDs */}
-          <div className="space-y-2">
-            <Label>Parcel IDs (one per line or comma-separated)</Label>
-            <Textarea
-              placeholder="12345678901&#10;12345678902&#10;12345678903"
-              value={parcelIds}
-              onChange={(e) => setParcelIds(e.target.value)}
-              className="bg-tf-substrate border-tf-border font-mono text-sm min-h-[100px]"
-            />
-            <p className="text-xs text-muted-foreground">
-              Max 50 parcels per request to avoid rate limits
-            </p>
-          </div>
-
-          {/* Info Box */}
-          <div className="glass-card rounded-lg p-4 flex items-start gap-3">
-            <Info className="w-5 h-5 text-tf-cyan flex-shrink-0 mt-0.5" />
-            <div className="text-sm">
-              <p className="font-medium text-foreground">
-                {action === "enrich" && "Enrich Mode"}
-                {action === "validate" && "Validation Mode"}
-                {action === "import" && "Import Mode"}
-              </p>
-              <p className="text-muted-foreground text-xs mt-1">
-                {action === "enrich" &&
-                  "Updates existing parcels with additional details (sqft, beds, baths, year built) and imports sales history."}
-                {action === "validate" &&
-                  "Compares your data against the public record and flags discrepancies."}
-                {action === "import" &&
-                  "Creates new parcel records and associated sales from scraped data."}
-              </p>
+          {/* Auto-detected parcels info */}
+          {action === "enrich" && (
+            <div className="glass-card rounded-lg p-4 flex items-start gap-3">
+              <Database className="w-5 h-5 text-tf-cyan flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <div className="flex items-center justify-between">
+                  <p className="font-medium text-foreground">
+                    {loadingParcels ? "Finding parcels..." : `${parcelsToEnrich.length} parcels need enrichment`}
+                  </p>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={fetchParcelsNeedingEnrichment}
+                    disabled={loadingParcels}
+                    className="h-7 px-2"
+                  >
+                    <RefreshCw className={`w-3.5 h-3.5 ${loadingParcels ? "animate-spin" : ""}`} />
+                  </Button>
+                </div>
+                <p className="text-muted-foreground text-xs mt-1">
+                  {loadingParcels
+                    ? "Checking database for parcels missing building details..."
+                    : parcelsToEnrich.length > 0
+                    ? `Parcels missing sqft, year built, or bedroom count will be enriched automatically.`
+                    : "All parcels have complete data. Import new parcels first."}
+                </p>
+              </div>
             </div>
-          </div>
+          )}
+
+          {/* Info Box for other modes */}
+          {action !== "enrich" && (
+            <div className="glass-card rounded-lg p-4 flex items-start gap-3">
+              <Info className="w-5 h-5 text-tf-cyan flex-shrink-0 mt-0.5" />
+              <div className="text-sm">
+                <p className="font-medium text-foreground">
+                  {action === "validate" && "Validation Mode"}
+                  {action === "import" && "Import Mode"}
+                </p>
+                <p className="text-muted-foreground text-xs mt-1">
+                  {action === "validate" &&
+                    "Compares your data against the public record and flags discrepancies."}
+                  {action === "import" &&
+                    "Discovers and imports new parcels from the assessor website."}
+                </p>
+              </div>
+            </div>
+          )}
 
           {/* Progress */}
           {scraping && (
             <div className="space-y-2">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Scraping assessor website...</span>
+                <span className="text-muted-foreground">
+                  Scraping {parcelsToEnrich.length} parcels...
+                </span>
                 <span className="text-tf-cyan">{progress}%</span>
               </div>
               <Progress value={progress} className="h-2" />
@@ -250,7 +293,7 @@ export function AssessorScrapeDialog({
           <Button
             onClick={handleScrape}
             className="w-full gap-2 bg-tf-cyan hover:bg-tf-cyan/90"
-            disabled={scraping || !assessorUrl || !parcelIds.trim()}
+            disabled={scraping || !assessorUrl || (action === "enrich" && parcelsToEnrich.length === 0)}
           >
             {scraping ? (
               <>
@@ -260,7 +303,11 @@ export function AssessorScrapeDialog({
             ) : (
               <>
                 <Globe className="w-4 h-4" />
-                Scrape Assessor Data
+                {action === "enrich"
+                  ? `Enrich ${parcelsToEnrich.length} Parcels`
+                  : action === "validate"
+                  ? "Validate Data"
+                  : "Import Parcels"}
               </>
             )}
           </Button>
