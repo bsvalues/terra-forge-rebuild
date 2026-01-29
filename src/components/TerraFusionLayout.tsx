@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { SovereignSidebar } from "./navigation/SovereignSidebar";
@@ -9,6 +9,7 @@ import { CostForgeDashboard } from "./costforge/CostForgeDashboard";
 import { AVMStudioDashboard } from "./avm/AVMStudioDashboard";
 import { RegressionStudioDashboard } from "./regression/RegressionStudioDashboard";
 import { AxiomFSDashboard } from "./axiomfs/AxiomFSDashboard";
+import { SegmentDiscoveryDashboard } from "./segments";
 import { StudyPeriodManager } from "./admin";
 
 const SettingsPlaceholder = () => (
@@ -26,6 +27,11 @@ const moduleConfig: Record<string, { title: string; description: string; compone
     title: "VEI Suite",
     description: "Vertical Equity Index — Minimum Viable Standard",
     component: VEIDashboard,
+  },
+  segments: {
+    title: "Segment Discovery",
+    description: "Data-Driven Factor Analysis",
+    component: SegmentDiscoveryDashboard,
   },
   costforge: {
     title: "CostForge AI",
@@ -62,6 +68,20 @@ const moduleConfig: Record<string, { title: string; description: string; compone
 export function TerraFusionLayout() {
   const [activeModule, setActiveModule] = useState("vei");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+
+  // Listen for navigation events from child components
+  useEffect(() => {
+    const handleNavigate = (event: CustomEvent<string>) => {
+      if (moduleConfig[event.detail]) {
+        setActiveModule(event.detail);
+      }
+    };
+
+    window.addEventListener("navigate-to-module", handleNavigate as EventListener);
+    return () => {
+      window.removeEventListener("navigate-to-module", handleNavigate as EventListener);
+    };
+  }, []);
 
   const currentModule = moduleConfig[activeModule] || moduleConfig.vei;
   const ModuleComponent = currentModule.component;

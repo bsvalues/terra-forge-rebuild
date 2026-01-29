@@ -9,6 +9,7 @@ import {
   Settings,
   ChevronRight,
   CalendarCog,
+  FlaskConical,
 } from "lucide-react";
 
 interface SovereignSidebarProps {
@@ -20,6 +21,7 @@ interface SovereignSidebarProps {
 
 const modules = [
   { id: "vei", label: "VEI Suite", icon: TrendingUp, description: "Vertical Equity Index" },
+  { id: "segments", label: "Segments", icon: FlaskConical, description: "Factor Analysis" },
   { id: "costforge", label: "CostForge", icon: Calculator, description: "3-6-9 Valuation Engine" },
   { id: "avm", label: "AVM Studio", icon: Brain, description: "ML Model Laboratory" },
   { id: "axiom", label: "AxiomFS", icon: FolderTree, description: "Sovereign File Lattice" },
