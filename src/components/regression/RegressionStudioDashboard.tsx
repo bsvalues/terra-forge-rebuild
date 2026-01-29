@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RegressionActions } from "./RegressionActions";
@@ -6,9 +6,31 @@ import { MultipleRegressionPanel } from "./MultipleRegressionPanel";
 import { ANOVAPanel } from "./ANOVAPanel";
 import { DiagnosticPlotsPanel } from "./DiagnosticPlotsPanel";
 import { RegressionSummaryCards } from "./RegressionSummaryCards";
+import { useRegressionAnalysis, useRunRegressionAnalysis } from "@/hooks/useRegressionAnalysis";
+import { useStudyPeriods } from "@/hooks/useVEIData";
+import { StudyPeriodSelector } from "@/components/vei/StudyPeriodSelector";
 
 export function RegressionStudioDashboard() {
   const [activeTab, setActiveTab] = useState("regression");
+  const [selectedPeriodId, setSelectedPeriodId] = useState<string | undefined>();
+
+  const { data: studyPeriods, isLoading: isLoadingPeriods } = useStudyPeriods();
+  const { data: regressionResult, isLoading: isLoadingRegression } = useRegressionAnalysis(selectedPeriodId);
+  const runAnalysis = useRunRegressionAnalysis();
+
+  // Auto-select active period
+  useEffect(() => {
+    if (studyPeriods && studyPeriods.length > 0 && !selectedPeriodId) {
+      const activePeriod = studyPeriods.find((p) => p.status === "active");
+      setSelectedPeriodId(activePeriod?.id || studyPeriods[0].id);
+    }
+  }, [studyPeriods, selectedPeriodId]);
+
+  const handleRunAnalysis = () => {
+    if (selectedPeriodId) {
+      runAnalysis.mutate(selectedPeriodId);
+    }
+  };
 
   return (
     <div className="p-6 space-y-6">
@@ -16,7 +38,7 @@ export function RegressionStudioDashboard() {
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex items-center justify-between"
+        className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
       >
         <div>
           <h2 className="text-2xl font-light text-gradient-sovereign">
@@ -26,11 +48,27 @@ export function RegressionStudioDashboard() {
             PhD-Level Analytics • Multiple Regression • ANOVA • Diagnostic Testing
           </p>
         </div>
-        <RegressionActions />
+        <div className="flex items-center gap-3">
+          {studyPeriods && studyPeriods.length > 0 && (
+            <StudyPeriodSelector
+              periods={studyPeriods}
+              selectedId={selectedPeriodId}
+              onSelect={setSelectedPeriodId}
+            />
+          )}
+          <RegressionActions 
+            onRunAnalysis={handleRunAnalysis}
+            isRunning={runAnalysis.isPending}
+            hasResult={!!regressionResult}
+          />
+        </div>
       </motion.div>
 
       {/* Summary Cards */}
-      <RegressionSummaryCards />
+      <RegressionSummaryCards 
+        result={regressionResult} 
+        isLoading={isLoadingRegression || runAnalysis.isPending} 
+      />
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -47,15 +85,24 @@ export function RegressionStudioDashboard() {
         </TabsList>
 
         <TabsContent value="regression" className="mt-6">
-          <MultipleRegressionPanel />
+          <MultipleRegressionPanel 
+            result={regressionResult} 
+            isLoading={isLoadingRegression || runAnalysis.isPending} 
+          />
         </TabsContent>
 
         <TabsContent value="anova" className="mt-6">
-          <ANOVAPanel />
+          <ANOVAPanel 
+            result={regressionResult} 
+            isLoading={isLoadingRegression || runAnalysis.isPending} 
+          />
         </TabsContent>
 
         <TabsContent value="diagnostics" className="mt-6">
-          <DiagnosticPlotsPanel />
+          <DiagnosticPlotsPanel 
+            result={regressionResult} 
+            isLoading={isLoadingRegression || runAnalysis.isPending} 
+          />
         </TabsContent>
       </Tabs>
     </div>

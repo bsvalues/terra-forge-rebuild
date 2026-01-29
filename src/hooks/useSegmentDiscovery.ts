@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { getCachedRegressionResult, CoefficientRow } from "./useRegressionAnalysis";
 
 export interface FactorAnalysis {
   factor: string;
@@ -12,6 +13,7 @@ export interface FactorAnalysis {
   vif: number;
   significant: boolean;
   segmentRecommendation: string;
+  fromRegression?: boolean; // Flag to indicate if this came from Regression Studio
 }
 
 export interface SegmentDefinition {
@@ -42,13 +44,22 @@ export interface SegmentDiscoveryResult {
 }
 
 // Analyze which factors most impact assessment ratio variation
+// This hook now integrates with Regression Studio results when available
 export function useFactorAnalysis(studyPeriodId: string | undefined) {
   return useQuery({
     queryKey: ["factor-analysis", studyPeriodId],
     queryFn: async (): Promise<FactorAnalysis[]> => {
       if (!studyPeriodId) return [];
 
-      // Get assessment ratios with parcel data for the study period
+      // Check if we have cached regression results from Regression Studio
+      const regressionResult = getCachedRegressionResult();
+      
+      if (regressionResult) {
+        // Use regression coefficients for factor analysis
+        return convertRegressionToFactors(regressionResult.coefficients, regressionResult.anova);
+      }
+
+      // Fallback: Get assessment ratios with parcel data for the study period
       const { data: ratios, error: ratiosError } = await supabase
         .from("assessment_ratios")
         .select(`
@@ -78,6 +89,100 @@ export function useFactorAnalysis(studyPeriodId: string | undefined) {
     },
     enabled: !!studyPeriodId,
   });
+}
+
+// Convert Regression Studio results to factor analysis format
+function convertRegressionToFactors(coefficients: CoefficientRow[], anova: any[]): FactorAnalysis[] {
+  const factorLabelMap: Record<string, string> = {
+    "Building_Area": "Square Footage",
+    "Land_Area": "Land Area / Lot Size",
+    "Age": "Year Built / Age",
+    "Bedrooms": "Bedrooms",
+    "Bathrooms": "Bathrooms",
+  };
+
+  const factorKeyMap: Record<string, string> = {
+    "Building_Area": "building_area",
+    "Land_Area": "land_area",
+    "Age": "year_built",
+    "Bedrooms": "bedrooms",
+    "Bathrooms": "bathrooms",
+  };
+
+  // Get eta-squared values from ANOVA for importance
+  const etaSquaredMap: Record<string, number> = {};
+  anova.forEach(row => {
+    if (row.etaSq !== null) {
+      etaSquaredMap[row.source] = row.etaSq;
+    }
+  });
+
+  return coefficients
+    .filter(c => c.variable !== "(Intercept)")
+    .map(coef => {
+      const label = factorLabelMap[coef.variable] || coef.variable.replace("_", " ");
+      const factor = factorKeyMap[coef.variable] || coef.variable.toLowerCase();
+      const importance = etaSquaredMap[coef.variable] || Math.abs(coef.tStatistic) / 100;
+
+      return {
+        factor,
+        label,
+        importance,
+        pValue: coef.pValue,
+        coefficient: coef.coefficient,
+        stdError: coef.stdError,
+        tStatistic: coef.tStatistic,
+        vif: coef.vif,
+        significant: coef.significant,
+        segmentRecommendation: getSegmentRecommendationFromRegression(factor, importance, coef.coefficient, coef.significant),
+        fromRegression: true,
+      };
+    })
+    .sort((a, b) => b.importance - a.importance);
+}
+
+function getSegmentRecommendationFromRegression(
+  factor: string, 
+  importance: number, 
+  coefficient: number,
+  significant: boolean
+): string {
+  if (!significant) {
+    return "Not statistically significant — may not need segmentation";
+  }
+
+  if (importance < 0.01) {
+    return "Low impact — may not need segmentation";
+  }
+
+  if (factor === "building_area") {
+    if (importance > 0.05) {
+      return coefficient > 0 
+        ? "Larger properties have higher ratios — create sq ft tiers to address vertical inequity" 
+        : "Smaller properties have higher ratios — create sq ft tiers to address regressivity";
+    }
+    return "Moderate size impact — consider value-based tiers";
+  }
+
+  if (factor === "year_built") {
+    if (importance > 0.03) {
+      return coefficient > 0 
+        ? "Older properties over-assessed — create age brackets (0-20, 21-50, 51+)"
+        : "Newer properties over-assessed — investigate new construction valuations";
+    }
+    return "Minor age effect — may group with other factors";
+  }
+
+  if (factor === "land_area") {
+    if (importance > 0.03) {
+      return "Lot size impacts ratios — consider land value segmentation";
+    }
+    return "Secondary land factor — combine with primary segments";
+  }
+
+  return importance > 0.05 
+    ? `Significant impact (${(importance * 100).toFixed(1)}%) — recommended for segmentation`
+    : "Secondary factor — combine with primary segments";
 }
 
 // Get segment suggestions based on factor analysis

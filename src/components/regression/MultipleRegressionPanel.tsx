@@ -2,32 +2,32 @@ import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Check, X, AlertTriangle } from "lucide-react";
+import { Check, X, AlertTriangle, Loader2 } from "lucide-react";
+import { CoefficientRow, RegressionResult } from "@/hooks/useRegressionAnalysis";
+import { Skeleton } from "@/components/ui/skeleton";
 
-interface CoefficientRow {
-  variable: string;
-  coefficient: number;
-  stdError: number;
-  tStatistic: number;
-  pValue: number;
-  vif: number;
-  significant: boolean;
+interface MultipleRegressionPanelProps {
+  result: RegressionResult | undefined;
+  isLoading: boolean;
 }
 
-const coefficients: CoefficientRow[] = [
-  { variable: "(Intercept)", coefficient: 45230.5, stdError: 8234.2, tStatistic: 5.49, pValue: 0.0001, vif: 1.0, significant: true },
-  { variable: "Living_Area", coefficient: 125.45, stdError: 4.23, tStatistic: 29.66, pValue: 0.0001, vif: 1.82, significant: true },
-  { variable: "Lot_Size", coefficient: 15420.3, stdError: 2145.6, tStatistic: 7.19, pValue: 0.0001, vif: 1.45, significant: true },
-  { variable: "Year_Built", coefficient: 892.4, stdError: 125.3, tStatistic: 7.12, pValue: 0.0001, vif: 2.34, significant: true },
-  { variable: "Bedrooms", coefficient: 8456.2, stdError: 1234.5, tStatistic: 6.85, pValue: 0.0001, vif: 3.12, significant: true },
-  { variable: "Bathrooms", coefficient: 12340.8, stdError: 1567.3, tStatistic: 7.87, pValue: 0.0001, vif: 2.89, significant: true },
-  { variable: "Garage_Spaces", coefficient: 6234.5, stdError: 987.2, tStatistic: 6.31, pValue: 0.0001, vif: 1.67, significant: true },
-  { variable: "Pool", coefficient: 18234.6, stdError: 2345.7, tStatistic: 7.77, pValue: 0.0001, vif: 1.23, significant: true },
-  { variable: "Distance_CBD", coefficient: -2345.8, stdError: 456.2, tStatistic: -5.14, pValue: 0.0001, vif: 1.56, significant: true },
-  { variable: "School_Rating", coefficient: 4567.3, stdError: 2890.4, tStatistic: 1.58, pValue: 0.1145, vif: 1.34, significant: false },
-];
+export function MultipleRegressionPanel({ result, isLoading }: MultipleRegressionPanelProps) {
+  if (isLoading) {
+    return <RegressionSkeleton />;
+  }
 
-export function MultipleRegressionPanel() {
+  if (!result) {
+    return (
+      <div className="glass-card rounded-lg p-8 text-center">
+        <p className="text-muted-foreground">
+          No regression analysis available. Click "Run Analysis" to compute coefficients from assessment data.
+        </p>
+      </div>
+    );
+  }
+
+  const { coefficients, modelStats, equation } = result;
+
   return (
     <div className="space-y-6">
       {/* Model Equation */}
@@ -38,19 +38,7 @@ export function MultipleRegressionPanel() {
       >
         <h3 className="text-sm font-medium text-muted-foreground mb-3">Regression Equation</h3>
         <div className="p-4 bg-tf-elevated/50 rounded-lg font-mono text-sm overflow-x-auto">
-          <span className="text-tf-transcend-cyan">ŷ</span>
-          <span className="text-muted-foreground"> = </span>
-          <span className="text-tf-sacred-gold">45,230.50</span>
-          <span className="text-muted-foreground"> + </span>
-          <span className="text-tf-optimized-green">125.45</span>
-          <span className="text-foreground">(LivingArea)</span>
-          <span className="text-muted-foreground"> + </span>
-          <span className="text-tf-optimized-green">15,420.30</span>
-          <span className="text-foreground">(LotSize)</span>
-          <span className="text-muted-foreground"> + </span>
-          <span className="text-tf-optimized-green">892.40</span>
-          <span className="text-foreground">(YearBuilt)</span>
-          <span className="text-muted-foreground"> + ...</span>
+          <EquationDisplay coefficients={coefficients} />
         </div>
       </motion.div>
 
@@ -66,10 +54,10 @@ export function MultipleRegressionPanel() {
               <CardTitle className="text-base">Coefficient Estimates</CardTitle>
               <div className="flex items-center gap-2">
                 <Badge variant="outline" className="text-xs">
-                  n = 2,847
+                  n = {modelStats.n.toLocaleString()}
                 </Badge>
                 <Badge variant="outline" className="text-xs">
-                  k = 9
+                  k = {modelStats.k}
                 </Badge>
                 <Badge className="bg-tf-optimized-green/20 text-tf-optimized-green text-xs">
                   α = 0.05
@@ -92,36 +80,8 @@ export function MultipleRegressionPanel() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {coefficients.map((row, index) => (
-                    <TableRow 
-                      key={row.variable} 
-                      className={`border-border/30 ${!row.significant ? 'opacity-60' : ''}`}
-                    >
-                      <TableCell className="font-medium">{row.variable}</TableCell>
-                      <TableCell className="text-right font-mono text-sm">
-                        {row.coefficient.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                      </TableCell>
-                      <TableCell className="text-right font-mono text-sm text-muted-foreground">
-                        {row.stdError.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                      </TableCell>
-                      <TableCell className={`text-right font-mono text-sm ${Math.abs(row.tStatistic) > 2 ? 'text-tf-optimized-green' : 'text-muted-foreground'}`}>
-                        {row.tStatistic.toFixed(2)}
-                      </TableCell>
-                      <TableCell className={`text-right font-mono text-sm ${row.pValue < 0.05 ? 'text-tf-transcend-cyan' : 'text-tf-caution-amber'}`}>
-                        {row.pValue < 0.0001 ? '< 0.0001' : row.pValue.toFixed(4)}
-                      </TableCell>
-                      <TableCell className={`text-right font-mono text-sm ${row.vif > 5 ? 'text-tf-alert-red' : row.vif > 2.5 ? 'text-tf-caution-amber' : 'text-muted-foreground'}`}>
-                        {row.vif.toFixed(2)}
-                        {row.vif > 5 && <AlertTriangle className="w-3 h-3 inline ml-1" />}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        {row.significant ? (
-                          <Check className="w-4 h-4 text-tf-optimized-green mx-auto" />
-                        ) : (
-                          <X className="w-4 h-4 text-muted-foreground mx-auto" />
-                        )}
-                      </TableCell>
-                    </TableRow>
+                  {coefficients.map((row) => (
+                    <CoefficientTableRow key={row.variable} row={row} />
                   ))}
                 </TableBody>
               </Table>
@@ -140,26 +100,11 @@ export function MultipleRegressionPanel() {
         >
           <h3 className="text-sm font-medium text-muted-foreground mb-4">Goodness of Fit</h3>
           <div className="space-y-3">
-            <div className="flex justify-between items-center py-2 border-b border-border/30">
-              <span className="text-sm">R²</span>
-              <span className="font-mono text-tf-transcend-cyan">0.9267</span>
-            </div>
-            <div className="flex justify-between items-center py-2 border-b border-border/30">
-              <span className="text-sm">Adjusted R²</span>
-              <span className="font-mono text-tf-transcend-cyan">0.9234</span>
-            </div>
-            <div className="flex justify-between items-center py-2 border-b border-border/30">
-              <span className="text-sm">RMSE</span>
-              <span className="font-mono">$12,450</span>
-            </div>
-            <div className="flex justify-between items-center py-2 border-b border-border/30">
-              <span className="text-sm">MAE</span>
-              <span className="font-mono">$9,234</span>
-            </div>
-            <div className="flex justify-between items-center py-2">
-              <span className="text-sm">AIC</span>
-              <span className="font-mono">45,234.6</span>
-            </div>
+            <StatRow label="R²" value={modelStats.rSquared.toFixed(4)} highlight />
+            <StatRow label="Adjusted R²" value={modelStats.rSquaredAdj.toFixed(4)} highlight />
+            <StatRow label="RMSE" value={`${modelStats.rmse.toFixed(4)}`} />
+            <StatRow label="MAE" value={`${modelStats.mae.toFixed(4)}`} />
+            <StatRow label="AIC" value={modelStats.aic.toFixed(1)} isLast />
           </div>
         </motion.div>
 
@@ -171,29 +116,138 @@ export function MultipleRegressionPanel() {
         >
           <h3 className="text-sm font-medium text-muted-foreground mb-4">Hypothesis Tests</h3>
           <div className="space-y-3">
-            <div className="flex justify-between items-center py-2 border-b border-border/30">
-              <span className="text-sm">F-Statistic</span>
-              <span className="font-mono text-tf-optimized-green">847.32</span>
-            </div>
-            <div className="flex justify-between items-center py-2 border-b border-border/30">
-              <span className="text-sm">F p-value</span>
-              <span className="font-mono text-tf-transcend-cyan">&lt; 2.2e-16</span>
-            </div>
-            <div className="flex justify-between items-center py-2 border-b border-border/30">
-              <span className="text-sm">df (Regression)</span>
-              <span className="font-mono">9</span>
-            </div>
-            <div className="flex justify-between items-center py-2 border-b border-border/30">
-              <span className="text-sm">df (Residual)</span>
-              <span className="font-mono">2,837</span>
-            </div>
-            <div className="flex justify-between items-center py-2">
-              <span className="text-sm">Condition Number</span>
-              <span className="font-mono">234.5</span>
-            </div>
+            <StatRow 
+              label="F-Statistic" 
+              value={modelStats.fStatistic.toFixed(2)} 
+              valueClass="text-tf-optimized-green"
+            />
+            <StatRow 
+              label="F p-value" 
+              value={modelStats.fPValue < 0.0001 ? '< 0.0001' : modelStats.fPValue.toFixed(4)} 
+              valueClass="text-tf-transcend-cyan"
+            />
+            <StatRow label="df (Regression)" value={modelStats.k.toString()} />
+            <StatRow label="df (Residual)" value={modelStats.dfResidual.toLocaleString()} />
+            <StatRow 
+              label="Computed At" 
+              value={new Date(result.computedAt).toLocaleTimeString()} 
+              isLast 
+            />
           </div>
         </motion.div>
       </div>
+    </div>
+  );
+}
+
+function EquationDisplay({ coefficients }: { coefficients: CoefficientRow[] }) {
+  const intercept = coefficients[0];
+  const predictors = coefficients.slice(1);
+
+  return (
+    <span className="whitespace-nowrap">
+      <span className="text-tf-transcend-cyan">ŷ</span>
+      <span className="text-muted-foreground"> = </span>
+      <span className="text-tf-sacred-gold">{formatCoefficient(intercept.coefficient)}</span>
+      {predictors.slice(0, 3).map((c, i) => (
+        <span key={c.variable}>
+          <span className="text-muted-foreground"> {c.coefficient >= 0 ? '+' : '-'} </span>
+          <span className={c.significant ? "text-tf-optimized-green" : "text-muted-foreground"}>
+            {formatCoefficient(Math.abs(c.coefficient))}
+          </span>
+          <span className="text-foreground">({c.variable.replace("_", "")})</span>
+        </span>
+      ))}
+      {predictors.length > 3 && (
+        <span className="text-muted-foreground"> + ...</span>
+      )}
+    </span>
+  );
+}
+
+function formatCoefficient(value: number): string {
+  if (Math.abs(value) >= 1000) {
+    return value.toLocaleString(undefined, { maximumFractionDigits: 2 });
+  }
+  if (Math.abs(value) < 0.001) {
+    return value.toExponential(2);
+  }
+  return value.toFixed(4);
+}
+
+function CoefficientTableRow({ row }: { row: CoefficientRow }) {
+  return (
+    <TableRow className={`border-border/30 ${!row.significant ? 'opacity-60' : ''}`}>
+      <TableCell className="font-medium">{row.variable.replace("_", " ")}</TableCell>
+      <TableCell className="text-right font-mono text-sm">
+        {formatCoefficient(row.coefficient)}
+      </TableCell>
+      <TableCell className="text-right font-mono text-sm text-muted-foreground">
+        {row.stdError.toFixed(4)}
+      </TableCell>
+      <TableCell className={`text-right font-mono text-sm ${Math.abs(row.tStatistic) > 2 ? 'text-tf-optimized-green' : 'text-muted-foreground'}`}>
+        {row.tStatistic.toFixed(2)}
+      </TableCell>
+      <TableCell className={`text-right font-mono text-sm ${row.pValue < 0.05 ? 'text-tf-transcend-cyan' : 'text-tf-caution-amber'}`}>
+        {row.pValue < 0.0001 ? '< 0.0001' : row.pValue.toFixed(4)}
+      </TableCell>
+      <TableCell className={`text-right font-mono text-sm ${row.vif > 5 ? 'text-tf-alert-red' : row.vif > 2.5 ? 'text-tf-caution-amber' : 'text-muted-foreground'}`}>
+        {row.vif.toFixed(2)}
+        {row.vif > 5 && <AlertTriangle className="w-3 h-3 inline ml-1" />}
+      </TableCell>
+      <TableCell className="text-center">
+        {row.significant ? (
+          <Check className="w-4 h-4 text-tf-optimized-green mx-auto" />
+        ) : (
+          <X className="w-4 h-4 text-muted-foreground mx-auto" />
+        )}
+      </TableCell>
+    </TableRow>
+  );
+}
+
+function StatRow({ 
+  label, 
+  value, 
+  highlight, 
+  valueClass, 
+  isLast 
+}: { 
+  label: string; 
+  value: string; 
+  highlight?: boolean;
+  valueClass?: string;
+  isLast?: boolean;
+}) {
+  return (
+    <div className={`flex justify-between items-center py-2 ${!isLast ? 'border-b border-border/30' : ''}`}>
+      <span className="text-sm">{label}</span>
+      <span className={`font-mono ${highlight ? 'text-tf-transcend-cyan' : valueClass || ''}`}>
+        {value}
+      </span>
+    </div>
+  );
+}
+
+function RegressionSkeleton() {
+  return (
+    <div className="space-y-6">
+      <div className="glass-card rounded-lg p-5">
+        <Skeleton className="h-4 w-32 mb-3" />
+        <Skeleton className="h-12 w-full" />
+      </div>
+      <Card className="glass-card">
+        <CardHeader>
+          <Skeleton className="h-5 w-48" />
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-2">
+            {[1, 2, 3, 4, 5].map(i => (
+              <Skeleton key={i} className="h-10 w-full" />
+            ))}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { 
   FlaskConical, 
   MapPin, 
@@ -9,14 +10,16 @@ import {
   Lightbulb,
   RefreshCw,
   Download,
-  ArrowRight
+  ArrowRight,
+  GitBranch
 } from "lucide-react";
 import { StudyPeriodSelector } from "@/components/vei/StudyPeriodSelector";
 import { FactorImportancePanel } from "./FactorImportancePanel";
 import { NeighborhoodHeatmap } from "./NeighborhoodHeatmap";
 import { SegmentSuggestionPanel } from "./SegmentSuggestionPanel";
 import { useStudyPeriods } from "@/hooks/useVEIData";
-import { SegmentDefinition } from "@/hooks/useSegmentDiscovery";
+import { SegmentDefinition, useFactorAnalysis } from "@/hooks/useSegmentDiscovery";
+import { getCachedRegressionResult } from "@/hooks/useRegressionAnalysis";
 import { toast } from "sonner";
 
 export function SegmentDiscoveryDashboard() {
@@ -24,6 +27,11 @@ export function SegmentDiscoveryDashboard() {
   const [activeTab, setActiveTab] = useState("factors");
   
   const { data: studyPeriods, isLoading: isLoadingPeriods } = useStudyPeriods();
+  const { data: factors } = useFactorAnalysis(selectedPeriodId);
+  
+  // Check if we have regression data
+  const regressionResult = getCachedRegressionResult();
+  const hasRegressionData = factors?.some(f => f.fromRegression) || !!regressionResult;
 
   // Auto-select active period
   if (studyPeriods && studyPeriods.length > 0 && !selectedPeriodId) {
@@ -44,6 +52,10 @@ export function SegmentDiscoveryDashboard() {
         },
       },
     });
+  };
+
+  const handleNavigateToRegression = () => {
+    window.dispatchEvent(new CustomEvent("navigate-to-module", { detail: "regression" }));
   };
 
   return (
@@ -69,6 +81,22 @@ export function SegmentDiscoveryDashboard() {
               selectedId={selectedPeriodId}
               onSelect={setSelectedPeriodId}
             />
+          )}
+          {hasRegressionData ? (
+            <Badge className="bg-tf-optimized-green/20 text-tf-optimized-green gap-1">
+              <GitBranch className="w-3 h-3" />
+              Linked to Regression
+            </Badge>
+          ) : (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="gap-2"
+              onClick={handleNavigateToRegression}
+            >
+              <GitBranch className="w-4 h-4" />
+              Run Regression First
+            </Button>
           )}
           <Button variant="outline" size="sm" className="gap-2">
             <RefreshCw className="w-4 h-4" />
