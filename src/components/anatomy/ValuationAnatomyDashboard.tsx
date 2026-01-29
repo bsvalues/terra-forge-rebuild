@@ -10,6 +10,7 @@ import {
   Download,
   Grid3X3,
   Box,
+  Globe,
 } from "lucide-react";
 import { StudyPeriodSelector } from "@/components/vei/StudyPeriodSelector";
 import { ValuationCanvas3D } from "./ValuationCanvas3D";
@@ -19,11 +20,11 @@ import { useParcelValuations, useSegmentValuations, ParcelValuation, ValuationSe
 
 export function ValuationAnatomyDashboard() {
   const [selectedPeriodId, setSelectedPeriodId] = useState<string | undefined>();
-  const [viewMode, setViewMode] = useState<"parcels" | "segments" | "anatomy">("parcels");
+  const [viewMode, setViewMode] = useState<"parcels" | "segments" | "anatomy" | "geographic">("parcels");
   const [selectedItem, setSelectedItem] = useState<ParcelValuation | ValuationSegment | null>(null);
 
   const { data: studyPeriods, isLoading: isLoadingPeriods } = useStudyPeriods();
-  const { data: parcels = [], isLoading: isLoadingParcels } = useParcelValuations(selectedPeriodId);
+  const { data: parcels = [], isLoading: isLoadingParcels } = useParcelValuations(selectedPeriodId, 200);
   const { data: segments = [], isLoading: isLoadingSegments } = useSegmentValuations(selectedPeriodId);
 
   // Auto-select active period
@@ -102,6 +103,10 @@ export function ValuationAnatomyDashboard() {
               <Grid3X3 className="w-4 h-4" />
               Parcels
             </TabsTrigger>
+            <TabsTrigger value="geographic" className="gap-2 data-[state=active]:bg-tf-cyan/20">
+              <Globe className="w-4 h-4" />
+              Geographic
+            </TabsTrigger>
             <TabsTrigger value="segments" className="gap-2 data-[state=active]:bg-tf-cyan/20">
               <MapPin className="w-4 h-4" />
               Segments
@@ -176,18 +181,22 @@ export function ValuationAnatomyDashboard() {
         className="glass-card rounded-lg p-4 text-sm text-muted-foreground"
       >
         <h4 className="font-medium text-foreground mb-2">Interaction Guide</h4>
-        <ul className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <ul className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <li className="flex items-start gap-2">
             <span className="text-tf-cyan">•</span>
-            <span><strong>Parcels View:</strong> Each sphere represents a parcel. Size = value, color = ratio deviation from 1.0</span>
-          </li>
-          <li className="flex items-start gap-2">
-            <span className="text-tf-sacred-gold">•</span>
-            <span><strong>Segments View:</strong> Stacked blocks show feature contributions. Height = percentage of value</span>
+            <span><strong>Parcels View:</strong> Each sphere represents a parcel. Size = value, color = ratio deviation</span>
           </li>
           <li className="flex items-start gap-2">
             <span className="text-tf-optimized-green">•</span>
-            <span><strong>Anatomy View:</strong> Exploded view shows all value drivers orbiting the core property value</span>
+            <span><strong>Geographic View:</strong> Parcels plotted by location. Bar height = assessed value</span>
+          </li>
+          <li className="flex items-start gap-2">
+            <span className="text-tf-sacred-gold">•</span>
+            <span><strong>Segments View:</strong> Stacked blocks show feature contributions by neighborhood</span>
+          </li>
+          <li className="flex items-start gap-2">
+            <span className="text-purple-400">•</span>
+            <span><strong>Anatomy View:</strong> Exploded view shows all value drivers orbiting the core</span>
           </li>
         </ul>
       </motion.div>
