@@ -12,6 +12,7 @@ import {
   Server,
   MapPin,
   Search,
+  Zap,
 } from "lucide-react";
 import { StudyPeriodSelector } from "@/components/vei/StudyPeriodSelector";
 import { useStudyPeriods } from "@/hooks/useVEIData";
@@ -21,11 +22,12 @@ import { GISLayersPanel } from "./GISLayersPanel";
 import { GISImportDialog } from "./GISImportDialog";
 import { ArcGISImportDialog } from "./ArcGISImportDialog";
 import { AssessorScrapeDialog } from "./AssessorScrapeDialog";
+import { ScrapeJobsDashboard } from "./ScrapeJobsDashboard";
 import { useGISDataSources, useGISLayers, useNeighborhoodGeoStats } from "@/hooks/useGISData";
 
 export function GeoEquityDashboard() {
   const [selectedPeriodId, setSelectedPeriodId] = useState<string | undefined>();
-  const [activeTab, setActiveTab] = useState<"map" | "sources" | "layers">("map");
+  const [activeTab, setActiveTab] = useState<"map" | "sources" | "layers" | "jobs">("map");
   const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [arcgisImportOpen, setArcgisImportOpen] = useState(false);
   const [assessorScrapeOpen, setAssessorScrapeOpen] = useState(false);
@@ -158,6 +160,10 @@ export function GeoEquityDashboard() {
             <Layers className="w-4 h-4" />
             Layers
           </TabsTrigger>
+          <TabsTrigger value="jobs" className="gap-2 data-[state=active]:bg-tf-sacred-gold/20">
+            <Zap className="w-4 h-4" />
+            Statewide Jobs
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="map" className="mt-4">
@@ -187,6 +193,10 @@ export function GeoEquityDashboard() {
             layers={layers}
             isLoading={isLoadingLayers}
           />
+        </TabsContent>
+
+        <TabsContent value="jobs" className="mt-4">
+          <ScrapeJobsDashboard />
         </TabsContent>
       </Tabs>
 

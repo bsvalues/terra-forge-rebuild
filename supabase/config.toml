@@ -17,3 +17,6 @@ verify_jwt = false
 
 [functions.assessor-scrape]
 verify_jwt = false
+
+[functions.statewide-scrape]
+verify_jwt = false
