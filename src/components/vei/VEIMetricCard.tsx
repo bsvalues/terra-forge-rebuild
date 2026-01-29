@@ -10,6 +10,7 @@ interface VEIMetricCardProps {
   statusLabel: string;
   icon: LucideIcon;
   target: string;
+  onClick?: () => void;
 }
 
 const statusConfig = {
@@ -47,18 +48,22 @@ export function VEIMetricCard({
   statusLabel,
   icon: Icon,
   target,
+  onClick,
 }: VEIMetricCardProps) {
   const config = statusConfig[status];
 
   return (
     <motion.div
       whileHover={{ scale: 1.02, y: -2 }}
+      whileTap={onClick ? { scale: 0.98 } : undefined}
       transition={{ type: "spring", stiffness: 400, damping: 25 }}
+      onClick={onClick}
       className={cn(
         "relative overflow-hidden rounded-lg border p-5",
         "bg-card/50 backdrop-blur-sm",
         config.border,
-        config.glow
+        config.glow,
+        onClick && "cursor-pointer"
       )}
     >
       {/* Background gradient */}
@@ -68,6 +73,13 @@ export function VEIMetricCard({
           config.bg
         )}
       />
+
+      {/* Clickable indicator */}
+      {onClick && (
+        <div className="absolute top-2 right-2">
+          <div className="w-1.5 h-1.5 rounded-full bg-tf-cyan animate-pulse" />
+        </div>
+      )}
 
       {/* Content */}
       <div className="relative z-10">
@@ -96,9 +108,16 @@ export function VEIMetricCard({
               {statusLabel}
             </span>
           </div>
-          <p className="text-xs text-muted-foreground mt-1">
-            Target: <span className="text-foreground">{target}</span>
-          </p>
+          <div className="flex items-center justify-between mt-1">
+            <p className="text-xs text-muted-foreground">
+              Target: <span className="text-foreground">{target}</span>
+            </p>
+            {onClick && (
+              <span className="text-[10px] text-tf-cyan uppercase tracking-wide">
+                Click to analyze
+              </span>
+            )}
+          </div>
         </div>
       </div>
     </motion.div>
