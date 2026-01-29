@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { PRDTrendChart } from "./charts/PRDTrendChart";
 import { TierRatioPlot } from "./charts/TierRatioPlot";
@@ -7,9 +8,10 @@ import { VEISummaryPanel } from "./VEISummaryPanel";
 import { VEIExportActions } from "./VEIExportActions";
 import { VEIDashboardSkeleton } from "./VEIDashboardSkeleton";
 import { VEIEmptyState } from "./VEIEmptyState";
+import { StudyPeriodSelector } from "./StudyPeriodSelector";
 import { Activity, TrendingUp, BarChart3, AlertTriangle } from "lucide-react";
 import {
-  useActiveStudyPeriod,
+  useStudyPeriods,
   useVEIMetrics,
   useVEIMetricsTrend,
   useAssessmentRatiosByTier,
@@ -33,33 +35,45 @@ const itemVariants = {
 };
 
 export function VEIDashboard() {
-  // Fetch active study period
-  const { data: studyPeriod, isLoading: isLoadingPeriod } = useActiveStudyPeriod();
-  
-  // Fetch VEI metrics for active period
-  const { data: metrics, isLoading: isLoadingMetrics } = useVEIMetrics(studyPeriod?.id);
+  const [selectedPeriodId, setSelectedPeriodId] = useState<string | undefined>();
+
+  // Fetch all study periods
+  const { data: studyPeriods, isLoading: isLoadingPeriods } = useStudyPeriods();
+
+  // Auto-select active period on first load
+  useEffect(() => {
+    if (studyPeriods && studyPeriods.length > 0 && !selectedPeriodId) {
+      const activePeriod = studyPeriods.find((p) => p.status === "active");
+      setSelectedPeriodId(activePeriod?.id || studyPeriods[0].id);
+    }
+  }, [studyPeriods, selectedPeriodId]);
+
+  const studyPeriod = studyPeriods?.find((p) => p.id === selectedPeriodId);
+
+  // Fetch VEI metrics for selected period
+  const { data: metrics, isLoading: isLoadingMetrics } = useVEIMetrics(selectedPeriodId);
   
   // Fetch trend data across all periods
   const { data: trendData, isLoading: isLoadingTrend } = useVEIMetricsTrend();
   
   // Fetch tier ratio data
-  const { data: tierData, isLoading: isLoadingTiers } = useAssessmentRatiosByTier(studyPeriod?.id);
+  const { data: tierData, isLoading: isLoadingTiers } = useAssessmentRatiosByTier(selectedPeriodId);
   
   // Fetch appeals by tier
-  const { data: appealsData } = useAppealsByTier(studyPeriod?.id);
+  const { data: appealsData } = useAppealsByTier(selectedPeriodId);
   
   // Fetch sample size
-  const { data: sampleSize } = useSampleSize(studyPeriod?.id);
+  const { data: sampleSize } = useSampleSize(selectedPeriodId);
 
-  const isLoading = isLoadingPeriod || isLoadingMetrics || isLoadingTrend || isLoadingTiers;
+  const isLoading = isLoadingPeriods || (selectedPeriodId && (isLoadingMetrics || isLoadingTrend || isLoadingTiers));
 
   // Show skeleton while loading
   if (isLoading) {
     return <VEIDashboardSkeleton />;
   }
 
-  // Show empty state if no study period
-  if (!studyPeriod) {
+  // Show empty state if no study periods exist
+  if (!studyPeriods || studyPeriods.length === 0) {
     return <VEIEmptyState />;
   }
 
@@ -159,7 +173,7 @@ export function VEIDashboard() {
       className="space-y-6 p-6"
     >
       {/* Header */}
-      <motion.div variants={itemVariants} className="flex items-center justify-between">
+      <motion.div variants={itemVariants} className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-3xl font-light text-gradient-sovereign tracking-tight">
             VEI Suite Dashboard
@@ -168,7 +182,14 @@ export function VEIDashboard() {
             Vertical Equity Index — Minimum Viable Standard (VEI-MVS)
           </p>
         </div>
-        <VEIExportActions data={exportData} />
+        <div className="flex items-center gap-3">
+          <StudyPeriodSelector
+            periods={studyPeriods}
+            selectedId={selectedPeriodId}
+            onSelect={setSelectedPeriodId}
+          />
+          <VEIExportActions data={exportData} />
+        </div>
       </motion.div>
 
       {/* Summary Panel */}
