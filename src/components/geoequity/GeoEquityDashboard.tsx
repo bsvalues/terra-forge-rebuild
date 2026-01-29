@@ -13,6 +13,7 @@ import {
   MapPin,
   Search,
   Zap,
+  Plus,
 } from "lucide-react";
 import { StudyPeriodSelector } from "@/components/vei/StudyPeriodSelector";
 import { useStudyPeriods } from "@/hooks/useVEIData";
@@ -24,6 +25,7 @@ import { ArcGISImportDialog } from "./ArcGISImportDialog";
 import { AssessorScrapeDialog } from "./AssessorScrapeDialog";
 import { ScrapeJobsDashboard } from "./ScrapeJobsDashboard";
 import { NotificationBell } from "./NotificationBell";
+import { ParcelImportWizard } from "./ParcelImportWizard";
 import { useScrapeJobNotifications } from "@/hooks/useScrapeJobNotifications";
 import { useGISDataSources, useGISLayers, useNeighborhoodGeoStats } from "@/hooks/useGISData";
 
@@ -33,7 +35,7 @@ export function GeoEquityDashboard() {
   const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [arcgisImportOpen, setArcgisImportOpen] = useState(false);
   const [assessorScrapeOpen, setAssessorScrapeOpen] = useState(false);
-
+  const [parcelImportOpen, setParcelImportOpen] = useState(false);
   const { data: studyPeriods, isLoading: isLoadingPeriods } = useStudyPeriods();
   const { data: dataSources = [], isLoading: isLoadingSources } = useGISDataSources();
   const { data: layers = [], isLoading: isLoadingLayers } = useGISLayers();
@@ -103,6 +105,14 @@ export function GeoEquityDashboard() {
           >
             <Search className="w-4 h-4" />
             Scrape Assessor
+          </Button>
+          <Button
+            size="sm"
+            className="gap-2 bg-tf-optimized-green hover:bg-tf-optimized-green/90"
+            onClick={() => setParcelImportOpen(true)}
+          >
+            <Plus className="w-4 h-4" />
+            Import Parcels
           </Button>
           <Button variant="outline" size="sm" className="gap-2">
             <Download className="w-4 h-4" />
@@ -223,6 +233,12 @@ export function GeoEquityDashboard() {
       <AssessorScrapeDialog
         open={assessorScrapeOpen}
         onOpenChange={setAssessorScrapeOpen}
+      />
+
+      {/* Parcel Import Wizard */}
+      <ParcelImportWizard
+        open={parcelImportOpen}
+        onOpenChange={setParcelImportOpen}
       />
     </div>
   );
