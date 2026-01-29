@@ -10,3 +10,4 @@ export { ParcelFiltersPanel } from "./ParcelFilters";
 export { BatchSizeSelector } from "./BatchSizeSelector";
 export { CountyDataQualityReport } from "./CountyDataQualityReport";
 export { ParcelImportWizard } from "./ParcelImportWizard";
+export { ParcelSearchPanel } from "./ParcelSearchPanel";
