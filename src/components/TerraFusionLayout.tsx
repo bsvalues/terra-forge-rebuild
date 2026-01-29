@@ -8,16 +8,7 @@ import { VEIDashboard } from "./vei/VEIDashboard";
 import { CostForgeDashboard } from "./costforge/CostForgeDashboard";
 import { AVMStudioDashboard } from "./avm/AVMStudioDashboard";
 import { RegressionStudioDashboard } from "./regression/RegressionStudioDashboard";
-
-const AxiomFSPlaceholder = () => (
-  <div className="p-6">
-    <div className="glass-card p-12 rounded-lg text-center">
-      <h2 className="text-2xl font-light text-gradient-sovereign mb-4">AxiomFS</h2>
-      <p className="text-muted-foreground">Sovereign File Lattice</p>
-      <p className="text-sm text-muted-foreground mt-2">Coming in Phase 4</p>
-    </div>
-  </div>
-);
+import { AxiomFSDashboard } from "./axiomfs/AxiomFSDashboard";
 
 const SettingsPlaceholder = () => (
   <div className="p-6">
@@ -48,7 +39,7 @@ const moduleConfig: Record<string, { title: string; description: string; compone
   axiom: {
     title: "AxiomFS",
     description: "Sovereign File Lattice",
-    component: AxiomFSPlaceholder,
+    component: AxiomFSDashboard,
   },
   regression: {
     title: "Regression Studio",
