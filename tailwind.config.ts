@@ -66,16 +66,34 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
-        // TerraFusion Sovereign Colors
+        // TerraFusion Liquid Glass Colors
         tf: {
           substrate: "hsl(var(--tf-substrate))",
           surface: "hsl(var(--tf-surface))",
           elevated: "hsl(var(--tf-elevated))",
+          glass: "hsl(var(--tf-glass))",
           cyan: "hsl(var(--tf-transcend-cyan))",
           "bright-cyan": "hsl(var(--tf-bright-cyan))",
           green: "hsl(var(--tf-optimized-green))",
+          gold: "hsl(var(--tf-sacred-gold))",
           amber: "hsl(var(--tf-anomaly-amber))",
           red: "hsl(var(--tf-warning-red))",
+          purple: "hsl(var(--tf-muse-purple))",
+        },
+        // Suite Identity Colors
+        suite: {
+          forge: "hsl(var(--suite-forge))",
+          atlas: "hsl(var(--suite-atlas))",
+          dais: "hsl(var(--suite-dais))",
+          dossier: "hsl(var(--suite-dossier))",
+        },
+        // Work Mode Colors
+        mode: {
+          overview: "hsl(var(--mode-overview))",
+          valuation: "hsl(var(--mode-valuation))",
+          mapping: "hsl(var(--mode-mapping))",
+          admin: "hsl(var(--mode-admin))",
+          case: "hsl(var(--mode-case))",
         },
         // VEI Status Colors
         vei: {
