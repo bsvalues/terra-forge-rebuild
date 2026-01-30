@@ -29,6 +29,7 @@ import { useDebounce } from "@/hooks/useDebounce";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { NotificationBell } from "@/components/geoequity/NotificationBell";
 
 interface SearchResult {
   id: string;
@@ -448,6 +449,9 @@ export function ContextRibbon() {
               </ScrollArea>
             </PopoverContent>
           </Popover>
+
+          {/* Notifications */}
+          <NotificationBell />
 
           {/* Status Indicator */}
           <div className="flex items-center gap-2 px-2 py-1 rounded-full bg-tf-green/10 border border-tf-green/20">

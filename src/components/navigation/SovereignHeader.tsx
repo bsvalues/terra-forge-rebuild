@@ -1,7 +1,8 @@
 import { motion } from "framer-motion";
-import { Bell, Search, User, Zap } from "lucide-react";
+import { Search, User, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { NotificationBell } from "@/components/geoequity/NotificationBell";
 
 interface SovereignHeaderProps {
   moduleTitle: string;
@@ -54,10 +55,7 @@ export function SovereignHeader({ moduleTitle, moduleDescription }: SovereignHea
           </motion.div>
 
           {/* Notifications */}
-          <Button variant="ghost" size="icon" className="relative">
-            <Bell className="w-4 h-4 text-muted-foreground" />
-            <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-tf-cyan" />
-          </Button>
+          <NotificationBell />
 
           {/* User */}
           <Button variant="ghost" size="icon" className="rounded-full">
