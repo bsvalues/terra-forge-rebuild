@@ -10,7 +10,8 @@ import {
   Loader2,
   Check,
   Clock,
-  FileText
+  FileText,
+  Navigation
 } from "lucide-react";
 import { useWorkbench } from "./WorkbenchContext";
 import { WorkModeSelector } from "./WorkModeSelector";
@@ -50,7 +51,7 @@ interface StudyPeriodResult {
 }
 
 export function ContextRibbon() {
-  const { parcel, studyPeriod, setParcel, setStudyPeriod, clearParcel } = useWorkbench();
+  const { parcel, studyPeriod, setParcel, setStudyPeriod, clearParcel, setActiveTab } = useWorkbench();
   const [searchOpen, setSearchOpen] = useState(false);
   const [periodOpen, setPeriodOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -221,6 +222,19 @@ export function ContextRibbon() {
                   </div>
                 )}
               </div>
+
+              {/* Locate on Map Button - only show if parcel has coordinates */}
+              {parcel.latitude && parcel.longitude && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 gap-1.5 text-xs text-tf-cyan hover:text-tf-cyan hover:bg-tf-cyan/10"
+                  onClick={() => setActiveTab("atlas")}
+                >
+                  <Navigation className="w-3 h-3" />
+                  <span className="hidden sm:inline">Locate</span>
+                </Button>
+              )}
 
               <Button
                 variant="ghost"
