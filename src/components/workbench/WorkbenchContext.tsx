@@ -32,6 +32,8 @@ const defaultParcel: ParcelContext = {
   assessedValue: null,
   propertyClass: null,
   neighborhoodCode: null,
+  latitude: null,
+  longitude: null,
 };
 
 const defaultStudyPeriod: StudyPeriodContext = {

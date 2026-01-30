@@ -1,6 +1,6 @@
-import { useMemo, useState } from "react";
-import { motion } from "framer-motion";
-import { Loader2, MapPin, AlertTriangle, CheckCircle } from "lucide-react";
+import { useMemo, useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Loader2, MapPin, AlertTriangle, CheckCircle, Navigation, DollarSign } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
@@ -15,23 +15,38 @@ interface NeighborhoodStat {
   deviation: number;
 }
 
+interface SelectedParcel {
+  id: string;
+  parcelNumber: string;
+  address: string;
+  latitude: number;
+  longitude: number;
+  assessedValue: number | null;
+}
+
 interface GeoEquityMapProps {
   studyPeriodId?: string;
   neighborhoodStats: NeighborhoodStat[];
   isLoading: boolean;
+  selectedParcel?: SelectedParcel;
 }
 
-export function GeoEquityMap({ studyPeriodId, neighborhoodStats, isLoading }: GeoEquityMapProps) {
+export function GeoEquityMap({ studyPeriodId, neighborhoodStats, isLoading, selectedParcel }: GeoEquityMapProps) {
   const [selectedNeighborhood, setSelectedNeighborhood] = useState<string | null>(null);
 
   // Calculate bounds and normalize positions
   const mapData = useMemo(() => {
-    if (neighborhoodStats.length === 0) return { neighborhoods: [], bounds: null };
+    // Include selected parcel in bounds calculation if available
+    const allLats = [
+      ...neighborhoodStats.map((n) => n.centerLat).filter(Boolean),
+      ...(selectedParcel?.latitude ? [selectedParcel.latitude] : []),
+    ];
+    const allLngs = [
+      ...neighborhoodStats.map((n) => n.centerLng).filter(Boolean),
+      ...(selectedParcel?.longitude ? [selectedParcel.longitude] : []),
+    ];
 
-    const lats = neighborhoodStats.map((n) => n.centerLat).filter(Boolean);
-    const lngs = neighborhoodStats.map((n) => n.centerLng).filter(Boolean);
-
-    if (lats.length === 0 || lngs.length === 0) {
+    if (allLats.length === 0 || allLngs.length === 0) {
       // Fallback to grid layout if no coordinates
       return {
         neighborhoods: neighborhoodStats.map((n, i) => ({
@@ -40,16 +55,23 @@ export function GeoEquityMap({ studyPeriodId, neighborhoodStats, isLoading }: Ge
           y: Math.floor(i / 5) * 20 + 10,
         })),
         bounds: null,
+        parcelPosition: selectedParcel ? { x: 50, y: 50 } : null,
       };
     }
 
-    const minLat = Math.min(...lats);
-    const maxLat = Math.max(...lats);
-    const minLng = Math.min(...lngs);
-    const maxLng = Math.max(...lngs);
+    const minLat = Math.min(...allLats);
+    const maxLat = Math.max(...allLats);
+    const minLng = Math.min(...allLngs);
+    const maxLng = Math.max(...allLngs);
 
     const latRange = maxLat - minLat || 1;
     const lngRange = maxLng - minLng || 1;
+
+    // Calculate parcel position if selected
+    const parcelPosition = selectedParcel ? {
+      x: ((selectedParcel.longitude - minLng) / lngRange) * 80 + 10,
+      y: (1 - (selectedParcel.latitude - minLat) / latRange) * 80 + 10,
+    } : null;
 
     return {
       neighborhoods: neighborhoodStats.map((n) => ({
@@ -59,8 +81,9 @@ export function GeoEquityMap({ studyPeriodId, neighborhoodStats, isLoading }: Ge
         y: n.centerLat ? (1 - (n.centerLat - minLat) / latRange) * 80 + 10 : 50,
       })),
       bounds: { minLat, maxLat, minLng, maxLng },
+      parcelPosition,
     };
-  }, [neighborhoodStats]);
+  }, [neighborhoodStats, selectedParcel]);
 
   // Get color based on ratio deviation
   const getDeviationColor = (deviation: number) => {
@@ -92,7 +115,8 @@ export function GeoEquityMap({ studyPeriodId, neighborhoodStats, isLoading }: Ge
     );
   }
 
-  if (neighborhoodStats.length === 0) {
+  // Show empty state only if no neighborhoods AND no selected parcel with coordinates
+  if (neighborhoodStats.length === 0 && !selectedParcel) {
     return (
       <div className="w-full h-full flex items-center justify-center bg-tf-substrate">
         <div className="text-center">
@@ -105,6 +129,15 @@ export function GeoEquityMap({ studyPeriodId, neighborhoodStats, isLoading }: Ge
       </div>
     );
   }
+
+  const formatCurrency = (value: number | null) => {
+    if (!value) return "—";
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+      maximumFractionDigits: 0,
+    }).format(value);
+  };
 
   return (
     <div className="w-full h-full flex">
@@ -176,6 +209,69 @@ export function GeoEquityMap({ studyPeriodId, neighborhoodStats, isLoading }: Ge
             </Tooltip>
           ))}
         </TooltipProvider>
+
+        {/* Selected Parcel Marker */}
+        <AnimatePresence>
+          {selectedParcel && mapData.parcelPosition && (
+            <motion.div
+              key={selectedParcel.id}
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0, opacity: 0 }}
+              className="absolute z-30 transform -translate-x-1/2 -translate-y-1/2"
+              style={{
+                left: `${mapData.parcelPosition.x}%`,
+                top: `${mapData.parcelPosition.y}%`,
+              }}
+            >
+              {/* Pulse ring */}
+              <div className="absolute inset-0 -m-4">
+                <div className="w-16 h-16 rounded-full border-2 border-suite-atlas animate-ping opacity-30" />
+              </div>
+              
+              {/* Marker */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="relative cursor-pointer group">
+                    {/* Glow effect */}
+                    <div 
+                      className="absolute inset-0 -m-2 rounded-full blur-md opacity-50"
+                      style={{ backgroundColor: "hsl(var(--suite-atlas))" }}
+                    />
+                    
+                    {/* Pin */}
+                    <div className="relative w-10 h-10 rounded-full bg-suite-atlas border-2 border-white shadow-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <Navigation className="w-5 h-5 text-white" />
+                    </div>
+                    
+                    {/* Label */}
+                    <div className="absolute top-full mt-2 left-1/2 transform -translate-x-1/2 whitespace-nowrap">
+                      <div className="glass-card px-2 py-1 rounded text-xs font-medium text-suite-atlas">
+                        {selectedParcel.parcelNumber}
+                      </div>
+                    </div>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent side="top" className="bg-tf-elevated border-suite-atlas/30 max-w-xs">
+                  <div className="text-sm space-y-1">
+                    <div className="font-medium text-suite-atlas flex items-center gap-2">
+                      <Navigation className="w-3 h-3" />
+                      Selected Parcel
+                    </div>
+                    <div className="text-foreground font-medium">{selectedParcel.address}</div>
+                    <div className="text-muted-foreground text-xs font-mono">{selectedParcel.parcelNumber}</div>
+                    {selectedParcel.assessedValue && (
+                      <div className="text-tf-green text-xs flex items-center gap-1">
+                        <DollarSign className="w-3 h-3" />
+                        {formatCurrency(selectedParcel.assessedValue)}
+                      </div>
+                    )}
+                  </div>
+                </TooltipContent>
+              </Tooltip>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Legend */}
         <div className="absolute bottom-4 left-4 glass-card p-3 rounded-lg text-xs space-y-2">
