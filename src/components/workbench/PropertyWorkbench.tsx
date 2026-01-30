@@ -22,6 +22,9 @@ import { PilotTab } from "./tabs/PilotTab";
 // Admin Dashboard
 import { AdminDashboard } from "@/components/admin";
 
+// Command Palette
+import { CommandPalette } from "./CommandPalette";
+
 const TAB_COMPONENTS: Record<SuiteTab, React.ComponentType> = {
   summary: SummaryTab,
   forge: ForgeTab,
@@ -41,6 +44,9 @@ function WorkbenchContent() {
   if (workMode === "admin") {
     return (
       <div className="flex flex-col h-screen bg-background">
+        {/* Command Palette - Global keyboard shortcut handler */}
+        <CommandPalette />
+        
         {/* Context Ribbon - Always visible */}
         <ContextRibbon />
         
@@ -54,6 +60,9 @@ function WorkbenchContent() {
 
   return (
     <div className="flex flex-col h-screen bg-background">
+      {/* Command Palette - Global keyboard shortcut handler */}
+      <CommandPalette />
+      
       {/* Context Ribbon - Always visible */}
       <ContextRibbon />
 
