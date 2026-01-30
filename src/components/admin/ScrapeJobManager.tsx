@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -28,12 +28,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
 import {
   Globe,
   Play,
   Square,
-  Pause,
   Clock,
   CheckCircle,
   AlertCircle,
@@ -45,10 +43,11 @@ import {
   Zap,
   MapPin,
   AlertTriangle,
-  Info,
   RotateCcw,
   ChevronDown,
   Map,
+  ListOrdered,
+  X,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -78,6 +77,11 @@ const STATUS_CONFIG: Record<string, { color: string; icon: typeof Clock; label: 
     color: "bg-amber-500/20 text-amber-400 border-amber-500/30", 
     icon: Clock, 
     label: "Pending" 
+  },
+  queued: { 
+    color: "bg-purple-500/20 text-purple-400 border-purple-500/30", 
+    icon: ListOrdered, 
+    label: "Queued" 
   },
   running: { 
     color: "bg-tf-cyan/20 text-tf-cyan border-tf-cyan/30", 
@@ -154,7 +158,7 @@ export function ScrapeJobManager() {
     refetchInterval: 3000,
   });
 
-  // Start job mutation
+  // Start job mutation (now supports queuing)
   const startJobMutation = useMutation({
     mutationFn: async (params: { jobType: string; counties?: string[]; regions?: string[] }) => {
       const { data, error } = await supabase.functions.invoke("statewide-scrape", {
@@ -163,8 +167,14 @@ export function ScrapeJobManager() {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
-      toast.success("Scrape job started successfully");
+    onSuccess: (data) => {
+      if (data?.queued) {
+        toast.info("Job added to queue", {
+          description: "Will start automatically when current job completes"
+        });
+      } else {
+        toast.success("Scrape job started successfully");
+      }
       queryClient.invalidateQueries({ queryKey: ["admin-scrape-jobs"] });
       setConfirmDialog({ open: false, action: "", selectedRegions: [] });
       setSelectedRegions([]);
@@ -184,7 +194,7 @@ export function ScrapeJobManager() {
       return data;
     },
     onSuccess: () => {
-      toast.info("Job cancellation requested");
+      toast.info("Job cancelled");
       queryClient.invalidateQueries({ queryKey: ["admin-scrape-jobs"] });
       setConfirmDialog({ open: false, action: "" });
     },
@@ -211,7 +221,8 @@ export function ScrapeJobManager() {
     },
   });
 
-  const activeJob = jobs.find((j) => j.status === "running" || j.status === "pending");
+  const activeJob = jobs.find((j) => j.status === "running");
+  const queuedJobs = jobs.filter((j) => j.status === "queued");
   const hasActiveJob = !!activeJob;
 
   const formatDuration = (start: string | null, end: string | null) => {
@@ -269,13 +280,13 @@ export function ScrapeJobManager() {
             Refresh
           </Button>
           
-          {/* Regional Scrape Dropdown */}
+          {/* Regional Scrape Dropdown - Always enabled now (supports queuing) */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
                 variant="outline"
                 size="sm"
-                disabled={hasActiveJob || startJobMutation.isPending}
+                disabled={startJobMutation.isPending}
                 className="gap-2"
               >
                 <Map className="w-4 h-4" />
@@ -284,7 +295,14 @@ export function ScrapeJobManager() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuLabel>Select Region</DropdownMenuLabel>
+              <DropdownMenuLabel className="flex items-center justify-between">
+                Select Region
+                {hasActiveJob && (
+                  <Badge variant="outline" className="text-[10px] ml-2 text-purple-400">
+                    Will Queue
+                  </Badge>
+                )}
+              </DropdownMenuLabel>
               <DropdownMenuSeparator />
               {Object.entries(WA_REGIONS).map(([region, counties]) => (
                 <DropdownMenuItem
@@ -321,7 +339,7 @@ export function ScrapeJobManager() {
               <TooltipTrigger asChild>
                 <Button
                   onClick={() => setConfirmDialog({ open: true, action: "start-statewide" })}
-                  disabled={hasActiveJob || startJobMutation.isPending}
+                  disabled={startJobMutation.isPending}
                   className="gap-2 bg-tf-cyan hover:bg-tf-cyan/90"
                 >
                   {startJobMutation.isPending ? (
@@ -329,12 +347,12 @@ export function ScrapeJobManager() {
                   ) : (
                     <Zap className="w-4 h-4" />
                   )}
-                  Start Statewide Scrape
+                  {hasActiveJob ? "Queue Statewide" : "Start Statewide Scrape"}
                 </Button>
               </TooltipTrigger>
               {hasActiveJob && (
                 <TooltipContent>
-                  <p>A job is already running. Wait for it to complete or cancel it.</p>
+                  <p>A job is running. This will be added to the queue.</p>
                 </TooltipContent>
               )}
             </Tooltip>
@@ -357,7 +375,7 @@ export function ScrapeJobManager() {
               <div>
                 <div className="flex items-center gap-2">
                   <span className="font-medium text-lg text-foreground">
-                    {activeJob.job_type === "statewide" ? "Statewide Collection" : `Regional: ${activeJob.job_type}`}
+                    {activeJob.job_type === "statewide" ? "Statewide Collection" : `Regional: ${activeJob.job_type.replace("region:", "")}`}
                   </span>
                   <Badge className={STATUS_CONFIG[activeJob.status as keyof typeof STATUS_CONFIG]?.color || STATUS_CONFIG.pending.color}>
                     {activeJob.status}
@@ -422,6 +440,65 @@ export function ScrapeJobManager() {
         </motion.div>
       )}
 
+      {/* Job Queue Banner */}
+      <AnimatePresence>
+        {queuedJobs.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="glass-card rounded-xl p-4 border border-purple-500/30 bg-purple-500/5"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center">
+                  <ListOrdered className="w-5 h-5 text-purple-400" />
+                </div>
+                <div>
+                  <span className="font-medium text-foreground">
+                    {queuedJobs.length} Job{queuedJobs.length > 1 ? "s" : ""} Queued
+                  </span>
+                  <p className="text-sm text-muted-foreground">
+                    Will start automatically when current job completes
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Queued jobs list */}
+            <div className="mt-3 space-y-2">
+              {queuedJobs.map((job, index) => (
+                <div
+                  key={job.id}
+                  className="flex items-center justify-between p-2 rounded-lg bg-tf-substrate/50"
+                >
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline" className="text-xs text-purple-400 border-purple-500/30">
+                      #{index + 1}
+                    </Badge>
+                    <span className="text-sm capitalize">
+                      {job.job_type.replace("region:", "").replace("regions:", "Multi-region: ")}
+                    </span>
+                    <Badge variant="outline" className="text-xs">
+                      {job.counties_total} counties
+                    </Badge>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6 text-muted-foreground hover:text-destructive"
+                    onClick={() => cancelJobMutation.mutate(job.id)}
+                    disabled={cancelJobMutation.isPending}
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Stats Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card className="glass-card border-tf-border">
@@ -473,49 +550,51 @@ export function ScrapeJobManager() {
         <CardContent>
           <ScrollArea className="h-[350px]">
             <div className="space-y-2">
-                  {jobs.map((job) => {
-                    const statusConfig = STATUS_CONFIG[job.status] || STATUS_CONFIG.pending;
-                    const StatusIcon = statusConfig.icon;
-                    const errorsArray = Array.isArray(job.errors) ? job.errors as Array<{ county: string; error: string }> : [];
-                    const hasErrors = errorsArray.length > 0;
-                    
-                    return (
-                      <div
-                        key={job.id}
-                        className="flex items-center justify-between p-3 rounded-lg bg-tf-substrate hover:bg-tf-substrate/80 transition-colors"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className={cn("w-9 h-9 rounded-full flex items-center justify-center", statusConfig.color)}>
-                            <StatusIcon className={cn("w-4 h-4", statusConfig.spin && "animate-spin")} />
-                          </div>
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <span className="font-medium text-sm capitalize">{job.job_type}</span>
-                              <Badge variant="outline" className="text-xs">
-                                {job.counties_total} counties
-                              </Badge>
-                              {hasErrors && (
-                                <TooltipProvider>
-                                  <Tooltip>
-                                    <TooltipTrigger>
-                                      <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />
-                                    </TooltipTrigger>
-                                    <TooltipContent side="right" className="max-w-[300px]">
-                                      <p className="font-medium mb-1">{errorsArray.length} errors:</p>
-                                      <ul className="text-xs space-y-0.5">
-                                        {errorsArray.slice(0, 3).map((e, i) => (
-                                          <li key={i}>{e.county}: {e.error}</li>
-                                        ))}
-                                        {errorsArray.length > 3 && <li>...and {errorsArray.length - 3} more</li>}
-                                      </ul>
-                                    </TooltipContent>
-                                  </Tooltip>
-                                </TooltipProvider>
-                              )}
-                            </div>
-                            <p className="text-xs text-muted-foreground">{formatDate(job.created_at)}</p>
-                          </div>
+              {jobs.map((job) => {
+                const statusConfig = STATUS_CONFIG[job.status] || STATUS_CONFIG.pending;
+                const StatusIcon = statusConfig.icon;
+                const errorsArray = Array.isArray(job.errors) ? job.errors as Array<{ county: string; error: string }> : [];
+                const hasErrors = errorsArray.length > 0;
+                
+                return (
+                  <div
+                    key={job.id}
+                    className="flex items-center justify-between p-3 rounded-lg bg-tf-substrate hover:bg-tf-substrate/80 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className={cn("w-9 h-9 rounded-full flex items-center justify-center", statusConfig.color)}>
+                        <StatusIcon className={cn("w-4 h-4", statusConfig.spin && "animate-spin")} />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium text-sm capitalize">
+                            {job.job_type.replace("region:", "").replace("regions:", "Multi-")}
+                          </span>
+                          <Badge variant="outline" className="text-xs">
+                            {job.counties_total} counties
+                          </Badge>
+                          {hasErrors && (
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger>
+                                  <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />
+                                </TooltipTrigger>
+                                <TooltipContent side="right" className="max-w-[300px]">
+                                  <p className="font-medium mb-1">{errorsArray.length} errors:</p>
+                                  <ul className="text-xs space-y-0.5">
+                                    {errorsArray.slice(0, 3).map((e, i) => (
+                                      <li key={i}>{e.county}: {e.error}</li>
+                                    ))}
+                                    {errorsArray.length > 3 && <li>...and {errorsArray.length - 3} more</li>}
+                                  </ul>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          )}
                         </div>
+                        <p className="text-xs text-muted-foreground">{formatDate(job.created_at)}</p>
+                      </div>
+                    </div>
                     <div className="flex items-center gap-4">
                       <div className="grid grid-cols-3 gap-4 text-sm">
                         <div className="text-right">
@@ -555,6 +634,24 @@ export function ScrapeJobManager() {
                             </Tooltip>
                           </TooltipProvider>
                         )}
+                        {job.status === "queued" && (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                                  onClick={() => cancelJobMutation.mutate(job.id)}
+                                  disabled={cancelJobMutation.isPending}
+                                >
+                                  <X className="w-3.5 h-3.5" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>Remove from queue</TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -585,19 +682,19 @@ export function ScrapeJobManager() {
               {confirmDialog.action === "start-statewide" && (
                 <>
                   <Zap className="w-5 h-5 text-tf-cyan" />
-                  Start Statewide Scrape
+                  {hasActiveJob ? "Queue Statewide Scrape" : "Start Statewide Scrape"}
                 </>
               )}
               {confirmDialog.action === "start-regional" && (
                 <>
                   <Map className="w-5 h-5 text-tf-cyan" />
-                  Start Regional Scrape: {confirmDialog.selectedRegions?.[0]}
+                  {hasActiveJob ? "Queue" : "Start"} Regional Scrape: {confirmDialog.selectedRegions?.[0]}
                 </>
               )}
               {confirmDialog.action === "start-multi-region" && (
                 <>
                   <Map className="w-5 h-5 text-tf-cyan" />
-                  Select Regions to Scrape
+                  Select Regions to {hasActiveJob ? "Queue" : "Scrape"}
                 </>
               )}
               {confirmDialog.action === "cancel" && (
@@ -609,21 +706,26 @@ export function ScrapeJobManager() {
             </DialogTitle>
             <DialogDescription>
               {confirmDialog.action === "start-statewide" && (
-                "This will start a background job to enrich property data from all 39 Washington State county assessor websites. This process may take several hours."
+                hasActiveJob 
+                  ? "This will add a statewide scrape job to the queue. It will start automatically when the current job completes."
+                  : "This will start a background job to enrich property data from all 39 Washington State county assessor websites. This process may take several hours."
               )}
               {confirmDialog.action === "start-regional" && confirmDialog.selectedRegions?.[0] && (
                 <>
-                  This will scrape {WA_REGIONS[confirmDialog.selectedRegions[0] as keyof typeof WA_REGIONS]?.length || 0} counties in the {confirmDialog.selectedRegions[0]} region:
+                  {hasActiveJob 
+                    ? `This will queue a scrape for ${WA_REGIONS[confirmDialog.selectedRegions[0] as keyof typeof WA_REGIONS]?.length || 0} counties in the ${confirmDialog.selectedRegions[0]} region.`
+                    : `This will scrape ${WA_REGIONS[confirmDialog.selectedRegions[0] as keyof typeof WA_REGIONS]?.length || 0} counties in the ${confirmDialog.selectedRegions[0]} region:`
+                  }
                   <span className="block text-xs mt-1 text-muted-foreground">
                     {WA_REGIONS[confirmDialog.selectedRegions[0] as keyof typeof WA_REGIONS]?.join(", ")}
                   </span>
                 </>
               )}
               {confirmDialog.action === "start-multi-region" && (
-                "Select one or more regions to include in the scrape job."
+                `Select one or more regions to ${hasActiveJob ? "add to the queue" : "include in the scrape job"}.`
               )}
               {confirmDialog.action === "cancel" && (
-                "Are you sure you want to cancel this job? Progress will be saved but remaining counties will not be processed."
+                "Are you sure you want to cancel this job? Progress will be saved but remaining counties will not be processed. The next queued job will start automatically."
               )}
             </DialogDescription>
           </DialogHeader>
@@ -684,7 +786,7 @@ export function ScrapeJobManager() {
                 className="bg-tf-cyan hover:bg-tf-cyan/90"
               >
                 {startJobMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                Start Scrape (39 counties)
+                {hasActiveJob ? "Add to Queue" : "Start Scrape"} (39 counties)
               </Button>
             )}
             {confirmDialog.action === "start-regional" && confirmDialog.selectedRegions?.[0] && (
@@ -702,7 +804,7 @@ export function ScrapeJobManager() {
                 className="bg-tf-cyan hover:bg-tf-cyan/90"
               >
                 {startJobMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                Start Regional Scrape
+                {hasActiveJob ? "Add to Queue" : "Start Regional Scrape"}
               </Button>
             )}
             {confirmDialog.action === "start-multi-region" && (
@@ -723,7 +825,7 @@ export function ScrapeJobManager() {
                 className="bg-tf-cyan hover:bg-tf-cyan/90"
               >
                 {startJobMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                Start Scrape ({selectedRegions.flatMap(r => WA_REGIONS[r as keyof typeof WA_REGIONS] || []).length} counties)
+                {hasActiveJob ? "Add to Queue" : "Start Scrape"} ({selectedRegions.flatMap(r => WA_REGIONS[r as keyof typeof WA_REGIONS] || []).length} counties)
               </Button>
             )}
             {confirmDialog.action === "cancel" && confirmDialog.jobId && (
