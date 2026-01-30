@@ -2,58 +2,76 @@
 @tailwind components;
 @tailwind utilities;
 
-/* TerraFusion Elite - Dark Sovereign Design System */
-/* "Government. Transcended." */
+/* TerraFusion OS - Liquid Glass Design System */
+/* "Government. Transcended." - macOS-inspired frosted aesthetics */
 
 @layer base {
   :root {
-    /* Dark Sovereign Substrate */
-    --background: 220 50% 4%;              /* #0b1020 - Receptive Void */
-    --foreground: 210 20% 90%;             /* Light text */
+    /* Liquid Glass Foundation */
+    --background: 220 50% 4%;              /* #0b1020 - Deep Void */
+    --foreground: 210 20% 93%;             /* Light ethereal text */
 
-    --card: 222 47% 8%;                    /* #0A0E1A - Surface */
-    --card-foreground: 210 20% 90%;
+    --card: 222 47% 6%;                    /* Frosted surface */
+    --card-foreground: 210 20% 93%;
 
-    --popover: 220 33% 10%;                /* #1A1F2E - Elevated */
-    --popover-foreground: 210 20% 90%;
+    --popover: 220 40% 8%;                 /* Elevated glass */
+    --popover-foreground: 210 20% 93%;
 
-    /* Earned Light - Quantum Energy */
-    --primary: 180 100% 43%;               /* #00D9D9 - Transcend Cyan */
+    /* Primary Energy - Transcend Cyan */
+    --primary: 180 100% 45%;               /* #00E5E5 - Core cyan */
     --primary-foreground: 220 50% 4%;
 
-    --secondary: 220 33% 15%;              /* Elevated Surface */
+    --secondary: 220 35% 12%;              /* Subtle surface */
     --secondary-foreground: 210 20% 90%;
 
-    --muted: 222 30% 12%;
-    --muted-foreground: 210 15% 60%;
+    --muted: 222 28% 10%;
+    --muted-foreground: 210 15% 55%;
 
-    --accent: 180 100% 50%;                /* #00FFEE - Bright Cyan */
+    --accent: 180 100% 50%;                /* #00FFFF - Bright accent */
     --accent-foreground: 220 50% 4%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 210 20% 98%;
 
-    --border: 220 30% 18%;
-    --input: 220 30% 15%;
-    --ring: 180 100% 43%;
+    --border: 220 25% 15%;
+    --input: 220 28% 12%;
+    --ring: 180 100% 45%;
 
-    --radius: 0.75rem;
+    --radius: 1rem;
 
-    /* TerraFusion Sovereign Colors */
-    --tf-substrate: 220 50% 4%;            /* #0b1020 */
-    --tf-surface: 222 47% 8%;              /* #0A0E1A */
-    --tf-elevated: 220 33% 15%;            /* #1A1F2E */
-    --tf-transcend-cyan: 180 100% 43%;     /* #00D9D9 */
-    --tf-bright-cyan: 180 100% 50%;        /* #00FFEE */
-    --tf-optimized-green: 145 80% 45%;     /* Verified state */
-    --tf-anomaly-amber: 38 95% 55%;        /* Alert state */
-    --tf-warning-red: 0 72% 51%;           /* Error state */
+    /* TerraFusion Suite Colors */
+    --tf-substrate: 220 50% 4%;            /* Deep void */
+    --tf-surface: 222 47% 6%;              /* Glass base */
+    --tf-elevated: 220 35% 12%;            /* Lifted panels */
+    --tf-glass: 220 40% 8%;                /* Frosted overlay */
+    
+    /* Energy Spectrum */
+    --tf-transcend-cyan: 180 100% 45%;     /* Primary energy */
+    --tf-bright-cyan: 180 100% 55%;        /* Active state */
+    --tf-optimized-green: 155 85% 45%;     /* Success/verified */
+    --tf-sacred-gold: 45 95% 55%;          /* Wisdom/highlight */
+    --tf-anomaly-amber: 38 95% 55%;        /* Warning */
+    --tf-warning-red: 0 75% 55%;           /* Alert/error */
+    --tf-muse-purple: 280 75% 60%;         /* Creative mode */
 
-    /* VEI Metrics Colors */
-    --vei-excellent: 145 80% 45%;          /* Green - Excellent */
-    --vei-good: 180 100% 43%;              /* Cyan - Good */
-    --vei-caution: 38 95% 55%;             /* Amber - Caution */
-    --vei-concern: 0 72% 51%;              /* Red - Concern */
+    /* Suite Identity Colors */
+    --suite-forge: 180 100% 45%;           /* TerraForge - Valuation */
+    --suite-atlas: 200 100% 50%;           /* TerraAtlas - GIS */
+    --suite-dais: 45 95% 55%;              /* TerraDais - Admin */
+    --suite-dossier: 280 75% 60%;          /* TerraDossier - Records */
+
+    /* Work Mode Colors */
+    --mode-overview: 210 100% 50%;
+    --mode-valuation: 180 100% 45%;
+    --mode-mapping: 155 85% 45%;
+    --mode-admin: 45 95% 55%;
+    --mode-case: 280 75% 60%;
+
+    /* VEI Metrics */
+    --vei-excellent: 155 85% 45%;
+    --vei-good: 180 100% 45%;
+    --vei-caution: 38 95% 55%;
+    --vei-concern: 0 75% 55%;
 
     /* Tier Colors */
     --tier-q1: 180 100% 50%;
@@ -61,26 +79,26 @@
     --tier-q3: 38 95% 55%;
     --tier-q4: 0 72% 51%;
 
-    /* Sacred Geometry Constants */
+    /* Sacred Geometry */
     --phi: 1.618;
     --phi-inverse: 0.618;
 
-    /* Sidebar - Sovereign */
-    --sidebar-background: 222 47% 6%;
+    /* Sidebar */
+    --sidebar-background: 222 50% 5%;
     --sidebar-foreground: 210 20% 90%;
-    --sidebar-primary: 180 100% 43%;
+    --sidebar-primary: 180 100% 45%;
     --sidebar-primary-foreground: 220 50% 4%;
-    --sidebar-accent: 220 33% 15%;
+    --sidebar-accent: 220 35% 12%;
     --sidebar-accent-foreground: 210 20% 90%;
-    --sidebar-border: 220 30% 18%;
-    --sidebar-ring: 180 100% 43%;
+    --sidebar-border: 220 25% 15%;
+    --sidebar-ring: 180 100% 45%;
 
     /* Chart Colors */
-    --chart-1: 180 100% 43%;
-    --chart-2: 145 80% 45%;
-    --chart-3: 38 95% 55%;
-    --chart-4: 280 70% 55%;
-    --chart-5: 0 72% 51%;
+    --chart-1: 180 100% 45%;
+    --chart-2: 155 85% 45%;
+    --chart-3: 45 95% 55%;
+    --chart-4: 280 75% 60%;
+    --chart-5: 0 75% 55%;
   }
 }
 
@@ -91,59 +109,168 @@
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
   }
 
-  /* Sovereign Scrollbar */
+  /* Sovereign Scrollbar - Minimal */
   ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+    width: 6px;
+    height: 6px;
   }
 
   ::-webkit-scrollbar-track {
-    background: hsl(var(--tf-substrate));
+    background: transparent;
   }
 
   ::-webkit-scrollbar-thumb {
     background: hsl(var(--tf-elevated));
-    border-radius: 4px;
+    border-radius: 3px;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: hsl(var(--tf-transcend-cyan) / 0.5);
+    background: hsl(var(--tf-transcend-cyan) / 0.4);
   }
 }
 
 @layer components {
-  /* Glass Morphism - Sovereign Card */
-  .glass-card {
-    background: hsl(var(--tf-surface) / 0.8);
-    backdrop-filter: blur(20px);
-    border: 1px solid hsl(var(--tf-transcend-cyan) / 0.1);
+  /* ========================================
+     LIQUID GLASS SYSTEM
+     macOS-inspired frosted panels
+     ======================================== */
+  
+  .glass-panel {
+    background: hsl(var(--tf-glass) / 0.7);
+    backdrop-filter: blur(40px) saturate(180%);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    border: 1px solid hsl(var(--tf-transcend-cyan) / 0.08);
     box-shadow: 
-      0 0 30px hsl(var(--tf-transcend-cyan) / 0.05),
-      inset 0 1px 0 hsl(var(--tf-transcend-cyan) / 0.05);
+      0 8px 32px hsl(var(--tf-substrate) / 0.4),
+      inset 0 1px 0 hsl(255 100% 100% / 0.03);
   }
 
-  .glass-card-hover:hover {
-    border-color: hsl(var(--tf-transcend-cyan) / 0.3);
+  .glass-card {
+    background: hsl(var(--tf-surface) / 0.65);
+    backdrop-filter: blur(24px) saturate(150%);
+    -webkit-backdrop-filter: blur(24px) saturate(150%);
+    border: 1px solid hsl(var(--tf-transcend-cyan) / 0.06);
     box-shadow: 
-      0 0 40px hsl(var(--tf-transcend-cyan) / 0.1),
-      inset 0 1px 0 hsl(var(--tf-transcend-cyan) / 0.1);
+      0 4px 24px hsl(var(--tf-substrate) / 0.3),
+      inset 0 1px 0 hsl(255 100% 100% / 0.02);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .glass-card:hover {
+    border-color: hsl(var(--tf-transcend-cyan) / 0.15);
+    box-shadow: 
+      0 8px 32px hsl(var(--tf-substrate) / 0.4),
+      0 0 0 1px hsl(var(--tf-transcend-cyan) / 0.05),
+      inset 0 1px 0 hsl(255 100% 100% / 0.04);
+  }
+
+  .glass-subtle {
+    background: hsl(var(--tf-surface) / 0.4);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid hsl(var(--border) / 0.5);
+  }
+
+  /* Context Ribbon - Persistent Header */
+  .context-ribbon {
+    background: hsl(var(--tf-substrate) / 0.85);
+    backdrop-filter: blur(40px) saturate(180%);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    border-bottom: 1px solid hsl(var(--tf-transcend-cyan) / 0.1);
+    box-shadow: 0 4px 24px hsl(var(--tf-substrate) / 0.5);
+  }
+
+  /* Suite Tab Navigation */
+  .suite-tab {
+    @apply relative px-4 py-2 text-sm font-medium transition-all duration-200;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .suite-tab:hover {
+    color: hsl(var(--foreground));
+    background: hsl(var(--tf-elevated) / 0.5);
+  }
+
+  .suite-tab[data-active="true"] {
+    color: hsl(var(--tf-transcend-cyan));
+  }
+
+  .suite-tab[data-active="true"]::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, 
+      hsl(var(--tf-transcend-cyan)), 
+      hsl(var(--tf-bright-cyan))
+    );
+    border-radius: 2px 2px 0 0;
+  }
+
+  /* Work Mode Selector */
+  .work-mode-chip {
+    @apply px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200;
+    background: hsl(var(--tf-elevated) / 0.5);
+    color: hsl(var(--muted-foreground));
+    border: 1px solid transparent;
+  }
+
+  .work-mode-chip:hover {
+    background: hsl(var(--tf-elevated));
+    color: hsl(var(--foreground));
+  }
+
+  .work-mode-chip[data-active="true"] {
+    background: hsl(var(--tf-transcend-cyan) / 0.15);
+    color: hsl(var(--tf-transcend-cyan));
+    border-color: hsl(var(--tf-transcend-cyan) / 0.3);
+  }
+
+  /* TerraPilot Mode Toggle */
+  .pilot-mode-toggle {
+    @apply relative inline-flex rounded-full p-1;
+    background: hsl(var(--tf-elevated) / 0.5);
+  }
+
+  .pilot-mode-btn {
+    @apply px-4 py-1.5 rounded-full text-xs font-medium transition-all duration-200;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .pilot-mode-btn[data-active="true"] {
+    background: hsl(var(--tf-surface));
+    color: hsl(var(--foreground));
+    box-shadow: 0 2px 8px hsl(var(--tf-substrate) / 0.5);
+  }
+
+  .pilot-mode-btn[data-mode="pilot"][data-active="true"] {
+    color: hsl(var(--tf-transcend-cyan));
+  }
+
+  .pilot-mode-btn[data-mode="muse"][data-active="true"] {
+    color: hsl(var(--tf-muse-purple));
   }
 
   /* Quantum Glow Effects */
   .quantum-glow {
     box-shadow: 
-      0 0 20px hsl(var(--tf-transcend-cyan) / 0.3),
+      0 0 20px hsl(var(--tf-transcend-cyan) / 0.25),
       0 0 40px hsl(var(--tf-transcend-cyan) / 0.1);
   }
 
-  .quantum-glow-pulse {
-    animation: quantum-pulse 3s ease-in-out infinite;
+  .quantum-glow-strong {
+    box-shadow: 
+      0 0 30px hsl(var(--tf-transcend-cyan) / 0.4),
+      0 0 60px hsl(var(--tf-transcend-cyan) / 0.2),
+      0 0 100px hsl(var(--tf-transcend-cyan) / 0.1);
   }
 
-  /* Sovereign Button */
+  /* Sovereign Button - Primary Action */
   .btn-sovereign {
     background: linear-gradient(135deg, 
       hsl(var(--tf-transcend-cyan)) 0%, 
@@ -151,25 +278,20 @@
     );
     color: hsl(var(--tf-substrate));
     font-weight: 600;
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 16px hsl(var(--tf-transcend-cyan) / 0.3);
   }
 
   .btn-sovereign:hover {
-    box-shadow: 0 0 30px hsl(var(--tf-transcend-cyan) / 0.5);
+    box-shadow: 
+      0 8px 24px hsl(var(--tf-transcend-cyan) / 0.4),
+      0 0 0 1px hsl(var(--tf-bright-cyan) / 0.2);
     transform: translateY(-1px);
   }
 
-  /* VEI Metric Card */
+  /* Metric Cards */
   .metric-card {
-    background: hsl(var(--tf-surface));
-    border: 1px solid hsl(var(--border));
-    border-radius: var(--radius);
-    padding: 1.5rem;
-    transition: all 0.3s ease;
-  }
-
-  .metric-card:hover {
-    border-color: hsl(var(--tf-transcend-cyan) / 0.3);
+    @apply glass-card rounded-xl p-4;
   }
 
   /* Status Indicators */
@@ -178,14 +300,14 @@
   }
 
   .status-pending {
-    color: hsl(var(--tf-anomaly-amber));
+    color: hsl(var(--tf-sacred-gold));
   }
 
   .status-anomaly {
     color: hsl(var(--tf-warning-red));
   }
 
-  /* Sovereign Text Gradient */
+  /* Text Gradients */
   .text-gradient-sovereign {
     background: linear-gradient(135deg, 
       hsl(var(--tf-transcend-cyan)) 0%, 
@@ -197,41 +319,42 @@
     background-clip: text;
   }
 
-  /* Radial Menu Node */
-  .sovereign-node {
-    background: hsl(var(--tf-surface));
-    border: 2px solid hsl(var(--tf-transcend-cyan) / 0.3);
-    border-radius: 50%;
-    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-  }
-
-  .sovereign-node:hover {
-    border-color: hsl(var(--tf-transcend-cyan));
-    box-shadow: 0 0 20px hsl(var(--tf-transcend-cyan) / 0.4);
-    transform: scale(1.05);
-  }
-
-  /* Chart Grid Lines */
-  .chart-grid {
-    stroke: hsl(var(--border));
-    stroke-width: 1;
-    stroke-dasharray: 4 4;
-  }
-
-  /* Progress Bar - Sacred */
-  .progress-sacred {
-    background: hsl(var(--tf-elevated));
-    border-radius: 9999px;
-    overflow: hidden;
-  }
-
-  .progress-sacred-fill {
-    background: linear-gradient(90deg, 
-      hsl(var(--tf-transcend-cyan)) 0%, 
-      hsl(var(--tf-optimized-green)) 100%
+  .text-gradient-gold {
+    background: linear-gradient(135deg, 
+      hsl(var(--tf-sacred-gold)) 0%, 
+      hsl(45 100% 70%) 100%
     );
-    height: 100%;
-    transition: width 0.5s ease;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .text-gradient-muse {
+    background: linear-gradient(135deg, 
+      hsl(var(--tf-muse-purple)) 0%, 
+      hsl(300 80% 70%) 100%
+    );
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* TerraSphere Container */
+  .terrasphere-container {
+    @apply relative flex items-center justify-center;
+    filter: drop-shadow(0 0 30px hsl(var(--tf-transcend-cyan) / 0.3));
+  }
+
+  .terrasphere-container[data-state="processing"] {
+    filter: drop-shadow(0 0 40px hsl(var(--tf-transcend-cyan) / 0.5));
+  }
+
+  .terrasphere-container[data-state="alert"] {
+    filter: drop-shadow(0 0 40px hsl(var(--tf-warning-red) / 0.5));
+  }
+
+  .terrasphere-container[data-state="success"] {
+    filter: drop-shadow(0 0 40px hsl(var(--tf-optimized-green) / 0.5));
   }
 
   /* Data Table - Government Grade */
@@ -242,55 +365,84 @@
   }
 
   .table-sovereign th {
-    background: hsl(var(--tf-elevated));
+    @apply glass-subtle;
     padding: 0.75rem 1rem;
     text-align: left;
     font-weight: 500;
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.08em;
     color: hsl(var(--muted-foreground));
   }
 
   .table-sovereign td {
     padding: 0.75rem 1rem;
-    border-bottom: 1px solid hsl(var(--border));
+    border-bottom: 1px solid hsl(var(--border) / 0.5);
   }
 
   .table-sovereign tr:hover td {
-    background: hsl(var(--tf-surface));
+    background: hsl(var(--tf-surface) / 0.5);
+  }
+
+  /* Progress Bar */
+  .progress-sacred {
+    @apply overflow-hidden rounded-full;
+    background: hsl(var(--tf-elevated) / 0.5);
+    height: 4px;
+  }
+
+  .progress-sacred-fill {
+    background: linear-gradient(90deg, 
+      hsl(var(--tf-transcend-cyan)) 0%, 
+      hsl(var(--tf-optimized-green)) 100%
+    );
+    height: 100%;
+    transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
   }
 }
 
 @layer utilities {
   /* Phi-based spacing */
-  .gap-phi {
-    gap: calc(1rem * 1.618);
-  }
-
-  .p-phi {
-    padding: calc(1rem * 1.618);
-  }
-
-  .m-phi {
-    margin: calc(1rem * 1.618);
-  }
+  .gap-phi { gap: calc(1rem * 1.618); }
+  .p-phi { padding: calc(1rem * 1.618); }
+  .m-phi { margin: calc(1rem * 1.618); }
 
   /* Animation keyframes */
   @keyframes quantum-pulse {
     0%, 100% {
       box-shadow: 
-        0 0 20px hsl(var(--tf-transcend-cyan) / 0.3),
+        0 0 20px hsl(var(--tf-transcend-cyan) / 0.25),
         0 0 40px hsl(var(--tf-transcend-cyan) / 0.1);
     }
     50% {
       box-shadow: 
-        0 0 30px hsl(var(--tf-transcend-cyan) / 0.5),
+        0 0 30px hsl(var(--tf-transcend-cyan) / 0.4),
         0 0 60px hsl(var(--tf-transcend-cyan) / 0.2);
     }
   }
 
-  @keyframes orb-rotate {
+  @keyframes sphere-breathe {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.03); }
+  }
+
+  @keyframes sphere-rotate {
+    0% { transform: rotateY(0deg) rotateX(0deg); }
+    100% { transform: rotateY(360deg) rotateX(180deg); }
+  }
+
+  @keyframes core-pulse {
+    0%, 100% { 
+      opacity: 0.8;
+      transform: scale(1);
+    }
+    50% { 
+      opacity: 1;
+      transform: scale(1.1);
+    }
+  }
+
+  @keyframes ring-orbit {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
   }
@@ -306,11 +458,42 @@
     }
   }
 
+  @keyframes slide-in-right {
+    0% {
+      opacity: 0;
+      transform: translateX(20px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
   .animate-fade-in-up {
     animation: fade-in-up 0.5s ease-out forwards;
   }
 
-  .animate-orb-rotate {
-    animation: orb-rotate 20s linear infinite;
+  .animate-slide-in-right {
+    animation: slide-in-right 0.4s ease-out forwards;
+  }
+
+  .animate-sphere-breathe {
+    animation: sphere-breathe 6s ease-in-out infinite;
+  }
+
+  .animate-sphere-rotate {
+    animation: sphere-rotate 20s linear infinite;
+  }
+
+  .animate-core-pulse {
+    animation: core-pulse 2s ease-in-out infinite;
+  }
+
+  .animate-ring-orbit {
+    animation: ring-orbit 10s linear infinite;
+  }
+
+  .animate-quantum-pulse {
+    animation: quantum-pulse 3s ease-in-out infinite;
   }
 }

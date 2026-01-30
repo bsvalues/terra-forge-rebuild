@@ -1,7 +1,7 @@
-import { TerraFusionLayout } from "@/components/TerraFusionLayout";
+import { PropertyWorkbench } from "@/components/workbench";
 
 const Index = () => {
-  return <TerraFusionLayout />;
+  return <PropertyWorkbench />;
 };
 
 export default Index;
