@@ -20,6 +20,16 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import {
   Globe,
   Play,
   Square,
@@ -37,6 +47,8 @@ import {
   AlertTriangle,
   Info,
   RotateCcw,
+  ChevronDown,
+  Map,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -101,13 +113,30 @@ const WA_REGIONS = {
   "Southeast": ["Walla Walla", "Columbia", "Garfield", "Asotin"],
 };
 
+// Region colors for visual distinction
+const REGION_COLORS: Record<string, string> = {
+  "Puget Sound": "text-tf-cyan",
+  "Southwest": "text-tf-green",
+  "Central": "text-tf-gold",
+  "Eastern": "text-amber-400",
+  "North Central": "text-purple-400",
+  "Olympic Peninsula": "text-blue-400",
+  "Southeast": "text-rose-400",
+};
+
 export function ScrapeJobManager() {
   const queryClient = useQueryClient();
-  const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; action: string; jobId?: string }>({
+  const [confirmDialog, setConfirmDialog] = useState<{ 
+    open: boolean; 
+    action: string; 
+    jobId?: string;
+    selectedRegions?: string[];
+  }>({
     open: false,
     action: "",
+    selectedRegions: [],
   });
-  const [selectedRegion, setSelectedRegion] = useState<string | null>(null);
+  const [selectedRegions, setSelectedRegions] = useState<string[]>([]);
 
   // Fetch all jobs
   const { data: jobs = [], isLoading, refetch } = useQuery({
@@ -127,7 +156,7 @@ export function ScrapeJobManager() {
 
   // Start job mutation
   const startJobMutation = useMutation({
-    mutationFn: async (params: { jobType: string; region?: string }) => {
+    mutationFn: async (params: { jobType: string; counties?: string[]; regions?: string[] }) => {
       const { data, error } = await supabase.functions.invoke("statewide-scrape", {
         body: { action: "start", ...params },
       });
@@ -137,7 +166,8 @@ export function ScrapeJobManager() {
     onSuccess: () => {
       toast.success("Scrape job started successfully");
       queryClient.invalidateQueries({ queryKey: ["admin-scrape-jobs"] });
-      setConfirmDialog({ open: false, action: "" });
+      setConfirmDialog({ open: false, action: "", selectedRegions: [] });
+      setSelectedRegions([]);
     },
     onError: (error) => {
       toast.error(`Failed to start job: ${error.message}`);
@@ -238,6 +268,54 @@ export function ScrapeJobManager() {
             <RefreshCw className={cn("w-4 h-4 mr-2", isLoading && "animate-spin")} />
             Refresh
           </Button>
+          
+          {/* Regional Scrape Dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={hasActiveJob || startJobMutation.isPending}
+                className="gap-2"
+              >
+                <Map className="w-4 h-4" />
+                Regional Scrape
+                <ChevronDown className="w-3 h-3" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuLabel>Select Region</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              {Object.entries(WA_REGIONS).map(([region, counties]) => (
+                <DropdownMenuItem
+                  key={region}
+                  onClick={() => setConfirmDialog({ 
+                    open: true, 
+                    action: "start-regional",
+                    selectedRegions: [region]
+                  })}
+                  className="flex items-center justify-between"
+                >
+                  <span className={REGION_COLORS[region]}>{region}</span>
+                  <Badge variant="outline" className="text-xs ml-2">
+                    {counties.length} counties
+                  </Badge>
+                </DropdownMenuItem>
+              ))}
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => setConfirmDialog({ 
+                  open: true, 
+                  action: "start-multi-region",
+                  selectedRegions: []
+                })}
+                className="text-muted-foreground"
+              >
+                Select Multiple Regions...
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -501,13 +579,25 @@ export function ScrapeJobManager() {
 
       {/* Confirmation Dialog */}
       <Dialog open={confirmDialog.open} onOpenChange={(open) => setConfirmDialog({ ...confirmDialog, open })}>
-        <DialogContent className="glass-card border-tf-border">
+        <DialogContent className="glass-card border-tf-border max-w-lg">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               {confirmDialog.action === "start-statewide" && (
                 <>
                   <Zap className="w-5 h-5 text-tf-cyan" />
                   Start Statewide Scrape
+                </>
+              )}
+              {confirmDialog.action === "start-regional" && (
+                <>
+                  <Map className="w-5 h-5 text-tf-cyan" />
+                  Start Regional Scrape: {confirmDialog.selectedRegions?.[0]}
+                </>
+              )}
+              {confirmDialog.action === "start-multi-region" && (
+                <>
+                  <Map className="w-5 h-5 text-tf-cyan" />
+                  Select Regions to Scrape
                 </>
               )}
               {confirmDialog.action === "cancel" && (
@@ -521,13 +611,70 @@ export function ScrapeJobManager() {
               {confirmDialog.action === "start-statewide" && (
                 "This will start a background job to enrich property data from all 39 Washington State county assessor websites. This process may take several hours."
               )}
+              {confirmDialog.action === "start-regional" && confirmDialog.selectedRegions?.[0] && (
+                <>
+                  This will scrape {WA_REGIONS[confirmDialog.selectedRegions[0] as keyof typeof WA_REGIONS]?.length || 0} counties in the {confirmDialog.selectedRegions[0]} region:
+                  <span className="block text-xs mt-1 text-muted-foreground">
+                    {WA_REGIONS[confirmDialog.selectedRegions[0] as keyof typeof WA_REGIONS]?.join(", ")}
+                  </span>
+                </>
+              )}
+              {confirmDialog.action === "start-multi-region" && (
+                "Select one or more regions to include in the scrape job."
+              )}
               {confirmDialog.action === "cancel" && (
                 "Are you sure you want to cancel this job? Progress will be saved but remaining counties will not be processed."
               )}
             </DialogDescription>
           </DialogHeader>
+
+          {/* Multi-region selection */}
+          {confirmDialog.action === "start-multi-region" && (
+            <div className="grid grid-cols-2 gap-3 py-4">
+              {Object.entries(WA_REGIONS).map(([region, counties]) => {
+                const isSelected = selectedRegions.includes(region);
+                return (
+                  <div
+                    key={region}
+                    className={cn(
+                      "flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all",
+                      isSelected 
+                        ? "border-tf-cyan bg-tf-cyan/10" 
+                        : "border-tf-border hover:border-tf-cyan/50"
+                    )}
+                    onClick={() => {
+                      if (isSelected) {
+                        setSelectedRegions(prev => prev.filter(r => r !== region));
+                      } else {
+                        setSelectedRegions(prev => [...prev, region]);
+                      }
+                    }}
+                  >
+                    <Checkbox 
+                      checked={isSelected}
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          setSelectedRegions(prev => [...prev, region]);
+                        } else {
+                          setSelectedRegions(prev => prev.filter(r => r !== region));
+                        }
+                      }}
+                    />
+                    <div className="flex-1">
+                      <div className={cn("font-medium text-sm", REGION_COLORS[region])}>{region}</div>
+                      <div className="text-xs text-muted-foreground">{counties.length} counties</div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
           <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setConfirmDialog({ open: false, action: "" })}>
+            <Button variant="outline" onClick={() => {
+              setConfirmDialog({ open: false, action: "" });
+              setSelectedRegions([]);
+            }}>
               Cancel
             </Button>
             {confirmDialog.action === "start-statewide" && (
@@ -537,7 +684,46 @@ export function ScrapeJobManager() {
                 className="bg-tf-cyan hover:bg-tf-cyan/90"
               >
                 {startJobMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                Start Scrape
+                Start Scrape (39 counties)
+              </Button>
+            )}
+            {confirmDialog.action === "start-regional" && confirmDialog.selectedRegions?.[0] && (
+              <Button
+                onClick={() => {
+                  const region = confirmDialog.selectedRegions![0];
+                  const counties = WA_REGIONS[region as keyof typeof WA_REGIONS] || [];
+                  startJobMutation.mutate({ 
+                    jobType: `region:${region}`,
+                    counties,
+                    regions: [region]
+                  });
+                }}
+                disabled={startJobMutation.isPending}
+                className="bg-tf-cyan hover:bg-tf-cyan/90"
+              >
+                {startJobMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                Start Regional Scrape
+              </Button>
+            )}
+            {confirmDialog.action === "start-multi-region" && (
+              <Button
+                onClick={() => {
+                  const counties = selectedRegions.flatMap(
+                    region => WA_REGIONS[region as keyof typeof WA_REGIONS] || []
+                  );
+                  startJobMutation.mutate({ 
+                    jobType: selectedRegions.length === 1 
+                      ? `region:${selectedRegions[0]}` 
+                      : `regions:${selectedRegions.length}`,
+                    counties,
+                    regions: selectedRegions
+                  });
+                }}
+                disabled={startJobMutation.isPending || selectedRegions.length === 0}
+                className="bg-tf-cyan hover:bg-tf-cyan/90"
+              >
+                {startJobMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                Start Scrape ({selectedRegions.flatMap(r => WA_REGIONS[r as keyof typeof WA_REGIONS] || []).length} counties)
               </Button>
             )}
             {confirmDialog.action === "cancel" && confirmDialog.jobId && (

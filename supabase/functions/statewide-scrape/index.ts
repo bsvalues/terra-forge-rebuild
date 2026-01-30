@@ -53,7 +53,8 @@ interface ScrapeJobRequest {
   action: "start" | "cancel" | "status";
   jobId?: string;
   counties?: string[];
-  jobType?: "statewide" | "region" | "county" | "scheduled";
+  regions?: string[];
+  jobType?: string; // "statewide" | "region:Name" | "regions:N" | "county" | "scheduled"
   batchSize?: number;
 }
 
