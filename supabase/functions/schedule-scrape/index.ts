@@ -143,6 +143,7 @@ Deno.serve(async (req) => {
             Authorization: `Bearer ${supabaseAnonKey}`,
           },
           body: JSON.stringify({
+            action: "start",
             counties: schedule.counties,
             batchSize: schedule.batch_size,
           }),

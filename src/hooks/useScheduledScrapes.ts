@@ -178,15 +178,21 @@ export function useRunScheduledScrapeNow() {
 
   return useMutation({
     mutationFn: async (schedule: ScheduledScrape) => {
-      // Trigger the statewide scrape immediately
-      const { error } = await supabase.functions.invoke("statewide-scrape", {
+      // Trigger the statewide scrape immediately with action: "start"
+      const { data, error } = await supabase.functions.invoke("statewide-scrape", {
         body: {
+          action: "start",
           counties: schedule.counties,
           batchSize: schedule.batch_size,
         },
       });
 
       if (error) throw error;
+      
+      // Check if the response indicates failure
+      if (data && !data.success) {
+        throw new Error(data.error || "Failed to start scrape job");
+      }
 
       // Update last_run_at
       await supabase
