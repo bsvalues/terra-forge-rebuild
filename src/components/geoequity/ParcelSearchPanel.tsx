@@ -18,6 +18,7 @@ import {
   ChevronDown,
   ChevronUp,
   Loader2,
+  Eye,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
@@ -27,6 +28,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { ParcelDetailSheet } from "./ParcelDetailSheet";
 
 const PROPERTY_CLASSES = [
   { value: "Residential", label: "Residential", icon: Home },
@@ -56,6 +58,7 @@ interface Parcel {
   assessed_value: number;
   land_value: number | null;
   improvement_value: number | null;
+  land_area: number | null;
   building_area: number | null;
   year_built: number | null;
   bedrooms: number | null;
@@ -76,6 +79,13 @@ export function ParcelSearchPanel() {
   });
   const [filtersExpanded, setFiltersExpanded] = useState(true);
   const [valueRange, setValueRange] = useState<[number, number]>([0, 5000000]);
+  const [selectedParcel, setSelectedParcel] = useState<Parcel | null>(null);
+  const [detailSheetOpen, setDetailSheetOpen] = useState(false);
+
+  const handleParcelClick = (parcel: Parcel) => {
+    setSelectedParcel(parcel);
+    setDetailSheetOpen(true);
+  };
 
   // Fetch parcels with filters
   const { data: parcels = [], isLoading } = useQuery({
@@ -360,12 +370,18 @@ export function ParcelSearchPanel() {
                       initial={{ opacity: 0, y: 5 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: idx * 0.02 }}
-                      className="border-b border-border hover:bg-muted/30 transition-colors cursor-pointer"
+                      className="border-b border-border hover:bg-tf-cyan/10 transition-colors cursor-pointer group"
+                      onClick={() => handleParcelClick(parcel)}
                     >
                       <td className="p-3">
-                        <div className="font-medium">{parcel.address}</div>
-                        <div className="text-xs text-muted-foreground font-mono">
-                          {parcel.parcel_number}
+                        <div className="flex items-center gap-2">
+                          <Eye className="w-4 h-4 text-tf-cyan opacity-0 group-hover:opacity-100 transition-opacity" />
+                          <div>
+                            <div className="font-medium">{parcel.address}</div>
+                            <div className="text-xs text-muted-foreground font-mono">
+                              {parcel.parcel_number}
+                            </div>
+                          </div>
                         </div>
                       </td>
                       <td className="p-3">
@@ -416,6 +432,13 @@ export function ParcelSearchPanel() {
           )}
         </CardContent>
       </Card>
+
+      {/* Parcel Detail Sheet */}
+      <ParcelDetailSheet
+        parcel={selectedParcel}
+        open={detailSheetOpen}
+        onOpenChange={setDetailSheetOpen}
+      />
     </div>
   );
 }
