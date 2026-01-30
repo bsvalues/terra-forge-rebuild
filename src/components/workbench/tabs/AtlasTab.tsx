@@ -249,8 +249,9 @@ export function AtlasTab() {
 
                       {/* Active Parcel */}
                       {hasActiveParcel && (
-                        <div className="glass-card rounded-lg p-3 border-suite-atlas/30">
-                          <div className="text-xs text-suite-atlas mb-1 font-medium">
+                        <div className="glass-card rounded-lg p-3 border-suite-atlas/30 border">
+                          <div className="text-xs text-suite-atlas mb-1 font-medium flex items-center gap-1.5">
+                            <MapPin className="w-3 h-3" />
                             Active Parcel
                           </div>
                           <div className="text-sm font-medium text-foreground truncate">
@@ -259,6 +260,18 @@ export function AtlasTab() {
                           <div className="text-xs text-muted-foreground truncate mt-0.5">
                             {parcel.address}
                           </div>
+                          {parcel.latitude && parcel.longitude ? (
+                            <div className="text-xs text-tf-green mt-2 flex items-center gap-1">
+                              <Compass className="w-3 h-3" />
+                              <span className="font-mono">
+                                {parcel.latitude.toFixed(4)}, {parcel.longitude.toFixed(4)}
+                              </span>
+                            </div>
+                          ) : (
+                            <div className="text-xs text-muted-foreground/60 mt-2">
+                              No coordinates available
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
@@ -303,6 +316,14 @@ export function AtlasTab() {
                     studyPeriodId={studyPeriod.id ?? undefined}
                     neighborhoodStats={showNeighborhoods ? neighborhoodStats : []}
                     isLoading={isLoadingStats}
+                    selectedParcel={hasActiveParcel && parcel.latitude && parcel.longitude ? {
+                      id: parcel.id!,
+                      parcelNumber: parcel.parcelNumber!,
+                      address: parcel.address!,
+                      latitude: parcel.latitude,
+                      longitude: parcel.longitude,
+                      assessedValue: parcel.assessedValue,
+                    } : undefined}
                   />
                 </div>
 

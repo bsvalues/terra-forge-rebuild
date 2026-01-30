@@ -13,6 +13,8 @@ export interface ParcelContext {
   assessedValue: number | null;
   propertyClass: string | null;
   neighborhoodCode: string | null;
+  latitude: number | null;
+  longitude: number | null;
 }
 
 export interface StudyPeriodContext {

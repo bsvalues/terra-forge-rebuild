@@ -36,6 +36,8 @@ interface SearchResult {
   city: string | null;
   property_class: string | null;
   assessed_value: number;
+  latitude: number | null;
+  longitude: number | null;
 }
 
 interface StudyPeriodResult {
@@ -65,7 +67,7 @@ export function ContextRibbon() {
       
       const { data, error } = await supabase
         .from("parcels")
-        .select("id, parcel_number, address, city, property_class, assessed_value")
+        .select("id, parcel_number, address, city, property_class, assessed_value, latitude, longitude")
         .or(`parcel_number.ilike.%${debouncedQuery}%,address.ilike.%${debouncedQuery}%`)
         .order("assessed_value", { ascending: false })
         .limit(10);
@@ -118,6 +120,8 @@ export function ContextRibbon() {
       city: result.city,
       propertyClass: result.property_class,
       assessedValue: result.assessed_value,
+      latitude: result.latitude,
+      longitude: result.longitude,
     });
     setSearchOpen(false);
     setSearchQuery("");
