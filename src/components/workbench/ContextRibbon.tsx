@@ -7,18 +7,15 @@ import {
   ChevronDown,
   Search,
   X,
-  Loader2
+  Loader2,
+  Check,
+  Clock,
+  FileText
 } from "lucide-react";
 import { useWorkbench } from "./WorkbenchContext";
 import { WorkModeSelector } from "./WorkModeSelector";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import {
   Popover,
   PopoverContent,
@@ -29,6 +26,8 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useDebounce } from "@/hooks/useDebounce";
 import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface SearchResult {
   id: string;
@@ -39,9 +38,19 @@ interface SearchResult {
   assessed_value: number;
 }
 
+interface StudyPeriodResult {
+  id: string;
+  name: string;
+  status: string;
+  start_date: string;
+  end_date: string;
+  description: string | null;
+}
+
 export function ContextRibbon() {
-  const { parcel, studyPeriod, setParcel, clearParcel } = useWorkbench();
+  const { parcel, studyPeriod, setParcel, setStudyPeriod, clearParcel } = useWorkbench();
   const [searchOpen, setSearchOpen] = useState(false);
+  const [periodOpen, setPeriodOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedQuery = useDebounce(searchQuery, 300);
 
@@ -68,6 +77,39 @@ export function ContextRibbon() {
     staleTime: 30000,
   });
 
+  // Query study periods
+  const { data: studyPeriods = [], isLoading: isLoadingPeriods } = useQuery({
+    queryKey: ["study-periods-ribbon"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("study_periods")
+        .select("id, name, status, start_date, end_date, description")
+        .order("start_date", { ascending: false })
+        .limit(10);
+
+      if (error) throw error;
+      return (data || []) as StudyPeriodResult[];
+    },
+    staleTime: 60000,
+  });
+
+  // Auto-select active period if none selected
+  useEffect(() => {
+    if (!hasStudyPeriod && studyPeriods.length > 0) {
+      const activePeriod = studyPeriods.find((p) => p.status === "active");
+      const periodToSelect = activePeriod || studyPeriods[0];
+      if (periodToSelect) {
+        setStudyPeriod({
+          id: periodToSelect.id,
+          name: periodToSelect.name,
+          status: periodToSelect.status,
+          startDate: periodToSelect.start_date,
+          endDate: periodToSelect.end_date,
+        });
+      }
+    }
+  }, [studyPeriods, hasStudyPeriod, setStudyPeriod]);
+
   const handleSelectParcel = useCallback((result: SearchResult) => {
     setParcel({
       id: result.id,
@@ -81,6 +123,17 @@ export function ContextRibbon() {
     setSearchQuery("");
   }, [setParcel]);
 
+  const handleSelectPeriod = useCallback((period: StudyPeriodResult) => {
+    setStudyPeriod({
+      id: period.id,
+      name: period.name,
+      status: period.status,
+      startDate: period.start_date,
+      endDate: period.end_date,
+    });
+    setPeriodOpen(false);
+  }, [setStudyPeriod]);
+
   const formatCurrency = (value: number | null) => {
     if (!value) return "—";
     return new Intl.NumberFormat("en-US", {
@@ -88,6 +141,25 @@ export function ContextRibbon() {
       currency: "USD",
       maximumFractionDigits: 0,
     }).format(value);
+  };
+
+  const formatDateRange = (start: string, end: string) => {
+    const startDate = new Date(start);
+    const endDate = new Date(end);
+    return `${startDate.toLocaleDateString("en-US", { month: "short", year: "numeric" })} — ${endDate.toLocaleDateString("en-US", { month: "short", year: "numeric" })}`;
+  };
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case "active":
+        return <Badge className="bg-tf-green/20 text-tf-green border-tf-green/30 text-[10px] px-1.5">Active</Badge>;
+      case "draft":
+        return <Badge variant="outline" className="text-[10px] px-1.5">Draft</Badge>;
+      case "completed":
+        return <Badge className="bg-muted text-muted-foreground text-[10px] px-1.5">Completed</Badge>;
+      default:
+        return null;
+    }
   };
 
   return (
@@ -265,26 +337,99 @@ export function ContextRibbon() {
         {/* Right: Study Period + Actions */}
         <div className="flex items-center gap-3">
           {/* Study Period Selector */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
+          <Popover open={periodOpen} onOpenChange={setPeriodOpen}>
+            <PopoverTrigger asChild>
               <Button 
                 variant="ghost" 
                 size="sm" 
-                className="h-8 gap-2 text-xs"
+                className="h-8 gap-2 text-xs hover:bg-tf-gold/10"
               >
                 <Calendar className="w-3.5 h-3.5 text-tf-gold" />
-                <span className="hidden sm:inline">
+                <span className="hidden sm:inline max-w-[120px] truncate">
                   {hasStudyPeriod ? studyPeriod.name : "Select Period"}
                 </span>
                 <ChevronDown className="w-3 h-3" />
               </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuItem>2024 Annual Study</DropdownMenuItem>
-              <DropdownMenuItem>2023 Annual Study</DropdownMenuItem>
-              <DropdownMenuItem>2022 Annual Study</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+            </PopoverTrigger>
+            <PopoverContent 
+              className="w-[320px] p-0 glass-card border-tf-border" 
+              align="end"
+              sideOffset={8}
+            >
+              <div className="p-3 border-b border-border/50">
+                <h3 className="text-sm font-medium text-foreground flex items-center gap-2">
+                  <Calendar className="w-4 h-4 text-tf-gold" />
+                  Study Periods
+                </h3>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Select a period for analysis
+                </p>
+              </div>
+
+              <ScrollArea className="max-h-[300px]">
+                {isLoadingPeriods ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="w-5 h-5 animate-spin text-tf-gold" />
+                    <span className="ml-2 text-sm text-muted-foreground">Loading...</span>
+                  </div>
+                ) : studyPeriods.length === 0 ? (
+                  <div className="py-8 text-center text-muted-foreground">
+                    <FileText className="w-6 h-6 mx-auto mb-2 opacity-50" />
+                    <p className="text-sm">No study periods</p>
+                    <p className="text-xs">Create one in Administration</p>
+                  </div>
+                ) : (
+                  <div className="py-1">
+                    {studyPeriods.map((period) => {
+                      const isSelected = studyPeriod.id === period.id;
+                      return (
+                        <button
+                          key={period.id}
+                          onClick={() => handleSelectPeriod(period)}
+                          className={cn(
+                            "w-full px-3 py-3 text-left transition-colors flex items-start gap-3",
+                            isSelected 
+                              ? "bg-tf-gold/10 border-l-2 border-tf-gold" 
+                              : "hover:bg-muted/50"
+                          )}
+                        >
+                          <div className={cn(
+                            "w-8 h-8 rounded-lg flex items-center justify-center shrink-0",
+                            isSelected ? "bg-tf-gold/20" : "bg-muted/50"
+                          )}>
+                            {isSelected ? (
+                              <Check className="w-4 h-4 text-tf-gold" />
+                            ) : (
+                              <Clock className="w-4 h-4 text-muted-foreground" />
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span className={cn(
+                                "font-medium text-sm truncate",
+                                isSelected && "text-tf-gold"
+                              )}>
+                                {period.name}
+                              </span>
+                              {getStatusBadge(period.status)}
+                            </div>
+                            <div className="text-xs text-muted-foreground mt-0.5">
+                              {formatDateRange(period.start_date, period.end_date)}
+                            </div>
+                            {period.description && (
+                              <div className="text-xs text-muted-foreground/70 mt-1 truncate">
+                                {period.description}
+                              </div>
+                            )}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </ScrollArea>
+            </PopoverContent>
+          </Popover>
 
           {/* Status Indicator */}
           <div className="flex items-center gap-2 px-2 py-1 rounded-full bg-tf-green/10 border border-tf-green/20">
