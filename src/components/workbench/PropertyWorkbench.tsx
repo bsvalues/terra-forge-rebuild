@@ -10,6 +10,7 @@ import { ContextRibbon } from "./ContextRibbon";
 import { SuiteTabNavigation } from "./SuiteTabNavigation";
 import { TerraPilotPanel } from "./TerraPilotPanel";
 import { SuiteTab } from "./types";
+import { useScrapeJobNotifications } from "@/hooks/useScrapeJobNotifications";
 
 // Suite Content Components
 import { SummaryTab } from "./tabs/SummaryTab";
@@ -37,6 +38,9 @@ const TAB_COMPONENTS: Record<SuiteTab, React.ComponentType> = {
 function WorkbenchContent() {
   const { activeTab, pilotMode, workMode } = useWorkbench();
   const [pilotPanelOpen, setPilotPanelOpen] = useState(true);
+
+  // Enable global scrape job notifications
+  useScrapeJobNotifications();
 
   const TabComponent = TAB_COMPONENTS[activeTab];
 

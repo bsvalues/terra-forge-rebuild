@@ -13,6 +13,7 @@ import { SegmentDiscoveryDashboard } from "./segments";
 import { ValuationAnatomyDashboard } from "./anatomy";
 import { GeoEquityDashboard } from "./geoequity";
 import { StudyPeriodManager } from "./admin";
+import { useScrapeJobNotifications } from "@/hooks/useScrapeJobNotifications";
 
 const SettingsPlaceholder = () => (
   <div className="p-6">
@@ -80,6 +81,9 @@ const moduleConfig: Record<string, { title: string; description: string; compone
 export function TerraFusionLayout() {
   const [activeModule, setActiveModule] = useState("vei");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+
+  // Enable global scrape job notifications
+  useScrapeJobNotifications();
 
   // Listen for navigation events from child components
   useEffect(() => {
