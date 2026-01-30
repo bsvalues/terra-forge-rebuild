@@ -409,6 +409,48 @@ export type Database = {
           },
         ]
       }
+      scheduled_scrapes: {
+        Row: {
+          batch_size: number
+          counties: Json
+          created_at: string
+          cron_expression: string
+          cron_job_id: number | null
+          id: string
+          is_active: boolean
+          last_run_at: string | null
+          name: string
+          next_run_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          batch_size?: number
+          counties?: Json
+          created_at?: string
+          cron_expression?: string
+          cron_job_id?: number | null
+          id?: string
+          is_active?: boolean
+          last_run_at?: string | null
+          name: string
+          next_run_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          batch_size?: number
+          counties?: Json
+          created_at?: string
+          cron_expression?: string
+          cron_job_id?: number | null
+          id?: string
+          is_active?: boolean
+          last_run_at?: string | null
+          name?: string
+          next_run_at?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       scrape_jobs: {
         Row: {
           completed_at: string | null
