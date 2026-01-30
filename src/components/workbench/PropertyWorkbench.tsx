@@ -19,6 +19,9 @@ import { DaisTab } from "./tabs/DaisTab";
 import { DossierTab } from "./tabs/DossierTab";
 import { PilotTab } from "./tabs/PilotTab";
 
+// Admin Dashboard
+import { AdminDashboard } from "@/components/admin";
+
 const TAB_COMPONENTS: Record<SuiteTab, React.ComponentType> = {
   summary: SummaryTab,
   forge: ForgeTab,
@@ -29,10 +32,25 @@ const TAB_COMPONENTS: Record<SuiteTab, React.ComponentType> = {
 };
 
 function WorkbenchContent() {
-  const { activeTab, pilotMode } = useWorkbench();
+  const { activeTab, pilotMode, workMode } = useWorkbench();
   const [pilotPanelOpen, setPilotPanelOpen] = useState(true);
 
   const TabComponent = TAB_COMPONENTS[activeTab];
+
+  // Show Admin Dashboard when in admin mode
+  if (workMode === "admin") {
+    return (
+      <div className="flex flex-col h-screen bg-background">
+        {/* Context Ribbon - Always visible */}
+        <ContextRibbon />
+        
+        {/* Admin Dashboard Content */}
+        <div className="flex-1 overflow-auto">
+          <AdminDashboard />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-screen bg-background">
