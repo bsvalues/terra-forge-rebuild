@@ -1,9 +1,18 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
-import { Building2, FileCheck, Scale, Bell, ClipboardCheck } from "lucide-react";
+import { Building2, FileCheck, Scale, Bell, ClipboardCheck, ChevronRight } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { WorkflowStats } from "@/components/dais/WorkflowStats";
+import { AppealsWorkflow } from "@/components/dais/AppealsWorkflow";
+import { useWorkbench } from "../WorkbenchContext";
 
 export function DaisTab() {
+  const [activeCategory, setActiveCategory] = useState<string>("appeals");
+  const { workMode } = useWorkbench();
+
   return (
     <div className="p-6 space-y-6">
+      {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -14,48 +23,109 @@ export function DaisTab() {
         </div>
         <div>
           <h2 className="text-xl font-light text-foreground">TerraDais</h2>
-          <p className="text-sm text-muted-foreground">Operate value — permits, exemptions, appeals, certification</p>
+          <p className="text-sm text-muted-foreground">
+            Operate value — permits, exemptions, appeals, certification
+          </p>
         </div>
       </motion.div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {[
-          { title: "Permits", icon: FileCheck, count: 5, color: "tf-green" },
-          { title: "Exemptions", icon: ClipboardCheck, count: 2, color: "tf-gold" },
-          { title: "Appeals", icon: Scale, count: 1, color: "tf-amber" },
-          { title: "Notices", icon: Bell, count: 0, color: "tf-cyan" },
-        ].map((item, i) => (
+      {/* Workflow Stats */}
+      <WorkflowStats 
+        onSelectCategory={setActiveCategory} 
+        activeCategory={activeCategory} 
+      />
+
+      {/* Category Tabs */}
+      <Tabs value={activeCategory} onValueChange={setActiveCategory} className="space-y-4">
+        <TabsList className="bg-tf-elevated/50 p-1">
+          <TabsTrigger 
+            value="permits" 
+            className="gap-2 data-[state=active]:bg-tf-green/20 data-[state=active]:text-tf-green"
+          >
+            <FileCheck className="w-4 h-4" />
+            Permits
+          </TabsTrigger>
+          <TabsTrigger 
+            value="exemptions"
+            className="gap-2 data-[state=active]:bg-tf-gold/20 data-[state=active]:text-tf-gold"
+          >
+            <ClipboardCheck className="w-4 h-4" />
+            Exemptions
+          </TabsTrigger>
+          <TabsTrigger 
+            value="appeals"
+            className="gap-2 data-[state=active]:bg-tf-amber/20 data-[state=active]:text-tf-amber"
+          >
+            <Scale className="w-4 h-4" />
+            Appeals
+          </TabsTrigger>
+          <TabsTrigger 
+            value="notices"
+            className="gap-2 data-[state=active]:bg-tf-cyan/20 data-[state=active]:text-tf-cyan"
+          >
+            <Bell className="w-4 h-4" />
+            Notices
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="permits" className="mt-0">
           <motion.div
-            key={item.title}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.1 }}
-            className="glass-card rounded-xl p-5 cursor-pointer hover:border-suite-dais/30"
+            className="glass-card rounded-2xl p-6"
           >
-            <div className="flex items-start justify-between mb-3">
-              <item.icon className="w-5 h-5 text-suite-dais" />
-              <span className={`text-lg font-medium text-${item.color}`}>{item.count}</span>
+            <h3 className="text-lg font-medium text-foreground mb-4 flex items-center gap-2">
+              <FileCheck className="w-5 h-5 text-tf-green" />
+              Building Permits
+            </h3>
+            <div className="text-center py-12 text-muted-foreground">
+              <FileCheck className="w-12 h-12 mx-auto mb-4 opacity-30" />
+              <p>Permit workflow management coming soon</p>
+              <p className="text-sm mt-1">Track building permits, inspections, and approvals</p>
             </div>
-            <h3 className="font-medium text-foreground">{item.title}</h3>
-            <p className="text-xs text-muted-foreground mt-1">
-              {item.count} pending
-            </p>
           </motion.div>
-        ))}
-      </div>
+        </TabsContent>
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4 }}
-        className="glass-card rounded-2xl p-6"
-      >
-        <h3 className="text-lg font-medium text-foreground mb-4">Workflow Queue</h3>
-        <div className="text-center py-12 text-muted-foreground">
-          <Building2 className="w-12 h-12 mx-auto mb-4 opacity-30" />
-          <p>No active workflows for this parcel</p>
-        </div>
-      </motion.div>
+        <TabsContent value="exemptions" className="mt-0">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="glass-card rounded-2xl p-6"
+          >
+            <h3 className="text-lg font-medium text-foreground mb-4 flex items-center gap-2">
+              <ClipboardCheck className="w-5 h-5 text-tf-gold" />
+              Property Exemptions
+            </h3>
+            <div className="text-center py-12 text-muted-foreground">
+              <ClipboardCheck className="w-12 h-12 mx-auto mb-4 opacity-30" />
+              <p>Exemption management coming soon</p>
+              <p className="text-sm mt-1">Manage homestead, senior, and disability exemptions</p>
+            </div>
+          </motion.div>
+        </TabsContent>
+
+        <TabsContent value="appeals" className="mt-0">
+          <AppealsWorkflow />
+        </TabsContent>
+
+        <TabsContent value="notices" className="mt-0">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="glass-card rounded-2xl p-6"
+          >
+            <h3 className="text-lg font-medium text-foreground mb-4 flex items-center gap-2">
+              <Bell className="w-5 h-5 text-tf-cyan" />
+              Official Notices
+            </h3>
+            <div className="text-center py-12 text-muted-foreground">
+              <Bell className="w-12 h-12 mx-auto mb-4 opacity-30" />
+              <p>Notice generation coming soon</p>
+              <p className="text-sm mt-1">Generate and track assessment notices and correspondence</p>
+            </div>
+          </motion.div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
