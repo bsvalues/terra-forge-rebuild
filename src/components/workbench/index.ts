@@ -6,4 +6,5 @@ export { WorkModeSelector } from "./WorkModeSelector";
 export { TerraPilotPanel } from "./TerraPilotPanel";
 export { TerraPilotChat } from "./TerraPilotChat";
 export { TerraSphereVisual } from "./TerraSphereVisual";
+export { CommandPalette } from "./CommandPalette";
 export * from "./types";
