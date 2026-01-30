@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { StudyPeriodManager } from "./StudyPeriodManager";
 import { ScrapeJobManager } from "./ScrapeJobManager";
-
+import { DataQualityDashboard } from "./DataQualityDashboard";
 export function AdminDashboard() {
   const [activeTab, setActiveTab] = useState("study-periods");
 
@@ -52,6 +52,13 @@ export function AdminDashboard() {
             Data Collection
           </TabsTrigger>
           <TabsTrigger 
+            value="data-quality"
+            className="gap-2 data-[state=active]:bg-purple-500/20 data-[state=active]:text-purple-400"
+          >
+            <BarChart3 className="w-4 h-4" />
+            Data Quality
+          </TabsTrigger>
+          <TabsTrigger 
             value="users"
             className="gap-2 data-[state=active]:bg-tf-green/20 data-[state=active]:text-tf-green"
           >
@@ -73,6 +80,10 @@ export function AdminDashboard() {
 
         <TabsContent value="data-collection" className="mt-0">
           <ScrapeJobManager />
+        </TabsContent>
+
+        <TabsContent value="data-quality" className="mt-0">
+          <DataQualityDashboard />
         </TabsContent>
 
         <TabsContent value="users" className="mt-0">
