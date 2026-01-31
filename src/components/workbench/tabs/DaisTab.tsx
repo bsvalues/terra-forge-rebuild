@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Building2, FileCheck, Scale, Bell, ClipboardCheck, ChevronRight } from "lucide-react";
+import { Building2, FileCheck, Scale, Bell, ClipboardCheck } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { WorkflowStats } from "@/components/dais/WorkflowStats";
 import { AppealsWorkflow } from "@/components/dais/AppealsWorkflow";
+import { PermitsWorkflow } from "@/components/dais/PermitsWorkflow";
+import { ExemptionsWorkflow } from "@/components/dais/ExemptionsWorkflow";
 import { useWorkbench } from "../WorkbenchContext";
 
 export function DaisTab() {
@@ -69,39 +71,11 @@ export function DaisTab() {
         </TabsList>
 
         <TabsContent value="permits" className="mt-0">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="glass-card rounded-2xl p-6"
-          >
-            <h3 className="text-lg font-medium text-foreground mb-4 flex items-center gap-2">
-              <FileCheck className="w-5 h-5 text-tf-green" />
-              Building Permits
-            </h3>
-            <div className="text-center py-12 text-muted-foreground">
-              <FileCheck className="w-12 h-12 mx-auto mb-4 opacity-30" />
-              <p>Permit workflow management coming soon</p>
-              <p className="text-sm mt-1">Track building permits, inspections, and approvals</p>
-            </div>
-          </motion.div>
+          <PermitsWorkflow />
         </TabsContent>
 
         <TabsContent value="exemptions" className="mt-0">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="glass-card rounded-2xl p-6"
-          >
-            <h3 className="text-lg font-medium text-foreground mb-4 flex items-center gap-2">
-              <ClipboardCheck className="w-5 h-5 text-tf-gold" />
-              Property Exemptions
-            </h3>
-            <div className="text-center py-12 text-muted-foreground">
-              <ClipboardCheck className="w-12 h-12 mx-auto mb-4 opacity-30" />
-              <p>Exemption management coming soon</p>
-              <p className="text-sm mt-1">Manage homestead, senior, and disability exemptions</p>
-            </div>
-          </motion.div>
+          <ExemptionsWorkflow />
         </TabsContent>
 
         <TabsContent value="appeals" className="mt-0">

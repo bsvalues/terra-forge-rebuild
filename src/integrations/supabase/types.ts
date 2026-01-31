@@ -141,6 +141,65 @@ export type Database = {
           },
         ]
       }
+      exemptions: {
+        Row: {
+          applicant_name: string | null
+          application_date: string
+          approval_date: string | null
+          created_at: string
+          exemption_amount: number | null
+          exemption_percentage: number | null
+          exemption_type: string
+          expiration_date: string | null
+          id: string
+          notes: string | null
+          parcel_id: string
+          status: string
+          tax_year: number
+          updated_at: string
+        }
+        Insert: {
+          applicant_name?: string | null
+          application_date?: string
+          approval_date?: string | null
+          created_at?: string
+          exemption_amount?: number | null
+          exemption_percentage?: number | null
+          exemption_type: string
+          expiration_date?: string | null
+          id?: string
+          notes?: string | null
+          parcel_id: string
+          status?: string
+          tax_year?: number
+          updated_at?: string
+        }
+        Update: {
+          applicant_name?: string | null
+          application_date?: string
+          approval_date?: string | null
+          created_at?: string
+          exemption_amount?: number | null
+          exemption_percentage?: number | null
+          exemption_type?: string
+          expiration_date?: string | null
+          id?: string
+          notes?: string | null
+          parcel_id?: string
+          status?: string
+          tax_year?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exemptions_parcel_id_fkey"
+            columns: ["parcel_id"]
+            isOneToOne: false
+            referencedRelation: "parcels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       gis_data_sources: {
         Row: {
           connection_url: string | null
@@ -352,6 +411,68 @@ export type Database = {
           zip_code?: string | null
         }
         Relationships: []
+      }
+      permits: {
+        Row: {
+          application_date: string
+          created_at: string
+          description: string | null
+          estimated_value: number | null
+          expiration_date: string | null
+          id: string
+          inspection_date: string | null
+          inspection_status: string | null
+          issue_date: string | null
+          notes: string | null
+          parcel_id: string
+          permit_number: string
+          permit_type: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          application_date?: string
+          created_at?: string
+          description?: string | null
+          estimated_value?: number | null
+          expiration_date?: string | null
+          id?: string
+          inspection_date?: string | null
+          inspection_status?: string | null
+          issue_date?: string | null
+          notes?: string | null
+          parcel_id: string
+          permit_number: string
+          permit_type?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          application_date?: string
+          created_at?: string
+          description?: string | null
+          estimated_value?: number | null
+          expiration_date?: string | null
+          id?: string
+          inspection_date?: string | null
+          inspection_status?: string | null
+          issue_date?: string | null
+          notes?: string | null
+          parcel_id?: string
+          permit_number?: string
+          permit_type?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "permits_parcel_id_fkey"
+            columns: ["parcel_id"]
+            isOneToOne: false
+            referencedRelation: "parcels"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       sales: {
         Row: {
