@@ -43,6 +43,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { useWorkbench } from "@/components/workbench/WorkbenchContext";
 import { cn } from "@/lib/utils";
+import { NewExemptionDialog } from "./NewExemptionDialog";
 
 interface Exemption {
   id: string;
@@ -107,6 +108,7 @@ export function ExemptionsWorkflow() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [selectedExemption, setSelectedExemption] = useState<Exemption | null>(null);
+  const [showNewExemptionDialog, setShowNewExemptionDialog] = useState(false);
 
   const { data: exemptions = [], isLoading } = useQuery({
     queryKey: ["exemptions-workflow", statusFilter],
@@ -196,11 +198,16 @@ export function ExemptionsWorkflow() {
             </p>
           </div>
         </div>
-        <Button className="gap-2 bg-tf-gold hover:bg-tf-gold/90 text-black">
+        <Button 
+          className="gap-2 bg-tf-gold hover:bg-tf-gold/90 text-black"
+          onClick={() => setShowNewExemptionDialog(true)}
+        >
           <Plus className="w-4 h-4" />
           New Exemption
         </Button>
       </div>
+
+      <NewExemptionDialog open={showNewExemptionDialog} onOpenChange={setShowNewExemptionDialog} />
 
       {/* Filters */}
       <div className="flex items-center gap-4">

@@ -24,7 +24,6 @@ import {
   FileCheck,
   Search,
   Calendar,
-  DollarSign,
   Clock,
   CheckCircle,
   XCircle,
@@ -41,6 +40,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { useWorkbench } from "@/components/workbench/WorkbenchContext";
 import { cn } from "@/lib/utils";
+import { NewPermitDialog } from "./NewPermitDialog";
 
 interface Permit {
   id: string;
@@ -115,6 +115,7 @@ export function PermitsWorkflow() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [selectedPermit, setSelectedPermit] = useState<Permit | null>(null);
+  const [showNewPermitDialog, setShowNewPermitDialog] = useState(false);
 
   const { data: permits = [], isLoading } = useQuery({
     queryKey: ["permits-workflow", statusFilter],
@@ -200,11 +201,16 @@ export function PermitsWorkflow() {
             </p>
           </div>
         </div>
-        <Button className="gap-2 bg-tf-green hover:bg-tf-green/90">
+        <Button 
+          className="gap-2 bg-tf-green hover:bg-tf-green/90"
+          onClick={() => setShowNewPermitDialog(true)}
+        >
           <Plus className="w-4 h-4" />
           New Permit
         </Button>
       </div>
+
+      <NewPermitDialog open={showNewPermitDialog} onOpenChange={setShowNewPermitDialog} />
 
       {/* Filters */}
       <div className="flex items-center gap-4">
