@@ -29,6 +29,7 @@ export type Database = {
           resolution_type: string | null
           status: string
           study_period_id: string | null
+          tax_year: number | null
           updated_at: string
         }
         Insert: {
@@ -45,6 +46,7 @@ export type Database = {
           resolution_type?: string | null
           status?: string
           study_period_id?: string | null
+          tax_year?: number | null
           updated_at?: string
         }
         Update: {
@@ -61,6 +63,7 @@ export type Database = {
           resolution_type?: string | null
           status?: string
           study_period_id?: string | null
+          tax_year?: number | null
           updated_at?: string
         }
         Relationships: [
@@ -141,6 +144,111 @@ export type Database = {
           },
         ]
       }
+      assessments: {
+        Row: {
+          assessment_date: string | null
+          assessment_reason: string | null
+          certified: boolean | null
+          certified_at: string | null
+          created_at: string
+          data_source_id: string | null
+          id: string
+          improvement_value: number
+          land_value: number
+          notes: string | null
+          parcel_id: string
+          tax_year: number
+          total_value: number | null
+          updated_at: string
+        }
+        Insert: {
+          assessment_date?: string | null
+          assessment_reason?: string | null
+          certified?: boolean | null
+          certified_at?: string | null
+          created_at?: string
+          data_source_id?: string | null
+          id?: string
+          improvement_value?: number
+          land_value?: number
+          notes?: string | null
+          parcel_id: string
+          tax_year: number
+          total_value?: number | null
+          updated_at?: string
+        }
+        Update: {
+          assessment_date?: string | null
+          assessment_reason?: string | null
+          certified?: boolean | null
+          certified_at?: string | null
+          created_at?: string
+          data_source_id?: string | null
+          id?: string
+          improvement_value?: number
+          land_value?: number
+          notes?: string | null
+          parcel_id?: string
+          tax_year?: number
+          total_value?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assessments_data_source_id_fkey"
+            columns: ["data_source_id"]
+            isOneToOne: false
+            referencedRelation: "data_sources"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assessments_parcel_id_fkey"
+            columns: ["parcel_id"]
+            isOneToOne: false
+            referencedRelation: "parcels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      data_sources: {
+        Row: {
+          connection_config: Json | null
+          created_at: string
+          description: string | null
+          id: string
+          last_sync_at: string | null
+          name: string
+          record_count: number | null
+          source_type: string
+          sync_status: string | null
+          updated_at: string
+        }
+        Insert: {
+          connection_config?: Json | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          last_sync_at?: string | null
+          name: string
+          record_count?: number | null
+          source_type: string
+          sync_status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          connection_config?: Json | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          last_sync_at?: string | null
+          name?: string
+          record_count?: number | null
+          source_type?: string
+          sync_status?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       exemptions: {
         Row: {
           applicant_name: string | null
@@ -193,6 +301,53 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "exemptions_parcel_id_fkey"
+            columns: ["parcel_id"]
+            isOneToOne: false
+            referencedRelation: "parcels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      external_valuations: {
+        Row: {
+          created_at: string
+          days_on_market: number | null
+          estimated_value: number | null
+          fetched_at: string
+          id: string
+          listing_price: number | null
+          metadata: Json | null
+          parcel_id: string
+          source: string
+          valuation_date: string
+        }
+        Insert: {
+          created_at?: string
+          days_on_market?: number | null
+          estimated_value?: number | null
+          fetched_at?: string
+          id?: string
+          listing_price?: number | null
+          metadata?: Json | null
+          parcel_id: string
+          source: string
+          valuation_date: string
+        }
+        Update: {
+          created_at?: string
+          days_on_market?: number | null
+          estimated_value?: number | null
+          fetched_at?: string
+          id?: string
+          listing_price?: number | null
+          metadata?: Json | null
+          parcel_id?: string
+          source?: string
+          valuation_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "external_valuations_parcel_id_fkey"
             columns: ["parcel_id"]
             isOneToOne: false
             referencedRelation: "parcels"
@@ -352,15 +507,18 @@ export type Database = {
           building_area: number | null
           city: string | null
           created_at: string
+          data_source_id: string | null
           id: string
           improvement_value: number | null
           land_area: number | null
           land_value: number | null
+          last_verified_at: string | null
           latitude: number | null
           longitude: number | null
           neighborhood_code: string | null
           parcel_number: string
           property_class: string | null
+          source_parcel_id: string | null
           state: string | null
           updated_at: string
           year_built: number | null
@@ -374,15 +532,18 @@ export type Database = {
           building_area?: number | null
           city?: string | null
           created_at?: string
+          data_source_id?: string | null
           id?: string
           improvement_value?: number | null
           land_area?: number | null
           land_value?: number | null
+          last_verified_at?: string | null
           latitude?: number | null
           longitude?: number | null
           neighborhood_code?: string | null
           parcel_number: string
           property_class?: string | null
+          source_parcel_id?: string | null
           state?: string | null
           updated_at?: string
           year_built?: number | null
@@ -396,21 +557,32 @@ export type Database = {
           building_area?: number | null
           city?: string | null
           created_at?: string
+          data_source_id?: string | null
           id?: string
           improvement_value?: number | null
           land_area?: number | null
           land_value?: number | null
+          last_verified_at?: string | null
           latitude?: number | null
           longitude?: number | null
           neighborhood_code?: string | null
           parcel_number?: string
           property_class?: string | null
+          source_parcel_id?: string | null
           state?: string | null
           updated_at?: string
           year_built?: number | null
           zip_code?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "parcels_data_source_id_fkey"
+            columns: ["data_source_id"]
+            isOneToOne: false
+            referencedRelation: "data_sources"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       permits: {
         Row: {
@@ -477,7 +649,9 @@ export type Database = {
       sales: {
         Row: {
           created_at: string
+          data_source_id: string | null
           deed_type: string | null
+          disqualification_reason: string | null
           grantee: string | null
           grantor: string | null
           id: string
@@ -488,11 +662,15 @@ export type Database = {
           sale_date: string
           sale_price: number
           sale_type: string | null
+          source_document_id: string | null
           updated_at: string
+          verification_status: string | null
         }
         Insert: {
           created_at?: string
+          data_source_id?: string | null
           deed_type?: string | null
+          disqualification_reason?: string | null
           grantee?: string | null
           grantor?: string | null
           id?: string
@@ -503,11 +681,15 @@ export type Database = {
           sale_date: string
           sale_price: number
           sale_type?: string | null
+          source_document_id?: string | null
           updated_at?: string
+          verification_status?: string | null
         }
         Update: {
           created_at?: string
+          data_source_id?: string | null
           deed_type?: string | null
+          disqualification_reason?: string | null
           grantee?: string | null
           grantor?: string | null
           id?: string
@@ -518,9 +700,18 @@ export type Database = {
           sale_date?: string
           sale_price?: number
           sale_type?: string | null
+          source_document_id?: string | null
           updated_at?: string
+          verification_status?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "sales_data_source_id_fkey"
+            columns: ["data_source_id"]
+            isOneToOne: false
+            referencedRelation: "data_sources"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "sales_parcel_id_fkey"
             columns: ["parcel_id"]
@@ -753,6 +944,26 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      compute_ratio_statistics: {
+        Args: {
+          p_neighborhood_code?: string
+          p_sales_end_date?: string
+          p_sales_start_date?: string
+          p_tax_year?: number
+        }
+        Returns: {
+          cod: number
+          high_tier_median: number
+          low_tier_median: number
+          mean_ratio: number
+          median_ratio: number
+          mid_tier_median: number
+          prb: number
+          prd: number
+          sample_size: number
+          tier_slope: number
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
