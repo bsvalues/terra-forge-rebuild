@@ -9,14 +9,16 @@ import {
   Shield,
   BarChart3,
   Clock,
+   Zap,
 } from "lucide-react";
 import { StudyPeriodManager } from "./StudyPeriodManager";
 import { ScrapeJobManager } from "./ScrapeJobManager";
 import { DataQualityDashboard } from "./DataQualityDashboard";
 import { ScheduledScrapeManager } from "./ScheduledScrapeManager";
+import { IDSCommandCenter } from "@/components/ids";
 
 export function AdminDashboard() {
-  const [activeTab, setActiveTab] = useState("study-periods");
+   const [activeTab, setActiveTab] = useState("ids");
 
   return (
     <div className="p-6 space-y-6">
@@ -40,6 +42,13 @@ export function AdminDashboard() {
       {/* Admin Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList className="bg-tf-elevated/50 p-1">
+           <TabsTrigger 
+             value="ids" 
+             className="gap-2 data-[state=active]:bg-tf-cyan/20 data-[state=active]:text-tf-cyan"
+           >
+             <Zap className="w-4 h-4" />
+             Data Suite
+           </TabsTrigger>
           <TabsTrigger 
             value="study-periods" 
             className="gap-2 data-[state=active]:bg-tf-gold/20 data-[state=active]:text-tf-gold"
@@ -49,7 +58,7 @@ export function AdminDashboard() {
           </TabsTrigger>
           <TabsTrigger 
             value="data-collection"
-            className="gap-2 data-[state=active]:bg-tf-cyan/20 data-[state=active]:text-tf-cyan"
+             className="gap-2 data-[state=active]:bg-tf-green/20 data-[state=active]:text-tf-green"
           >
             <Database className="w-4 h-4" />
             Data Collection
@@ -70,7 +79,7 @@ export function AdminDashboard() {
           </TabsTrigger>
           <TabsTrigger 
             value="users"
-            className="gap-2 data-[state=active]:bg-tf-green/20 data-[state=active]:text-tf-green"
+             className="gap-2 data-[state=active]:bg-orange-500/20 data-[state=active]:text-orange-400"
           >
             <Users className="w-4 h-4" />
             Users
@@ -84,6 +93,10 @@ export function AdminDashboard() {
           </TabsTrigger>
         </TabsList>
 
+         <TabsContent value="ids" className="mt-0">
+           <IDSCommandCenter />
+         </TabsContent>
+ 
         <TabsContent value="study-periods" className="mt-0">
           <StudyPeriodManager />
         </TabsContent>
