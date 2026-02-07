@@ -11,11 +11,11 @@
 
 | Question | Answer |
 |----------|--------|
-| What is TerraFusion OS in one sentence? | *Pending discovery* |
-| Who is the primary user persona? | *Pending discovery* |
-| What problem does this solve that nothing else does? | *Pending discovery* |
-| What is the "minimum deployable unit" — the smallest version that delivers real value? | *Pending discovery* |
-| What does "done" look like for Phase 1? | *Pending discovery* |
+| What is TerraFusion OS in one sentence? | A multi-county property assessment platform that combines data ingestion intelligence, equity analysis, AI-powered valuation, and modern UX into one sovereign system. |
+| Who is the primary user persona? | County assessors and assessment analysts across multiple counties. |
+| What problem does this solve that nothing else does? | ALL of: zero-engineering data import, superior equity/defensibility, AI valuation, and unified modern UX — replacing fragmented legacy tools. |
+| What is the "minimum deployable unit" — the smallest version that delivers real value? | **VEI (Equity Analysis)** — ratio study dashboard with COD/PRD/PRB analysis on assessments vs sales. |
+| What does "done" look like for Phase 1? | A functional VEI dashboard that a county assessor can use with real data to run defensible ratio studies. |
 
 ---
 
@@ -24,10 +24,12 @@
 | Question | Answer |
 |----------|--------|
 | What is the core data model hierarchy (County → Parcel → Assessment → Sale)? | *Pending discovery* |
-| Which modules are MVP vs aspirational? | *Pending discovery* |
+| Which modules are MVP vs aspirational? | **MVP**: VEI → IDS → Workbench. **Aspirational**: CostForge, AVM, Regression, Segments, AxiomFS. |
 | What is the real-world data flow from county CAMA to TerraFusion? | *Pending discovery* |
 | How should the IDS (Intelligent Data Suite) relate to the Property Workbench? | *Pending discovery* |
 | What is the TerraPilot AI's actual job — copilot, analyst, or autonomous agent? | *Pending discovery* |
+| What is the deployment model? | **Multi-County Platform** — shared platform serving multiple counties with data isolation. |
+| What is the timeline philosophy? | **Building it right, no rush** — quality and architecture over speed. |
 
 ---
 
