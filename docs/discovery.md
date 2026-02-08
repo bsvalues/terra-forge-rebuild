@@ -23,11 +23,12 @@
 
 | Question | Answer |
 |----------|--------|
-| What is the core data model hierarchy (County → Parcel → Assessment → Sale)? | *Pending discovery* |
+| What is the core data model hierarchy (County → Parcel → Assessment → Sale)? | **County → Parcel → Assessment + Sale** — relational model with independent assessment records per tax year and sale transaction history. Add `county_id` to parcels for multi-county isolation. |
 | Which modules are MVP vs aspirational? | **MVP**: VEI → IDS → Workbench. **Aspirational**: CostForge, AVM, Regression, Segments, AxiomFS. |
-| What is the real-world data flow from county CAMA to TerraFusion? | *Pending discovery* |
+| What is the real-world data flow from county CAMA to TerraFusion? | **CSV/Excel exports** from Tyler/Schneider/Catalis uploaded manually + **ArcGIS REST API** for spatial/parcel data. Direct CAMA DB and State DOR feeds deferred to Phase 2+. |
 | How should the IDS (Intelligent Data Suite) relate to the Property Workbench? | *Pending discovery* |
-| What is the TerraPilot AI's actual job — copilot, analyst, or autonomous agent? | *Pending discovery* |
+| What is TerraPilot AI's actual job? | **Autonomous Agent with human-in-the-loop guardrails.** Executes: ratio studies, diagnostics, comp audits, sales validation, change-impact simulations. Generates: draft recommendations, equity reports, appeal packets. **Never commits roll values** — produces recommended actions + evidence + expected impacts, then routes for sign-off with audit trail. Proactive AND reactive, but defining feature is execution, not Q&A. |
+| What is the CAMA relationship? | **Gradual migration path.** Phase 1: complement legacy (ingest, analyze). Phase 2+: migrate workflows. End-state: TerraFusion becomes the valuation operating system. |
 | What is the deployment model? | **Multi-County Platform** — shared platform serving multiple counties with data isolation. |
 | What is the timeline philosophy? | **Building it right, no rush** — quality and architecture over speed. |
 
