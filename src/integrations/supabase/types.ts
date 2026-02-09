@@ -559,6 +559,74 @@ export type Database = {
           },
         ]
       }
+      ingest_jobs: {
+        Row: {
+          column_mapping: Json | null
+          county_id: string
+          created_at: string
+          errors: Json | null
+          file_name: string
+          file_path: string
+          file_size_bytes: number | null
+          id: string
+          row_count: number | null
+          rows_failed: number | null
+          rows_imported: number | null
+          sha256_hash: string | null
+          status: string
+          target_table: string
+          updated_at: string
+          user_id: string
+          validation_results: Json | null
+        }
+        Insert: {
+          column_mapping?: Json | null
+          county_id: string
+          created_at?: string
+          errors?: Json | null
+          file_name: string
+          file_path: string
+          file_size_bytes?: number | null
+          id?: string
+          row_count?: number | null
+          rows_failed?: number | null
+          rows_imported?: number | null
+          sha256_hash?: string | null
+          status?: string
+          target_table: string
+          updated_at?: string
+          user_id: string
+          validation_results?: Json | null
+        }
+        Update: {
+          column_mapping?: Json | null
+          county_id?: string
+          created_at?: string
+          errors?: Json | null
+          file_name?: string
+          file_path?: string
+          file_size_bytes?: number | null
+          id?: string
+          row_count?: number | null
+          rows_failed?: number | null
+          rows_imported?: number | null
+          sha256_hash?: string | null
+          status?: string
+          target_table?: string
+          updated_at?: string
+          user_id?: string
+          validation_results?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ingest_jobs_county_id_fkey"
+            columns: ["county_id"]
+            isOneToOne: false
+            referencedRelation: "counties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       parcels: {
         Row: {
           address: string

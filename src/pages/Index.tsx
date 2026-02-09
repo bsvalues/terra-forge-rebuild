@@ -1,7 +1,7 @@
-import { PropertyWorkbench } from "@/components/workbench";
+import { AppLayout } from "@/components/layout/AppLayout";
 
 const Index = () => {
-  return <PropertyWorkbench />;
+  return <AppLayout />;
 };
 
 export default Index;
