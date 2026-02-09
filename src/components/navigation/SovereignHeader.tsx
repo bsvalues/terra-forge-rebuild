@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { Search, User, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { NotificationBell } from "@/components/geoequity/NotificationBell";
+import { useAuthContext } from "@/contexts/AuthContext";
 
 interface SovereignHeaderProps {
   moduleTitle: string;
@@ -10,6 +10,8 @@ interface SovereignHeaderProps {
 }
 
 export function SovereignHeader({ moduleTitle, moduleDescription }: SovereignHeaderProps) {
+  const { profile } = useAuthContext();
+
   return (
     <header className="sticky top-0 z-30 glass-card border-b border-border/50 px-6 py-4">
       <div className="flex items-center justify-between">
@@ -54,11 +56,8 @@ export function SovereignHeader({ moduleTitle, moduleDescription }: SovereignHea
             <span className="text-xs font-medium text-tf-green">AI Active</span>
           </motion.div>
 
-          {/* Notifications */}
-          <NotificationBell />
-
           {/* User */}
-          <Button variant="ghost" size="icon" className="rounded-full">
+          <Button variant="ghost" size="icon" className="rounded-full" title={profile?.display_name || "User"}>
             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-tf-cyan to-tf-green flex items-center justify-center">
               <User className="w-4 h-4 text-tf-substrate" />
             </div>

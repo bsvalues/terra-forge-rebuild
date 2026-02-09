@@ -2,17 +2,15 @@ import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import {
   TrendingUp,
-  Calculator,
-  Brain,
-  FolderTree,
-  LayoutDashboard,
   Settings,
   ChevronRight,
-  CalendarCog,
-  FlaskConical,
-  Atom,
   Globe,
+  Database,
+  Search,
+  LogOut,
+  Home,
 } from "lucide-react";
+import { useAuthContext } from "@/contexts/AuthContext";
 
 interface SovereignSidebarProps {
   activeModule: string;
@@ -21,16 +19,13 @@ interface SovereignSidebarProps {
   onCollapsedChange?: (collapsed: boolean) => void;
 }
 
+// Phase 0-2 modules only — out-of-scope modules removed
 const modules = [
+  { id: "dashboard", label: "Dashboard", icon: Home, description: "Command Briefing" },
+  { id: "ids", label: "IDS", icon: Database, description: "Ingest & Data Health" },
   { id: "vei", label: "VEI Suite", icon: TrendingUp, description: "Vertical Equity Index" },
-  { id: "segments", label: "Segments", icon: FlaskConical, description: "Factor Analysis" },
+  { id: "workbench", label: "Workbench", icon: Search, description: "Property Workbench" },
   { id: "geoequity", label: "GeoEquity", icon: Globe, description: "GIS & Spatial Analysis" },
-  { id: "anatomy", label: "Anatomy", icon: Atom, description: "3D Value Drivers" },
-  { id: "costforge", label: "CostForge", icon: Calculator, description: "3-6-9 Valuation Engine" },
-  { id: "avm", label: "AVM Studio", icon: Brain, description: "ML Model Laboratory" },
-  { id: "axiom", label: "AxiomFS", icon: FolderTree, description: "Sovereign File Lattice" },
-  { id: "regression", label: "Regression", icon: LayoutDashboard, description: "PhD Analytics" },
-  { id: "admin", label: "Administration", icon: CalendarCog, description: "Study Period Manager" },
 ];
 
 const bottomModules = [
@@ -173,6 +168,9 @@ export function SovereignSidebar({
           );
         })}
 
+        {/* Sign out */}
+        <SignOutButton collapsed={collapsed} />
+
         {/* Collapse toggle */}
         <motion.button
           whileHover={{ scale: 1.05 }}
@@ -189,5 +187,21 @@ export function SovereignSidebar({
         </motion.button>
       </div>
     </motion.aside>
+  );
+}
+
+function SignOutButton({ collapsed }: { collapsed: boolean }) {
+  const { signOut } = useAuthContext();
+  return (
+    <motion.button
+      whileHover={{ x: 4 }}
+      onClick={signOut}
+      className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-sidebar-accent/50 transition-all duration-200"
+    >
+      <LogOut className="w-5 h-5 text-muted-foreground" />
+      {!collapsed && (
+        <span className="text-sm text-muted-foreground">Sign Out</span>
+      )}
+    </motion.button>
   );
 }

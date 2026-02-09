@@ -17,6 +17,7 @@ export type Database = {
       appeals: {
         Row: {
           appeal_date: string
+          county_id: string
           created_at: string
           final_value: number | null
           hearing_date: string | null
@@ -34,6 +35,7 @@ export type Database = {
         }
         Insert: {
           appeal_date: string
+          county_id?: string
           created_at?: string
           final_value?: number | null
           hearing_date?: string | null
@@ -51,6 +53,7 @@ export type Database = {
         }
         Update: {
           appeal_date?: string
+          county_id?: string
           created_at?: string
           final_value?: number | null
           hearing_date?: string | null
@@ -67,6 +70,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "appeals_county_id_fkey"
+            columns: ["county_id"]
+            isOneToOne: false
+            referencedRelation: "counties"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "appeals_parcel_id_fkey"
             columns: ["parcel_id"]
@@ -150,6 +160,7 @@ export type Database = {
           assessment_reason: string | null
           certified: boolean | null
           certified_at: string | null
+          county_id: string
           created_at: string
           data_source_id: string | null
           id: string
@@ -166,6 +177,7 @@ export type Database = {
           assessment_reason?: string | null
           certified?: boolean | null
           certified_at?: string | null
+          county_id?: string
           created_at?: string
           data_source_id?: string | null
           id?: string
@@ -182,6 +194,7 @@ export type Database = {
           assessment_reason?: string | null
           certified?: boolean | null
           certified_at?: string | null
+          county_id?: string
           created_at?: string
           data_source_id?: string | null
           id?: string
@@ -194,6 +207,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "assessments_county_id_fkey"
+            columns: ["county_id"]
+            isOneToOne: false
+            referencedRelation: "counties"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "assessments_data_source_id_fkey"
             columns: ["data_source_id"]
@@ -210,9 +230,40 @@ export type Database = {
           },
         ]
       }
+      counties: {
+        Row: {
+          config: Json | null
+          created_at: string
+          fips_code: string
+          id: string
+          name: string
+          state: string
+          updated_at: string
+        }
+        Insert: {
+          config?: Json | null
+          created_at?: string
+          fips_code: string
+          id?: string
+          name: string
+          state?: string
+          updated_at?: string
+        }
+        Update: {
+          config?: Json | null
+          created_at?: string
+          fips_code?: string
+          id?: string
+          name?: string
+          state?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       data_sources: {
         Row: {
           connection_config: Json | null
+          county_id: string
           created_at: string
           description: string | null
           id: string
@@ -225,6 +276,7 @@ export type Database = {
         }
         Insert: {
           connection_config?: Json | null
+          county_id?: string
           created_at?: string
           description?: string | null
           id?: string
@@ -237,6 +289,7 @@ export type Database = {
         }
         Update: {
           connection_config?: Json | null
+          county_id?: string
           created_at?: string
           description?: string | null
           id?: string
@@ -247,7 +300,15 @@ export type Database = {
           sync_status?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "data_sources_county_id_fkey"
+            columns: ["county_id"]
+            isOneToOne: false
+            referencedRelation: "counties"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       exemptions: {
         Row: {
@@ -506,6 +567,7 @@ export type Database = {
           bedrooms: number | null
           building_area: number | null
           city: string | null
+          county_id: string
           created_at: string
           data_source_id: string | null
           id: string
@@ -531,6 +593,7 @@ export type Database = {
           bedrooms?: number | null
           building_area?: number | null
           city?: string | null
+          county_id?: string
           created_at?: string
           data_source_id?: string | null
           id?: string
@@ -556,6 +619,7 @@ export type Database = {
           bedrooms?: number | null
           building_area?: number | null
           city?: string | null
+          county_id?: string
           created_at?: string
           data_source_id?: string | null
           id?: string
@@ -575,6 +639,13 @@ export type Database = {
           zip_code?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "parcels_county_id_fkey"
+            columns: ["county_id"]
+            isOneToOne: false
+            referencedRelation: "counties"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "parcels_data_source_id_fkey"
             columns: ["data_source_id"]
@@ -646,8 +717,47 @@ export type Database = {
           },
         ]
       }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          county_id: string | null
+          created_at: string
+          display_name: string | null
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          county_id?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          county_id?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_county_id_fkey"
+            columns: ["county_id"]
+            isOneToOne: false
+            referencedRelation: "counties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sales: {
         Row: {
+          county_id: string
           created_at: string
           data_source_id: string | null
           deed_type: string | null
@@ -667,6 +777,7 @@ export type Database = {
           verification_status: string | null
         }
         Insert: {
+          county_id?: string
           created_at?: string
           data_source_id?: string | null
           deed_type?: string | null
@@ -686,6 +797,7 @@ export type Database = {
           verification_status?: string | null
         }
         Update: {
+          county_id?: string
           created_at?: string
           data_source_id?: string | null
           deed_type?: string | null
@@ -705,6 +817,13 @@ export type Database = {
           verification_status?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "sales_county_id_fkey"
+            columns: ["county_id"]
+            isOneToOne: false
+            referencedRelation: "counties"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "sales_data_source_id_fkey"
             columns: ["data_source_id"]
@@ -822,6 +941,7 @@ export type Database = {
       }
       study_periods: {
         Row: {
+          county_id: string
           created_at: string
           created_by: string | null
           description: string | null
@@ -836,6 +956,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          county_id?: string
           created_at?: string
           created_by?: string | null
           description?: string | null
@@ -850,6 +971,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          county_id?: string
           created_at?: string
           created_by?: string | null
           description?: string | null
@@ -863,7 +985,15 @@ export type Database = {
           target_prd_low?: number | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "study_periods_county_id_fkey"
+            columns: ["county_id"]
+            isOneToOne: false
+            referencedRelation: "counties"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
@@ -890,6 +1020,7 @@ export type Database = {
         Row: {
           cod: number | null
           computed_at: string
+          county_id: string
           high_tier_median: number | null
           id: string
           low_tier_median: number | null
@@ -904,6 +1035,7 @@ export type Database = {
         Insert: {
           cod?: number | null
           computed_at?: string
+          county_id?: string
           high_tier_median?: number | null
           id?: string
           low_tier_median?: number | null
@@ -918,6 +1050,7 @@ export type Database = {
         Update: {
           cod?: number | null
           computed_at?: string
+          county_id?: string
           high_tier_median?: number | null
           id?: string
           low_tier_median?: number | null
@@ -930,6 +1063,13 @@ export type Database = {
           total_sales?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "vei_metrics_county_id_fkey"
+            columns: ["county_id"]
+            isOneToOne: false
+            referencedRelation: "counties"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "vei_metrics_study_period_id_fkey"
             columns: ["study_period_id"]
@@ -964,6 +1104,7 @@ export type Database = {
           tier_slope: number
         }[]
       }
+      get_user_county_id: { Args: never; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
