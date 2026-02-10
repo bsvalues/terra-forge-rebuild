@@ -1,6 +1,5 @@
 import { motion } from "framer-motion";
-import { Database, Calendar, Plus } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Database, TrendingUp, Upload } from "lucide-react";
 
 export function VEIEmptyState() {
   return (
@@ -13,40 +12,30 @@ export function VEIEmptyState() {
         <div className="flex justify-center mb-6">
           <div className="relative">
             <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center">
-              <Database className="w-10 h-10 text-muted-foreground" />
+              <TrendingUp className="w-10 h-10 text-muted-foreground" />
             </div>
             <div className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-tf-cyan/20 flex items-center justify-center">
-              <Calendar className="w-4 h-4 text-tf-cyan" />
+              <Database className="w-4 h-4 text-tf-cyan" />
             </div>
           </div>
         </div>
 
         <h2 className="text-2xl font-light text-gradient-sovereign mb-3">
-          No Active Study Period
+          Insufficient Data for Ratio Analysis
         </h2>
         
         <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-          To view VEI metrics, you need to create a study period and import assessment ratio data. 
-          Study periods define the timeframe for your ratio studies and equity analysis.
+          VEI metrics require matched assessment and qualified sales data. 
+          Use the IDS Ingest pipeline to import parcels, assessments, and sales records, 
+          then return here for on-demand ratio analysis.
         </p>
-
-        <div className="space-y-3">
-          <Button className="gap-2" variant="default">
-            <Plus className="w-4 h-4" />
-            Create Study Period
-          </Button>
-          
-          <p className="text-xs text-muted-foreground">
-            Or ask an admin to set up a study period for your jurisdiction.
-          </p>
-        </div>
 
         <div className="mt-8 pt-6 border-t border-border">
           <h3 className="text-sm font-medium text-foreground mb-3">What you'll need:</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-muted-foreground">
             <div className="flex flex-col items-center gap-2 p-3 rounded-lg bg-muted/30">
               <span className="text-lg">📊</span>
-              <span>Parcel data with assessed values</span>
+              <span>Parcels with assessed values</span>
             </div>
             <div className="flex flex-col items-center gap-2 p-3 rounded-lg bg-muted/30">
               <span className="text-lg">💰</span>
@@ -54,7 +43,7 @@ export function VEIEmptyState() {
             </div>
             <div className="flex flex-col items-center gap-2 p-3 rounded-lg bg-muted/30">
               <span className="text-lg">📅</span>
-              <span>Study period date range</span>
+              <span>Assessment records by tax year</span>
             </div>
           </div>
         </div>
