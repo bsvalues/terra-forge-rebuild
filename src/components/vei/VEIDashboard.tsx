@@ -17,18 +17,15 @@ import {
   TierSlopeDrilldownDialog,
   AppealsDrilldownDialog 
 } from "./drilldown";
-import { Activity, TrendingUp, BarChart3, AlertTriangle } from "lucide-react";
+import { Activity, TrendingUp, BarChart3, AlertTriangle, Percent, Target } from "lucide-react";
 import { useRatioAnalysis, useTaxYears } from "@/hooks/useRatioAnalysis";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { useHistoricalRatioTrend, useAppealsByValueTier } from "@/hooks/useHistoricalRatioTrend";
 
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: {
-      staggerChildren: 0.1,
-    },
+    transition: { staggerChildren: 0.1 },
   },
 };
 
@@ -46,61 +43,35 @@ export function VEIDashboard() {
   const [salesEndDate, setSalesEndDate] = useState<Date>(new Date());
   const [activeDrilldown, setActiveDrilldown] = useState<DrilldownType>(null);
 
+  const salesStartStr = format(salesStartDate, "yyyy-MM-dd");
+  const salesEndStr = format(salesEndDate, "yyyy-MM-dd");
+
   // Fetch available tax years
   const { data: taxYears = [currentYear, currentYear - 1, currentYear - 2], isLoading: isLoadingYears } = useTaxYears();
 
-  // Fetch ratio statistics on-demand
+  // Fetch ratio statistics on-demand for selected year
   const { data: ratioStats, isLoading: isLoadingStats } = useRatioAnalysis({
     taxYear: selectedYear,
-    salesStartDate: format(salesStartDate, "yyyy-MM-dd"),
-    salesEndDate: format(salesEndDate, "yyyy-MM-dd"),
+    salesStartDate: salesStartStr,
+    salesEndDate: salesEndStr,
   });
 
-  // Fetch sales count for sample size
-  const { data: salesCount = 0 } = useQuery({
-    queryKey: ["sales-count", salesStartDate, salesEndDate],
-    queryFn: async () => {
-      const { count, error } = await supabase
-        .from("sales")
-        .select("*", { count: "exact", head: true })
-        .gte("sale_date", format(salesStartDate, "yyyy-MM-dd"))
-        .lte("sale_date", format(salesEndDate, "yyyy-MM-dd"))
-        .eq("is_qualified", true);
-      
-      if (error) throw error;
-      return count || 0;
-    },
-  });
+  // Fetch historical trend data (real multi-year queries)
+  const { data: trendData = [], isLoading: isLoadingTrend } = useHistoricalRatioTrend(
+    salesStartStr,
+    salesEndStr,
+    4
+  );
 
-  // Fetch appeals by tier for the tax year
-  const { data: appealsData = [] } = useQuery({
-    queryKey: ["appeals-by-tier", selectedYear],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("appeals")
-        .select("id, parcel_id, status")
-        .eq("tax_year", selectedYear);
+  // Fetch real appeals by value tier
+  const { data: appealsData = [] } = useAppealsByValueTier(selectedYear);
 
-      if (error) throw error;
+  const isLoading = isLoadingYears || isLoadingStats || isLoadingTrend;
 
-      // Calculate rates (simplified - would need tier info from assessments)
-      return [
-        { tier: "Q1 (Low)", count: Math.floor((data?.length || 0) * 0.1), rate: 2.1 },
-        { tier: "Q2", count: Math.floor((data?.length || 0) * 0.2), rate: 3.2 },
-        { tier: "Q3", count: Math.floor((data?.length || 0) * 0.3), rate: 4.5 },
-        { tier: "Q4 (High)", count: Math.floor((data?.length || 0) * 0.4), rate: 6.8 },
-      ];
-    },
-  });
-
-  const isLoading = isLoadingYears || isLoadingStats;
-
-  // Show skeleton while loading
   if (isLoading) {
     return <VEIDashboardSkeleton />;
   }
 
-  // Show empty state if no data
   if (!ratioStats || ratioStats.sample_size === 0) {
     return <VEIEmptyState />;
   }
@@ -113,19 +84,19 @@ export function VEIDashboard() {
     { tier: "Q4 (High)", median: ratioStats.high_tier_median || 1.0, count: Math.floor(ratioStats.sample_size / 4), color: "var(--tier-q4)" },
   ];
 
-  // Build trend data (placeholder - would need historical queries)
+  // Build real trend data from historical queries
   const prdTrendData = {
     current: ratioStats.prd ?? 1.0,
-    trend: [1.02, 1.01, 0.99, ratioStats.prd ?? 1.0],
-    years: [selectedYear - 3, selectedYear - 2, selectedYear - 1, selectedYear],
+    trend: trendData.length > 0 ? trendData.map((t) => t.prd ?? 1.0) : [ratioStats.prd ?? 1.0],
+    years: trendData.length > 0 ? trendData.map((t) => t.year) : [selectedYear],
     target: 1.0,
     tolerance: 0.03,
   };
 
   const codTrendData = {
     current: ratioStats.cod ?? 0,
-    trend: [12.5, 11.8, 10.5, ratioStats.cod ?? 0],
-    years: [selectedYear - 3, selectedYear - 2, selectedYear - 1, selectedYear],
+    trend: trendData.length > 0 ? trendData.map((t) => t.cod ?? 0) : [ratioStats.cod ?? 0],
+    years: trendData.length > 0 ? trendData.map((t) => t.year) : [selectedYear],
     target: 10,
     upperLimit: 15,
   };
@@ -133,7 +104,7 @@ export function VEIDashboard() {
   // Calculate tier slope
   const tierSlope = ratioStats.tier_slope ?? 0;
 
-  // Get high-value tier appeal rate
+  // Get high-value tier appeal rate from real data
   const highTierAppealsRate = appealsData.find((a) => a.tier.includes("Q4"))?.rate ?? 0;
 
   // Status helpers
@@ -152,6 +123,22 @@ export function VEIDashboard() {
     return { status: "concern", label: "Concern", color: "vei-concern" };
   };
 
+  const getPRBStatus = (prb: number) => {
+    const absPrb = Math.abs(prb);
+    if (absPrb <= 0.02) return { status: "excellent", label: "No Bias", color: "vei-excellent" };
+    if (absPrb <= 0.05) return { status: "good", label: "Minimal Bias", color: "vei-good" };
+    if (absPrb <= 0.10) return { status: "caution", label: "Moderate Bias", color: "vei-caution" };
+    return { status: "concern", label: "Significant Bias", color: "vei-concern" };
+  };
+
+  const getMedianRatioStatus = (ratio: number) => {
+    const deviation = Math.abs(ratio - 1);
+    if (deviation <= 0.02) return { status: "excellent", label: "On Target", color: "vei-excellent" };
+    if (deviation <= 0.05) return { status: "good", label: "Acceptable", color: "vei-good" };
+    if (deviation <= 0.10) return { status: "caution", label: "Deviation", color: "vei-caution" };
+    return { status: "concern", label: "Off Target", color: "vei-concern" };
+  };
+
   const getTierSlopeStatus = (slope: number) => {
     const absSlope = Math.abs(slope);
     if (absSlope <= 0.02) return { status: "excellent", label: "Neutral", color: "vei-excellent" };
@@ -167,26 +154,29 @@ export function VEIDashboard() {
     return { status: "concern", label: "Critical Clustering", color: "vei-concern" };
   };
 
+  const medianRatio = ratioStats.median_ratio ?? 1.0;
+  const prb = ratioStats.prb ?? 0;
+
+  const medianStatus = getMedianRatioStatus(medianRatio);
   const prdStatus = getPRDStatus(ratioStats.prd ?? 1.0);
   const codStatus = getCODStatus(ratioStats.cod ?? 0);
+  const prbStatus = getPRBStatus(prb);
   const tierSlopeStatus = getTierSlopeStatus(tierSlope);
   const appealsStatus = getAppealsStatus(highTierAppealsRate);
 
-  // Format date window label
   const salesWindowLabel = `${format(salesStartDate, "MMM yyyy")} - ${format(salesEndDate, "MMM yyyy")}`;
 
-  // Build export data
   const exportData = {
     currentYear: selectedYear,
     prd: prdTrendData,
     cod: codTrendData,
     tierMedians,
-    appeals: {
-      byTier: appealsData,
-    },
+    appeals: { byTier: appealsData },
     studyPeriod: salesWindowLabel,
     propertyClass: "Residential",
     sampleSize: ratioStats.sample_size,
+    medianRatio,
+    prb,
   };
 
   return (
@@ -204,7 +194,7 @@ export function VEIDashboard() {
               VEI Suite Dashboard
             </h1>
             <p className="text-muted-foreground mt-1">
-              Vertical Equity Index — On-Demand Ratio Analysis
+              IAAO-Compliant Ratio Study — On-Demand Analysis
             </p>
           </div>
           <div className="flex items-center gap-3 flex-wrap">
@@ -233,43 +223,62 @@ export function VEIDashboard() {
           />
         </motion.div>
 
-        {/* Key Metrics Row */}
-        <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        {/* Key Metrics Row — 6 IAAO-compliant metrics */}
+        <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
           <VEIMetricCard
-            title="PRD (Current)"
+            title="Median Ratio"
+            value={medianRatio.toFixed(3)}
+            subtitle="Level of Appraisal"
+            status={medianStatus.status as any}
+            statusLabel={medianStatus.label}
+            icon={Target}
+            target="1.000"
+            onClick={() => setActiveDrilldown("tier")}
+          />
+          <VEIMetricCard
+            title="COD"
+            value={`${(ratioStats.cod ?? 0).toFixed(1)}%`}
+            subtitle="Uniformity"
+            status={codStatus.status as any}
+            statusLabel={codStatus.label}
+            icon={Activity}
+            target="≤15%"
+            onClick={() => setActiveDrilldown("cod")}
+          />
+          <VEIMetricCard
+            title="PRD"
             value={(ratioStats.prd ?? 1.0).toFixed(3)}
-            subtitle="Price-Related Differential"
-            status={prdStatus.status as "excellent" | "good" | "caution" | "concern"}
+            subtitle="Vertical Equity"
+            status={prdStatus.status as any}
             statusLabel={prdStatus.label}
             icon={TrendingUp}
-            target="1.000"
+            target="0.98–1.03"
             onClick={() => setActiveDrilldown("prd")}
           />
           <VEIMetricCard
-            title="COD (Current)"
-            value={`${(ratioStats.cod ?? 0).toFixed(1)}%`}
-            subtitle="Coefficient of Dispersion"
-            status={codStatus.status as "excellent" | "good" | "caution" | "concern"}
-            statusLabel={codStatus.label}
-            icon={Activity}
-            target="≤10%"
-            onClick={() => setActiveDrilldown("cod")}
+            title="PRB"
+            value={prb.toFixed(3)}
+            subtitle="Price-Related Bias"
+            status={prbStatus.status as any}
+            statusLabel={prbStatus.label}
+            icon={Percent}
+            target="±0.05"
           />
           <VEIMetricCard
             title="Tier Slope"
             value={tierSlope >= 0 ? `+${tierSlope.toFixed(2)}` : tierSlope.toFixed(2)}
-            subtitle="Q1 to Q4 Median Spread"
-            status={tierSlopeStatus.status as "excellent" | "good" | "caution" | "concern"}
+            subtitle="Q1→Q4 Spread"
+            status={tierSlopeStatus.status as any}
             statusLabel={tierSlopeStatus.label}
             icon={BarChart3}
             target="~0.00"
             onClick={() => setActiveDrilldown("tier")}
           />
           <VEIMetricCard
-            title="Appeals Concentration"
+            title="Appeals Rate"
             value={`${highTierAppealsRate.toFixed(1)}%`}
-            subtitle="High-Value Appeal Rate"
-            status={appealsStatus.status as "excellent" | "good" | "caution" | "concern"}
+            subtitle="Q4 Concentration"
+            status={appealsStatus.status as any}
             statusLabel={appealsStatus.label}
             icon={AlertTriangle}
             target="<5%"
@@ -288,7 +297,9 @@ export function VEIDashboard() {
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h2 className="text-lg font-medium text-foreground">PRD Trend</h2>
-                <p className="text-sm text-muted-foreground">Price-Related Differential History</p>
+                <p className="text-sm text-muted-foreground">
+                  {trendData.length > 1 ? `${trendData.length}-Year History` : "Current Period"}
+                </p>
               </div>
               <div className="text-right">
                 <span className="text-2xl font-light text-tf-cyan">{(ratioStats.prd ?? 1.0).toFixed(3)}</span>
@@ -307,7 +318,9 @@ export function VEIDashboard() {
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h2 className="text-lg font-medium text-foreground">COD Trend</h2>
-                <p className="text-sm text-muted-foreground">Coefficient of Dispersion History</p>
+                <p className="text-sm text-muted-foreground">
+                  {trendData.length > 1 ? `${trendData.length}-Year History` : "Current Period"}
+                </p>
               </div>
               <div className="text-right">
                 <span className="text-2xl font-light text-tf-cyan">{(ratioStats.cod ?? 0).toFixed(1)}%</span>
@@ -348,10 +361,14 @@ export function VEIDashboard() {
         {/* Footer Info */}
         <motion.div variants={itemVariants} className="text-center text-xs text-muted-foreground py-4">
           <p>
-            On-demand ratio analysis computed from {ratioStats.sample_size} qualified sales.
+            On-demand ratio analysis computed from {ratioStats.sample_size} qualified sales 
+            {trendData.length > 1 && ` | ${trendData.length}-year trend from real historical data`}.
           </p>
           <p className="mt-1">
             Tax Year {selectedYear} assessments compared against sales from {salesWindowLabel}.
+          </p>
+          <p className="mt-1 opacity-60">
+            Metrics aligned with IAAO Standard on Ratio Studies (2013) and 2025 Exposure Draft.
           </p>
         </motion.div>
       </motion.div>
