@@ -40,7 +40,6 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    // Build system prompt based on mode
     const systemPrompt = buildSystemPrompt(context);
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -55,6 +54,7 @@ serve(async (req) => {
           { role: "system", content: systemPrompt },
           ...messages,
         ],
+        stream: true,
       }),
     });
 
@@ -71,16 +71,15 @@ serve(async (req) => {
           { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
+      const t = await response.text();
+      console.error("AI gateway error:", response.status, t);
       throw new Error(`AI gateway error: ${response.status}`);
     }
 
-    const data = await response.json();
-    const message = data.choices?.[0]?.message?.content || "I couldn't generate a response.";
-
-    return new Response(
-      JSON.stringify({ message }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    // Stream the response directly back
+    return new Response(response.body, {
+      headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
+    });
   } catch (error) {
     console.error("TerraPilot error:", error);
     return new Response(
@@ -111,7 +110,8 @@ TerraFusion OS has five integrated suites:
 - Use professional assessment terminology
 - Reference specific TerraFusion features when relevant
 - Acknowledge limitations honestly
-- Suggest next steps or related actions`;
+- Suggest next steps or related actions
+- Format responses with markdown for clarity`;
 
   if (!context) return basePrompt;
 
