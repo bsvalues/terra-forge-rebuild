@@ -8,6 +8,7 @@ import { PRDTrendChart } from "@/components/vei/charts/PRDTrendChart";
 import { CODTrendChart } from "@/components/vei/charts/CODTrendChart";
 import { TierRatioPlot } from "@/components/vei/charts/TierRatioPlot";
 import { VEIDashboardSkeleton } from "@/components/vei/VEIDashboardSkeleton";
+import { CompsView } from "./CompsView";
 import { VEIEmptyState } from "@/components/vei/VEIEmptyState";
 import { 
   PRDDrilldownDialog, 
@@ -191,11 +192,7 @@ export function ForgeTab() {
         )}
 
         {activeView === "comps" && (
-          <PlaceholderView
-            icon={TrendingUp}
-            title="Sales Comparables"
-            description="Find and analyze comparable sales"
-          />
+          <CompsView />
         )}
       </div>
 

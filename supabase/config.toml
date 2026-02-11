@@ -20,3 +20,6 @@ verify_jwt = false
 
 [functions.statewide-scrape]
 verify_jwt = false
+
+[functions.terrapilot-chat]
+verify_jwt = false
