@@ -36,7 +36,7 @@ export function DossierTab() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.1 }}
-            className="glass-card rounded-xl p-5 cursor-pointer hover:border-suite-dossier/30"
+            className="material-bento rounded-xl p-5 cursor-pointer hover:border-suite-dossier/30"
           >
             <div className="flex items-center gap-3">
               <item.icon className="w-5 h-5 text-suite-dossier" />
@@ -51,7 +51,7 @@ export function DossierTab() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
-        className="glass-card rounded-2xl p-6 min-h-[300px]"
+        className="material-bento rounded-2xl p-6 min-h-[300px]"
       >
         <h3 className="text-lg font-medium text-foreground mb-4">File Browser</h3>
         <div className="text-center py-12 text-muted-foreground">
