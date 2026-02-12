@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   ResizablePanelGroup, 
   ResizablePanel, 
@@ -35,12 +35,30 @@ const TAB_COMPONENTS: Record<SuiteTab, React.ComponentType> = {
   pilot: PilotTab,
 };
 
-function WorkbenchContent() {
-  const { activeTab, pilotMode, workMode } = useWorkbench();
+interface WorkbenchContentProps {
+  initialParcel?: { id: string; parcelNumber: string; address: string; assessedValue: number } | null;
+  onParcelConsumed?: () => void;
+}
+
+function WorkbenchContent({ initialParcel, onParcelConsumed }: WorkbenchContentProps) {
+  const { activeTab, pilotMode, workMode, setParcel } = useWorkbench();
   const [pilotPanelOpen, setPilotPanelOpen] = useState(true);
 
   // Enable global scrape job notifications
   useScrapeJobNotifications();
+
+  // Handle initial parcel from GeoEquity click-to-select
+  useEffect(() => {
+    if (initialParcel) {
+      setParcel({
+        id: initialParcel.id,
+        parcelNumber: initialParcel.parcelNumber,
+        address: initialParcel.address,
+        assessedValue: initialParcel.assessedValue,
+      });
+      onParcelConsumed?.();
+    }
+  }, [initialParcel, setParcel, onParcelConsumed]);
 
   const TabComponent = TAB_COMPONENTS[activeTab];
 
@@ -128,10 +146,15 @@ function WorkbenchContent() {
   );
 }
 
-export function PropertyWorkbench() {
+interface PropertyWorkbenchProps {
+  initialParcel?: { id: string; parcelNumber: string; address: string; assessedValue: number } | null;
+  onParcelConsumed?: () => void;
+}
+
+export function PropertyWorkbench({ initialParcel, onParcelConsumed }: PropertyWorkbenchProps = {}) {
   return (
     <WorkbenchProvider>
-      <WorkbenchContent />
+      <WorkbenchContent initialParcel={initialParcel} onParcelConsumed={onParcelConsumed} />
     </WorkbenchProvider>
   );
 }

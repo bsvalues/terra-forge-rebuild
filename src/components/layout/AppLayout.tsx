@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { SovereignSidebar } from "@/components/navigation/SovereignSidebar";
 import { SovereignHeader } from "@/components/navigation/SovereignHeader";
 import { IDSCommandCenter } from "@/components/ids/IDSCommandCenter";
@@ -11,6 +11,12 @@ import { cn } from "@/lib/utils";
 export function AppLayout() {
   const [activeModule, setActiveModule] = useState("dashboard");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [pendingParcel, setPendingParcel] = useState<{ id: string; parcelNumber: string; address: string; assessedValue: number } | null>(null);
+
+  const handleGeoParcelSelect = useCallback((parcel: { id: string; parcelNumber: string; address: string; assessedValue: number }) => {
+    setPendingParcel(parcel);
+    setActiveModule("workbench");
+  }, []);
 
   const renderModule = () => {
     switch (activeModule) {
@@ -21,9 +27,9 @@ export function AppLayout() {
       case "vei":
         return <VEIDashboard />;
       case "workbench":
-        return <PropertyWorkbench />;
+        return <PropertyWorkbench initialParcel={pendingParcel} onParcelConsumed={() => setPendingParcel(null)} />;
       case "geoequity":
-        return <GeoEquityDashboard />;
+        return <GeoEquityDashboard onNavigateToWorkbench={handleGeoParcelSelect} />;
       default:
         return <CommandBriefing onNavigate={setActiveModule} />;
     }

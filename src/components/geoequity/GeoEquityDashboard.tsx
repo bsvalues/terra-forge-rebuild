@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -18,6 +18,7 @@ import {
 import { StudyPeriodSelector } from "@/components/vei/StudyPeriodSelector";
 import { useStudyPeriods } from "@/hooks/useVEIData";
 import { GeoEquityMap } from "./GeoEquityMap";
+import { EquityHeatmap } from "./EquityHeatmap";
 import { DataSourcesPanel } from "./DataSourcesPanel";
 import { GISLayersPanel } from "./GISLayersPanel";
 import { GISImportDialog } from "./GISImportDialog";
@@ -30,9 +31,13 @@ import { ParcelSearchPanel } from "./ParcelSearchPanel";
 import { useScrapeJobNotifications } from "@/hooks/useScrapeJobNotifications";
 import { useGISDataSources, useGISLayers, useNeighborhoodGeoStats } from "@/hooks/useGISData";
 
-export function GeoEquityDashboard() {
+interface GeoEquityDashboardProps {
+  onNavigateToWorkbench?: (parcel: { id: string; parcelNumber: string; address: string; assessedValue: number }) => void;
+}
+
+export function GeoEquityDashboard({ onNavigateToWorkbench }: GeoEquityDashboardProps) {
   const [selectedPeriodId, setSelectedPeriodId] = useState<string | undefined>();
-  const [activeTab, setActiveTab] = useState<"map" | "sources" | "layers" | "jobs" | "search">("map");
+  const [activeTab, setActiveTab] = useState<"heatmap" | "map" | "sources" | "layers" | "jobs" | "search">("heatmap");
   const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [arcgisImportOpen, setArcgisImportOpen] = useState(false);
   const [assessorScrapeOpen, setAssessorScrapeOpen] = useState(false);
@@ -42,16 +47,18 @@ export function GeoEquityDashboard() {
   const { data: layers = [], isLoading: isLoadingLayers } = useGISLayers();
   const { data: neighborhoodStats = [], isLoading: isLoadingStats } = useNeighborhoodGeoStats(selectedPeriodId);
 
-  // Enable job notifications (toast + browser)
   useScrapeJobNotifications();
 
-  // Auto-select active period
   useEffect(() => {
     if (studyPeriods && studyPeriods.length > 0 && !selectedPeriodId) {
       const activePeriod = studyPeriods.find((p) => p.status === "active");
       setSelectedPeriodId(activePeriod?.id || studyPeriods[0].id);
     }
   }, [studyPeriods, selectedPeriodId]);
+
+  const handleParcelSelect = useCallback((parcel: { id: string; parcelNumber: string; address: string; assessedValue: number }) => {
+    onNavigateToWorkbench?.(parcel);
+  }, [onNavigateToWorkbench]);
 
   const isLoading = isLoadingPeriods || isLoadingSources || isLoadingLayers || isLoadingStats;
 
@@ -80,38 +87,19 @@ export function GeoEquityDashboard() {
               onSelect={setSelectedPeriodId}
             />
           )}
-          <Button
-            variant="outline"
-            size="sm"
-            className="gap-2"
-            onClick={() => setImportDialogOpen(true)}
-          >
+          <Button variant="outline" size="sm" className="gap-2" onClick={() => setImportDialogOpen(true)}>
             <Upload className="w-4 h-4" />
             Import GIS
           </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className="gap-2 border-tf-cyan/50 text-tf-cyan hover:bg-tf-cyan/10"
-            onClick={() => setArcgisImportOpen(true)}
-          >
+          <Button variant="outline" size="sm" className="gap-2 border-tf-cyan/50 text-tf-cyan hover:bg-tf-cyan/10" onClick={() => setArcgisImportOpen(true)}>
             <MapPin className="w-4 h-4" />
             Sync Coords
           </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className="gap-2 border-tf-sacred-gold/50 text-tf-sacred-gold hover:bg-tf-sacred-gold/10"
-            onClick={() => setAssessorScrapeOpen(true)}
-          >
+          <Button variant="outline" size="sm" className="gap-2 border-tf-sacred-gold/50 text-tf-sacred-gold hover:bg-tf-sacred-gold/10" onClick={() => setAssessorScrapeOpen(true)}>
             <Search className="w-4 h-4" />
             Scrape Assessor
           </Button>
-          <Button
-            size="sm"
-            className="gap-2 bg-tf-optimized-green hover:bg-tf-optimized-green/90"
-            onClick={() => setParcelImportOpen(true)}
-          >
+          <Button size="sm" className="gap-2 bg-tf-optimized-green hover:bg-tf-optimized-green/90" onClick={() => setParcelImportOpen(true)}>
             <Plus className="w-4 h-4" />
             Import Parcels
           </Button>
@@ -165,9 +153,13 @@ export function GeoEquityDashboard() {
       {/* Main Content Tabs */}
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as typeof activeTab)}>
         <TabsList className="bg-tf-elevated/50">
+          <TabsTrigger value="heatmap" className="gap-2 data-[state=active]:bg-tf-cyan/20">
+            <Globe className="w-4 h-4" />
+            Equity Heatmap
+          </TabsTrigger>
           <TabsTrigger value="map" className="gap-2 data-[state=active]:bg-tf-cyan/20">
             <Map className="w-4 h-4" />
-            Equity Map
+            Legacy Map
           </TabsTrigger>
           <TabsTrigger value="search" className="gap-2 data-[state=active]:bg-tf-optimized-green/20">
             <Search className="w-4 h-4" />
@@ -186,6 +178,20 @@ export function GeoEquityDashboard() {
             Statewide Jobs
           </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="heatmap" className="mt-4">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="glass-card rounded-lg overflow-hidden"
+            style={{ height: "650px" }}
+          >
+            <EquityHeatmap
+              studyPeriodId={selectedPeriodId}
+              onParcelSelect={handleParcelSelect}
+            />
+          </motion.div>
+        </TabsContent>
 
         <TabsContent value="map" className="mt-4">
           <motion.div
@@ -207,17 +213,11 @@ export function GeoEquityDashboard() {
         </TabsContent>
 
         <TabsContent value="sources" className="mt-4">
-          <DataSourcesPanel
-            dataSources={dataSources}
-            isLoading={isLoadingSources}
-          />
+          <DataSourcesPanel dataSources={dataSources} isLoading={isLoadingSources} />
         </TabsContent>
 
         <TabsContent value="layers" className="mt-4">
-          <GISLayersPanel
-            layers={layers}
-            isLoading={isLoadingLayers}
-          />
+          <GISLayersPanel layers={layers} isLoading={isLoadingLayers} />
         </TabsContent>
 
         <TabsContent value="jobs" className="mt-4">
@@ -225,30 +225,11 @@ export function GeoEquityDashboard() {
         </TabsContent>
       </Tabs>
 
-      {/* Import Dialog */}
-      <GISImportDialog
-        open={importDialogOpen}
-        onOpenChange={setImportDialogOpen}
-      />
-
-      {/* ArcGIS Coordinate Import Dialog */}
-      <ArcGISImportDialog
-        open={arcgisImportOpen}
-        onOpenChange={setArcgisImportOpen}
-        dataSources={dataSources}
-      />
-
-      {/* Assessor Website Scrape Dialog */}
-      <AssessorScrapeDialog
-        open={assessorScrapeOpen}
-        onOpenChange={setAssessorScrapeOpen}
-      />
-
-      {/* Parcel Import Wizard */}
-      <ParcelImportWizard
-        open={parcelImportOpen}
-        onOpenChange={setParcelImportOpen}
-      />
+      {/* Dialogs */}
+      <GISImportDialog open={importDialogOpen} onOpenChange={setImportDialogOpen} />
+      <ArcGISImportDialog open={arcgisImportOpen} onOpenChange={setArcgisImportOpen} dataSources={dataSources} />
+      <AssessorScrapeDialog open={assessorScrapeOpen} onOpenChange={setAssessorScrapeOpen} />
+      <ParcelImportWizard open={parcelImportOpen} onOpenChange={setParcelImportOpen} />
     </div>
   );
 }
