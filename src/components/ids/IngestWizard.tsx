@@ -166,7 +166,7 @@ export function IngestWizard() {
                 >
                   <Upload className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
                   <h3 className="text-lg font-medium mb-2">Drop your {pipeline.targetTable} file here</h3>
-                  <p className="text-sm text-muted-foreground mb-4">CSV or TXT files • UTF-8 encoding</p>
+                  <p className="text-sm text-muted-foreground mb-4">CSV, TXT, or Excel (.xlsx) files • UTF-8 encoding</p>
                   <input type="file" accept=".csv,.txt,.xlsx" onChange={handleFileInput} className="hidden" id="ingest-file" />
                   <label htmlFor="ingest-file">
                     <Button variant="outline" asChild><span><FileSpreadsheet className="w-4 h-4 mr-2" />Browse Files</span></Button>

@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import Papa from "papaparse";
+import * as XLSX from "xlsx";
 
 export type IngestStep = "select" | "upload" | "mapping" | "validate" | "preview" | "publish" | "complete";
 export type TargetTable = "parcels" | "sales" | "assessments";
@@ -123,15 +124,51 @@ export function useIngestPipeline() {
   const parseFile = useCallback(async (file: File) => {
     return new Promise<ParsedFile>((resolve, reject) => {
       if (file.name.endsWith(".xlsx") || file.name.endsWith(".xls")) {
-        // For Excel, we'd need xlsx library — for now only CSV
-        reject(new Error("Excel support coming soon. Please export as CSV."));
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          try {
+            const data = new Uint8Array(e.target?.result as ArrayBuffer);
+            const workbook = XLSX.read(data, { type: "array" });
+            const sheetName = workbook.SheetNames[0];
+            if (!sheetName) {
+              reject(new Error("No sheets found in workbook"));
+              return;
+            }
+            const sheet = workbook.Sheets[sheetName];
+            const jsonData = XLSX.utils.sheet_to_json<Record<string, string>>(sheet, { defval: "" });
+            if (jsonData.length === 0) {
+              reject(new Error("No data found in spreadsheet"));
+              return;
+            }
+            const headers = Object.keys(jsonData[0]);
+            // Convert all values to strings for consistent mapping
+            const rows = jsonData.map(row => {
+              const stringRow: Record<string, string> = {};
+              for (const key of headers) {
+                stringRow[key] = row[key] != null ? String(row[key]) : "";
+              }
+              return stringRow;
+            });
+            resolve({
+              headers,
+              rows,
+              fileName: file.name,
+              fileSize: file.size,
+              rowCount: rows.length,
+            });
+          } catch (err: any) {
+            reject(new Error(`Failed to parse Excel file: ${err.message}`));
+          }
+        };
+        reader.onerror = () => reject(new Error("Failed to read file"));
+        reader.readAsArrayBuffer(file);
         return;
       }
 
       Papa.parse(file, {
         header: true,
         skipEmptyLines: true,
-        dynamicTyping: false, // Keep everything as string for mapping
+        dynamicTyping: false,
         complete: (results) => {
           if (!results.meta.fields || results.meta.fields.length === 0) {
             reject(new Error("No columns detected in file"));
