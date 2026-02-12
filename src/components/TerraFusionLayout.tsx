@@ -17,7 +17,7 @@ import { useScrapeJobNotifications } from "@/hooks/useScrapeJobNotifications";
 
 const SettingsPlaceholder = () => (
   <div className="p-6">
-    <div className="glass-card p-12 rounded-lg text-center">
+    <div className="material-bento p-12 rounded-lg text-center">
       <h2 className="text-2xl font-light text-gradient-sovereign mb-4">Settings</h2>
       <p className="text-muted-foreground">System Configuration</p>
       <p className="text-sm text-muted-foreground mt-2">Coming Soon</p>

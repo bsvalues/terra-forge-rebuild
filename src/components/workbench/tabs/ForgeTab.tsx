@@ -365,7 +365,7 @@ function EquityAnalysisView({
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <motion.div 
           variants={itemVariants} 
-          className="glass-card rounded-xl p-5 cursor-pointer hover:border-suite-forge/40 transition-colors"
+          className="material-bento rounded-xl p-5 cursor-pointer hover:border-suite-forge/40 transition-colors"
           onClick={() => setActiveDrilldown("prd")}
         >
           <div className="flex items-center justify-between mb-3">
@@ -380,7 +380,7 @@ function EquityAnalysisView({
 
         <motion.div 
           variants={itemVariants} 
-          className="glass-card rounded-xl p-5 cursor-pointer hover:border-suite-forge/40 transition-colors"
+          className="material-bento rounded-xl p-5 cursor-pointer hover:border-suite-forge/40 transition-colors"
           onClick={() => setActiveDrilldown("cod")}
         >
           <div className="flex items-center justify-between mb-3">
@@ -397,7 +397,7 @@ function EquityAnalysisView({
       {/* Tier Ratio Plot */}
       <motion.div 
         variants={itemVariants} 
-        className="glass-card rounded-xl p-5 cursor-pointer hover:border-suite-forge/40 transition-colors"
+        className="material-bento rounded-xl p-5 cursor-pointer hover:border-suite-forge/40 transition-colors"
         onClick={() => setActiveDrilldown("tier")}
       >
         <div className="flex items-center justify-between mb-3">
@@ -435,7 +435,7 @@ function PlaceholderView({ icon: Icon, title, description }: PlaceholderViewProp
       animate={{ opacity: 1, y: 0 }}
       className="p-6"
     >
-      <div className="glass-card rounded-2xl p-12 flex flex-col items-center justify-center min-h-[400px]">
+      <div className="material-bento rounded-2xl p-12 flex flex-col items-center justify-center min-h-[400px]">
         <div className="w-16 h-16 rounded-2xl bg-suite-forge/10 flex items-center justify-center mb-4">
           <Icon className="w-8 h-8 text-suite-forge/50" />
         </div>

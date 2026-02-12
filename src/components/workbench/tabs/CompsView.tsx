@@ -20,7 +20,7 @@ export function CompsView() {
   if (!hasParcel) {
     return (
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="p-6">
-        <div className="glass-card rounded-2xl p-12 flex flex-col items-center justify-center min-h-[400px]">
+        <div className="material-bento rounded-2xl p-12 flex flex-col items-center justify-center min-h-[400px]">
           <MapPin className="w-12 h-12 text-muted-foreground/30 mb-4" />
           <h3 className="text-lg font-medium text-foreground mb-2">Select a Parcel</h3>
           <p className="text-sm text-muted-foreground text-center max-w-md">
@@ -42,7 +42,7 @@ export function CompsView() {
   return (
     <div className="p-6 space-y-4">
       {/* Subject Property Reference */}
-      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="glass-card rounded-xl p-4 border-l-4 border-tf-cyan">
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="material-bento rounded-xl p-4 border-l-4 border-tf-cyan">
         <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
           <Home className="w-3.5 h-3.5" />
           Subject Property
@@ -78,7 +78,7 @@ export function CompsView() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: idx * 0.04 }}
-                className="glass-card rounded-xl p-4 hover:border-suite-forge/40 transition-colors"
+                className="material-bento rounded-xl p-4 hover:border-suite-forge/40 transition-colors"
               >
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
@@ -118,7 +118,7 @@ export function CompsView() {
           })}
         </div>
       ) : (
-        <div className="glass-card rounded-2xl p-12 text-center">
+        <div className="material-bento rounded-2xl p-12 text-center">
           <TrendingUp className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-foreground mb-2">No Comparable Sales</h3>
           <p className="text-sm text-muted-foreground">No qualified sales found in this neighborhood.</p>

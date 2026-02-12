@@ -186,7 +186,7 @@ export function AtlasTab() {
 
                       {/* Study Period Context */}
                       {studyPeriod.id && (
-                        <div className="glass-card rounded-lg p-3">
+                        <div className="material-bento rounded-lg p-3">
                           <div className="text-xs text-muted-foreground mb-1">Study Period</div>
                           <div className="text-sm font-medium text-foreground">
                             {studyPeriod.name || "Active Period"}
@@ -249,7 +249,7 @@ export function AtlasTab() {
 
                       {/* Active Parcel */}
                       {hasActiveParcel && (
-                        <div className="glass-card rounded-lg p-3 border-suite-atlas/30 border">
+                        <div className="material-bento rounded-lg p-3 border-suite-atlas/30 border">
                           <div className="text-xs text-suite-atlas mb-1 font-medium flex items-center gap-1.5">
                             <MapPin className="w-3 h-3" />
                             Active Parcel
@@ -283,7 +283,7 @@ export function AtlasTab() {
               <div className="flex-1 relative">
                 {/* Map Controls */}
                 <div className="absolute top-4 right-4 z-10 flex flex-col gap-2">
-                  <div className="glass-card rounded-lg p-1 flex flex-col">
+                  <div className="material-bento rounded-lg p-1 flex flex-col">
                     <Button 
                       variant="ghost" 
                       size="icon" 
@@ -329,7 +329,7 @@ export function AtlasTab() {
 
                 {/* Map Stats Overlay */}
                 <div className="absolute bottom-4 right-4 z-10">
-                  <div className="glass-card rounded-lg px-3 py-2 text-xs space-y-1">
+                  <div className="material-bento rounded-lg px-3 py-2 text-xs space-y-1">
                     <div className="flex items-center justify-between gap-4">
                       <span className="text-muted-foreground">Neighborhoods</span>
                       <span className="font-medium">{neighborhoodStats.length}</span>

@@ -11,12 +11,14 @@ import {
   ShieldCheck,
   ShieldX,
   ArrowUpRight,
-  ArrowDownRight
+  ArrowDownRight,
+  Activity,
 } from "lucide-react";
 import { useWorkbench } from "../WorkbenchContext";
 import { useAssessmentHistory, useParcelSales, useParcelAppeals } from "@/hooks/useParcelDetails";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { TerraTraceActivityFeed } from "@/components/proof/TerraTraceActivityFeed";
 
 export function SummaryTab() {
   const { parcel, studyPeriod } = useWorkbench();
@@ -58,7 +60,7 @@ function ParcelSummaryContent() {
   return (
     <div className="p-6 space-y-6">
       {/* Parcel Header */}
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="glass-card rounded-2xl p-6">
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="material-bento rounded-2xl p-6">
         <div className="flex items-start justify-between">
           <div>
             <div className="flex items-center gap-2 text-tf-cyan text-sm font-medium mb-1">
@@ -83,7 +85,7 @@ function ParcelSummaryContent() {
           { label: "Study Period", value: studyPeriod.name || "—", icon: Calendar, color: "text-tf-purple" },
           { label: "Sales Count", value: sales?.length?.toString() ?? "…", icon: DollarSign, color: "text-tf-green" },
         ].map((stat, i) => (
-          <motion.div key={stat.label} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} className="glass-card rounded-xl p-4">
+          <motion.div key={stat.label} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} className="material-bento rounded-xl p-4">
             <div className="flex items-center gap-2 text-muted-foreground text-xs mb-2">
               <stat.icon className="w-3.5 h-3.5" />
               {stat.label}
@@ -94,7 +96,7 @@ function ParcelSummaryContent() {
       </div>
 
       {/* Assessment History */}
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="glass-card rounded-2xl p-6">
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="material-bento rounded-2xl p-6">
         <h3 className="text-lg font-medium text-foreground mb-4 flex items-center gap-2">
           <BarChart3 className="w-5 h-5 text-tf-cyan" />
           Assessment History
@@ -149,7 +151,7 @@ function ParcelSummaryContent() {
       </motion.div>
 
       {/* Sales History */}
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="glass-card rounded-2xl p-6">
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="material-bento rounded-2xl p-6">
         <h3 className="text-lg font-medium text-foreground mb-4 flex items-center gap-2">
           <DollarSign className="w-5 h-5 text-tf-green" />
           Sales History
@@ -195,7 +197,7 @@ function ParcelSummaryContent() {
       </motion.div>
 
       {/* Appeals */}
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="glass-card rounded-2xl p-6">
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="material-bento rounded-2xl p-6">
         <h3 className="text-lg font-medium text-foreground mb-4 flex items-center gap-2">
           <Gavel className="w-5 h-5 text-tf-amber" />
           Appeals History
@@ -205,6 +207,7 @@ function ParcelSummaryContent() {
         ) : appeals && appeals.length > 0 ? (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
+              {/* ... keep existing code (appeals table header and body) */}
               <thead>
                 <tr className="border-b border-border/50 text-muted-foreground text-xs">
                   <th className="text-left py-2 pr-4">Filed</th>
@@ -236,6 +239,15 @@ function ParcelSummaryContent() {
         ) : (
           <p className="text-center py-6 text-muted-foreground text-sm">No appeals on record</p>
         )}
+      </motion.div>
+
+      {/* TerraTrace Activity Feed */}
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }} className="material-bento rounded-2xl p-6">
+        <h3 className="text-lg font-medium text-foreground mb-4 flex items-center gap-2">
+          <Activity className="w-5 h-5 text-tf-cyan" />
+          TerraTrace Activity Feed
+        </h3>
+        <TerraTraceActivityFeed parcelId={parcel.id} />
       </motion.div>
     </div>
   );

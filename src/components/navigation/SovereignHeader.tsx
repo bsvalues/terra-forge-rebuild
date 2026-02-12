@@ -13,7 +13,7 @@ export function SovereignHeader({ moduleTitle, moduleDescription }: SovereignHea
   const { profile } = useAuthContext();
 
   return (
-    <header className="sticky top-0 z-30 glass-card border-b border-border/50 px-6 py-4">
+    <header className="sticky top-0 z-30 material-shell border-b border-border/50 px-6 py-4">
       <div className="flex items-center justify-between">
         {/* Left - Title */}
         <div className="flex items-center gap-4">

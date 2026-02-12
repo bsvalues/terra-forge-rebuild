@@ -36,7 +36,7 @@ export function ANOVAPanel({ result, isLoading }: ANOVAPanelProps) {
 
   if (!result) {
     return (
-      <div className="glass-card rounded-lg p-8 text-center">
+      <div className="material-bento rounded-lg p-8 text-center">
         <p className="text-muted-foreground">
           No ANOVA results available. Run regression analysis first.
         </p>
@@ -61,7 +61,7 @@ export function ANOVAPanel({ result, isLoading }: ANOVAPanelProps) {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
       >
-        <Card className="glass-card">
+        <Card className="material-bento">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <CardTitle className="text-base">Type III Sum of Squares ANOVA</CardTitle>
@@ -131,7 +131,7 @@ export function ANOVAPanel({ result, isLoading }: ANOVAPanelProps) {
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.1 }}
-          className="glass-card rounded-lg p-5"
+          className="material-bento rounded-lg p-5"
         >
           <h3 className="text-sm font-medium text-muted-foreground mb-4">
             Effect Size (η² Partial) — Variance Explained
@@ -204,7 +204,7 @@ export function ANOVAPanel({ result, isLoading }: ANOVAPanelProps) {
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.2 }}
-          className="glass-card rounded-lg p-5"
+          className="material-bento rounded-lg p-5"
         >
           <h3 className="text-sm font-medium text-muted-foreground mb-4">
             Model Assumptions Check
