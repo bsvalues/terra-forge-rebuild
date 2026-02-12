@@ -14,6 +14,44 @@ export type Database = {
   }
   public: {
     Tables: {
+      appeal_status_changes: {
+        Row: {
+          appeal_id: string
+          change_reason: string | null
+          changed_by: string | null
+          created_at: string
+          id: string
+          new_status: string
+          previous_status: string | null
+        }
+        Insert: {
+          appeal_id: string
+          change_reason?: string | null
+          changed_by?: string | null
+          created_at?: string
+          id?: string
+          new_status: string
+          previous_status?: string | null
+        }
+        Update: {
+          appeal_id?: string
+          change_reason?: string | null
+          changed_by?: string | null
+          created_at?: string
+          id?: string
+          new_status?: string
+          previous_status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appeal_status_changes_appeal_id_fkey"
+            columns: ["appeal_id"]
+            isOneToOne: false
+            referencedRelation: "appeals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       appeals: {
         Row: {
           appeal_date: string
@@ -24,6 +62,7 @@ export type Database = {
           id: string
           notes: string | null
           original_value: number
+          owner_email: string | null
           parcel_id: string
           requested_value: number | null
           resolution_date: string | null
@@ -42,6 +81,7 @@ export type Database = {
           id?: string
           notes?: string | null
           original_value: number
+          owner_email?: string | null
           parcel_id: string
           requested_value?: number | null
           resolution_date?: string | null
@@ -60,6 +100,7 @@ export type Database = {
           id?: string
           notes?: string | null
           original_value?: number
+          owner_email?: string | null
           parcel_id?: string
           requested_value?: number | null
           resolution_date?: string | null
@@ -623,6 +664,60 @@ export type Database = {
             columns: ["county_id"]
             isOneToOne: false
             referencedRelation: "counties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      model_receipts: {
+        Row: {
+          created_at: string
+          id: string
+          inputs: Json
+          metadata: Json | null
+          model_type: string
+          model_version: string
+          operator_id: string
+          outputs: Json
+          parcel_id: string | null
+          study_period_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          inputs?: Json
+          metadata?: Json | null
+          model_type?: string
+          model_version: string
+          operator_id: string
+          outputs?: Json
+          parcel_id?: string | null
+          study_period_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          inputs?: Json
+          metadata?: Json | null
+          model_type?: string
+          model_version?: string
+          operator_id?: string
+          outputs?: Json
+          parcel_id?: string | null
+          study_period_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "model_receipts_parcel_id_fkey"
+            columns: ["parcel_id"]
+            isOneToOne: false
+            referencedRelation: "parcels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "model_receipts_study_period_id_fkey"
+            columns: ["study_period_id"]
+            isOneToOne: false
+            referencedRelation: "study_periods"
             referencedColumns: ["id"]
           },
         ]

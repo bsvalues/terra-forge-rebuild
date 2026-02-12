@@ -36,7 +36,10 @@ import {
   ChevronRight,
   Loader2,
   Plus,
+  Mail,
+  History,
 } from "lucide-react";
+import { AppealTimeline } from "./AppealTimeline";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { useWorkbench } from "@/components/workbench/WorkbenchContext";
@@ -53,6 +56,7 @@ interface Appeal {
   resolution_date: string | null;
   resolution_type: string | null;
   notes: string | null;
+  owner_email: string | null;
   parcel: {
     id: string;
     parcel_number: string;
@@ -236,7 +240,7 @@ export function AppealsWorkflow() {
           { status: "resolved", label: "Resolved", count: statusCounts.resolved, color: "text-tf-green" },
           { status: "total", label: "Total Value at Stake", count: formatCurrency(appeals.filter(a => a.status === "pending" || a.status === "scheduled").reduce((sum, a) => sum + (a.original_value - (a.requested_value || a.original_value)), 0)), color: "text-tf-gold", isValue: true },
         ].map((item) => (
-          <Card key={item.status} className="glass-card border-tf-border">
+          <Card key={item.status} className="material-bento border-border/50">
             <CardContent className="pt-4">
               <div className="text-xs text-muted-foreground mb-1">{item.label}</div>
               <div className={cn("text-2xl font-light", item.color)}>
@@ -248,7 +252,7 @@ export function AppealsWorkflow() {
       </div>
 
       {/* Appeals List */}
-      <Card className="glass-card border-tf-border">
+      <Card className="material-bento border-border/50">
         <CardHeader className="pb-3">
           <CardTitle className="text-base flex items-center gap-2">
             <FileText className="w-4 h-4 text-suite-dais" />
@@ -351,7 +355,7 @@ export function AppealsWorkflow() {
 
       {/* Appeal Detail Dialog */}
       <Dialog open={!!selectedAppeal} onOpenChange={() => setSelectedAppeal(null)}>
-        <DialogContent className="glass-card border-tf-border max-w-lg">
+        <DialogContent className="material-bento border-border/50 max-w-lg">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Scale className="w-5 h-5 text-suite-dais" />
@@ -404,6 +408,14 @@ export function AppealsWorkflow() {
                 </div>
               )}
 
+              {selectedAppeal.owner_email && (
+                <div className="flex items-center gap-2 text-sm">
+                  <Mail className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-muted-foreground">Owner:</span>
+                  <span className="text-foreground">{selectedAppeal.owner_email}</span>
+                </div>
+              )}
+
               {selectedAppeal.final_value && (
                 <div className="p-3 rounded-lg bg-tf-green/10 border border-tf-green/30">
                   <div className="text-xs text-muted-foreground mb-1">Final Resolved Value</div>
@@ -417,6 +429,15 @@ export function AppealsWorkflow() {
                   )}
                 </div>
               )}
+
+              {/* Status Change Timeline */}
+              <div className="space-y-2">
+                <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+                  <History className="w-3 h-3" />
+                  STATUS HISTORY
+                </div>
+                <AppealTimeline appealId={selectedAppeal.id} />
+              </div>
             </div>
           )}
 

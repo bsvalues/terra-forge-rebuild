@@ -9,13 +9,15 @@ import {
   Shield,
   BarChart3,
   Clock,
-   Zap,
+  Zap,
+  Scale,
 } from "lucide-react";
 import { StudyPeriodManager } from "./StudyPeriodManager";
 import { ScrapeJobManager } from "./ScrapeJobManager";
 import { DataQualityDashboard } from "./DataQualityDashboard";
 import { ScheduledScrapeManager } from "./ScheduledScrapeManager";
 import { IDSCommandCenter } from "@/components/ids";
+import { AppealAuditLog } from "@/components/dais/AppealAuditLog";
 
 export function AdminDashboard() {
    const [activeTab, setActiveTab] = useState("ids");
@@ -85,6 +87,13 @@ export function AdminDashboard() {
             Users
           </TabsTrigger>
           <TabsTrigger 
+            value="appeal-audit"
+            className="gap-2 data-[state=active]:bg-suite-dais/20 data-[state=active]:text-suite-dais"
+          >
+            <Scale className="w-4 h-4" />
+            Appeal Audit
+          </TabsTrigger>
+          <TabsTrigger 
             value="security"
             className="gap-2 data-[state=active]:bg-destructive/20 data-[state=active]:text-destructive"
           >
@@ -117,7 +126,7 @@ export function AdminDashboard() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="glass-card rounded-2xl p-6"
+            className="material-bento rounded-2xl p-6"
           >
             <h3 className="text-lg font-medium text-foreground mb-4 flex items-center gap-2">
               <Users className="w-5 h-5 text-tf-green" />
@@ -131,11 +140,15 @@ export function AdminDashboard() {
           </motion.div>
         </TabsContent>
 
+        <TabsContent value="appeal-audit" className="mt-0">
+          <AppealAuditLog />
+        </TabsContent>
+
         <TabsContent value="security" className="mt-0">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="glass-card rounded-2xl p-6"
+            className="material-bento rounded-2xl p-6"
           >
             <h3 className="text-lg font-medium text-foreground mb-4 flex items-center gap-2">
               <Shield className="w-5 h-5 text-destructive" />
