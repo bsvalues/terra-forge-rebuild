@@ -36,7 +36,7 @@ export function PRDTrendChart({ data }: PRDTrendChartProps) {
       const isRegressive = prdValue > 1;
       
       return (
-        <div className="glass-card p-3 rounded-lg border border-border">
+        <div className="material-bento p-3 rounded-lg border border-border">
           <p className="text-sm font-medium text-foreground">{label}</p>
           <p className="text-lg font-light text-tf-cyan">
             PRD: {prdValue?.toFixed(3)}

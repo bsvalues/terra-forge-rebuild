@@ -199,7 +199,7 @@ export function ArcGISImportDialog({
           </div>
 
           {/* Info Box */}
-          <div className="glass-card rounded-lg p-4 flex items-start gap-3">
+          <div className="material-bento rounded-lg p-4 flex items-start gap-3">
             <Info className="w-5 h-5 text-tf-cyan flex-shrink-0 mt-0.5" />
             <div className="text-sm">
               <p className="font-medium text-foreground">How it works</p>

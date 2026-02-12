@@ -259,7 +259,7 @@ export function ContextRibbon() {
                 </Button>
               </PopoverTrigger>
               <PopoverContent 
-                className="w-[400px] p-0 glass-card border-tf-border" 
+                className="w-[400px] p-0 material-bento border-tf-border" 
                 align="start"
                 sideOffset={8}
               >
@@ -371,7 +371,7 @@ export function ContextRibbon() {
               </Button>
             </PopoverTrigger>
             <PopoverContent 
-              className="w-[320px] p-0 glass-card border-tf-border" 
+              className="w-[320px] p-0 material-bento border-tf-border" 
               align="end"
               sideOffset={8}
             >

@@ -189,7 +189,7 @@ export function EquityHeatmap({ studyPeriodId, onParcelSelect }: EquityHeatmapPr
           </div>
         )}
         {/* Map Controls */}
-        <div className="absolute top-3 right-3 z-[1000] glass-card p-3 rounded-lg space-y-3 min-w-[200px]">
+        <div className="absolute top-3 right-3 z-[1000] material-bento p-3 rounded-lg space-y-3 min-w-[200px]">
           <div className="flex items-center gap-2">
             <Filter className="w-3.5 h-3.5 text-tf-cyan" />
             <Label className="text-xs font-medium">Neighborhood</Label>
@@ -226,7 +226,7 @@ export function EquityHeatmap({ studyPeriodId, onParcelSelect }: EquityHeatmapPr
         </div>
 
         {/* Legend */}
-        <div className="absolute bottom-3 left-3 z-[1000] glass-card p-3 rounded-lg text-xs space-y-1.5">
+        <div className="absolute bottom-3 left-3 z-[1000] material-bento p-3 rounded-lg text-xs space-y-1.5">
           <div className="font-medium text-foreground mb-1">Ratio Legend</div>
           <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full" style={{ backgroundColor: "#10b981" }} /><span>±3% (On Target)</span></div>
           <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full" style={{ backgroundColor: "#f59e0b" }} /><span>3-7% (Caution)</span></div>
@@ -248,26 +248,26 @@ export function EquityHeatmap({ studyPeriodId, onParcelSelect }: EquityHeatmapPr
         </h3>
 
         <div className="grid grid-cols-2 gap-2">
-          <div className="glass-card p-3 rounded-lg text-center">
+          <div className="material-bento p-3 rounded-lg text-center">
             <div className="text-lg font-light text-tf-cyan">{summary.totalPins}</div>
             <div className="text-xs text-muted-foreground">Parcels</div>
           </div>
-          <div className="glass-card p-3 rounded-lg text-center">
+          <div className="material-bento p-3 rounded-lg text-center">
             <div className="text-lg font-light text-tf-sacred-gold">{summary.withRatio}</div>
             <div className="text-xs text-muted-foreground">With Ratios</div>
           </div>
-          <div className="glass-card p-3 rounded-lg text-center">
+          <div className="material-bento p-3 rounded-lg text-center">
             <div className="text-lg font-light text-tf-optimized-green">{summary.compliant}</div>
             <div className="text-xs text-muted-foreground">Compliant</div>
           </div>
-          <div className="glass-card p-3 rounded-lg text-center">
+          <div className="material-bento p-3 rounded-lg text-center">
             <div className="text-lg font-light text-destructive">{summary.nonCompliant}</div>
             <div className="text-xs text-muted-foreground">Non-Compliant</div>
           </div>
         </div>
 
         {selectedOverlay ? (
-          <div className="glass-card p-4 rounded-lg space-y-3">
+          <div className="material-bento p-4 rounded-lg space-y-3">
             <div className="flex items-center justify-between">
               <h4 className="font-medium text-lg">{selectedOverlay.code}</h4>
               <Badge variant={selectedOverlay.cod <= 15 ? "secondary" : "destructive"} className="text-xs">

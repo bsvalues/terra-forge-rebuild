@@ -85,7 +85,7 @@ export function AxiomFSMetrics({ files }: AxiomFSMetricsProps) {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: index * 0.05 }}
-          className="glass-card rounded-lg p-4"
+          className="material-bento rounded-lg p-4"
         >
           <div className="flex items-center gap-3">
             <div className={`p-2 rounded-lg ${metric.color}`}>

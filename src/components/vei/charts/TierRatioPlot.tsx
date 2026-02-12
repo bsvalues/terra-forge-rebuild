@@ -36,7 +36,7 @@ export function TierRatioPlot({ data }: TierRatioPlotProps) {
       const deviation = ((item.median - 1) * 100).toFixed(2);
       
       return (
-        <div className="glass-card p-3 rounded-lg border border-border min-w-[200px]">
+        <div className="material-bento p-3 rounded-lg border border-border min-w-[200px]">
           <p className="text-sm font-medium text-foreground mb-2">{item.tier}</p>
           <div className="space-y-1">
             <div className="flex justify-between">

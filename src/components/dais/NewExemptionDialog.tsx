@@ -128,7 +128,7 @@ export function NewExemptionDialog({ open, onOpenChange }: NewExemptionDialogPro
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="glass-card border-tf-border max-w-lg">
+      <DialogContent className="material-bento border-border/50 max-w-lg">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <ClipboardCheck className="w-5 h-5 text-tf-gold" />
