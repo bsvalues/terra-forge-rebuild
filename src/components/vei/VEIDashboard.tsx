@@ -17,10 +17,11 @@ import {
   TierSlopeDrilldownDialog,
   AppealsDrilldownDialog 
 } from "./drilldown";
-import { Activity, TrendingUp, BarChart3, AlertTriangle, Percent, Target, Filter } from "lucide-react";
+import { Activity, TrendingUp, BarChart3, AlertTriangle, Percent, Target, Filter, Info } from "lucide-react";
 import { useRatioAnalysis, useTaxYears, type OutlierMethod } from "@/hooks/useRatioAnalysis";
 import { useHistoricalRatioTrend, useAppealsByValueTier } from "@/hooks/useHistoricalRatioTrend";
 import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -212,28 +213,40 @@ export function VEIDashboard() {
               onStartDateChange={setSalesStartDate}
               onEndDateChange={setSalesEndDate}
             />
-            <div className="flex items-center gap-1 rounded-lg border border-border/50 p-0.5">
-              <button
-                onClick={() => setOutlierMethod("bounds")}
-                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
-                  outlierMethod === "bounds"
-                    ? "bg-tf-cyan/20 text-tf-cyan"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                Bounds Filter
-              </button>
-              <button
-                onClick={() => setOutlierMethod("iqr")}
-                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
-                  outlierMethod === "iqr"
-                    ? "bg-tf-cyan/20 text-tf-cyan"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                IQR Filter
-              </button>
-            </div>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="flex items-center gap-1 rounded-lg border border-border/50 p-0.5">
+                    <button
+                      onClick={() => setOutlierMethod("bounds")}
+                      className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+                        outlierMethod === "bounds"
+                          ? "bg-tf-cyan/20 text-tf-cyan"
+                          : "text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      Bounds Filter
+                    </button>
+                    <button
+                      onClick={() => setOutlierMethod("iqr")}
+                      className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+                        outlierMethod === "iqr"
+                          ? "bg-tf-cyan/20 text-tf-cyan"
+                          : "text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      IQR Filter
+                    </button>
+                    <Info className="w-3.5 h-3.5 text-muted-foreground ml-1 mr-1" />
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="max-w-xs text-xs leading-relaxed">
+                  <p className="font-semibold mb-1">Outlier Exclusion Methods</p>
+                  <p><span className="font-medium text-tf-cyan">Bounds Filter:</span> Excludes ratios below 0.10 or above 10.0 — a fixed range removing extreme outliers.</p>
+                  <p className="mt-1"><span className="font-medium text-tf-cyan">IQR Filter:</span> Excludes ratios beyond 1.5× the interquartile range — a dynamic, distribution-aware method recommended by IAAO Standard on Ratio Studies.</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
             <VEIExportActions data={exportData} />
           </div>
         </motion.div>
@@ -316,7 +329,7 @@ export function VEIDashboard() {
           {/* PRD Trend */}
           <motion.div 
             variants={itemVariants} 
-            className="glass-card rounded-lg p-6 cursor-pointer hover:border-tf-cyan/30 transition-colors"
+            className="material-bento rounded-lg p-6 cursor-pointer hover:border-tf-cyan/30 transition-colors"
             onClick={() => setActiveDrilldown("prd")}
           >
             <div className="flex items-center justify-between mb-4">
@@ -337,7 +350,7 @@ export function VEIDashboard() {
           {/* COD Trend */}
           <motion.div 
             variants={itemVariants} 
-            className="glass-card rounded-lg p-6 cursor-pointer hover:border-tf-cyan/30 transition-colors"
+            className="material-bento rounded-lg p-6 cursor-pointer hover:border-tf-cyan/30 transition-colors"
             onClick={() => setActiveDrilldown("cod")}
           >
             <div className="flex items-center justify-between mb-4">
@@ -359,7 +372,7 @@ export function VEIDashboard() {
         {/* Tier Ratio Plot */}
         <motion.div 
           variants={itemVariants} 
-          className="glass-card rounded-lg p-6 cursor-pointer hover:border-tf-cyan/30 transition-colors"
+          className="material-bento rounded-lg p-6 cursor-pointer hover:border-tf-cyan/30 transition-colors"
           onClick={() => setActiveDrilldown("tier")}
         >
           <div className="flex items-center justify-between mb-4">

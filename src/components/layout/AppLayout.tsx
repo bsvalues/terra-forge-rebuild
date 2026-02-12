@@ -9,6 +9,7 @@ import { VEIDashboard } from "@/components/vei/VEIDashboard";
 import { PropertyWorkbench } from "@/components/workbench";
 import { GeoEquityDashboard } from "@/components/geoequity/GeoEquityDashboard";
 import { CommandBriefing } from "@/components/dashboard/CommandBriefing";
+import { useContextMode } from "@/hooks/useContextMode";
 
 export function AppLayout() {
   const [activeModule, setActiveModule] = useState("dashboard");
@@ -20,6 +21,13 @@ export function AppLayout() {
   } | null>(null);
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const [controlCenterOpen, setControlCenterOpen] = useState(false);
+
+  // Phase 5: Context Mode — resolves the active Canonical Scene
+  const currentScene = useContextMode({
+    activeModule,
+    workMode: "overview", // TODO: wire to WorkbenchContext when lifting work mode to OS level
+    hasParcel: !!pendingParcel,
+  });
 
   const handleGeoParcelSelect = useCallback(
     (parcel: { id: string; parcelNumber: string; address: string; assessedValue: number }) => {
