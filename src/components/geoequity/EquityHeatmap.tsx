@@ -1,7 +1,8 @@
 import { useEffect, useRef, useMemo, useState, useCallback } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { Loader2, MapPin } from "lucide-react";
+import { Loader2, MapPin, Filter } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -90,10 +91,23 @@ export function EquityHeatmap({ studyPeriodId, onParcelSelect }: EquityHeatmapPr
         `<div style="font-size:12px"><strong>${o.code}</strong><br/>Parcels: ${o.parcelCount}<br/>Median: ${o.medianRatio.toFixed(3)}<br/>COD: <span style="color:${codStroke(o.cod)}">${o.cod.toFixed(1)}%</span><br/>PRD: ${o.prd.toFixed(3)}</div>`,
         { sticky: true }
       );
-      rect.on("click", () => setSelectedNbhd((prev) => (prev === o.code ? null : o.code)));
+      rect.on("click", () => handleNbhdSelect(o.code === selectedNbhd ? null : o.code));
       rect.addTo(layer);
     });
   }, [overlays, showOverlays, selectedNbhd]);
+
+  // Zoom to selected neighborhood
+  const handleNbhdSelect = useCallback((code: string | null) => {
+    setSelectedNbhd(code);
+    if (!code || !mapRef.current) return;
+    const o = overlays.find((n) => n.code === code);
+    if (!o) return;
+    const bounds = L.latLngBounds(
+      [o.boundingBox.minLat, o.boundingBox.minLng],
+      [o.boundingBox.maxLat, o.boundingBox.maxLng]
+    );
+    if (bounds.isValid()) mapRef.current.fitBounds(bounds, { padding: [40, 40], maxZoom: 16 });
+  }, [overlays]);
 
   // Draw pins
   useEffect(() => {
@@ -175,7 +189,32 @@ export function EquityHeatmap({ studyPeriodId, onParcelSelect }: EquityHeatmapPr
         <div ref={containerRef} className="w-full h-full z-0" style={{ background: "#0a0f14" }} />
 
         {/* Map Controls */}
-        <div className="absolute top-3 right-3 z-[1000] glass-card p-3 rounded-lg space-y-3">
+        <div className="absolute top-3 right-3 z-[1000] glass-card p-3 rounded-lg space-y-3 min-w-[200px]">
+          <div className="flex items-center gap-2">
+            <Filter className="w-3.5 h-3.5 text-tf-cyan" />
+            <Label className="text-xs font-medium">Neighborhood</Label>
+          </div>
+          <Select
+            value={selectedNbhd ?? "all"}
+            onValueChange={(v) => handleNbhdSelect(v === "all" ? null : v)}
+          >
+            <SelectTrigger className="h-8 text-xs bg-background border-tf-border">
+              <SelectValue placeholder="All Neighborhoods" />
+            </SelectTrigger>
+            <SelectContent className="z-[1100] bg-background border-tf-border">
+              <SelectItem value="all" className="text-xs">All Neighborhoods</SelectItem>
+              {overlays
+                .sort((a, b) => a.code.localeCompare(b.code))
+                .map((o) => (
+                  <SelectItem key={o.code} value={o.code} className="text-xs">
+                    <span className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full inline-block" style={{ backgroundColor: codStroke(o.cod) }} />
+                      {o.code} — COD {o.cod.toFixed(1)}%
+                    </span>
+                  </SelectItem>
+                ))}
+            </SelectContent>
+          </Select>
           <div className="flex items-center gap-2">
             <Switch id="pins" checked={showPins} onCheckedChange={setShowPins} />
             <Label htmlFor="pins" className="text-xs cursor-pointer">Parcel Pins</Label>
@@ -263,7 +302,7 @@ export function EquityHeatmap({ studyPeriodId, onParcelSelect }: EquityHeatmapPr
               .map((o) => (
                 <button
                   key={o.code}
-                  onClick={() => setSelectedNbhd(o.code === selectedNbhd ? null : o.code)}
+                  onClick={() => handleNbhdSelect(o.code === selectedNbhd ? null : o.code)}
                   className={`w-full text-left px-3 py-2 rounded text-xs flex items-center justify-between transition-colors ${
                     selectedNbhd === o.code ? "bg-tf-cyan/20 text-tf-cyan" : "hover:bg-tf-elevated text-foreground"
                   }`}
