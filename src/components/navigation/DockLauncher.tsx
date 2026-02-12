@@ -3,9 +3,7 @@ import { cn } from "@/lib/utils";
 import {
   Home,
   Database,
-  TrendingUp,
   Search,
-  Globe,
   LogOut,
 } from "lucide-react";
 import { useAuthContext } from "@/contexts/AuthContext";
@@ -17,11 +15,9 @@ interface DockLauncherProps {
 }
 
 const dockItems = [
-  { id: "dashboard", label: "Briefing", icon: Home, shortcut: "⌘1" },
-  { id: "ids", label: "IDS", icon: Database, shortcut: "⌘2" },
-  { id: "vei", label: "VEI", icon: TrendingUp, shortcut: "⌘3" },
-  { id: "workbench", label: "Workbench", icon: Search, shortcut: "⌘4" },
-  { id: "geoequity", label: "GeoEquity", icon: Globe, shortcut: "⌘5" },
+  { id: "dashboard", label: "Home", icon: Home, shortcut: "⌘1" },
+  { id: "workbench", label: "Workbench", icon: Search, shortcut: "⌘2" },
+  { id: "ids", label: "IDS", icon: Database, shortcut: "⌘3" },
 ];
 
 export function DockLauncher({ activeModule, onModuleChange }: DockLauncherProps) {

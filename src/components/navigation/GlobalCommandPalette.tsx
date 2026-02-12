@@ -29,10 +29,8 @@ interface GlobalCommandPaletteProps {
 
 const MODULE_ITEMS = [
   { id: "dashboard", label: "Command Briefing", icon: Home, shortcut: "1" },
-  { id: "ids", label: "Intelligent Data Suite", icon: Database, shortcut: "2" },
-  { id: "vei", label: "Vertical Equity Index", icon: TrendingUp, shortcut: "3" },
-  { id: "workbench", label: "Property Workbench", icon: Search, shortcut: "4" },
-  { id: "geoequity", label: "GeoEquity", icon: Globe, shortcut: "5" },
+  { id: "workbench", label: "Property Workbench", icon: Search, shortcut: "2" },
+  { id: "ids", label: "Intelligent Data Suite", icon: Database, shortcut: "3" },
 ];
 
 export function GlobalCommandPalette({
