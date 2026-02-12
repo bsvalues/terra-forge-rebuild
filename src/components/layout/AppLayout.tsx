@@ -1,24 +1,43 @@
 import { useState, useCallback } from "react";
-import { SovereignSidebar } from "@/components/navigation/SovereignSidebar";
-import { SovereignHeader } from "@/components/navigation/SovereignHeader";
+import { motion, AnimatePresence } from "framer-motion";
+import { TopSystemBar } from "@/components/navigation/TopSystemBar";
+import { DockLauncher } from "@/components/navigation/DockLauncher";
+import { GlobalCommandPalette } from "@/components/navigation/GlobalCommandPalette";
+import { ControlCenter } from "@/components/navigation/ControlCenter";
 import { IDSCommandCenter } from "@/components/ids/IDSCommandCenter";
 import { VEIDashboard } from "@/components/vei/VEIDashboard";
 import { PropertyWorkbench } from "@/components/workbench";
 import { GeoEquityDashboard } from "@/components/geoequity/GeoEquityDashboard";
 import { CommandBriefing } from "@/components/dashboard/CommandBriefing";
-import { cn } from "@/lib/utils";
 
 export function AppLayout() {
   const [activeModule, setActiveModule] = useState("dashboard");
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [pendingParcel, setPendingParcel] = useState<{ id: string; parcelNumber: string; address: string; assessedValue: number } | null>(null);
+  const [pendingParcel, setPendingParcel] = useState<{
+    id: string;
+    parcelNumber: string;
+    address: string;
+    assessedValue: number;
+  } | null>(null);
+  const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
+  const [controlCenterOpen, setControlCenterOpen] = useState(false);
 
-  const handleGeoParcelSelect = useCallback((parcel: { id: string; parcelNumber: string; address: string; assessedValue: number }) => {
-    setPendingParcel(parcel);
-    setActiveModule("workbench");
-  }, []);
+  const handleGeoParcelSelect = useCallback(
+    (parcel: { id: string; parcelNumber: string; address: string; assessedValue: number }) => {
+      setPendingParcel(parcel);
+      setActiveModule("workbench");
+    },
+    []
+  );
 
-  const renderModule = () => {
+  const handleParcelNavigate = useCallback(
+    (parcel: { id: string; parcelNumber: string; address: string; assessedValue: number }) => {
+      setPendingParcel(parcel);
+      setActiveModule("workbench");
+    },
+    []
+  );
+
+  const renderStage = () => {
     switch (activeModule) {
       case "dashboard":
         return <CommandBriefing onNavigate={setActiveModule} />;
@@ -27,7 +46,12 @@ export function AppLayout() {
       case "vei":
         return <VEIDashboard />;
       case "workbench":
-        return <PropertyWorkbench initialParcel={pendingParcel} onParcelConsumed={() => setPendingParcel(null)} />;
+        return (
+          <PropertyWorkbench
+            initialParcel={pendingParcel}
+            onParcelConsumed={() => setPendingParcel(null)}
+          />
+        );
       case "geoequity":
         return <GeoEquityDashboard onNavigateToWorkbench={handleGeoParcelSelect} />;
       default:
@@ -36,33 +60,42 @@ export function AppLayout() {
   };
 
   return (
-    <div className="flex h-screen bg-background overflow-hidden">
-      <SovereignSidebar
+    <div className="flex flex-col h-screen bg-background overflow-hidden">
+      {/* Top System Bar */}
+      <TopSystemBar
+        onOpenCommandPalette={() => setCommandPaletteOpen(true)}
+        onOpenControlCenter={() => setControlCenterOpen(true)}
+      />
+
+      {/* Stage — Full-width workspace */}
+      <main className="flex-1 overflow-auto pb-16">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeModule}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.2 }}
+          >
+            {renderStage()}
+          </motion.div>
+        </AnimatePresence>
+      </main>
+
+      {/* Dock Launcher — Bottom navigation */}
+      <DockLauncher activeModule={activeModule} onModuleChange={setActiveModule} />
+
+      {/* Global Command Palette */}
+      <GlobalCommandPalette
+        open={commandPaletteOpen}
+        onOpenChange={setCommandPaletteOpen}
         activeModule={activeModule}
         onModuleChange={setActiveModule}
-        collapsed={sidebarCollapsed}
-        onCollapsedChange={setSidebarCollapsed}
+        onNavigateToParcel={handleParcelNavigate}
       />
-      <main
-        className={cn(
-          "flex-1 flex flex-col overflow-hidden transition-all duration-300",
-          sidebarCollapsed ? "ml-[72px]" : "ml-[280px]"
-        )}
-      >
-        <SovereignHeader
-          moduleTitle={
-            activeModule === "dashboard" ? "Command Briefing" :
-            activeModule === "ids" ? "Intelligent Data Suite" :
-            activeModule === "vei" ? "Vertical Equity Index" :
-            activeModule === "workbench" ? "Property Workbench" :
-            activeModule === "geoequity" ? "GeoEquity" :
-            "TerraFusion"
-          }
-        />
-        <div className="flex-1 overflow-auto">
-          {renderModule()}
-        </div>
-      </main>
+
+      {/* Control Center Drawer */}
+      <ControlCenter open={controlCenterOpen} onOpenChange={setControlCenterOpen} />
     </div>
   );
 }

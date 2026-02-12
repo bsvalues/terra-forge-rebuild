@@ -256,6 +256,140 @@
     color: hsl(var(--tf-muse-purple));
   }
 
+  /* ========================================
+     4-LAYER MATERIAL SYSTEM
+     Shell / Bento / Interactive / Signal
+     ======================================== */
+
+  /* Layer 1: Shell — Glass for OS chrome ONLY */
+  .material-shell {
+    background: hsl(var(--tf-glass) / 0.7);
+    backdrop-filter: blur(40px) saturate(180%);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    border: 1px solid hsl(var(--tf-transcend-cyan) / 0.08);
+    box-shadow: 
+      0 8px 32px hsl(var(--tf-substrate) / 0.4),
+      inset 0 1px 0 hsl(255 100% 100% / 0.03);
+  }
+
+  /* Layer 1 Frost Fallback — solid fill for low-power */
+  .material-frost {
+    background: hsl(var(--tf-glass));
+    border: 1px solid hsl(var(--tf-transcend-cyan) / 0.08);
+    box-shadow: 0 8px 32px hsl(var(--tf-substrate) / 0.4);
+  }
+
+  /* Layer 2: Bento — Solid elevated surface for data cards */
+  .material-bento {
+    background: hsl(var(--tf-surface));
+    border: 1px solid hsl(var(--border));
+    box-shadow: 0 2px 12px hsl(var(--tf-substrate) / 0.3);
+    border-radius: var(--radius);
+    will-change: transform;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .material-bento:hover {
+    border-color: hsl(var(--tf-transcend-cyan) / 0.2);
+    box-shadow: 0 4px 20px hsl(var(--tf-substrate) / 0.4);
+  }
+
+  /* Layer 3: Interactive — Commitment actions ONLY */
+  .material-interactive {
+    background: linear-gradient(135deg, 
+      hsl(var(--tf-transcend-cyan)) 0%, 
+      hsl(var(--tf-bright-cyan)) 100%
+    );
+    color: hsl(var(--tf-substrate));
+    font-weight: 600;
+    box-shadow: 0 4px 16px hsl(var(--tf-transcend-cyan) / 0.3);
+    border: none;
+    cursor: pointer;
+  }
+
+  .material-interactive:hover {
+    box-shadow: 
+      0 8px 24px hsl(var(--tf-transcend-cyan) / 0.4),
+      0 0 0 1px hsl(var(--tf-bright-cyan) / 0.2);
+  }
+
+  /* Layer 4: Signal — Neon alerts for critical system states */
+  .material-signal {
+    position: relative;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+  }
+
+  .material-signal::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: currentColor;
+    opacity: 0.08;
+    border-radius: inherit;
+    pointer-events: none;
+  }
+
+  .signal-cyan {
+    color: hsl(var(--tf-transcend-cyan));
+    text-shadow: 0 0 12px hsl(var(--tf-transcend-cyan) / 0.5);
+  }
+
+  .signal-gold {
+    color: hsl(var(--tf-sacred-gold));
+    text-shadow: 0 0 12px hsl(var(--tf-sacred-gold) / 0.5);
+  }
+
+  .signal-red {
+    color: hsl(var(--tf-warning-red));
+    text-shadow: 0 0 12px hsl(var(--tf-warning-red) / 0.5);
+  }
+
+  .signal-green {
+    color: hsl(var(--tf-optimized-green));
+    text-shadow: 0 0 12px hsl(var(--tf-optimized-green) / 0.5);
+  }
+
+  /* ========================================
+     DOCK LAUNCHER
+     macOS-style bottom navigation
+     ======================================== */
+  .dock-launcher {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 50;
+    padding: 6px 12px;
+    border-radius: 20px 20px 0 0;
+  }
+
+  .dock-item {
+    @apply relative flex flex-col items-center justify-center px-3 py-2 rounded-xl cursor-pointer;
+    transition: transform 0.15s ease;
+  }
+
+  .dock-item:hover {
+    transform: translateY(-4px);
+  }
+
+  .dock-item[data-active="true"] {
+    background: hsl(var(--tf-transcend-cyan) / 0.12);
+  }
+
+  .dock-item[data-active="true"]::after {
+    content: '';
+    position: absolute;
+    bottom: 2px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: hsl(var(--tf-transcend-cyan));
+    box-shadow: 0 0 6px hsl(var(--tf-transcend-cyan) / 0.6);
+  }
+
   /* Quantum Glow Effects */
   .quantum-glow {
     box-shadow: 
@@ -291,7 +425,7 @@
 
   /* Metric Cards */
   .metric-card {
-    @apply glass-card rounded-xl p-4;
+    @apply material-bento p-4;
   }
 
   /* Status Indicators */
