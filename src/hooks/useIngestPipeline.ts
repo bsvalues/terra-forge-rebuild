@@ -6,7 +6,7 @@ import Papa from "papaparse";
 import * as XLSX from "xlsx";
 
 export type IngestStep = "select" | "upload" | "mapping" | "validate" | "preview" | "publish" | "complete";
-export type TargetTable = "parcels" | "sales" | "assessments";
+export type TargetTable = "parcels" | "sales" | "assessments" | "combined";
 
 export interface ParsedFile {
   headers: string[];
@@ -68,6 +68,7 @@ const HOLY_TRINITY: Record<TargetTable, string[]> = {
   parcels: ["parcel_number", "assessed_value", "address"],
   sales: ["parcel_number", "sale_price", "sale_date"],
   assessments: ["parcel_number", "total_value", "tax_year"],
+  combined: ["parcel_number", "assessed_value", "address", "sale_price", "sale_date"],
 };
 
 const TARGET_SCHEMAS: Record<TargetTable, { name: string; label: string; type: string }[]> = {
@@ -110,6 +111,35 @@ const TARGET_SCHEMAS: Record<TargetTable, { name: string; label: string; type: s
     { name: "assessment_date", label: "Assessment Date", type: "date" },
     { name: "assessment_reason", label: "Assessment Reason", type: "string" },
   ],
+  combined: [
+    // Parcel fields
+    { name: "parcel_number", label: "Parcel Number", type: "string" },
+    { name: "address", label: "Situs Address", type: "string" },
+    { name: "city", label: "City", type: "string" },
+    { name: "state", label: "State", type: "string" },
+    { name: "zip_code", label: "ZIP Code", type: "string" },
+    { name: "property_class", label: "Property Class", type: "string" },
+    { name: "assessed_value", label: "Total Assessed Value", type: "number" },
+    { name: "land_value", label: "Land Value", type: "number" },
+    { name: "improvement_value", label: "Improvement Value", type: "number" },
+    { name: "land_area", label: "Land Area (sqft)", type: "number" },
+    { name: "building_area", label: "Building Area (sqft)", type: "number" },
+    { name: "year_built", label: "Year Built", type: "number" },
+    { name: "bedrooms", label: "Bedrooms", type: "number" },
+    { name: "bathrooms", label: "Bathrooms", type: "number" },
+    { name: "neighborhood_code", label: "Neighborhood Code", type: "string" },
+    { name: "latitude", label: "Latitude", type: "number" },
+    { name: "longitude", label: "Longitude", type: "number" },
+    // Sales fields
+    { name: "sale_date", label: "Sale Date", type: "date" },
+    { name: "sale_price", label: "Sale Price", type: "number" },
+    { name: "sale_type", label: "Sale Type", type: "string" },
+    { name: "grantor", label: "Grantor (Seller)", type: "string" },
+    { name: "grantee", label: "Grantee (Buyer)", type: "string" },
+    { name: "deed_type", label: "Deed Type", type: "string" },
+    { name: "instrument_number", label: "Instrument Number", type: "string" },
+    { name: "is_qualified", label: "Qualified Sale", type: "boolean" },
+  ],
 };
 
 export function useIngestPipeline() {
@@ -122,6 +152,9 @@ export function useIngestPipeline() {
   const [jobId, setJobId] = useState<string | null>(null);
   const [publishing, setPublishing] = useState(false);
   const [publishProgress, setPublishProgress] = useState(0);
+
+  // Combined mode: detect if file has both parcel and sales fields
+  const [detectedCombined, setDetectedCombined] = useState(false);
 
   const schema = TARGET_SCHEMAS[targetTable];
   const holyTrinity = HOLY_TRINITY[targetTable];
@@ -283,6 +316,20 @@ export function useIngestPipeline() {
       // Auto-map fields
       const autoMappings = autoMapFields(parsed.headers);
       setMappings(autoMappings);
+
+      // Auto-detect combined mode: check if mapped fields span both parcel and sales domains
+      if (targetTable === "combined") {
+        const mappedTargets = new Set(autoMappings.filter(m => m.targetColumn).map(m => m.targetColumn));
+        const hasParcelFields = mappedTargets.has("parcel_number") && (mappedTargets.has("assessed_value") || mappedTargets.has("address"));
+        const hasSalesFields = mappedTargets.has("sale_price") || mappedTargets.has("sale_date");
+        setDetectedCombined(hasParcelFields && hasSalesFields);
+        if (hasParcelFields && hasSalesFields) {
+          toast.success(`🔀 Combined mode detected! Found parcel + sales fields in ${parsed.rowCount.toLocaleString()} rows.`);
+        } else {
+          toast.warning("Combined mode selected but file doesn't appear to contain both parcel and sales fields. You may want to switch to a single import mode.");
+        }
+      }
+      
       setStep("mapping");
       
       toast.success(`Parsed ${parsed.rowCount.toLocaleString()} rows from ${file.name}`);
@@ -391,10 +438,74 @@ export function useIngestPipeline() {
     let failed = 0;
     const errors: string[] = [];
 
-    // For sales, we need to join parcel_number → parcel_id
-    // Paginate to fetch ALL parcels (Supabase default limit is 1000)
-    let parcelLookup: Record<string, string> = {};
-    if (targetTable === "sales" || targetTable === "assessments") {
+    const PARCEL_FIELDS = new Set(TARGET_SCHEMAS.parcels.map(f => f.name));
+    const SALES_FIELDS = new Set(TARGET_SCHEMAS.sales.map(f => f.name));
+
+    // Helper: parse a value based on field type
+    const parseVal = (val: unknown, field: { type: string }) => {
+      if (val === "" || val === null || val === undefined) return null;
+      if (field.type === "number") {
+        const num = parseFloat(String(val).replace(/[,$]/g, ""));
+        return isNaN(num) ? null : num;
+      }
+      if (field.type === "boolean") {
+        const s = String(val).toLowerCase();
+        return ["true", "yes", "1", "y"].includes(s);
+      }
+      if (field.type === "date") {
+        const d = new Date(String(val));
+        return !isNaN(d.getTime()) ? d.toISOString().split("T")[0] : null;
+      }
+      return val;
+    };
+
+    // Helper: upsert a batch to a table
+    const upsertBatch = async (table: "parcels" | "sales" | "assessments", records: Record<string, unknown>[]) => {
+      const BATCH_SIZE = 500;
+      let batchImported = 0;
+      let batchFailed = 0;
+      for (let i = 0; i < records.length; i += BATCH_SIZE) {
+        const batch = records.slice(i, i + BATCH_SIZE);
+        const { error } = await supabase.from(table).upsert(batch as any[], {
+          onConflict: table === "parcels" ? "county_id,parcel_number" : undefined,
+        });
+        if (error) {
+          console.error(`Batch error (${table}):`, error.message);
+          batchFailed += batch.length;
+          errors.push(`${table}: ${error.message}`);
+        } else {
+          batchImported += batch.length;
+        }
+      }
+      return { imported: batchImported, failed: batchFailed };
+    };
+
+    if (targetTable === "combined") {
+      // ---- COMBINED MODE: Split into parcels + sales ----
+      // Phase 1: Build and upsert parcel records
+      const parcelDeduped = new Map<string, Record<string, unknown>>();
+      for (const row of parsedFile.rows) {
+        const record: Record<string, unknown> = { county_id: profile.county_id };
+        let parcelKey = "";
+        for (const mapping of activeMapping) {
+          if (!PARCEL_FIELDS.has(mapping.targetColumn)) continue;
+          const val = parseVal(row[mapping.sourceColumn], schema.find(f => f.name === mapping.targetColumn)!);
+          if (val === null) continue;
+          if (mapping.targetColumn === "parcel_number") parcelKey = String(val);
+          record[mapping.targetColumn] = val;
+        }
+        if (parcelKey) parcelDeduped.set(parcelKey, record);
+      }
+
+      const parcelRecords = Array.from(parcelDeduped.values());
+      toast.info(`Combined Import: Phase 1 — Publishing ${parcelRecords.length.toLocaleString()} parcels...`);
+      const parcelResult = await upsertBatch("parcels", parcelRecords);
+      imported += parcelResult.imported;
+      failed += parcelResult.failed;
+      setPublishProgress(40);
+
+      // Phase 2: Fetch parcel IDs for join
+      const parcelLookup: Record<string, string> = {};
       let offset = 0;
       const PAGE_SIZE = 1000;
       let hasMore = true;
@@ -405,88 +516,114 @@ export function useIngestPipeline() {
           .eq("county_id", profile.county_id)
           .range(offset, offset + PAGE_SIZE - 1);
         if (parcels && parcels.length > 0) {
-          for (const p of parcels) {
-            parcelLookup[p.parcel_number] = p.id;
-          }
+          for (const p of parcels) parcelLookup[p.parcel_number] = p.id;
           offset += parcels.length;
           hasMore = parcels.length === PAGE_SIZE;
         } else {
           hasMore = false;
         }
       }
-    }
+      setPublishProgress(50);
 
-    // Deduplicate by parcel_number within the dataset (keep last occurrence)
-    const deduped = new Map<string, Record<string, unknown>>();
-    for (const row of parsedFile.rows) {
-      const record: Record<string, unknown> = { county_id: profile.county_id };
-      let skip = false;
-      let parcelKey = "";
+      // Phase 3: Build and upsert sales records (only rows with sale_price & sale_date)
+      const salesRecords: Record<string, unknown>[] = [];
+      for (const row of parsedFile.rows) {
+        const record: Record<string, unknown> = { county_id: profile.county_id };
+        let hasPrice = false;
+        let hasDate = false;
+        let parcelNum = "";
 
-      for (const mapping of activeMapping) {
-        let val: unknown = row[mapping.sourceColumn];
-        const field = schema.find(f => f.name === mapping.targetColumn);
-        if (!field || val === "" || val === null || val === undefined) continue;
-
-        if (field.type === "number") {
-          val = parseFloat(String(val).replace(/[,$]/g, ""));
-          if (isNaN(val as number)) val = null;
-        }
-        if (field.type === "boolean") {
-          const s = String(val).toLowerCase();
-          val = ["true", "yes", "1", "y"].includes(s);
-        }
-        if (field.type === "date") {
-          const d = new Date(String(val));
-          if (!isNaN(d.getTime())) val = d.toISOString().split("T")[0];
-          else val = null;
+        for (const mapping of activeMapping) {
+          if (mapping.targetColumn === "parcel_number") {
+            parcelNum = String(row[mapping.sourceColumn] || "");
+            continue;
+          }
+          if (!SALES_FIELDS.has(mapping.targetColumn)) continue;
+          const val = parseVal(row[mapping.sourceColumn], schema.find(f => f.name === mapping.targetColumn)!);
+          if (val === null) continue;
+          record[mapping.targetColumn] = val;
+          if (mapping.targetColumn === "sale_price" && val && Number(val) > 0) hasPrice = true;
+          if (mapping.targetColumn === "sale_date") hasDate = true;
         }
 
-        // For sales/assessments, convert parcel_number to parcel_id
-        if (mapping.targetColumn === "parcel_number" && (targetTable === "sales" || targetTable === "assessments")) {
-          const pid = parcelLookup[String(val)];
+        if (hasPrice && hasDate && parcelNum) {
+          const pid = parcelLookup[parcelNum];
           if (pid) {
             record["parcel_id"] = pid;
-          } else {
-            skip = true;
-            break;
+            salesRecords.push(record);
           }
-          continue;
+        }
+      }
+
+      toast.info(`Combined Import: Phase 2 — Publishing ${salesRecords.length.toLocaleString()} sales...`);
+      const salesResult = await upsertBatch("sales", salesRecords);
+      imported += salesResult.imported;
+      failed += salesResult.failed;
+
+    } else {
+      // ---- SINGLE TABLE MODE (existing logic) ----
+      let parcelLookup: Record<string, string> = {};
+      if (targetTable === "sales" || targetTable === "assessments") {
+        let offset = 0;
+        const PAGE_SIZE = 1000;
+        let hasMore = true;
+        while (hasMore) {
+          const { data: parcels } = await supabase
+            .from("parcels")
+            .select("id, parcel_number")
+            .eq("county_id", profile.county_id)
+            .range(offset, offset + PAGE_SIZE - 1);
+          if (parcels && parcels.length > 0) {
+            for (const p of parcels) parcelLookup[p.parcel_number] = p.id;
+            offset += parcels.length;
+            hasMore = parcels.length === PAGE_SIZE;
+          } else {
+            hasMore = false;
+          }
+        }
+      }
+
+      const deduped = new Map<string, Record<string, unknown>>();
+      for (const row of parsedFile.rows) {
+        const record: Record<string, unknown> = { county_id: profile.county_id };
+        let skip = false;
+        let parcelKey = "";
+
+        for (const mapping of activeMapping) {
+          const field = schema.find(f => f.name === mapping.targetColumn);
+          if (!field) continue;
+          const val = parseVal(row[mapping.sourceColumn], field);
+          if (val === null) continue;
+
+          if (mapping.targetColumn === "parcel_number" && (targetTable === "sales" || targetTable === "assessments")) {
+            const pid = parcelLookup[String(val)];
+            if (pid) {
+              record["parcel_id"] = pid;
+            } else {
+              skip = true;
+              break;
+            }
+            continue;
+          }
+
+          if (mapping.targetColumn === "parcel_number") parcelKey = String(val);
+          record[mapping.targetColumn] = val;
         }
 
-        if (mapping.targetColumn === "parcel_number") parcelKey = String(val);
-        record[mapping.targetColumn] = val;
+        if (!skip && parcelKey) {
+          deduped.set(parcelKey, record);
+        } else if (!skip) {
+          deduped.set(`__row_${deduped.size}`, record);
+        } else {
+          failed++;
+        }
       }
 
-      if (!skip && parcelKey) {
-        deduped.set(parcelKey, record);
-      } else if (!skip) {
-        deduped.set(`__row_${deduped.size}`, record);
-      } else {
-        failed++;
-      }
-    }
-
-    const allRecords = Array.from(deduped.values());
-    const BATCH_SIZE = 500;
-
-    for (let i = 0; i < allRecords.length; i += BATCH_SIZE) {
-      const batch = allRecords.slice(i, i + BATCH_SIZE);
-
+      const allRecords = Array.from(deduped.values());
       const table = targetTable === "assessments" ? "assessments" : targetTable;
-      const { error } = await supabase.from(table).upsert(batch as any[], {
-        onConflict: targetTable === "parcels" ? "county_id,parcel_number" : undefined,
-      });
-
-      if (error) {
-        console.error("Batch error:", error.message);
-        failed += batch.length;
-        errors.push(error.message);
-      } else {
-        imported += batch.length;
-      }
-
-      setPublishProgress(Math.round(((i + BATCH_SIZE) / allRecords.length) * 100));
+      const result = await upsertBatch(table as "parcels" | "sales" | "assessments", allRecords);
+      imported += result.imported;
+      failed += result.failed;
     }
 
     // Update job
@@ -502,7 +639,12 @@ export function useIngestPipeline() {
     setPublishProgress(100);
     setPublishing(false);
     setStep("complete");
-    toast.success(`Published ${imported.toLocaleString()} records. ${failed > 0 ? `${failed} failed.` : ""}`);
+
+    if (targetTable === "combined") {
+      toast.success(`Combined import complete! ${imported.toLocaleString()} records published (parcels + sales). ${failed > 0 ? `${failed} failed.` : ""}`);
+    } else {
+      toast.success(`Published ${imported.toLocaleString()} records. ${failed > 0 ? `${failed} failed.` : ""}`);
+    }
   }, [parsedFile, mappings, schema, profile, targetTable, jobId]);
 
   const reset = useCallback(() => {
@@ -524,6 +666,7 @@ export function useIngestPipeline() {
     jobId,
     publishing, publishProgress,
     schema, holyTrinity,
+    detectedCombined,
     handleFileUpload,
     validateData,
     publishData,

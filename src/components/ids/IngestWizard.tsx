@@ -94,15 +94,19 @@ export function IngestWizard() {
         </Card>
 
         <h3 className="text-lg font-medium">What are you importing?</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {([
             { id: "parcels" as TargetTable, label: "County Roll / Parcels", desc: "Property records, values, and characteristics", icon: "🏠" },
             { id: "sales" as TargetTable, label: "Sales Stream", desc: "Arms-length transaction history for ratio studies", icon: "💰" },
             { id: "assessments" as TargetTable, label: "Assessments", desc: "Assessment values by tax year", icon: "📋" },
+            { id: "combined" as TargetTable, label: "Combined Import", desc: "Auto-split file with both parcel & sales data into two parallel jobs", icon: "🔀" },
           ]).map((item) => (
             <Card
               key={item.id}
-              className="bg-tf-elevated/50 border-tf-border hover:border-tf-cyan/50 cursor-pointer transition-all"
+              className={cn(
+                "bg-tf-elevated/50 border-tf-border hover:border-tf-cyan/50 cursor-pointer transition-all",
+                item.id === "combined" && "border-tf-gold/30 bg-gradient-to-br from-tf-gold/5 to-tf-cyan/5"
+              )}
               onClick={() => {
                 pipeline.setTargetTable(item.id);
                 pipeline.setStep("upload");
@@ -112,6 +116,9 @@ export function IngestWizard() {
                 <span className="text-4xl mb-4 block">{item.icon}</span>
                 <h4 className="font-medium mb-1">{item.label}</h4>
                 <p className="text-xs text-muted-foreground">{item.desc}</p>
+                {item.id === "combined" && (
+                  <Badge className="mt-2 bg-tf-gold/20 text-tf-gold border-tf-gold/30 text-xs">AI Auto-Split</Badge>
+                )}
               </CardContent>
             </Card>
           ))}
@@ -446,9 +453,15 @@ export function IngestWizard() {
 
             <Card className="bg-tf-gold/10 border-tf-gold/30">
               <CardContent className="p-4">
-                <p className="text-sm text-tf-gold">
-                  <strong>⚠ Publish is permanent.</strong> This will upsert {pipeline.parsedFile.rowCount.toLocaleString()} records into the <code>{pipeline.targetTable}</code> table. Existing records with matching parcel numbers will be updated.
-                </p>
+                {pipeline.targetTable === "combined" ? (
+                  <p className="text-sm text-tf-gold">
+                    <strong>🔀 Combined Import:</strong> This will first upsert {pipeline.parsedFile.rowCount.toLocaleString()} parcel records, then extract and publish sales records from the same file. Existing parcels with matching IDs will be updated.
+                  </p>
+                ) : (
+                  <p className="text-sm text-tf-gold">
+                    <strong>⚠ Publish is permanent.</strong> This will upsert {pipeline.parsedFile.rowCount.toLocaleString()} records into the <code>{pipeline.targetTable}</code> table. Existing records with matching parcel numbers will be updated.
+                  </p>
+                )}
               </CardContent>
             </Card>
 
@@ -468,7 +481,9 @@ export function IngestWizard() {
             <Card className="bg-tf-elevated/50 border-tf-border">
               <CardContent className="p-12 text-center">
                 <Loader2 className="w-12 h-12 mx-auto mb-4 text-tf-cyan animate-spin" />
-                <h3 className="text-lg font-medium mb-2">Publishing to {pipeline.targetTable}...</h3>
+                <h3 className="text-lg font-medium mb-2">
+                  {pipeline.targetTable === "combined" ? "Publishing Parcels + Sales..." : `Publishing to ${pipeline.targetTable}...`}
+                </h3>
                 <p className="text-sm text-muted-foreground mb-6">Writing records to the database</p>
                 <Progress value={pipeline.publishProgress} className="w-full max-w-md mx-auto" />
                 <p className="text-sm text-muted-foreground mt-2">{pipeline.publishProgress}%</p>
