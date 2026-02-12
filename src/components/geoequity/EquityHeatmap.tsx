@@ -160,28 +160,7 @@ export function EquityHeatmap({ studyPeriodId, onParcelSelect }: EquityHeatmapPr
 
   const selectedOverlay = overlays.find((o) => o.code === selectedNbhd);
 
-  if (isLoading) {
-    return (
-      <div className="w-full h-full flex items-center justify-center bg-tf-substrate">
-        <div className="text-center">
-          <Loader2 className="w-10 h-10 mx-auto mb-3 text-tf-cyan animate-spin" />
-          <p className="text-sm text-muted-foreground">Loading equity map data...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (pins.length === 0 && overlays.length === 0) {
-    return (
-      <div className="w-full h-full flex items-center justify-center bg-tf-substrate">
-        <div className="text-center">
-          <MapPin className="w-10 h-10 mx-auto mb-3 text-muted-foreground" />
-          <p className="text-sm text-muted-foreground">No parcels with coordinates found</p>
-          <p className="text-xs text-muted-foreground mt-1">Import parcels with lat/lng to visualize equity</p>
-        </div>
-      </div>
-    );
-  }
+  const isEmpty = !isLoading && pins.length === 0 && overlays.length === 0;
 
   return (
     <div className="w-full h-full flex">
@@ -189,6 +168,26 @@ export function EquityHeatmap({ studyPeriodId, onParcelSelect }: EquityHeatmapPr
       <div className="flex-1 relative">
         <div ref={containerRef} className="w-full h-full z-0" style={{ background: "#0a0f14" }} />
 
+        {/* Loading overlay */}
+        {isLoading && (
+          <div className="absolute inset-0 z-[900] flex items-center justify-center bg-tf-substrate/80">
+            <div className="text-center">
+              <Loader2 className="w-10 h-10 mx-auto mb-3 text-tf-cyan animate-spin" />
+              <p className="text-sm text-muted-foreground">Loading equity map data...</p>
+            </div>
+          </div>
+        )}
+
+        {/* Empty overlay */}
+        {isEmpty && (
+          <div className="absolute inset-0 z-[900] flex items-center justify-center bg-tf-substrate/80">
+            <div className="text-center">
+              <MapPin className="w-10 h-10 mx-auto mb-3 text-muted-foreground" />
+              <p className="text-sm text-muted-foreground">No parcels with coordinates found</p>
+              <p className="text-xs text-muted-foreground mt-1">Import parcels with lat/lng to visualize equity</p>
+            </div>
+          </div>
+        )}
         {/* Map Controls */}
         <div className="absolute top-3 right-3 z-[1000] glass-card p-3 rounded-lg space-y-3 min-w-[200px]">
           <div className="flex items-center gap-2">
