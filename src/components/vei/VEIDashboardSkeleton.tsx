@@ -41,7 +41,7 @@ export function VEIDashboardSkeleton() {
       {/* Metrics Row Skeleton */}
       <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {[1, 2, 3, 4].map((i) => (
-          <div key={i} className="glass-card rounded-lg p-4 space-y-3">
+          <div key={i} className="material-bento rounded-lg p-4 space-y-3">
             <div className="flex items-center justify-between">
               <Skeleton className="h-4 w-24" />
               <Skeleton className="h-8 w-8 rounded-full" />
@@ -59,7 +59,7 @@ export function VEIDashboardSkeleton() {
       {/* Charts Grid Skeleton */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {[1, 2].map((i) => (
-          <motion.div key={i} variants={itemVariants} className="glass-card rounded-lg p-6">
+          <motion.div key={i} variants={itemVariants} className="material-bento rounded-lg p-6">
             <div className="flex items-center justify-between mb-4">
               <div className="space-y-2">
                 <Skeleton className="h-5 w-32" />
@@ -76,7 +76,7 @@ export function VEIDashboardSkeleton() {
       </div>
 
       {/* Tier Ratio Plot Skeleton */}
-      <motion.div variants={itemVariants} className="glass-card rounded-lg p-6">
+      <motion.div variants={itemVariants} className="material-bento rounded-lg p-6">
         <div className="flex items-center justify-between mb-4">
           <div className="space-y-2">
             <Skeleton className="h-5 w-32" />

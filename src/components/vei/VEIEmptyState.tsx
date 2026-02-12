@@ -8,7 +8,7 @@ export function VEIEmptyState() {
       animate={{ opacity: 1, y: 0 }}
       className="p-6"
     >
-      <div className="glass-card rounded-lg p-12 text-center max-w-2xl mx-auto">
+      <div className="material-bento rounded-lg p-12 text-center max-w-2xl mx-auto">
         <div className="flex justify-center mb-6">
           <div className="relative">
             <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center">
