@@ -14,11 +14,14 @@ export interface RatioStatistics {
   tier_slope: number | null;
 }
 
+export type OutlierMethod = "bounds" | "iqr";
+
 export interface RatioAnalysisParams {
   taxYear?: number;
   salesStartDate?: string;
   salesEndDate?: string;
   neighborhoodCode?: string | null;
+  outlierMethod?: OutlierMethod;
 }
 
 /**
@@ -32,17 +35,19 @@ export function useRatioAnalysis(params: RatioAnalysisParams = {}) {
     salesStartDate = new Date(Date.now() - 24 * 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 24 months ago
     salesEndDate = new Date().toISOString().split('T')[0],
     neighborhoodCode = null,
+    outlierMethod = "bounds",
   } = params;
 
   return useQuery({
-    queryKey: ["ratio-analysis", taxYear, salesStartDate, salesEndDate, neighborhoodCode],
+    queryKey: ["ratio-analysis", taxYear, salesStartDate, salesEndDate, neighborhoodCode, outlierMethod],
     queryFn: async () => {
       const { data, error } = await supabase.rpc("compute_ratio_statistics", {
         p_tax_year: taxYear,
         p_sales_start_date: salesStartDate,
         p_sales_end_date: salesEndDate,
         p_neighborhood_code: neighborhoodCode,
-      });
+        p_outlier_method: outlierMethod,
+      } as any);
 
       if (error) throw error;
       

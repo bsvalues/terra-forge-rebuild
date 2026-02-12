@@ -152,6 +152,7 @@ export function useIngestPipeline() {
   const [jobId, setJobId] = useState<string | null>(null);
   const [publishing, setPublishing] = useState(false);
   const [publishProgress, setPublishProgress] = useState(0);
+  const [publishPhase, setPublishPhase] = useState<string>("");
 
   // Combined mode: detect if file has both parcel and sales fields
   const [detectedCombined, setDetectedCombined] = useState(false);
@@ -431,6 +432,7 @@ export function useIngestPipeline() {
 
     setPublishing(true);
     setPublishProgress(0);
+    setPublishPhase("");
     setStep("publish");
 
     const activeMapping = mappings.filter(m => m.targetColumn);
@@ -498,13 +500,27 @@ export function useIngestPipeline() {
       }
 
       const parcelRecords = Array.from(parcelDeduped.values());
+      setPublishPhase(`Phase 1: Publishing ${parcelRecords.length.toLocaleString()} parcels...`);
       toast.info(`Combined Import: Phase 1 — Publishing ${parcelRecords.length.toLocaleString()} parcels...`);
-      const parcelResult = await upsertBatch("parcels", parcelRecords);
-      imported += parcelResult.imported;
-      failed += parcelResult.failed;
-      setPublishProgress(40);
+      
+      // Phase 1 upsert with progress tracking
+      const BATCH_SIZE = 500;
+      let phase1Done = 0;
+      for (let i = 0; i < parcelRecords.length; i += BATCH_SIZE) {
+        const batch = parcelRecords.slice(i, i + BATCH_SIZE);
+        const { error } = await supabase.from("parcels").upsert(batch as any[], { onConflict: "county_id,parcel_number" });
+        if (error) {
+          failed += batch.length;
+          errors.push(`parcels: ${error.message}`);
+        } else {
+          imported += batch.length;
+        }
+        phase1Done += batch.length;
+        setPublishProgress(Math.round((phase1Done / parcelRecords.length) * 40));
+      }
 
-      // Phase 2: Fetch parcel IDs for join
+      // Phase 1.5: Fetch parcel IDs for join
+      setPublishPhase("Resolving parcel IDs for sales join...");
       const parcelLookup: Record<string, string> = {};
       let offset = 0;
       const PAGE_SIZE = 1000;
@@ -555,10 +571,23 @@ export function useIngestPipeline() {
         }
       }
 
+      setPublishPhase(`Phase 2: Publishing ${salesRecords.length.toLocaleString()} sales...`);
       toast.info(`Combined Import: Phase 2 — Publishing ${salesRecords.length.toLocaleString()} sales...`);
-      const salesResult = await upsertBatch("sales", salesRecords);
-      imported += salesResult.imported;
-      failed += salesResult.failed;
+      
+      // Phase 2 upsert with progress tracking
+      let phase2Done = 0;
+      for (let i = 0; i < salesRecords.length; i += BATCH_SIZE) {
+        const batch = salesRecords.slice(i, i + BATCH_SIZE);
+        const { error } = await supabase.from("sales").upsert(batch as any[]);
+        if (error) {
+          failed += batch.length;
+          errors.push(`sales: ${error.message}`);
+        } else {
+          imported += batch.length;
+        }
+        phase2Done += batch.length;
+        setPublishProgress(50 + Math.round((phase2Done / Math.max(salesRecords.length, 1)) * 50));
+      }
 
     } else {
       // ---- SINGLE TABLE MODE (existing logic) ----
@@ -637,6 +666,7 @@ export function useIngestPipeline() {
     }
 
     setPublishProgress(100);
+    setPublishPhase("Complete!");
     setPublishing(false);
     setStep("complete");
 
@@ -655,6 +685,7 @@ export function useIngestPipeline() {
     setJobId(null);
     setPublishing(false);
     setPublishProgress(0);
+    setPublishPhase("");
   }, []);
 
   return {
@@ -664,7 +695,7 @@ export function useIngestPipeline() {
     mappings, setMappings,
     validation,
     jobId,
-    publishing, publishProgress,
+    publishing, publishProgress, publishPhase,
     schema, holyTrinity,
     detectedCombined,
     handleFileUpload,
