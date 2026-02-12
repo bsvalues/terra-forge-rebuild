@@ -1,8 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
-import { MapContainer, TileLayer, CircleMarker, Rectangle, Tooltip as LTooltip, useMap } from "react-leaflet";
-import { LatLngBounds } from "leaflet";
+import { useEffect, useRef, useMemo, useState, useCallback } from "react";
+import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { Loader2, MapPin, TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { Loader2, MapPin } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -22,28 +21,18 @@ function ratioColor(ratio: number | null): string {
   return "#ef4444";
 }
 
-function codColor(cod: number): string {
-  if (cod <= 10) return "rgba(16, 185, 129, 0.25)";
-  if (cod <= 15) return "rgba(245, 158, 11, 0.25)";
-  if (cod <= 20) return "rgba(249, 115, 22, 0.25)";
-  return "rgba(239, 68, 68, 0.25)";
+function codFill(cod: number): string {
+  if (cod <= 10) return "rgba(16,185,129,0.25)";
+  if (cod <= 15) return "rgba(245,158,11,0.25)";
+  if (cod <= 20) return "rgba(249,115,22,0.25)";
+  return "rgba(239,68,68,0.25)";
 }
 
-function codBorderColor(cod: number): string {
+function codStroke(cod: number): string {
   if (cod <= 10) return "#10b981";
   if (cod <= 15) return "#f59e0b";
   if (cod <= 20) return "#f97316";
   return "#ef4444";
-}
-
-function FitBounds({ bounds }: { bounds: LatLngBounds | null }) {
-  const map = useMap();
-  useEffect(() => {
-    if (bounds && bounds.isValid()) {
-      map.fitBounds(bounds, { padding: [30, 30], maxZoom: 14 });
-    }
-  }, [map, bounds]);
-  return null;
 }
 
 export function EquityHeatmap({ studyPeriodId, onParcelSelect }: EquityHeatmapProps) {
@@ -53,27 +42,105 @@ export function EquityHeatmap({ studyPeriodId, onParcelSelect }: EquityHeatmapPr
   const [showOverlays, setShowOverlays] = useState(true);
   const [selectedNbhd, setSelectedNbhd] = useState<string | null>(null);
 
+  const mapRef = useRef<L.Map | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const pinLayerRef = useRef<L.LayerGroup>(L.layerGroup());
+  const overlayLayerRef = useRef<L.LayerGroup>(L.layerGroup());
+
   const isLoading = pinsLoading || overlaysLoading;
 
-  const bounds = useMemo(() => {
+  // Init map
+  useEffect(() => {
+    if (!containerRef.current || mapRef.current) return;
+    const map = L.map(containerRef.current, {
+      center: [46.28, -119.28],
+      zoom: 12,
+    });
+    L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+      attribution: '&copy; <a href="https://carto.com">CARTO</a>',
+    }).addTo(map);
+    pinLayerRef.current.addTo(map);
+    overlayLayerRef.current.addTo(map);
+    mapRef.current = map;
+
+    return () => {
+      map.remove();
+      mapRef.current = null;
+    };
+  }, []);
+
+  // Draw overlays
+  useEffect(() => {
+    const layer = overlayLayerRef.current;
+    layer.clearLayers();
+    if (!showOverlays) return;
+
+    overlays.forEach((o) => {
+      const rect = L.rectangle(
+        [[o.boundingBox.minLat, o.boundingBox.minLng], [o.boundingBox.maxLat, o.boundingBox.maxLng]],
+        {
+          color: codStroke(o.cod),
+          weight: selectedNbhd === o.code ? 3 : 1.5,
+          fillColor: codFill(o.cod),
+          fillOpacity: selectedNbhd === o.code ? 0.4 : 0.15,
+          dashArray: selectedNbhd === o.code ? undefined : "4 4",
+        }
+      );
+      rect.bindTooltip(
+        `<div style="font-size:12px"><strong>${o.code}</strong><br/>Parcels: ${o.parcelCount}<br/>Median: ${o.medianRatio.toFixed(3)}<br/>COD: <span style="color:${codStroke(o.cod)}">${o.cod.toFixed(1)}%</span><br/>PRD: ${o.prd.toFixed(3)}</div>`,
+        { sticky: true }
+      );
+      rect.on("click", () => setSelectedNbhd((prev) => (prev === o.code ? null : o.code)));
+      rect.addTo(layer);
+    });
+  }, [overlays, showOverlays, selectedNbhd]);
+
+  // Draw pins
+  useEffect(() => {
+    const layer = pinLayerRef.current;
+    layer.clearLayers();
+    if (!showPins) return;
+
+    pins.forEach((pin) => {
+      const marker = L.circleMarker([pin.lat, pin.lng], {
+        radius: 5,
+        color: ratioColor(pin.ratio),
+        fillColor: ratioColor(pin.ratio),
+        fillOpacity: 0.8,
+        weight: 1,
+      });
+      marker.bindTooltip(
+        `<div style="font-size:11px"><strong>${pin.parcelNumber}</strong><br/>${pin.address}<br/>$${pin.assessedValue.toLocaleString()}${pin.ratio !== null ? `<br/>Ratio: <strong>${pin.ratio.toFixed(3)}</strong>` : ""}</div>`
+      );
+      marker.on("click", () => {
+        onParcelSelect?.({
+          id: pin.id,
+          parcelNumber: pin.parcelNumber,
+          address: pin.address,
+          assessedValue: pin.assessedValue,
+        });
+      });
+      marker.addTo(layer);
+    });
+  }, [pins, showPins, onParcelSelect]);
+
+  // Fit bounds
+  useEffect(() => {
+    if (!mapRef.current) return;
     const allLats = pins.map((p) => p.lat).concat(overlays.map((o) => o.centerLat));
     const allLngs = pins.map((p) => p.lng).concat(overlays.map((o) => o.centerLng));
-    if (allLats.length === 0) return null;
-    return new LatLngBounds(
+    if (allLats.length === 0) return;
+    const bounds = L.latLngBounds(
       [Math.min(...allLats) - 0.01, Math.min(...allLngs) - 0.01],
       [Math.max(...allLats) + 0.01, Math.max(...allLngs) + 0.01]
     );
+    if (bounds.isValid()) mapRef.current.fitBounds(bounds, { padding: [30, 30], maxZoom: 14 });
   }, [pins, overlays]);
 
   const summary = useMemo(() => {
     const withRatio = pins.filter((p) => p.ratio !== null);
     const compliant = overlays.filter((o) => o.cod <= 15);
-    return {
-      totalPins: pins.length,
-      withRatio: withRatio.length,
-      compliant: compliant.length,
-      nonCompliant: overlays.length - compliant.length,
-    };
+    return { totalPins: pins.length, withRatio: withRatio.length, compliant: compliant.length, nonCompliant: overlays.length - compliant.length };
   }, [pins, overlays]);
 
   const selectedOverlay = overlays.find((o) => o.code === selectedNbhd);
@@ -105,87 +172,7 @@ export function EquityHeatmap({ studyPeriodId, onParcelSelect }: EquityHeatmapPr
     <div className="w-full h-full flex">
       {/* Map */}
       <div className="flex-1 relative">
-        <MapContainer
-          center={bounds ? bounds.getCenter() : [46.28, -119.28]}
-          zoom={12}
-          className="w-full h-full z-0"
-          style={{ background: "#0a0f14" }}
-        >
-          <TileLayer
-            attribution='&copy; <a href="https://carto.com">CARTO</a>'
-            url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-          />
-          <FitBounds bounds={bounds} />
-
-          {/* Neighborhood overlays */}
-          {showOverlays && overlays.map((o) => (
-            <Rectangle
-              key={o.code}
-              bounds={[
-                [o.boundingBox.minLat, o.boundingBox.minLng],
-                [o.boundingBox.maxLat, o.boundingBox.maxLng],
-              ]}
-              pathOptions={{
-                color: codBorderColor(o.cod),
-                weight: selectedNbhd === o.code ? 3 : 1.5,
-                fillColor: codColor(o.cod),
-                fillOpacity: selectedNbhd === o.code ? 0.4 : 0.15,
-                dashArray: selectedNbhd === o.code ? undefined : "4 4",
-              }}
-              eventHandlers={{
-                click: () => setSelectedNbhd(o.code === selectedNbhd ? null : o.code),
-              }}
-            >
-              <LTooltip sticky>
-                <div className="text-xs space-y-0.5 min-w-[140px]">
-                  <div className="font-semibold text-sm">{o.code}</div>
-                  <div className="flex justify-between"><span>Parcels:</span><span className="font-medium">{o.parcelCount}</span></div>
-                  <div className="flex justify-between"><span>Median Ratio:</span><span className="font-medium">{o.medianRatio.toFixed(3)}</span></div>
-                  <div className="flex justify-between"><span>COD:</span><span className="font-medium" style={{ color: codBorderColor(o.cod) }}>{o.cod.toFixed(1)}%</span></div>
-                  <div className="flex justify-between"><span>PRD:</span><span className="font-medium">{o.prd.toFixed(3)}</span></div>
-                  <div className="flex items-center gap-1 pt-0.5">
-                    {o.deviation > 0.02 ? <TrendingUp className="w-3 h-3 inline" /> : o.deviation < -0.02 ? <TrendingDown className="w-3 h-3 inline" /> : <Minus className="w-3 h-3 inline" />}
-                    <span>{o.deviation > 0 ? "+" : ""}{(o.deviation * 100).toFixed(1)}% from target</span>
-                  </div>
-                </div>
-              </LTooltip>
-            </Rectangle>
-          ))}
-
-          {/* Parcel pins */}
-          {showPins && pins.map((pin) => (
-            <CircleMarker
-              key={pin.id}
-              center={[pin.lat, pin.lng]}
-              radius={5}
-              pathOptions={{
-                color: ratioColor(pin.ratio),
-                fillColor: ratioColor(pin.ratio),
-                fillOpacity: 0.8,
-                weight: 1,
-              }}
-              eventHandlers={{
-                click: () => onParcelSelect?.({
-                  id: pin.id,
-                  parcelNumber: pin.parcelNumber,
-                  address: pin.address,
-                  assessedValue: pin.assessedValue,
-                }),
-              }}
-            >
-              <LTooltip>
-                <div className="text-xs space-y-0.5">
-                  <div className="font-semibold">{pin.parcelNumber}</div>
-                  <div>{pin.address}</div>
-                  <div>${pin.assessedValue.toLocaleString()}</div>
-                  {pin.ratio !== null && (
-                    <div>Ratio: <strong>{pin.ratio.toFixed(3)}</strong></div>
-                  )}
-                </div>
-              </LTooltip>
-            </CircleMarker>
-          ))}
-        </MapContainer>
+        <div ref={containerRef} className="w-full h-full z-0" style={{ background: "#0a0f14" }} />
 
         {/* Map Controls */}
         <div className="absolute top-3 right-3 z-[1000] glass-card p-3 rounded-lg space-y-3">
@@ -251,12 +238,12 @@ export function EquityHeatmap({ studyPeriodId, onParcelSelect }: EquityHeatmapPr
             <div className="grid grid-cols-2 gap-2 text-sm">
               <div><div className="text-xs text-muted-foreground">Parcels</div><div className="font-medium">{selectedOverlay.parcelCount}</div></div>
               <div><div className="text-xs text-muted-foreground">Median Ratio</div><div className="font-medium">{selectedOverlay.medianRatio.toFixed(3)}</div></div>
-              <div><div className="text-xs text-muted-foreground">COD</div><div className="font-medium" style={{ color: codBorderColor(selectedOverlay.cod) }}>{selectedOverlay.cod.toFixed(1)}%</div></div>
+              <div><div className="text-xs text-muted-foreground">COD</div><div className="font-medium" style={{ color: codStroke(selectedOverlay.cod) }}>{selectedOverlay.cod.toFixed(1)}%</div></div>
               <div><div className="text-xs text-muted-foreground">PRD</div><div className="font-medium">{selectedOverlay.prd.toFixed(3)}</div></div>
             </div>
             <div className="pt-2 border-t border-border/50">
               <div className="text-xs text-muted-foreground mb-1">Deviation from Target</div>
-              <div className="text-sm font-medium" style={{ color: codBorderColor(Math.abs(selectedOverlay.deviation) * 100) }}>
+              <div className="text-sm font-medium" style={{ color: codStroke(Math.abs(selectedOverlay.deviation) * 100) }}>
                 {selectedOverlay.deviation > 0 ? "+" : ""}{(selectedOverlay.deviation * 100).toFixed(1)}%
               </div>
             </div>
@@ -284,7 +271,7 @@ export function EquityHeatmap({ studyPeriodId, onParcelSelect }: EquityHeatmapPr
                   <span className="font-medium">{o.code}</span>
                   <div className="flex items-center gap-2">
                     <span className="text-muted-foreground">{o.parcelCount}p</span>
-                    <span style={{ color: codBorderColor(o.cod) }}>{o.cod.toFixed(1)}%</span>
+                    <span style={{ color: codStroke(o.cod) }}>{o.cod.toFixed(1)}%</span>
                   </div>
                 </button>
               ))}
