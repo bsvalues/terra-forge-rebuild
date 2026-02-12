@@ -392,14 +392,27 @@ export function useIngestPipeline() {
     const errors: string[] = [];
 
     // For sales, we need to join parcel_number → parcel_id
+    // Paginate to fetch ALL parcels (Supabase default limit is 1000)
     let parcelLookup: Record<string, string> = {};
     if (targetTable === "sales" || targetTable === "assessments") {
-      const { data: parcels } = await supabase
-        .from("parcels")
-        .select("id, parcel_number")
-        .eq("county_id", profile.county_id);
-      if (parcels) {
-        parcelLookup = Object.fromEntries(parcels.map(p => [p.parcel_number, p.id]));
+      let offset = 0;
+      const PAGE_SIZE = 1000;
+      let hasMore = true;
+      while (hasMore) {
+        const { data: parcels } = await supabase
+          .from("parcels")
+          .select("id, parcel_number")
+          .eq("county_id", profile.county_id)
+          .range(offset, offset + PAGE_SIZE - 1);
+        if (parcels && parcels.length > 0) {
+          for (const p of parcels) {
+            parcelLookup[p.parcel_number] = p.id;
+          }
+          offset += parcels.length;
+          hasMore = parcels.length === PAGE_SIZE;
+        } else {
+          hasMore = false;
+        }
       }
     }
 
