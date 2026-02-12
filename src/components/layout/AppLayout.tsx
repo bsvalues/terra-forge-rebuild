@@ -5,9 +5,7 @@ import { DockLauncher } from "@/components/navigation/DockLauncher";
 import { GlobalCommandPalette } from "@/components/navigation/GlobalCommandPalette";
 import { ControlCenter } from "@/components/navigation/ControlCenter";
 import { IDSCommandCenter } from "@/components/ids/IDSCommandCenter";
-import { VEIDashboard } from "@/components/vei/VEIDashboard";
 import { PropertyWorkbench } from "@/components/workbench";
-import { GeoEquityDashboard } from "@/components/geoequity/GeoEquityDashboard";
 import { CommandBriefing } from "@/components/dashboard/CommandBriefing";
 import { useContextMode } from "@/hooks/useContextMode";
 
@@ -22,20 +20,11 @@ export function AppLayout() {
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const [controlCenterOpen, setControlCenterOpen] = useState(false);
 
-  // Phase 5: Context Mode — resolves the active Canonical Scene
   const currentScene = useContextMode({
     activeModule,
-    workMode: "overview", // TODO: wire to WorkbenchContext when lifting work mode to OS level
+    workMode: "overview",
     hasParcel: !!pendingParcel,
   });
-
-  const handleGeoParcelSelect = useCallback(
-    (parcel: { id: string; parcelNumber: string; address: string; assessedValue: number }) => {
-      setPendingParcel(parcel);
-      setActiveModule("workbench");
-    },
-    []
-  );
 
   const handleParcelNavigate = useCallback(
     (parcel: { id: string; parcelNumber: string; address: string; assessedValue: number }) => {
@@ -51,8 +40,6 @@ export function AppLayout() {
         return <CommandBriefing onNavigate={setActiveModule} />;
       case "ids":
         return <IDSCommandCenter />;
-      case "vei":
-        return <VEIDashboard />;
       case "workbench":
         return (
           <PropertyWorkbench
@@ -60,8 +47,6 @@ export function AppLayout() {
             onParcelConsumed={() => setPendingParcel(null)}
           />
         );
-      case "geoequity":
-        return <GeoEquityDashboard onNavigateToWorkbench={handleGeoParcelSelect} />;
       default:
         return <CommandBriefing onNavigate={setActiveModule} />;
     }
