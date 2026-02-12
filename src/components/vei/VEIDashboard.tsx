@@ -17,9 +17,10 @@ import {
   TierSlopeDrilldownDialog,
   AppealsDrilldownDialog 
 } from "./drilldown";
-import { Activity, TrendingUp, BarChart3, AlertTriangle, Percent, Target } from "lucide-react";
-import { useRatioAnalysis, useTaxYears } from "@/hooks/useRatioAnalysis";
+import { Activity, TrendingUp, BarChart3, AlertTriangle, Percent, Target, Filter } from "lucide-react";
+import { useRatioAnalysis, useTaxYears, type OutlierMethod } from "@/hooks/useRatioAnalysis";
 import { useHistoricalRatioTrend, useAppealsByValueTier } from "@/hooks/useHistoricalRatioTrend";
+import { Badge } from "@/components/ui/badge";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -42,6 +43,7 @@ export function VEIDashboard() {
   const [salesStartDate, setSalesStartDate] = useState<Date>(subMonths(new Date(), 24));
   const [salesEndDate, setSalesEndDate] = useState<Date>(new Date());
   const [activeDrilldown, setActiveDrilldown] = useState<DrilldownType>(null);
+  const [outlierMethod, setOutlierMethod] = useState<OutlierMethod>("bounds");
 
   const salesStartStr = format(salesStartDate, "yyyy-MM-dd");
   const salesEndStr = format(salesEndDate, "yyyy-MM-dd");
@@ -54,6 +56,7 @@ export function VEIDashboard() {
     taxYear: selectedYear,
     salesStartDate: salesStartStr,
     salesEndDate: salesEndStr,
+    outlierMethod,
   });
 
   // Fetch historical trend data (real multi-year queries)
@@ -209,6 +212,28 @@ export function VEIDashboard() {
               onStartDateChange={setSalesStartDate}
               onEndDateChange={setSalesEndDate}
             />
+            <div className="flex items-center gap-1 rounded-lg border border-border/50 p-0.5">
+              <button
+                onClick={() => setOutlierMethod("bounds")}
+                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+                  outlierMethod === "bounds"
+                    ? "bg-tf-cyan/20 text-tf-cyan"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                Bounds Filter
+              </button>
+              <button
+                onClick={() => setOutlierMethod("iqr")}
+                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+                  outlierMethod === "iqr"
+                    ? "bg-tf-cyan/20 text-tf-cyan"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                IQR Filter
+              </button>
+            </div>
             <VEIExportActions data={exportData} />
           </div>
         </motion.div>

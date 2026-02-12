@@ -484,6 +484,9 @@ export function IngestWizard() {
                 <h3 className="text-lg font-medium mb-2">
                   {pipeline.targetTable === "combined" ? "Publishing Parcels + Sales..." : `Publishing to ${pipeline.targetTable}...`}
                 </h3>
+                {pipeline.publishPhase && (
+                  <p className="text-sm text-tf-cyan mb-2 font-medium">{pipeline.publishPhase}</p>
+                )}
                 <p className="text-sm text-muted-foreground mb-6">Writing records to the database</p>
                 <Progress value={pipeline.publishProgress} className="w-full max-w-md mx-auto" />
                 <p className="text-sm text-muted-foreground mt-2">{pipeline.publishProgress}%</p>
