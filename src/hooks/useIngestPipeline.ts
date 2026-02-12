@@ -387,7 +387,6 @@ export function useIngestPipeline() {
     setStep("publish");
 
     const activeMapping = mappings.filter(m => m.targetColumn);
-    const BATCH_SIZE = 100;
     let imported = 0;
     let failed = 0;
     const errors: string[] = [];
@@ -404,75 +403,77 @@ export function useIngestPipeline() {
       }
     }
 
-    for (let i = 0; i < parsedFile.rowCount; i += BATCH_SIZE) {
-      const batch = parsedFile.rows.slice(i, i + BATCH_SIZE);
-      const records: Record<string, unknown>[] = [];
+    // Deduplicate by parcel_number within the dataset (keep last occurrence)
+    const deduped = new Map<string, Record<string, unknown>>();
+    for (const row of parsedFile.rows) {
+      const record: Record<string, unknown> = { county_id: profile.county_id };
+      let skip = false;
+      let parcelKey = "";
 
-      for (const row of batch) {
-        const record: Record<string, unknown> = { county_id: profile.county_id };
-        let skip = false;
+      for (const mapping of activeMapping) {
+        let val: unknown = row[mapping.sourceColumn];
+        const field = schema.find(f => f.name === mapping.targetColumn);
+        if (!field || val === "" || val === null || val === undefined) continue;
 
-        for (const mapping of activeMapping) {
-          let val: unknown = row[mapping.sourceColumn];
-          const field = schema.find(f => f.name === mapping.targetColumn);
-          if (!field || val === "" || val === null || val === undefined) continue;
-
-          if (field.type === "number") {
-            val = parseFloat(String(val).replace(/[,$]/g, ""));
-            if (isNaN(val as number)) val = null;
-          }
-          if (field.type === "boolean") {
-            const s = String(val).toLowerCase();
-            val = ["true", "yes", "1", "y"].includes(s);
-          }
-          if (field.type === "date") {
-            const d = new Date(String(val));
-            if (!isNaN(d.getTime())) val = d.toISOString().split("T")[0];
-            else val = null;
-          }
-
-          // For sales/assessments, convert parcel_number to parcel_id
-          if (mapping.targetColumn === "parcel_number" && (targetTable === "sales" || targetTable === "assessments")) {
-            const pid = parcelLookup[String(val)];
-            if (pid) {
-              record["parcel_id"] = pid;
-            } else {
-              skip = true;
-              break;
-            }
-            continue;
-          }
-
-          record[mapping.targetColumn] = val;
+        if (field.type === "number") {
+          val = parseFloat(String(val).replace(/[,$]/g, ""));
+          if (isNaN(val as number)) val = null;
+        }
+        if (field.type === "boolean") {
+          const s = String(val).toLowerCase();
+          val = ["true", "yes", "1", "y"].includes(s);
+        }
+        if (field.type === "date") {
+          const d = new Date(String(val));
+          if (!isNaN(d.getTime())) val = d.toISOString().split("T")[0];
+          else val = null;
         }
 
-        if (!skip) records.push(record);
-        else failed++;
-      }
-
-      if (records.length > 0) {
-        const table = targetTable === "assessments" ? "assessments" : targetTable;
-        const { error } = await supabase.from(table).upsert(records as any[], {
-          onConflict: targetTable === "parcels" ? "county_id,parcel_number" : undefined,
-        });
-
-        if (error) {
-          // Fallback: insert one by one
-          for (const record of records) {
-            const { error: singleErr } = await supabase.from(table).insert(record as any);
-            if (singleErr) {
-              failed++;
-              errors.push(singleErr.message);
-            } else {
-              imported++;
-            }
+        // For sales/assessments, convert parcel_number to parcel_id
+        if (mapping.targetColumn === "parcel_number" && (targetTable === "sales" || targetTable === "assessments")) {
+          const pid = parcelLookup[String(val)];
+          if (pid) {
+            record["parcel_id"] = pid;
+          } else {
+            skip = true;
+            break;
           }
-        } else {
-          imported += records.length;
+          continue;
         }
+
+        if (mapping.targetColumn === "parcel_number") parcelKey = String(val);
+        record[mapping.targetColumn] = val;
       }
 
-      setPublishProgress(Math.round(((i + BATCH_SIZE) / parsedFile.rowCount) * 100));
+      if (!skip && parcelKey) {
+        deduped.set(parcelKey, record);
+      } else if (!skip) {
+        deduped.set(`__row_${deduped.size}`, record);
+      } else {
+        failed++;
+      }
+    }
+
+    const allRecords = Array.from(deduped.values());
+    const BATCH_SIZE = 500;
+
+    for (let i = 0; i < allRecords.length; i += BATCH_SIZE) {
+      const batch = allRecords.slice(i, i + BATCH_SIZE);
+
+      const table = targetTable === "assessments" ? "assessments" : targetTable;
+      const { error } = await supabase.from(table).upsert(batch as any[], {
+        onConflict: targetTable === "parcels" ? "county_id,parcel_number" : undefined,
+      });
+
+      if (error) {
+        console.error("Batch error:", error.message);
+        failed += batch.length;
+        errors.push(error.message);
+      } else {
+        imported += batch.length;
+      }
+
+      setPublishProgress(Math.round(((i + BATCH_SIZE) / allRecords.length) * 100));
     }
 
     // Update job

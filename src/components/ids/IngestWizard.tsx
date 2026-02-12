@@ -51,6 +51,7 @@ const STEP_ORDER: IngestStep[] = ["select", "upload", "mapping", "validate", "pr
 export function IngestWizard() {
   const pipeline = useIngestPipeline();
   const [isDragging, setIsDragging] = useState(false);
+  const [loadingSample, setLoadingSample] = useState(false);
 
   const stepIndex = STEP_ORDER.indexOf(pipeline.step);
 
@@ -167,10 +168,36 @@ export function IngestWizard() {
                   <Upload className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
                   <h3 className="text-lg font-medium mb-2">Drop your {pipeline.targetTable} file here</h3>
                   <p className="text-sm text-muted-foreground mb-4">CSV, TXT, or Excel (.xlsx) files • UTF-8 encoding</p>
-                  <input type="file" accept=".csv,.txt,.xlsx" onChange={handleFileInput} className="hidden" id="ingest-file" />
+                  <input type="file" accept=".csv,.txt,.xlsx,.xls" onChange={handleFileInput} className="hidden" id="ingest-file" />
                   <label htmlFor="ingest-file">
                     <Button variant="outline" asChild><span><FileSpreadsheet className="w-4 h-4 mr-2" />Browse Files</span></Button>
                   </label>
+                </div>
+                {/* Sample Data Loader */}
+                <div className="mt-4 pt-4 border-t border-tf-border">
+                  <p className="text-xs text-muted-foreground mb-2">Or load sample county data:</p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="border-tf-cyan/30 text-tf-cyan hover:bg-tf-cyan/10"
+                    disabled={loadingSample}
+                    onClick={async () => {
+                      setLoadingSample(true);
+                      try {
+                        const resp = await fetch("/uploads/benton-county-sales.csv");
+                        const blob = await resp.blob();
+                        const file = new File([blob], "benton-county-sales.csv", { type: "text/csv" });
+                        await pipeline.handleFileUpload(file);
+                      } catch (err) {
+                        console.error("Failed to load sample:", err);
+                      } finally {
+                        setLoadingSample(false);
+                      }
+                    }}
+                  >
+                    {loadingSample ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <FileSpreadsheet className="w-4 h-4 mr-2" />}
+                    Load Benton County WA (22K records)
+                  </Button>
                 </div>
               </CardContent>
             </Card>
