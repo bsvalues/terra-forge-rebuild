@@ -34,31 +34,34 @@ export interface ValidationResult {
 // Alias memory: common county field names → canonical target fields
 const FIELD_ALIASES: Record<string, string[]> = {
   parcel_number: ["parid", "apn", "parcel_id", "parcelid", "parcel_number", "parcel_no", "parcelno", "pin", "pid", "property_id", "prop_id", "account_number", "acct_no", "tax_id"],
-  address: ["situs", "situs_address", "situsaddress", "prop_addr", "property_address", "street_address", "location", "address", "addr", "situs_addr"],
+  address: ["situs", "situs_address", "situsaddress", "situs_display", "prop_addr", "property_address", "street_address", "location", "address", "addr", "situs_addr"],
   city: ["situs_city", "city", "situscity", "prop_city"],
   state: ["situs_state", "state", "situsstate", "prop_state"],
   zip_code: ["situs_zip", "zip", "zipcode", "zip_code", "situszip", "postal"],
-  property_class: ["prop_class", "property_class", "class", "class_code", "use_code", "land_use", "prop_type", "property_type"],
-  assessed_value: ["total_value", "totalvalue", "total_assessed", "assessed_value", "assessedvalue", "tot_val", "appraised_value", "market_value", "mkt_val", "fmv"],
-  land_value: ["land_value", "landvalue", "land_val", "land_assessed"],
-  improvement_value: ["improvement_value", "improvementvalue", "impr_value", "impr_val", "bldg_value", "building_value"],
-  land_area: ["land_area", "landarea", "lot_size", "lotsize", "lot_area", "acreage", "acres", "sqft_lot"],
-  building_area: ["building_area", "buildingarea", "sqft", "square_feet", "bldg_sqft", "living_area", "heated_sqft", "gross_area", "total_sqft"],
+  property_class: ["prop_class", "property_class", "class", "class_code", "use_code", "land_use", "prop_type", "property_type", "property_use_cd", "property_use_desc"],
+  assessed_value: ["total_value", "totalvalue", "total_assessed", "assessed_value", "assessedvalue", "tot_val", "appraised_value", "market_value", "mkt_val", "fmv", "totalmarketvalue", "total_market_value"],
+  land_value: ["land_value", "landvalue", "land_val", "land_assessed", "landval"],
+  improvement_value: ["improvement_value", "improvementvalue", "impr_value", "impr_val", "bldg_value", "building_value", "impval", "imprv_adjval"],
+  land_area: ["land_area", "landarea", "lot_size", "lotsize", "lot_area", "acreage", "acres", "sqft_lot", "land_sqft", "totalacres"],
+  building_area: ["building_area", "buildingarea", "sqft", "square_feet", "bldg_sqft", "living_area", "heated_sqft", "gross_area", "total_sqft", "totalarea"],
   year_built: ["year_built", "yearbuilt", "yr_built", "yrbuilt", "built_year"],
   bedrooms: ["bedrooms", "beds", "bed", "bedrms", "num_beds"],
   bathrooms: ["bathrooms", "baths", "bath", "bathrms", "num_baths", "full_baths"],
   neighborhood_code: ["neighborhood", "nbhd", "nbhd_code", "neighborhood_code", "nghbrhd", "area_code"],
   // Sales fields
   sale_date: ["sale_date", "saledate", "sold_date", "closing_date", "transfer_date", "recording_date", "rec_date"],
-  sale_price: ["sale_price", "saleprice", "sale_amt", "sold_price", "consideration", "sale_amount", "price"],
-  sale_type: ["sale_type", "saletype", "transaction_type", "conv_type"],
+  sale_price: ["sale_price", "saleprice", "sale_amt", "sold_price", "consideration", "sale_amount", "price", "adjustedsaleprice", "originalsaleprice"],
+  sale_type: ["sale_type", "saletype", "transaction_type", "conv_type", "sl_ratio_type_cd"],
   grantor: ["grantor", "seller", "seller_name", "from_name"],
   grantee: ["grantee", "buyer", "buyer_name", "to_name"],
-  deed_type: ["deed_type", "deedtype", "instrument_type", "doc_type"],
-  instrument_number: ["instrument_number", "instrument_no", "doc_number", "doc_no", "recording_number", "book_page"],
+  deed_type: ["deed_type", "deedtype", "instrument_type", "doc_type", "deed_type_cd"],
+  instrument_number: ["instrument_number", "instrument_no", "doc_number", "doc_no", "recording_number", "book_page", "excise_number"],
   is_qualified: ["qualified", "is_qualified", "arms_length", "valid_sale", "qual_sale"],
   // Assessment fields
   tax_year: ["tax_year", "taxyear", "year", "assessment_year", "roll_year"],
+  // Spatial fields
+  latitude: ["latitude", "lat", "ycoord", "y_coord", "y"],
+  longitude: ["longitude", "lng", "lon", "xcoord", "x_coord", "x"],
 };
 
 const HOLY_TRINITY: Record<TargetTable, string[]> = {
@@ -84,6 +87,8 @@ const TARGET_SCHEMAS: Record<TargetTable, { name: string; label: string; type: s
     { name: "bedrooms", label: "Bedrooms", type: "number" },
     { name: "bathrooms", label: "Bathrooms", type: "number" },
     { name: "neighborhood_code", label: "Neighborhood Code", type: "string" },
+    { name: "latitude", label: "Latitude", type: "number" },
+    { name: "longitude", label: "Longitude", type: "number" },
   ],
   sales: [
     { name: "parcel_number", label: "Parcel Number (join key)", type: "string" },
