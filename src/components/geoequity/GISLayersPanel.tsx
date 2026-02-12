@@ -53,7 +53,7 @@ export function GISLayersPanel({ layers, isLoading }: GISLayersPanelProps) {
 
   if (isLoading) {
     return (
-      <div className="glass-card rounded-lg p-12 text-center">
+      <div className="material-bento rounded-lg p-12 text-center">
         <Loader2 className="w-8 h-8 mx-auto mb-4 text-tf-cyan animate-spin" />
         <p className="text-muted-foreground">Loading layers...</p>
       </div>
@@ -62,7 +62,7 @@ export function GISLayersPanel({ layers, isLoading }: GISLayersPanelProps) {
 
   if (layers.length === 0) {
     return (
-      <div className="glass-card rounded-lg p-12 text-center">
+      <div className="material-bento rounded-lg p-12 text-center">
         <Layers className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
         <p className="text-muted-foreground">No GIS layers imported</p>
         <p className="text-xs text-muted-foreground mt-2">
@@ -82,7 +82,7 @@ export function GISLayersPanel({ layers, isLoading }: GISLayersPanelProps) {
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: index * 0.05 }}
-            className="glass-card rounded-lg p-4"
+            className="material-bento rounded-lg p-4"
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
@@ -131,7 +131,7 @@ export function GISLayersPanel({ layers, isLoading }: GISLayersPanelProps) {
       </div>
 
       {/* Summary */}
-      <div className="glass-card rounded-lg p-4">
+      <div className="material-bento rounded-lg p-4">
         <h4 className="text-sm font-medium text-foreground mb-3">Layer Summary</h4>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
           <div>

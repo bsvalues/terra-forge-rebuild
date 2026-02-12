@@ -131,7 +131,7 @@ export function AxiomFSDashboard() {
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.1 }}
-          className="lg:col-span-2 glass-card rounded-lg overflow-hidden"
+          className="lg:col-span-2 material-bento rounded-lg overflow-hidden"
           style={{ height: "500px" }}
         >
           {viewMode === "lattice" ? (

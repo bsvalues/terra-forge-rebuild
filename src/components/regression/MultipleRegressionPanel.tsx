@@ -18,7 +18,7 @@ export function MultipleRegressionPanel({ result, isLoading }: MultipleRegressio
 
   if (!result) {
     return (
-      <div className="glass-card rounded-lg p-8 text-center">
+      <div className="material-bento rounded-lg p-8 text-center">
         <p className="text-muted-foreground">
           No regression analysis available. Click "Run Analysis" to compute coefficients from assessment data.
         </p>
@@ -34,7 +34,7 @@ export function MultipleRegressionPanel({ result, isLoading }: MultipleRegressio
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="glass-card rounded-lg p-5"
+        className="material-bento rounded-lg p-5"
       >
         <h3 className="text-sm font-medium text-muted-foreground mb-3">Regression Equation</h3>
         <div className="p-4 bg-tf-elevated/50 rounded-lg font-mono text-sm overflow-x-auto">
@@ -48,7 +48,7 @@ export function MultipleRegressionPanel({ result, isLoading }: MultipleRegressio
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
       >
-        <Card className="glass-card">
+        <Card className="material-bento">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <CardTitle className="text-base">Coefficient Estimates</CardTitle>
@@ -96,7 +96,7 @@ export function MultipleRegressionPanel({ result, isLoading }: MultipleRegressio
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.2 }}
-          className="glass-card rounded-lg p-5"
+          className="material-bento rounded-lg p-5"
         >
           <h3 className="text-sm font-medium text-muted-foreground mb-4">Goodness of Fit</h3>
           <div className="space-y-3">
@@ -112,7 +112,7 @@ export function MultipleRegressionPanel({ result, isLoading }: MultipleRegressio
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.3 }}
-          className="glass-card rounded-lg p-5"
+          className="material-bento rounded-lg p-5"
         >
           <h3 className="text-sm font-medium text-muted-foreground mb-4">Hypothesis Tests</h3>
           <div className="space-y-3">
@@ -232,11 +232,11 @@ function StatRow({
 function RegressionSkeleton() {
   return (
     <div className="space-y-6">
-      <div className="glass-card rounded-lg p-5">
+      <div className="material-bento rounded-lg p-5">
         <Skeleton className="h-4 w-32 mb-3" />
         <Skeleton className="h-12 w-full" />
       </div>
-      <Card className="glass-card">
+      <Card className="material-bento">
         <CardHeader>
           <Skeleton className="h-5 w-48" />
         </CardHeader>

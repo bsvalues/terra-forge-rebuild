@@ -219,7 +219,7 @@ function CreateScheduleDialog({ onClose }: { onClose: () => void }) {
   };
 
   return (
-    <DialogContent className="sm:max-w-[500px] glass-card border-tf-border">
+    <DialogContent className="sm:max-w-[500px] material-bento border-tf-border">
       <DialogHeader>
         <DialogTitle className="flex items-center gap-2">
           <Calendar className="w-5 h-5 text-tf-cyan" />
@@ -376,7 +376,7 @@ export function ScheduledScrapeManager() {
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="glass-card rounded-xl p-4 border border-indigo-500/30 bg-indigo-500/10"
+        className="material-bento rounded-xl p-4 border border-indigo-500/30 bg-indigo-500/10"
       >
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-indigo-500/20 flex items-center justify-center">
@@ -393,7 +393,7 @@ export function ScheduledScrapeManager() {
       </motion.div>
 
       {/* Schedules Table */}
-      <Card className="glass-card border-tf-border">
+      <Card className="material-bento border-tf-border">
         <CardHeader className="pb-3">
           <CardTitle className="text-base flex items-center gap-2">
             <Clock className="w-4 h-4 text-tf-cyan" />

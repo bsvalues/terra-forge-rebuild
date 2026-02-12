@@ -112,7 +112,7 @@ export function DataSourcesPanel({ dataSources, isLoading }: DataSourcesPanelPro
 
   if (isLoading) {
     return (
-      <div className="glass-card rounded-lg p-12 text-center">
+      <div className="material-bento rounded-lg p-12 text-center">
         <Loader2 className="w-8 h-8 mx-auto mb-4 text-tf-cyan animate-spin" />
         <p className="text-muted-foreground">Loading data sources...</p>
       </div>
@@ -194,7 +194,7 @@ export function DataSourcesPanel({ dataSources, isLoading }: DataSourcesPanelPro
 
       {/* Sources List */}
       {dataSources.length === 0 ? (
-        <div className="glass-card rounded-lg p-12 text-center">
+        <div className="material-bento rounded-lg p-12 text-center">
           <Server className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
           <p className="text-muted-foreground">No data sources configured</p>
           <p className="text-xs text-muted-foreground mt-2">
@@ -209,7 +209,7 @@ export function DataSourcesPanel({ dataSources, isLoading }: DataSourcesPanelPro
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
-              className="glass-card rounded-lg p-4"
+              className="material-bento rounded-lg p-4"
             >
               <div className="flex items-start justify-between">
                 <div className="flex items-start gap-4">

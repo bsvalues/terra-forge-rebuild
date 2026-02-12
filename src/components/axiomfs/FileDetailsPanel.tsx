@@ -31,7 +31,7 @@ function getTypeLabel(type: FileNode["type"]): string {
 export function FileDetailsPanel({ file, onClose }: FileDetailsPanelProps) {
   if (!file) {
     return (
-      <Card className="glass-card h-full">
+      <Card className="material-bento h-full">
         <CardContent className="flex items-center justify-center h-full min-h-[400px]">
           <div className="text-center text-muted-foreground">
             <FolderOpen className="w-12 h-12 mx-auto mb-3 opacity-30" />
@@ -50,7 +50,7 @@ export function FileDetailsPanel({ file, onClose }: FileDetailsPanelProps) {
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -20 }}
       >
-        <Card className="glass-card">
+        <Card className="material-bento">
           <CardHeader className="pb-3">
             <div className="flex items-start justify-between">
               <div className="flex-1 min-w-0">

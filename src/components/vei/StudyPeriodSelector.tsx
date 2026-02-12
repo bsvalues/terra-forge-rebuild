@@ -61,7 +61,7 @@ export function StudyPeriodSelector({
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-[320px] justify-between glass-card border-border hover:border-tf-cyan/50 transition-colors"
+          className="w-[320px] justify-between material-bento border-border hover:border-tf-cyan/50 transition-colors"
           disabled={isLoading}
         >
           <div className="flex items-center gap-2 truncate">

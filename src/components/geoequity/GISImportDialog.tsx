@@ -156,7 +156,7 @@ export function GISImportDialog({ open, onOpenChange }: GISImportDialogProps) {
             </div>
 
             {/* Supported Formats */}
-            <div className="glass-card rounded-lg p-3">
+            <div className="material-bento rounded-lg p-3">
               <p className="text-xs text-muted-foreground mb-2">Supported Formats:</p>
               <div className="flex flex-wrap gap-2">
                 {getSupportedFormats().map((fmt) => (
@@ -219,7 +219,7 @@ export function GISImportDialog({ open, onOpenChange }: GISImportDialogProps) {
               />
             </div>
 
-            <div className="glass-card rounded-lg p-4 flex items-start gap-3">
+            <div className="material-bento rounded-lg p-4 flex items-start gap-3">
               <AlertCircle className="w-5 h-5 text-tf-sacred-gold flex-shrink-0 mt-0.5" />
               <div className="text-sm">
                 <p className="font-medium text-foreground">CORS Notice</p>

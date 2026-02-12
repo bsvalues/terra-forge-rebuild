@@ -201,7 +201,7 @@ export function DataQualityDashboard() {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card className="glass-card border-tf-border">
+        <Card className="material-bento border-tf-border">
           <CardContent className="pt-4">
             <div className="flex items-center gap-2 text-muted-foreground text-xs mb-1">
               <Database className="w-4 h-4" />
@@ -213,7 +213,7 @@ export function DataQualityDashboard() {
           </CardContent>
         </Card>
 
-        <Card className="glass-card border-tf-border">
+        <Card className="material-bento border-tf-border">
           <CardContent className="pt-4">
             <div className="flex items-center gap-2 text-muted-foreground text-xs mb-1">
               <TrendingUp className="w-4 h-4" />
@@ -225,7 +225,7 @@ export function DataQualityDashboard() {
           </CardContent>
         </Card>
 
-        <Card className="glass-card border-tf-border">
+        <Card className="material-bento border-tf-border">
           <CardContent className="pt-4">
             <div className="flex items-center gap-2 text-muted-foreground text-xs mb-1">
               <overallConfig.icon className="w-4 h-4" />
@@ -237,7 +237,7 @@ export function DataQualityDashboard() {
           </CardContent>
         </Card>
 
-        <Card className="glass-card border-tf-border">
+        <Card className="material-bento border-tf-border">
           <CardContent className="pt-4">
             <div className="flex items-center gap-2 text-muted-foreground text-xs mb-1">
               <Calendar className="w-4 h-4" />
@@ -255,7 +255,7 @@ export function DataQualityDashboard() {
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         className={cn(
-          "glass-card rounded-xl p-5 border-2",
+          "material-bento rounded-xl p-5 border-2",
           overallConfig.border,
           overallConfig.bg
         )}
@@ -291,7 +291,7 @@ export function DataQualityDashboard() {
       </motion.div>
 
       {/* Field Completeness Grid */}
-      <Card className="glass-card border-tf-border">
+      <Card className="material-bento border-tf-border">
         <CardHeader className="pb-3">
           <CardTitle className="text-base flex items-center gap-2">
             <Ruler className="w-4 h-4 text-tf-cyan" />
@@ -308,7 +308,7 @@ export function DataQualityDashboard() {
       </Card>
 
       {/* City/Location Breakdown */}
-      <Card className="glass-card border-tf-border">
+      <Card className="material-bento border-tf-border">
         <CardHeader className="pb-3">
           <CardTitle className="text-base flex items-center gap-2">
             <MapPin className="w-4 h-4 text-tf-cyan" />

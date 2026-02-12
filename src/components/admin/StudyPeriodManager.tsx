@@ -145,7 +145,7 @@ export function StudyPeriodManager() {
               key={status}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              className={cn("glass-card p-4 rounded-lg", config.bg)}
+              className={cn("material-bento p-4 rounded-lg", config.bg)}
             >
               <div className="flex items-center gap-3">
                 <div className={cn("p-2 rounded-lg", config.bg)}>
@@ -162,7 +162,7 @@ export function StudyPeriodManager() {
       </div>
 
       {/* Study Periods List */}
-      <div className="glass-card rounded-lg border border-border overflow-hidden">
+      <div className="material-bento rounded-lg border border-border overflow-hidden">
         <div className="p-4 border-b border-border bg-tf-elevated/30">
           <h2 className="text-sm font-medium text-foreground flex items-center gap-2">
             <Calendar className="w-4 h-4 text-tf-cyan" />

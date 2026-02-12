@@ -29,7 +29,7 @@ export function NeighborhoodEffectsPanel({ effects, isLoading }: NeighborhoodEff
 
   if (!effects || effects.length === 0) {
     return (
-      <div className="glass-card rounded-lg p-8 text-center">
+      <div className="material-bento rounded-lg p-8 text-center">
         <MapPin className="w-12 h-12 text-muted-foreground mx-auto mb-4 opacity-50" />
         <p className="text-muted-foreground">
           No neighborhood effects available. Run regression analysis to see geographic equity assessment.
@@ -59,7 +59,7 @@ export function NeighborhoodEffectsPanel({ effects, isLoading }: NeighborhoodEff
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="glass-card rounded-lg p-5"
+        className="material-bento rounded-lg p-5"
       >
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
@@ -100,7 +100,7 @@ export function NeighborhoodEffectsPanel({ effects, isLoading }: NeighborhoodEff
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="glass-card rounded-lg p-5"
+          className="material-bento rounded-lg p-5"
         >
           <h3 className="text-sm font-medium text-muted-foreground mb-4">
             Neighborhood Deviation from Baseline (%)
@@ -182,7 +182,7 @@ export function NeighborhoodEffectsPanel({ effects, isLoading }: NeighborhoodEff
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
       >
-        <Card className="glass-card">
+        <Card className="material-bento">
           <CardHeader className="pb-3">
             <CardTitle className="text-base">Neighborhood Coefficient Details</CardTitle>
           </CardHeader>
@@ -253,7 +253,7 @@ export function NeighborhoodEffectsPanel({ effects, isLoading }: NeighborhoodEff
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
-        className="glass-card rounded-lg p-5"
+        className="material-bento rounded-lg p-5"
       >
         <h3 className="text-sm font-medium text-muted-foreground mb-3">
           Geographic Equity Implications
@@ -326,14 +326,14 @@ function EquityImplication({
 function NeighborhoodSkeleton() {
   return (
     <div className="space-y-6">
-      <div className="glass-card rounded-lg p-5">
+      <div className="material-bento rounded-lg p-5">
         <Skeleton className="h-6 w-48 mb-2" />
         <Skeleton className="h-4 w-64" />
       </div>
-      <div className="glass-card rounded-lg p-5">
+      <div className="material-bento rounded-lg p-5">
         <Skeleton className="h-72 w-full" />
       </div>
-      <Card className="glass-card">
+      <Card className="material-bento">
         <CardHeader>
           <Skeleton className="h-5 w-48" />
         </CardHeader>

@@ -72,7 +72,7 @@ export default function Auth() {
         </div>
 
         {/* Form */}
-        <div className="glass-card rounded-2xl p-8">
+        <div className="material-bento rounded-2xl p-8">
           <h2 className="text-lg font-medium text-foreground mb-6">
             {isSignUp ? "Create Account" : "Welcome Back"}
           </h2>

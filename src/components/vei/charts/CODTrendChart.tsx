@@ -34,7 +34,7 @@ export function CODTrendChart({ data }: CODTrendChartProps) {
       const statusColor = codValue <= 10 ? "text-vei-excellent" : codValue <= 15 ? "text-vei-good" : "text-vei-caution";
       
       return (
-        <div className="glass-card p-3 rounded-lg border border-border">
+        <div className="material-bento p-3 rounded-lg border border-border">
           <p className="text-sm font-medium text-foreground">{label}</p>
           <p className="text-lg font-light text-tf-cyan">
             COD: {codValue?.toFixed(1)}%

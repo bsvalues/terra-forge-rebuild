@@ -66,7 +66,7 @@ export function TrainingProgressPanel() {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="glass-card rounded-lg p-6"
+      className="material-bento rounded-lg p-6"
     >
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-light text-foreground">Training Progress</h3>
