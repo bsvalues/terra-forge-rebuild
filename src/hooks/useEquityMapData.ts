@@ -1,5 +1,29 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import proj4 from "proj4";
+
+// EPSG:2286 — NAD83 / Washington South (ftUS)
+proj4.defs("EPSG:2286", "+proj=lcc +lat_0=45.3333333333333 +lon_0=-120.5 +lat_1=47.3333333333333 +lat_2=45.8333333333333 +x_0=500000.0001016001 +y_0=0 +datum=NAD83 +units=us-ft +no_defs");
+
+/**
+ * Detect if coordinates are State Plane (large values) vs WGS84 (small values)
+ * and convert accordingly.
+ */
+function toWgs84(latCol: number, lngCol: number): [number, number] {
+  if (Math.abs(latCol) > 1000 || Math.abs(lngCol) > 1000) {
+    // EPSG:2286 expects [easting, northing]; lngCol=easting, latCol=northing
+    const result = proj4("EPSG:2286", "WGS84", [lngCol, latCol]);
+    const [lng, lat] = result;
+    if (Math.abs(lat) <= 90 && Math.abs(lng) <= 180) {
+      return [lat, lng];
+    }
+    // Try swapped if first attempt gives invalid coords
+    const [lng2, lat2] = proj4("EPSG:2286", "WGS84", [latCol, lngCol]);
+    console.log("proj4 swap attempt:", { latCol, lngCol, lat2, lng2 });
+    return [lat2, lng2];
+  }
+  return [latCol, lngCol];
+}
 
 export interface ParcelPin {
   id: string;
@@ -68,17 +92,20 @@ export function useParcelPins(studyPeriodId?: string, limit = 1000) {
         }
       }
 
-      return parcels.map((p) => ({
-        id: p.id,
-        parcelNumber: p.parcel_number,
-        address: p.address,
-        lat: p.latitude!,
-        lng: p.longitude!,
-        assessedValue: p.assessed_value,
-        ratio: ratioMap.get(p.id) ?? null,
-        neighborhoodCode: p.neighborhood_code,
-        propertyClass: p.property_class,
-      }));
+      return parcels.map((p) => {
+        const [lat, lng] = toWgs84(p.latitude!, p.longitude!);
+        return {
+          id: p.id,
+          parcelNumber: p.parcel_number,
+          address: p.address,
+          lat,
+          lng,
+          assessedValue: p.assessed_value,
+          ratio: ratioMap.get(p.id) ?? null,
+          neighborhoodCode: p.neighborhood_code,
+          propertyClass: p.property_class,
+        };
+      });
     },
     staleTime: 120000,
   });
@@ -132,8 +159,9 @@ export function useNeighborhoodOverlays(studyPeriodId?: string) {
         const code = p.neighborhood_code!;
         if (!groups[code]) groups[code] = { ratios: [], lats: [], lngs: [], totalParcels: 0 };
         groups[code].totalParcels++;
-        groups[code].lats.push(p.latitude!);
-        groups[code].lngs.push(p.longitude!);
+        const [lat, lng] = toWgs84(p.latitude!, p.longitude!);
+        groups[code].lats.push(lat);
+        groups[code].lngs.push(lng);
         const ratio = ratioByParcel.get(p.id);
         if (ratio !== undefined && ratio > 0.3 && ratio < 2.5) {
           groups[code].ratios.push(ratio);

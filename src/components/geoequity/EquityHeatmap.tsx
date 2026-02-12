@@ -138,9 +138,10 @@ export function EquityHeatmap({ studyPeriodId, onParcelSelect }: EquityHeatmapPr
     });
   }, [pins, showPins, onParcelSelect]);
 
-  // Fit bounds
+  // Fit bounds + invalidate size
   useEffect(() => {
     if (!mapRef.current) return;
+    mapRef.current.invalidateSize();
     const allLats = pins.map((p) => p.lat).concat(overlays.map((o) => o.centerLat));
     const allLngs = pins.map((p) => p.lng).concat(overlays.map((o) => o.centerLng));
     if (allLats.length === 0) return;
