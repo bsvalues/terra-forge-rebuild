@@ -253,7 +253,7 @@ export function PermitsWorkflow() {
             isValue: true 
           },
         ].map((item) => (
-          <Card key={item.status} className="glass-card border-tf-border">
+          <Card key={item.status} className="material-bento border-tf-border">
             <CardContent className="pt-4">
               <div className="text-xs text-muted-foreground mb-1">{item.label}</div>
               <div className={cn("text-2xl font-light", item.color)}>
@@ -265,7 +265,7 @@ export function PermitsWorkflow() {
       </div>
 
       {/* Permits List */}
-      <Card className="glass-card border-tf-border">
+      <Card className="material-bento border-tf-border">
         <CardHeader className="pb-3">
           <CardTitle className="text-base flex items-center gap-2">
             <ClipboardList className="w-4 h-4 text-tf-green" />
@@ -362,7 +362,7 @@ export function PermitsWorkflow() {
 
       {/* Permit Detail Dialog */}
       <Dialog open={!!selectedPermit} onOpenChange={() => setSelectedPermit(null)}>
-        <DialogContent className="glass-card border-tf-border max-w-lg">
+        <DialogContent className="material-bento border-tf-border max-w-lg">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <FileCheck className="w-5 h-5 text-tf-green" />

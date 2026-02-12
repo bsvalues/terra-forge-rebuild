@@ -210,7 +210,7 @@ export function ScrapeJobsDashboard() {
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="glass-card rounded-lg p-4 border-2 border-tf-cyan/50"
+            className="material-bento rounded-lg p-4 border-2 border-tf-cyan/50"
           >
             <div className="flex items-start justify-between mb-4">
               <div className="flex items-center gap-3">

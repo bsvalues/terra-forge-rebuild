@@ -19,7 +19,7 @@ function isParcel(item: ParcelValuation | ValuationSegment): item is ParcelValua
 export function ValuationDetailsPanel({ item, onClose, onDrillDown }: ValuationDetailsPanelProps) {
   if (!item) {
     return (
-      <Card className="glass-card h-full">
+      <Card className="material-bento h-full">
         <CardContent className="flex items-center justify-center h-full">
           <div className="text-center text-muted-foreground">
             <Layers className="w-12 h-12 mx-auto mb-4 opacity-50" />
@@ -36,7 +36,7 @@ export function ValuationDetailsPanel({ item, onClose, onDrillDown }: ValuationD
   const features = item.features || [];
 
   return (
-    <Card className="glass-card h-full overflow-auto">
+    <Card className="material-bento h-full overflow-auto">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div>

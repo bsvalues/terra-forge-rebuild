@@ -137,7 +137,7 @@ export function ValuationAnatomyDashboard() {
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.2 }}
-          className="lg:col-span-2 glass-card rounded-lg overflow-hidden"
+          className="lg:col-span-2 material-bento rounded-lg overflow-hidden"
           style={{ height: "550px" }}
         >
           {isLoading ? (
@@ -178,7 +178,7 @@ export function ValuationAnatomyDashboard() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.4 }}
-        className="glass-card rounded-lg p-4 text-sm text-muted-foreground"
+        className="material-bento rounded-lg p-4 text-sm text-muted-foreground"
       >
         <h4 className="font-medium text-foreground mb-2">Interaction Guide</h4>
         <ul className="grid grid-cols-1 md:grid-cols-4 gap-4">

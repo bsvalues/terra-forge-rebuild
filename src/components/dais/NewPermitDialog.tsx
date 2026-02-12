@@ -115,7 +115,7 @@ export function NewPermitDialog({ open, onOpenChange }: NewPermitDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="glass-card border-tf-border max-w-lg">
+      <DialogContent className="material-bento border-tf-border max-w-lg">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <FileCheck className="w-5 h-5 text-tf-green" />

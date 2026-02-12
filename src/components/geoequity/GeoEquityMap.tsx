@@ -246,7 +246,7 @@ export function GeoEquityMap({ studyPeriodId, neighborhoodStats, isLoading, sele
                     
                     {/* Label */}
                     <div className="absolute top-full mt-2 left-1/2 transform -translate-x-1/2 whitespace-nowrap">
-                      <div className="glass-card px-2 py-1 rounded text-xs font-medium text-suite-atlas">
+                      <div className="material-bento px-2 py-1 rounded text-xs font-medium text-suite-atlas">
                         {selectedParcel.parcelNumber}
                       </div>
                     </div>
@@ -274,7 +274,7 @@ export function GeoEquityMap({ studyPeriodId, neighborhoodStats, isLoading, sele
         </AnimatePresence>
 
         {/* Legend */}
-        <div className="absolute bottom-4 left-4 glass-card p-3 rounded-lg text-xs space-y-2">
+        <div className="absolute bottom-4 left-4 material-bento p-3 rounded-lg text-xs space-y-2">
           <div className="font-medium text-foreground mb-2">Ratio Deviation</div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full" style={{ backgroundColor: "hsl(var(--tf-optimized-green))" }} />
@@ -309,7 +309,7 @@ export function GeoEquityMap({ studyPeriodId, neighborhoodStats, isLoading, sele
 
         {selectedStats ? (
           <div className="space-y-4">
-            <div className="glass-card p-4 rounded-lg">
+            <div className="material-bento p-4 rounded-lg">
               <div className="flex items-center justify-between mb-3">
                 <h4 className="text-lg font-medium">{selectedStats.code}</h4>
                 {getStatusIcon(selectedStats.cod, selectedStats.deviation)}

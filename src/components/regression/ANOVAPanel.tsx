@@ -284,7 +284,7 @@ function DiagnosticRow({
 function ANOVASkeleton() {
   return (
     <div className="space-y-6">
-      <Card className="glass-card">
+      <Card className="material-bento">
         <CardHeader>
           <Skeleton className="h-5 w-64" />
         </CardHeader>
@@ -297,10 +297,10 @@ function ANOVASkeleton() {
         </CardContent>
       </Card>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="glass-card rounded-lg p-5">
+        <div className="material-bento rounded-lg p-5">
           <Skeleton className="h-64 w-full" />
         </div>
-        <div className="glass-card rounded-lg p-5">
+        <div className="material-bento rounded-lg p-5">
           <Skeleton className="h-64 w-full" />
         </div>
       </div>

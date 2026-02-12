@@ -67,7 +67,7 @@ export function AppealsDrilldownDialog({ open, onOpenChange, data }: AppealsDril
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[85vh] overflow-auto glass-card">
+      <DialogContent className="max-w-4xl max-h-[85vh] overflow-auto material-bento">
         <DialogHeader>
           <div className="flex items-center justify-between">
             <div>

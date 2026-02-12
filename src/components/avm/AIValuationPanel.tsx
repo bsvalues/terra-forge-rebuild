@@ -109,7 +109,7 @@ export function AIValuationPanel() {
       className="space-y-6"
     >
       {/* Header Card */}
-      <Card className="glass-card border-tf-transcend-cyan/20">
+      <Card className="material-bento border-tf-transcend-cyan/20">
         <CardHeader className="pb-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -202,7 +202,7 @@ export function AIValuationPanel() {
             className="space-y-4"
           >
             {/* Value Estimate Card */}
-            <Card className="glass-card border-tf-optimized-green/20">
+            <Card className="material-bento border-tf-optimized-green/20">
               <CardHeader className="pb-2">
                 <CardTitle className="text-base flex items-center gap-2">
                   <TrendingUp className="w-5 h-5 text-tf-optimized-green" />
@@ -242,7 +242,7 @@ export function AIValuationPanel() {
 
             {/* Cost Approach Details */}
             {result.costApproach && (
-              <Card className="glass-card">
+              <Card className="material-bento">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-base">Cost Approach Breakdown</CardTitle>
                 </CardHeader>
@@ -277,7 +277,7 @@ export function AIValuationPanel() {
 
             {/* Sacred Balance */}
             {result.sacredBalance && (
-              <Card className="glass-card border-tf-sacred-gold/20">
+              <Card className="material-bento border-tf-sacred-gold/20">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-base">3-6-9 Sacred Balance</CardTitle>
                 </CardHeader>
@@ -311,7 +311,7 @@ export function AIValuationPanel() {
 
             {/* Recommendations & Risks */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Card className="glass-card">
+              <Card className="material-bento">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-base flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4 text-tf-optimized-green" />
@@ -330,7 +330,7 @@ export function AIValuationPanel() {
                 </CardContent>
               </Card>
 
-              <Card className="glass-card">
+              <Card className="material-bento">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-base flex items-center gap-2">
                     <AlertTriangle className="w-4 h-4 text-tf-caution-amber" />
@@ -355,7 +355,7 @@ export function AIValuationPanel() {
             </div>
 
             {/* Summary */}
-            <Card className="glass-card">
+            <Card className="material-bento">
               <CardHeader className="pb-2">
                 <CardTitle className="text-base">AI Analysis Summary</CardTitle>
               </CardHeader>

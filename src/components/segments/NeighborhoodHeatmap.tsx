@@ -45,7 +45,7 @@ export function NeighborhoodHeatmap({ studyPeriodId }: NeighborhoodHeatmapProps)
 
   if (isLoading) {
     return (
-      <Card className="glass-card">
+      <Card className="material-bento">
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
             <MapPin className="w-4 h-4 text-tf-cyan" />
@@ -65,7 +65,7 @@ export function NeighborhoodHeatmap({ studyPeriodId }: NeighborhoodHeatmapProps)
 
   if (!neighborhoods || neighborhoods.length === 0) {
     return (
-      <Card className="glass-card">
+      <Card className="material-bento">
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
             <MapPin className="w-4 h-4 text-tf-cyan" />
@@ -85,7 +85,7 @@ export function NeighborhoodHeatmap({ studyPeriodId }: NeighborhoodHeatmapProps)
   const warningCount = neighborhoods.filter(n => n.status === "warning").length;
 
   return (
-    <Card className="glass-card">
+    <Card className="material-bento">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-base flex items-center gap-2">

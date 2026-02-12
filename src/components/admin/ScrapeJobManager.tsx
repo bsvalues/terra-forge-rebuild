@@ -365,7 +365,7 @@ export function ScrapeJobManager() {
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="glass-card rounded-xl p-5 border-2 border-tf-cyan/50 bg-tf-cyan/5"
+          className="material-bento rounded-xl p-5 border-2 border-tf-cyan/50 bg-tf-cyan/5"
         >
           <div className="flex items-start justify-between mb-4">
             <div className="flex items-center gap-4">
@@ -447,7 +447,7 @@ export function ScrapeJobManager() {
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="glass-card rounded-xl p-4 border border-purple-500/30 bg-purple-500/5"
+            className="material-bento rounded-xl p-4 border border-purple-500/30 bg-purple-500/5"
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -501,7 +501,7 @@ export function ScrapeJobManager() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card className="glass-card border-tf-border">
+        <Card className="material-bento border-tf-border">
           <CardContent className="pt-4">
             <div className="flex items-center gap-2 text-muted-foreground text-xs mb-1">
               <Globe className="w-4 h-4" />
@@ -510,7 +510,7 @@ export function ScrapeJobManager() {
             <div className="text-2xl font-light text-foreground">{totalStats.totalJobs}</div>
           </CardContent>
         </Card>
-        <Card className="glass-card border-tf-border">
+        <Card className="material-bento border-tf-border">
           <CardContent className="pt-4">
             <div className="flex items-center gap-2 text-muted-foreground text-xs mb-1">
               <MapPin className="w-4 h-4" />
@@ -519,7 +519,7 @@ export function ScrapeJobManager() {
             <div className="text-2xl font-light text-tf-green">{totalStats.parcelsEnriched.toLocaleString()}</div>
           </CardContent>
         </Card>
-        <Card className="glass-card border-tf-border">
+        <Card className="material-bento border-tf-border">
           <CardContent className="pt-4">
             <div className="flex items-center gap-2 text-muted-foreground text-xs mb-1">
               <TrendingUp className="w-4 h-4" />
@@ -528,7 +528,7 @@ export function ScrapeJobManager() {
             <div className="text-2xl font-light text-tf-gold">{totalStats.salesAdded.toLocaleString()}</div>
           </CardContent>
         </Card>
-        <Card className="glass-card border-tf-border">
+        <Card className="material-bento border-tf-border">
           <CardContent className="pt-4">
             <div className="flex items-center gap-2 text-muted-foreground text-xs mb-1">
               <CheckCircle className="w-4 h-4" />
@@ -540,7 +540,7 @@ export function ScrapeJobManager() {
       </div>
 
       {/* Job History */}
-      <Card className="glass-card border-tf-border">
+      <Card className="material-bento border-tf-border">
         <CardHeader className="pb-3">
           <CardTitle className="text-base flex items-center gap-2">
             <Calendar className="w-4 h-4 text-tf-cyan" />
@@ -676,7 +676,7 @@ export function ScrapeJobManager() {
 
       {/* Confirmation Dialog */}
       <Dialog open={confirmDialog.open} onOpenChange={(open) => setConfirmDialog({ ...confirmDialog, open })}>
-        <DialogContent className="glass-card border-tf-border max-w-lg">
+        <DialogContent className="material-bento border-tf-border max-w-lg">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               {confirmDialog.action === "start-statewide" && (

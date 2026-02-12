@@ -88,7 +88,7 @@ export function WorkflowStats({ onSelectCategory, activeCategory }: WorkflowStat
           transition={{ delay: index * 0.1 }}
         >
           <Card
-            className={`glass-card border-tf-border cursor-pointer transition-all hover:border-${stat.color}/50 ${
+            className={`material-bento border-tf-border cursor-pointer transition-all hover:border-${stat.color}/50 ${
               activeCategory === stat.id ? `border-${stat.color}/50 bg-${stat.color}/5` : ""
             }`}
             onClick={() => onSelectCategory(stat.id)}

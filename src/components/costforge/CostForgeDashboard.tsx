@@ -38,7 +38,7 @@ export function CostForgeDashboard() {
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.2 }}
-          className="glass-card rounded-lg p-5"
+          className="material-bento rounded-lg p-5"
         >
           <h3 className="text-sm font-medium text-muted-foreground mb-4">
             Balance Radar — Sacred Geometry
@@ -50,7 +50,7 @@ export function CostForgeDashboard() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="glass-card rounded-lg p-5"
+          className="material-bento rounded-lg p-5"
         >
           <h3 className="text-sm font-medium text-muted-foreground mb-4">
             Quantum Oscillator — Real-Time
@@ -62,7 +62,7 @@ export function CostForgeDashboard() {
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.4 }}
-          className="glass-card rounded-lg p-5"
+          className="material-bento rounded-lg p-5"
         >
           <h3 className="text-sm font-medium text-muted-foreground mb-4">
             Sacred Flow — Energy Distribution

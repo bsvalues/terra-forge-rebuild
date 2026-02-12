@@ -23,7 +23,7 @@ function SummaryCard({ icon, label, value, subValue, color, delay }: SummaryCard
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay }}
-      className="glass-card rounded-lg p-4"
+      className="material-bento rounded-lg p-4"
     >
       <div className="flex items-start justify-between">
         <div className={`p-2 rounded-lg ${color}`}>
@@ -47,7 +47,7 @@ function SummaryCardSkeleton({ delay }: { delay: number }) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay }}
-      className="glass-card rounded-lg p-4"
+      className="material-bento rounded-lg p-4"
     >
       <div className="flex items-start justify-between">
         <Skeleton className="w-9 h-9 rounded-lg" />

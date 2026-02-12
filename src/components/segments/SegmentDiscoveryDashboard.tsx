@@ -114,7 +114,7 @@ export function SegmentDiscoveryDashboard() {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="glass-card rounded-lg p-4"
+        className="material-bento rounded-lg p-4"
       >
         <div className="flex items-center justify-between gap-4 overflow-x-auto">
           <WorkflowStep 
@@ -181,7 +181,7 @@ export function SegmentDiscoveryDashboard() {
           <FactorImportancePanel studyPeriodId={selectedPeriodId} />
           
           {/* Methodology note */}
-          <div className="glass-card rounded-lg p-4 text-sm text-muted-foreground">
+          <div className="material-bento rounded-lg p-4 text-sm text-muted-foreground">
             <h4 className="font-medium text-foreground mb-2">Methodology</h4>
             <p>
               Factor importance is calculated using regression analysis. For continuous variables 
@@ -195,7 +195,7 @@ export function SegmentDiscoveryDashboard() {
         <TabsContent value="neighborhoods" className="mt-6 space-y-6">
           <NeighborhoodHeatmap studyPeriodId={selectedPeriodId} />
           
-          <div className="glass-card rounded-lg p-4 text-sm text-muted-foreground">
+          <div className="material-bento rounded-lg p-4 text-sm text-muted-foreground">
             <h4 className="font-medium text-foreground mb-2">Interpretation Guide</h4>
             <ul className="list-disc list-inside space-y-1">
               <li><span className="text-tf-alert-red">Critical</span>: Median deviation &gt;10% or COD &gt;20% — immediate attention needed</li>

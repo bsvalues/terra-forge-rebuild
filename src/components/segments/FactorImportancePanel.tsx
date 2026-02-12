@@ -26,7 +26,7 @@ export function FactorImportancePanel({ studyPeriodId }: FactorImportancePanelPr
 
   if (isLoading) {
     return (
-      <Card className="glass-card">
+      <Card className="material-bento">
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
             <TrendingUp className="w-4 h-4 text-tf-cyan" />
@@ -47,7 +47,7 @@ export function FactorImportancePanel({ studyPeriodId }: FactorImportancePanelPr
 
   if (!factors || factors.length === 0) {
     return (
-      <Card className="glass-card">
+      <Card className="material-bento">
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
             <TrendingUp className="w-4 h-4 text-tf-cyan" />
@@ -68,7 +68,7 @@ export function FactorImportancePanel({ studyPeriodId }: FactorImportancePanelPr
   const maxImportance = Math.max(...factors.map(f => f.importance), 0.01);
 
   return (
-    <Card className="glass-card">
+    <Card className="material-bento">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-base flex items-center gap-2">

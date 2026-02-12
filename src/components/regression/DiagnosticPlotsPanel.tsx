@@ -27,7 +27,7 @@ export function DiagnosticPlotsPanel({ result, isLoading }: DiagnosticPlotsPanel
 
   if (!result) {
     return (
-      <div className="glass-card rounded-lg p-8 text-center">
+      <div className="material-bento rounded-lg p-8 text-center">
         <p className="text-muted-foreground">
           No diagnostic plots available. Run regression analysis first.
         </p>
@@ -42,7 +42,7 @@ export function DiagnosticPlotsPanel({ result, isLoading }: DiagnosticPlotsPanel
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="glass-card rounded-lg p-4"
+        className="material-bento rounded-lg p-4"
       >
         <p className="text-sm text-muted-foreground">
           Standard diagnostic plots for assessing regression model assumptions and identifying influential observations.
@@ -56,7 +56,7 @@ export function DiagnosticPlotsPanel({ result, isLoading }: DiagnosticPlotsPanel
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.1 }}
-          className="glass-card rounded-lg p-5"
+          className="material-bento rounded-lg p-5"
         >
           <h3 className="text-sm font-medium text-muted-foreground mb-2">
             Residuals vs Fitted
@@ -113,7 +113,7 @@ export function DiagnosticPlotsPanel({ result, isLoading }: DiagnosticPlotsPanel
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.2 }}
-          className="glass-card rounded-lg p-5"
+          className="material-bento rounded-lg p-5"
         >
           <h3 className="text-sm font-medium text-muted-foreground mb-2">
             Normal Q-Q Plot
@@ -176,7 +176,7 @@ export function DiagnosticPlotsPanel({ result, isLoading }: DiagnosticPlotsPanel
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.3 }}
-          className="glass-card rounded-lg p-5"
+          className="material-bento rounded-lg p-5"
         >
           <h3 className="text-sm font-medium text-muted-foreground mb-2">
             Scale-Location Plot
@@ -232,7 +232,7 @@ export function DiagnosticPlotsPanel({ result, isLoading }: DiagnosticPlotsPanel
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.4 }}
-          className="glass-card rounded-lg p-5"
+          className="material-bento rounded-lg p-5"
         >
           <h3 className="text-sm font-medium text-muted-foreground mb-2">
             Cook's Distance
@@ -285,12 +285,12 @@ export function DiagnosticPlotsPanel({ result, isLoading }: DiagnosticPlotsPanel
 function DiagnosticsSkeleton() {
   return (
     <div className="space-y-6">
-      <div className="glass-card rounded-lg p-4">
+      <div className="material-bento rounded-lg p-4">
         <Skeleton className="h-4 w-3/4" />
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {[1, 2, 3, 4].map((i) => (
-          <div key={i} className="glass-card rounded-lg p-5">
+          <div key={i} className="material-bento rounded-lg p-5">
             <Skeleton className="h-4 w-32 mb-2" />
             <Skeleton className="h-3 w-48 mb-4" />
             <Skeleton className="h-56 w-full" />

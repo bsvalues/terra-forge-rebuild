@@ -45,7 +45,7 @@ export function SegmentSuggestionPanel({ studyPeriodId, onApplySegments }: Segme
 
   if (isLoading) {
     return (
-      <Card className="glass-card">
+      <Card className="material-bento">
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
             <Lightbulb className="w-4 h-4 text-tf-sacred-gold" />
@@ -63,7 +63,7 @@ export function SegmentSuggestionPanel({ studyPeriodId, onApplySegments }: Segme
 
   if (!suggestions || suggestions.length === 0) {
     return (
-      <Card className="glass-card">
+      <Card className="material-bento">
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
             <Lightbulb className="w-4 h-4 text-tf-sacred-gold" />
@@ -82,7 +82,7 @@ export function SegmentSuggestionPanel({ studyPeriodId, onApplySegments }: Segme
   const activeCount = suggestions.filter(s => getIsActive(s)).length;
 
   return (
-    <Card className="glass-card">
+    <Card className="material-bento">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-base flex items-center gap-2">

@@ -432,11 +432,11 @@ export function AssessorScrapeDialog({
                     loading={loadingParcels}
                   />
 
-                  <div className="glass-card rounded-lg p-3">
+                  <div className="material-bento rounded-lg p-3">
                     <BatchSizeSelector value={batchSize} onChange={setBatchSize} max={Math.min(totalMatchingParcels, 20)} />
                   </div>
 
-                  <div className="glass-card rounded-lg p-3 flex items-start gap-3">
+                  <div className="material-bento rounded-lg p-3 flex items-start gap-3">
                     <Database className="w-5 h-5 text-tf-cyan flex-shrink-0 mt-0.5" />
                     <div className="flex-1">
                       <div className="flex items-center justify-between">
@@ -462,7 +462,7 @@ export function AssessorScrapeDialog({
               )}
 
               {action !== "enrich" && (
-                <div className="glass-card rounded-lg p-4 flex items-start gap-3">
+                <div className="material-bento rounded-lg p-4 flex items-start gap-3">
                   <Globe className="w-5 h-5 text-tf-cyan flex-shrink-0 mt-0.5" />
                   <div className="text-sm">
                     <p className="font-medium text-foreground">

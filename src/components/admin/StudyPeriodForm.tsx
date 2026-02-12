@@ -94,7 +94,7 @@ export function StudyPeriodForm({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl glass-card border-border">
+      <DialogContent className="max-w-2xl material-bento border-border">
         <DialogHeader>
           <DialogTitle className="text-gradient-sovereign text-xl flex items-center gap-2">
             <Calendar className="w-5 h-5 text-tf-cyan" />

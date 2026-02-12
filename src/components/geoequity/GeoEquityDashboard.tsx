@@ -118,28 +118,28 @@ export function GeoEquityDashboard({ onNavigateToWorkbench }: GeoEquityDashboard
         transition={{ delay: 0.1 }}
         className="grid grid-cols-2 md:grid-cols-4 gap-4"
       >
-        <div className="glass-card p-4 rounded-lg">
+        <div className="material-bento p-4 rounded-lg">
           <div className="flex items-center gap-2 text-muted-foreground text-xs mb-1">
             <Database className="w-4 h-4" />
             Data Sources
           </div>
           <div className="text-2xl font-light text-tf-cyan">{dataSources.length}</div>
         </div>
-        <div className="glass-card p-4 rounded-lg">
+        <div className="material-bento p-4 rounded-lg">
           <div className="flex items-center gap-2 text-muted-foreground text-xs mb-1">
             <Layers className="w-4 h-4" />
             GIS Layers
           </div>
           <div className="text-2xl font-light text-tf-sacred-gold">{layers.length}</div>
         </div>
-        <div className="glass-card p-4 rounded-lg">
+        <div className="material-bento p-4 rounded-lg">
           <div className="flex items-center gap-2 text-muted-foreground text-xs mb-1">
             <Map className="w-4 h-4" />
             Neighborhoods
           </div>
           <div className="text-2xl font-light text-tf-optimized-green">{neighborhoodStats.length}</div>
         </div>
-        <div className="glass-card p-4 rounded-lg">
+        <div className="material-bento p-4 rounded-lg">
           <div className="flex items-center gap-2 text-muted-foreground text-xs mb-1">
             <Server className="w-4 h-4" />
             Sync Status
@@ -183,7 +183,7 @@ export function GeoEquityDashboard({ onNavigateToWorkbench }: GeoEquityDashboard
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="glass-card rounded-lg overflow-hidden"
+            className="material-bento rounded-lg overflow-hidden"
             style={{ height: "650px" }}
           >
             <EquityHeatmap
@@ -197,7 +197,7 @@ export function GeoEquityDashboard({ onNavigateToWorkbench }: GeoEquityDashboard
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="glass-card rounded-lg overflow-hidden"
+            className="material-bento rounded-lg overflow-hidden"
             style={{ height: "600px" }}
           >
             <GeoEquityMap

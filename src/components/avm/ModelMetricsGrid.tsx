@@ -88,7 +88,7 @@ export function ModelMetricsGrid() {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: index * 0.05 }}
-            className="glass-card rounded-lg p-4"
+            className="material-bento rounded-lg p-4"
           >
             {/* Header */}
             <div className="flex items-center justify-between mb-3">
