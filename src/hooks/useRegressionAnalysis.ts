@@ -171,9 +171,39 @@ export function useRunRegressionAnalysis() {
       
       return result;
     },
-    onSuccess: (_, studyPeriodId) => {
+    onSuccess: async (result, studyPeriodId) => {
       queryClient.invalidateQueries({ queryKey: ["regression-analysis", studyPeriodId] });
       queryClient.invalidateQueries({ queryKey: ["factor-analysis"] });
+
+      // Emit model_receipt for TerraTrace audit trail
+      try {
+        const { data: userData } = await supabase.auth.getUser();
+        const operatorId = userData?.user?.id;
+        if (operatorId) {
+          await supabase.from("model_receipts").insert({
+            model_type: "regression",
+            model_version: "multiple-regression-v1",
+            operator_id: operatorId,
+            study_period_id: studyPeriodId,
+            inputs: {
+              n: result.modelStats.n,
+              k: result.modelStats.k,
+              variables: result.coefficients.map(c => c.variable),
+            } as any,
+            outputs: {
+              r_squared: result.modelStats.rSquared,
+              r_squared_adj: result.modelStats.rSquaredAdj,
+              f_statistic: result.modelStats.fStatistic,
+              rmse: result.modelStats.rmse,
+              significant_vars: result.coefficients.filter(c => c.significant).map(c => c.variable),
+            } as any,
+            metadata: { source: "RegressionStudio", equation: result.equation, computed_at: result.computedAt } as any,
+          });
+        }
+      } catch (e) {
+        console.warn("Failed to emit model receipt for regression:", e);
+      }
+
       toast.success("Regression analysis complete", {
         description: "Coefficients computed and fed to Segment Discovery",
       });
