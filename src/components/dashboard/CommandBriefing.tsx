@@ -10,15 +10,14 @@ import {
   ArrowRight,
   Activity,
   Globe,
-  Hammer,
   Building2,
-  Microscope,
-  Brain,
-  Layers,
+  Shield,
+  Clock,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 
 interface CommandBriefingProps {
   onNavigate: (module: string) => void;
@@ -59,6 +58,67 @@ export function CommandBriefing({ onNavigate }: CommandBriefingProps) {
         .limit(5);
       return data || [];
     },
+  });
+
+  // Health indicators
+  const { data: pendingAppeals } = useQuery({
+    queryKey: ["briefing-pending-appeals"],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from("appeals")
+        .select("*", { count: "exact", head: true })
+        .in("status", ["filed", "pending", "scheduled"]);
+      return count || 0;
+    },
+  });
+
+  const { data: openPermits } = useQuery({
+    queryKey: ["briefing-open-permits"],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from("permits")
+        .select("*", { count: "exact", head: true })
+        .in("status", ["applied", "pending", "issued"]);
+      return count || 0;
+    },
+  });
+
+  const { data: pendingExemptions } = useQuery({
+    queryKey: ["briefing-pending-exemptions"],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from("exemptions")
+        .select("*", { count: "exact", head: true })
+        .eq("status", "pending");
+      return count || 0;
+    },
+  });
+
+  const { data: dataQuality } = useQuery({
+    queryKey: ["briefing-data-quality"],
+    queryFn: async () => {
+      const total = parcelsCount || 1;
+      const { count: withCoords } = await supabase
+        .from("parcels")
+        .select("*", { count: "exact", head: true })
+        .not("latitude", "is", null);
+      const { count: withClass } = await supabase
+        .from("parcels")
+        .select("*", { count: "exact", head: true })
+        .not("property_class", "is", null);
+      const { count: withNbhd } = await supabase
+        .from("parcels")
+        .select("*", { count: "exact", head: true })
+        .not("neighborhood_code", "is", null);
+
+      const coordsPct = Math.round(((withCoords || 0) / total) * 100);
+      const classPct = Math.round(((withClass || 0) / total) * 100);
+      const nbhdPct = Math.round(((withNbhd || 0) / total) * 100);
+      const overall = Math.round((coordsPct + classPct + nbhdPct) / 3);
+
+      return { coordsPct, classPct, nbhdPct, overall };
+    },
+    enabled: (parcelsCount || 0) > 0,
   });
 
   const cards = [
@@ -186,6 +246,79 @@ export function CommandBriefing({ onNavigate }: CommandBriefingProps) {
         </div>
       </motion.div>
 
+      {/* System Health Indicators */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+        className="grid grid-cols-1 md:grid-cols-2 gap-4"
+      >
+        {/* Data Quality Score */}
+        <Card className="bg-tf-elevated/50 border-tf-border">
+          <CardContent className="p-5">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="p-2 rounded-lg bg-tf-cyan/20">
+                <Shield className="w-4 h-4 text-tf-cyan" />
+              </div>
+              <div>
+                <h4 className="text-sm font-medium">Data Quality</h4>
+                <p className="text-xs text-muted-foreground">Parcel completeness score</p>
+              </div>
+              <Badge variant="outline" className={`ml-auto ${
+                (dataQuality?.overall ?? 0) >= 80 ? "bg-tf-green/10 text-tf-green border-tf-green/30" :
+                (dataQuality?.overall ?? 0) >= 50 ? "bg-tf-gold/10 text-tf-gold border-tf-gold/30" :
+                "bg-destructive/10 text-destructive border-destructive/30"
+              }`}>
+                {dataQuality?.overall ?? 0}%
+              </Badge>
+            </div>
+            <div className="space-y-2">
+              <QualityBar label="Coordinates" value={dataQuality?.coordsPct ?? 0} />
+              <QualityBar label="Property Class" value={dataQuality?.classPct ?? 0} />
+              <QualityBar label="Neighborhood" value={dataQuality?.nbhdPct ?? 0} />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Pending Workflows */}
+        <Card className="bg-tf-elevated/50 border-tf-border">
+          <CardContent className="p-5">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 rounded-lg bg-suite-dais/20">
+                <Clock className="w-4 h-4 text-suite-dais" />
+              </div>
+              <div>
+                <h4 className="text-sm font-medium">Pending Workflows</h4>
+                <p className="text-xs text-muted-foreground">Items requiring attention</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-3 gap-3">
+              <button
+                onClick={() => onNavigate("workbench:dais")}
+                className="p-3 rounded-lg bg-tf-surface/50 hover:bg-tf-surface transition-colors text-center"
+              >
+                <p className="text-2xl font-light text-suite-dais">{pendingAppeals ?? 0}</p>
+                <p className="text-xs text-muted-foreground mt-1">Appeals</p>
+              </button>
+              <button
+                onClick={() => onNavigate("workbench:dais")}
+                className="p-3 rounded-lg bg-tf-surface/50 hover:bg-tf-surface transition-colors text-center"
+              >
+                <p className="text-2xl font-light text-tf-gold">{openPermits ?? 0}</p>
+                <p className="text-xs text-muted-foreground mt-1">Permits</p>
+              </button>
+              <button
+                onClick={() => onNavigate("workbench:dais")}
+                className="p-3 rounded-lg bg-tf-surface/50 hover:bg-tf-surface transition-colors text-center"
+              >
+                <p className="text-2xl font-light text-tf-green">{pendingExemptions ?? 0}</p>
+                <p className="text-xs text-muted-foreground mt-1">Exemptions</p>
+              </button>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+
       {/* Get Started CTA */}
       {needsData && (
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
@@ -248,6 +381,16 @@ export function CommandBriefing({ onNavigate }: CommandBriefingProps) {
           )}
         </CardContent>
       </Card>
+    </div>
+  );
+}
+
+function QualityBar({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="flex items-center gap-3">
+      <span className="text-xs text-muted-foreground w-24 shrink-0">{label}</span>
+      <Progress value={value} className="h-1.5 flex-1" />
+      <span className="text-xs font-mono w-10 text-right">{value}%</span>
     </div>
   );
 }
