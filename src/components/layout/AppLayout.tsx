@@ -17,8 +17,20 @@ export function AppLayout() {
     address: string;
     assessedValue: number;
   } | null>(null);
+  const [pendingTab, setPendingTab] = useState<string | null>(null);
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const [controlCenterOpen, setControlCenterOpen] = useState(false);
+
+  const handleNavigate = useCallback((target: string) => {
+    // Support "workbench:forge" or "workbench:atlas" deep-link syntax
+    if (target.startsWith("workbench:")) {
+      const tab = target.split(":")[1];
+      setPendingTab(tab);
+      setActiveModule("workbench");
+    } else {
+      setActiveModule(target);
+    }
+  }, []);
 
   const currentScene = useContextMode({
     activeModule,
@@ -37,7 +49,7 @@ export function AppLayout() {
   const renderStage = () => {
     switch (activeModule) {
       case "dashboard":
-        return <CommandBriefing onNavigate={setActiveModule} />;
+        return <CommandBriefing onNavigate={handleNavigate} />;
       case "ids":
         return <IDSCommandCenter />;
       case "workbench":
@@ -45,10 +57,12 @@ export function AppLayout() {
           <PropertyWorkbench
             initialParcel={pendingParcel}
             onParcelConsumed={() => setPendingParcel(null)}
+            initialTab={pendingTab}
+            onTabConsumed={() => setPendingTab(null)}
           />
         );
       default:
-        return <CommandBriefing onNavigate={setActiveModule} />;
+        return <CommandBriefing onNavigate={handleNavigate} />;
     }
   };
 
@@ -76,7 +90,7 @@ export function AppLayout() {
       </main>
 
       {/* Dock Launcher — Bottom navigation */}
-      <DockLauncher activeModule={activeModule} onModuleChange={setActiveModule} />
+      <DockLauncher activeModule={activeModule} onModuleChange={handleNavigate} />
 
       {/* Global Command Palette */}
       <GlobalCommandPalette

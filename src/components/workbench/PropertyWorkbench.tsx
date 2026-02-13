@@ -38,10 +38,12 @@ const TAB_COMPONENTS: Record<SuiteTab, React.ComponentType> = {
 interface WorkbenchContentProps {
   initialParcel?: { id: string; parcelNumber: string; address: string; assessedValue: number } | null;
   onParcelConsumed?: () => void;
+  initialTab?: string | null;
+  onTabConsumed?: () => void;
 }
 
-function WorkbenchContent({ initialParcel, onParcelConsumed }: WorkbenchContentProps) {
-  const { activeTab, pilotMode, workMode, setParcel } = useWorkbench();
+function WorkbenchContent({ initialParcel, onParcelConsumed, initialTab, onTabConsumed }: WorkbenchContentProps) {
+  const { activeTab, pilotMode, workMode, setParcel, setActiveTab } = useWorkbench();
   const [pilotPanelOpen, setPilotPanelOpen] = useState(true);
 
   // Enable global scrape job notifications
@@ -59,6 +61,17 @@ function WorkbenchContent({ initialParcel, onParcelConsumed }: WorkbenchContentP
       onParcelConsumed?.();
     }
   }, [initialParcel, setParcel, onParcelConsumed]);
+
+  // Handle initial tab deep-link from CommandBriefing
+  useEffect(() => {
+    if (initialTab) {
+      const validTabs: SuiteTab[] = ["summary", "forge", "atlas", "dais", "dossier", "pilot"];
+      if (validTabs.includes(initialTab as SuiteTab)) {
+        setActiveTab(initialTab as SuiteTab);
+      }
+      onTabConsumed?.();
+    }
+  }, [initialTab, setActiveTab, onTabConsumed]);
 
   const TabComponent = TAB_COMPONENTS[activeTab];
 
@@ -149,12 +162,19 @@ function WorkbenchContent({ initialParcel, onParcelConsumed }: WorkbenchContentP
 interface PropertyWorkbenchProps {
   initialParcel?: { id: string; parcelNumber: string; address: string; assessedValue: number } | null;
   onParcelConsumed?: () => void;
+  initialTab?: string | null;
+  onTabConsumed?: () => void;
 }
 
-export function PropertyWorkbench({ initialParcel, onParcelConsumed }: PropertyWorkbenchProps = {}) {
+export function PropertyWorkbench({ initialParcel, onParcelConsumed, initialTab, onTabConsumed }: PropertyWorkbenchProps = {}) {
   return (
     <WorkbenchProvider>
-      <WorkbenchContent initialParcel={initialParcel} onParcelConsumed={onParcelConsumed} />
+      <WorkbenchContent
+        initialParcel={initialParcel}
+        onParcelConsumed={onParcelConsumed}
+        initialTab={initialTab}
+        onTabConsumed={onTabConsumed}
+      />
     </WorkbenchProvider>
   );
 }
