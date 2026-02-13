@@ -11,6 +11,7 @@ import { ParcelPin, NeighborhoodOverlay, useParcelPins, useNeighborhoodOverlays 
 interface EquityHeatmapProps {
   studyPeriodId?: string;
   onParcelSelect?: (parcel: { id: string; parcelNumber: string; address: string; assessedValue: number }) => void;
+  neighborhoodFilter?: string;
 }
 
 function ratioColor(ratio: number | null): string {
@@ -36,12 +37,19 @@ function codStroke(cod: number): string {
   return "#ef4444";
 }
 
-export function EquityHeatmap({ studyPeriodId, onParcelSelect }: EquityHeatmapProps) {
+export function EquityHeatmap({ studyPeriodId, onParcelSelect, neighborhoodFilter }: EquityHeatmapProps) {
   const { data: pins = [], isLoading: pinsLoading } = useParcelPins(studyPeriodId);
   const { data: overlays = [], isLoading: overlaysLoading } = useNeighborhoodOverlays(studyPeriodId);
   const [showPins, setShowPins] = useState(true);
   const [showOverlays, setShowOverlays] = useState(true);
-  const [selectedNbhd, setSelectedNbhd] = useState<string | null>(null);
+  const [selectedNbhd, setSelectedNbhd] = useState<string | null>(neighborhoodFilter ?? null);
+
+  // Sync external neighborhoodFilter prop
+  useEffect(() => {
+    if (neighborhoodFilter) {
+      setSelectedNbhd(neighborhoodFilter);
+    }
+  }, [neighborhoodFilter]);
 
   const mapRef = useRef<L.Map | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);

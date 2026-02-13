@@ -32,6 +32,7 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { GeoEquityMap } from "@/components/geoequity/GeoEquityMap";
+import { EquityHeatmap } from "@/components/geoequity/EquityHeatmap";
 import { GISLayersPanel } from "@/components/geoequity/GISLayersPanel";
 import { ParcelSearchPanel } from "@/components/geoequity/ParcelSearchPanel";
 import { 
@@ -41,7 +42,7 @@ import {
 } from "@/hooks/useGISData";
 import { cn } from "@/lib/utils";
 
-type AtlasView = "map" | "layers" | "search";
+type AtlasView = "map" | "heatmap" | "layers" | "search";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -109,6 +110,10 @@ export function AtlasTab() {
               <TabsTrigger value="map" className="text-xs gap-1.5">
                 <Map className="w-3.5 h-3.5" />
                 Equity Map
+              </TabsTrigger>
+              <TabsTrigger value="heatmap" className="text-xs gap-1.5">
+                <Globe className="w-3.5 h-3.5" />
+                Heatmap
               </TabsTrigger>
               <TabsTrigger value="layers" className="text-xs gap-1.5">
                 <Layers className="w-3.5 h-3.5" />
@@ -340,6 +345,35 @@ export function AtlasTab() {
                     </div>
                   </div>
                 </div>
+              </div>
+            </motion.div>
+          )}
+
+          {activeView === "heatmap" && (
+            <motion.div
+              key="heatmap"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="h-full"
+            >
+              <div className="h-full relative">
+                {/* Dual-mode indicator */}
+                {hasActiveParcel && parcel.neighborhoodCode && (
+                  <div className="absolute top-4 left-4 z-10">
+                    <Badge className="bg-suite-atlas/90 text-white border-0 gap-1.5">
+                      <MapPin className="w-3 h-3" />
+                      Scoped to {parcel.neighborhoodCode}
+                    </Badge>
+                  </div>
+                )}
+                <EquityHeatmap
+                  studyPeriodId={studyPeriod.id ?? undefined}
+                  onParcelSelect={(p) => {
+                    // Could wire to workbench parcel context in the future
+                  }}
+                  neighborhoodFilter={hasActiveParcel ? parcel.neighborhoodCode ?? undefined : undefined}
+                />
               </div>
             </motion.div>
           )}
