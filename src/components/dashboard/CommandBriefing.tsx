@@ -8,6 +8,13 @@ import {
   CheckCircle2,
   Upload,
   ArrowRight,
+  Activity,
+  Globe,
+  Hammer,
+  Building2,
+  Microscope,
+  Brain,
+  Layers,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -62,6 +69,45 @@ export function CommandBriefing({ onNavigate }: CommandBriefingProps) {
 
   const needsData = (salesCount || 0) < 100;
 
+  const quickActions = [
+    {
+      title: "Equity Analysis",
+      description: "IAAO ratio studies, COD, PRD & tier analysis",
+      icon: Activity,
+      color: "from-suite-forge/20 to-suite-forge/5",
+      borderColor: "border-suite-forge/30",
+      iconColor: "text-suite-forge",
+      target: "workbench:forge",
+    },
+    {
+      title: "GeoEquity Map",
+      description: "Spatial equity heatmaps & neighborhood analysis",
+      icon: Globe,
+      color: "from-suite-atlas/20 to-suite-atlas/5",
+      borderColor: "border-suite-atlas/30",
+      iconColor: "text-suite-atlas",
+      target: "workbench:atlas",
+    },
+    {
+      title: "Workflows",
+      description: "Appeals, permits, exemptions & certification",
+      icon: Building2,
+      color: "from-suite-dais/20 to-suite-dais/5",
+      borderColor: "border-suite-dais/30",
+      iconColor: "text-suite-dais",
+      target: "workbench:dais",
+    },
+    {
+      title: "Data Ingest",
+      description: "Import parcel rolls, sales & GIS data",
+      icon: Upload,
+      color: "from-tf-cyan/20 to-tf-bright-cyan/5",
+      borderColor: "border-tf-cyan/30",
+      iconColor: "text-tf-cyan",
+      target: "ids",
+    },
+  ];
+
   return (
     <div className="p-6 space-y-6 max-w-6xl mx-auto">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
@@ -96,9 +142,53 @@ export function CommandBriefing({ onNavigate }: CommandBriefingProps) {
         })}
       </div>
 
-      {/* Action Cards */}
+      {/* Quick Action Cards — Jump into Workbench suites */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.25 }}
+      >
+        <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-3">
+          Jump Into
+        </h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          {quickActions.map((action, i) => {
+            const Icon = action.icon;
+            return (
+              <motion.div
+                key={action.title}
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 + i * 0.06 }}
+              >
+                <button
+                  onClick={() => onNavigate(action.target)}
+                  className={`w-full text-left p-4 rounded-xl bg-gradient-to-br ${action.color} border ${action.borderColor} hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 group`}
+                >
+                  <div className="flex items-start gap-3">
+                    <div className={`p-2 rounded-lg bg-background/50 ${action.iconColor}`}>
+                      <Icon className="w-5 h-5" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between">
+                        <h4 className="text-sm font-medium text-foreground">{action.title}</h4>
+                        <ArrowRight className="w-3.5 h-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
+                        {action.description}
+                      </p>
+                    </div>
+                  </div>
+                </button>
+              </motion.div>
+            );
+          })}
+        </div>
+      </motion.div>
+
+      {/* Get Started CTA */}
       {needsData && (
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
           <Card className="bg-gradient-to-br from-tf-cyan/10 to-tf-bright-cyan/5 border-tf-cyan/30">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
