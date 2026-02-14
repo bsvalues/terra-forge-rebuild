@@ -254,7 +254,10 @@ export function CommandBriefing({ onNavigate }: CommandBriefingProps) {
         className="grid grid-cols-1 md:grid-cols-2 gap-4"
       >
         {/* Data Quality Score */}
-        <Card className="bg-tf-elevated/50 border-tf-border">
+        <Card
+          className="bg-tf-elevated/50 border-tf-border cursor-pointer hover:border-tf-cyan/40 transition-colors group"
+          onClick={() => onNavigate("ids:quality")}
+        >
           <CardContent className="p-5">
             <div className="flex items-center gap-3 mb-3">
               <div className="p-2 rounded-lg bg-tf-cyan/20">
@@ -271,6 +274,7 @@ export function CommandBriefing({ onNavigate }: CommandBriefingProps) {
               }`}>
                 {dataQuality?.overall ?? 0}%
               </Badge>
+              <ArrowRight className="w-3.5 h-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
             </div>
             <div className="space-y-2">
               <QualityBar label="Coordinates" value={dataQuality?.coordsPct ?? 0} />

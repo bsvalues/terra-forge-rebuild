@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { 
@@ -15,8 +15,20 @@ import { QualityPillar } from "./pillars/QualityPillar";
 import { VersionsPillar } from "./pillars/VersionsPillar";
 import { RoutingPillar } from "./pillars/RoutingPillar";
 
-export function IDSCommandCenter() {
-  const [activePillar, setActivePillar] = useState("inventory");
+interface IDSCommandCenterProps {
+  initialPillar?: string | null;
+  onPillarConsumed?: () => void;
+}
+
+export function IDSCommandCenter({ initialPillar, onPillarConsumed }: IDSCommandCenterProps = {}) {
+  const [activePillar, setActivePillar] = useState(initialPillar || "inventory");
+
+  useEffect(() => {
+    if (initialPillar) {
+      setActivePillar(initialPillar);
+      onPillarConsumed?.();
+    }
+  }, [initialPillar, onPillarConsumed]);
 
   return (
     <div className="p-6 space-y-6">
