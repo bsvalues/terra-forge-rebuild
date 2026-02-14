@@ -19,6 +19,7 @@ export function AppLayout() {
   } | null>(null);
   const [pendingTab, setPendingTab] = useState<string | null>(null);
   const [pendingSubTab, setPendingSubTab] = useState<string | null>(null);
+  const [pendingIdsPillar, setPendingIdsPillar] = useState<string | null>(null);
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const [controlCenterOpen, setControlCenterOpen] = useState(false);
 
@@ -29,6 +30,10 @@ export function AppLayout() {
       setPendingTab(parts[1]);
       setPendingSubTab(parts[2] ?? null);
       setActiveModule("workbench");
+    } else if (target.startsWith("ids:")) {
+      const parts = target.split(":");
+      setPendingIdsPillar(parts[1]);
+      setActiveModule("ids");
     } else {
       setActiveModule(target);
     }
@@ -53,7 +58,12 @@ export function AppLayout() {
       case "dashboard":
         return <CommandBriefing onNavigate={handleNavigate} />;
       case "ids":
-        return <IDSCommandCenter />;
+        return (
+          <IDSCommandCenter
+            initialPillar={pendingIdsPillar}
+            onPillarConsumed={() => setPendingIdsPillar(null)}
+          />
+        );
       case "workbench":
         return (
           <PropertyWorkbench
