@@ -18,14 +18,16 @@ export function AppLayout() {
     assessedValue: number;
   } | null>(null);
   const [pendingTab, setPendingTab] = useState<string | null>(null);
+  const [pendingSubTab, setPendingSubTab] = useState<string | null>(null);
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const [controlCenterOpen, setControlCenterOpen] = useState(false);
 
   const handleNavigate = useCallback((target: string) => {
-    // Support "workbench:forge" or "workbench:atlas" deep-link syntax
+    // Support "workbench:dais:appeals" deep-link syntax (tab:subtab)
     if (target.startsWith("workbench:")) {
-      const tab = target.split(":")[1];
-      setPendingTab(tab);
+      const parts = target.split(":");
+      setPendingTab(parts[1]);
+      setPendingSubTab(parts[2] ?? null);
       setActiveModule("workbench");
     } else {
       setActiveModule(target);
@@ -59,6 +61,8 @@ export function AppLayout() {
             onParcelConsumed={() => setPendingParcel(null)}
             initialTab={pendingTab}
             onTabConsumed={() => setPendingTab(null)}
+            initialSubTab={pendingSubTab}
+            onSubTabConsumed={() => setPendingSubTab(null)}
           />
         );
       default:

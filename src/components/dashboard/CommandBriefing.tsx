@@ -294,21 +294,21 @@ export function CommandBriefing({ onNavigate }: CommandBriefingProps) {
             </div>
             <div className="grid grid-cols-3 gap-3">
               <button
-                onClick={() => onNavigate("workbench:dais")}
+                onClick={() => onNavigate("workbench:dais:appeals")}
                 className="p-3 rounded-lg bg-tf-surface/50 hover:bg-tf-surface transition-colors text-center"
               >
                 <p className="text-2xl font-light text-suite-dais">{pendingAppeals ?? 0}</p>
                 <p className="text-xs text-muted-foreground mt-1">Appeals</p>
               </button>
               <button
-                onClick={() => onNavigate("workbench:dais")}
+                onClick={() => onNavigate("workbench:dais:permits")}
                 className="p-3 rounded-lg bg-tf-surface/50 hover:bg-tf-surface transition-colors text-center"
               >
                 <p className="text-2xl font-light text-tf-gold">{openPermits ?? 0}</p>
                 <p className="text-xs text-muted-foreground mt-1">Permits</p>
               </button>
               <button
-                onClick={() => onNavigate("workbench:dais")}
+                onClick={() => onNavigate("workbench:dais:exemptions")}
                 className="p-3 rounded-lg bg-tf-surface/50 hover:bg-tf-surface transition-colors text-center"
               >
                 <p className="text-2xl font-light text-tf-green">{pendingExemptions ?? 0}</p>
