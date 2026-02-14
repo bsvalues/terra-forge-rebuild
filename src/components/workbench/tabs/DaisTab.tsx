@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Building2, FileCheck, Scale, Bell, ClipboardCheck } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -8,9 +8,22 @@ import { PermitsWorkflow } from "@/components/dais/PermitsWorkflow";
 import { ExemptionsWorkflow } from "@/components/dais/ExemptionsWorkflow";
 import { useWorkbench } from "../WorkbenchContext";
 
-export function DaisTab() {
-  const [activeCategory, setActiveCategory] = useState<string>("appeals");
+interface DaisTabProps {
+  initialCategory?: string | null;
+  onCategoryConsumed?: () => void;
+}
+
+export function DaisTab({ initialCategory, onCategoryConsumed }: DaisTabProps) {
+  const [activeCategory, setActiveCategory] = useState<string>(initialCategory || "appeals");
   const { workMode } = useWorkbench();
+
+  // Handle deep-linked category
+  useEffect(() => {
+    if (initialCategory) {
+      setActiveCategory(initialCategory);
+      onCategoryConsumed?.();
+    }
+  }, [initialCategory, onCategoryConsumed]);
 
   return (
     <div className="p-6 space-y-6">

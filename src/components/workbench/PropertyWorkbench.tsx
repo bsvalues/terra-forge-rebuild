@@ -40,10 +40,13 @@ interface WorkbenchContentProps {
   onParcelConsumed?: () => void;
   initialTab?: string | null;
   onTabConsumed?: () => void;
+  initialSubTab?: string | null;
+  onSubTabConsumed?: () => void;
 }
 
-function WorkbenchContent({ initialParcel, onParcelConsumed, initialTab, onTabConsumed }: WorkbenchContentProps) {
+function WorkbenchContent({ initialParcel, onParcelConsumed, initialTab, onTabConsumed, initialSubTab, onSubTabConsumed }: WorkbenchContentProps) {
   const { activeTab, pilotMode, workMode, setParcel, setActiveTab } = useWorkbench();
+  const [daisCategory, setDaisCategory] = useState<string | null>(null);
   const [pilotPanelOpen, setPilotPanelOpen] = useState(true);
 
   // Enable global scrape job notifications
@@ -69,9 +72,14 @@ function WorkbenchContent({ initialParcel, onParcelConsumed, initialTab, onTabCo
       if (validTabs.includes(initialTab as SuiteTab)) {
         setActiveTab(initialTab as SuiteTab);
       }
+      // Handle sub-tab (e.g., "appeals" within "dais")
+      if (initialSubTab) {
+        setDaisCategory(initialSubTab);
+        onSubTabConsumed?.();
+      }
       onTabConsumed?.();
     }
-  }, [initialTab, setActiveTab, onTabConsumed]);
+  }, [initialTab, initialSubTab, setActiveTab, onTabConsumed, onSubTabConsumed]);
 
   const TabComponent = TAB_COMPONENTS[activeTab];
 
@@ -120,7 +128,11 @@ function WorkbenchContent({ initialParcel, onParcelConsumed, initialTab, onTabCo
                 transition={{ duration: 0.2 }}
                 className="h-full overflow-auto"
               >
-                <TabComponent />
+                {activeTab === "dais" ? (
+                  <DaisTab initialCategory={daisCategory} onCategoryConsumed={() => setDaisCategory(null)} />
+                ) : (
+                  <TabComponent />
+                )}
               </motion.div>
             </AnimatePresence>
           </ResizablePanel>
@@ -164,9 +176,11 @@ interface PropertyWorkbenchProps {
   onParcelConsumed?: () => void;
   initialTab?: string | null;
   onTabConsumed?: () => void;
+  initialSubTab?: string | null;
+  onSubTabConsumed?: () => void;
 }
 
-export function PropertyWorkbench({ initialParcel, onParcelConsumed, initialTab, onTabConsumed }: PropertyWorkbenchProps = {}) {
+export function PropertyWorkbench({ initialParcel, onParcelConsumed, initialTab, onTabConsumed, initialSubTab, onSubTabConsumed }: PropertyWorkbenchProps = {}) {
   return (
     <WorkbenchProvider>
       <WorkbenchContent
@@ -174,6 +188,8 @@ export function PropertyWorkbench({ initialParcel, onParcelConsumed, initialTab,
         onParcelConsumed={onParcelConsumed}
         initialTab={initialTab}
         onTabConsumed={onTabConsumed}
+        initialSubTab={initialSubTab}
+        onSubTabConsumed={onSubTabConsumed}
       />
     </WorkbenchProvider>
   );
