@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { requireAuth } from "../_shared/auth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -29,6 +30,15 @@ serve(async (req) => {
   }
 
   try {
+    // Authenticate the user
+    let auth;
+    try {
+      auth = await requireAuth(req);
+    } catch (res) {
+      if (res instanceof Response) return res;
+      throw res;
+    }
+
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY is not configured");
@@ -38,6 +48,29 @@ serve(async (req) => {
       propertyData: PropertyData; 
       analysisType: "full" | "quick" | "cost_approach" 
     };
+
+    // Input validation
+    if (!propertyData || typeof propertyData !== "object") {
+      return new Response(JSON.stringify({ error: "propertyData object is required" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    if (!["full", "quick", "cost_approach"].includes(analysisType)) {
+      return new Response(JSON.stringify({ error: "analysisType must be full, quick, or cost_approach" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    // Validate numeric ranges
+    if (propertyData.livingArea !== undefined && (propertyData.livingArea < 0 || propertyData.livingArea > 200000)) {
+      return new Response(JSON.stringify({ error: "livingArea out of range" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    if (propertyData.yearBuilt !== undefined && (propertyData.yearBuilt < 1700 || propertyData.yearBuilt > new Date().getFullYear() + 1)) {
+      return new Response(JSON.stringify({ error: "yearBuilt out of range" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     const systemPrompt = `You are an expert property valuation AI assistant for TerraFusion, a government-grade property assessment system. You specialize in:
 
@@ -119,15 +152,12 @@ Format your response as structured JSON with these sections:
     const data = await response.json();
     const content = data.choices?.[0]?.message?.content;
 
-    // Try to parse JSON from the response
     let parsedResult;
     try {
-      // Extract JSON from markdown code blocks if present
       const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/);
       const jsonString = jsonMatch ? jsonMatch[1] : content;
       parsedResult = JSON.parse(jsonString.trim());
     } catch {
-      // If parsing fails, return the raw content with a wrapper
       parsedResult = {
         summary: content,
         estimatedValue: { low: 0, mid: 0, high: 0 },

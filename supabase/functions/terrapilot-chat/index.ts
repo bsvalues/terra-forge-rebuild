@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { requireAuth, createServiceClient } from "../_shared/auth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -34,30 +35,57 @@ serve(async (req) => {
   }
 
   try {
+    // Authenticate the user
+    let auth;
+    try {
+      auth = await requireAuth(req);
+    } catch (res) {
+      if (res instanceof Response) return res;
+      throw res;
+    }
+
     const { messages, context }: RequestBody = await req.json();
+
+    // Input validation
+    if (!Array.isArray(messages) || messages.length === 0) {
+      return new Response(JSON.stringify({ error: "messages array is required" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    if (messages.length > 50) {
+      return new Response(JSON.stringify({ error: "Too many messages (max 50)" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    for (const msg of messages) {
+      if (typeof msg.content !== "string" || msg.content.length > 10000) {
+        return new Response(JSON.stringify({ error: "Message content must be a string under 10000 chars" }), {
+          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
+
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
+    // Use service client for data queries (after auth is verified)
+    const serviceClient = createServiceClient();
+
     // Query live parcel data if a parcel is in context
     let liveDataContext = "";
     if (context?.parcel?.id) {
       try {
-        const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-        const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-        const sb = createClient(supabaseUrl, supabaseKey);
-
-        // Fetch parcel details, recent sales, assessments, permits, and appeals in parallel
         const parcelId = context.parcel.id;
         const [parcelRes, salesRes, assessRes, permitsRes, appealsRes, exemptionsRes] = await Promise.all([
-          sb.from("parcels").select("*").eq("id", parcelId).single(),
-          sb.from("sales").select("*").eq("parcel_id", parcelId).order("sale_date", { ascending: false }).limit(10),
-          sb.from("assessments").select("*").eq("parcel_id", parcelId).order("tax_year", { ascending: false }).limit(5),
-          sb.from("permits").select("*").eq("parcel_id", parcelId).order("application_date", { ascending: false }).limit(5),
-          sb.from("appeals").select("*").eq("parcel_id", parcelId).order("appeal_date", { ascending: false }).limit(5),
-          sb.from("exemptions").select("*").eq("parcel_id", parcelId).order("tax_year", { ascending: false }).limit(5),
+          serviceClient.from("parcels").select("*").eq("id", parcelId).single(),
+          serviceClient.from("sales").select("*").eq("parcel_id", parcelId).order("sale_date", { ascending: false }).limit(10),
+          serviceClient.from("assessments").select("*").eq("parcel_id", parcelId).order("tax_year", { ascending: false }).limit(5),
+          serviceClient.from("permits").select("*").eq("parcel_id", parcelId).order("application_date", { ascending: false }).limit(5),
+          serviceClient.from("appeals").select("*").eq("parcel_id", parcelId).order("appeal_date", { ascending: false }).limit(5),
+          serviceClient.from("exemptions").select("*").eq("parcel_id", parcelId).order("tax_year", { ascending: false }).limit(5),
         ]);
 
         const parcel = parcelRes.data;
@@ -175,14 +203,13 @@ ${exemptions.map(e => `| ${e.exemption_type} | ${e.tax_year} | $${(e.exemption_a
       throw new Error(`AI gateway error: ${response.status}`);
     }
 
-    // Stream the response directly back
     return new Response(response.body, {
       headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
     });
   } catch (error) {
     console.error("TerraPilot error:", error);
     return new Response(
-      JSON.stringify({ error: error.message || "Unknown error" }),
+      JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }

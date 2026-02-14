@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.91.1";
+import { requireAdmin, createServiceClient } from "../_shared/auth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -64,11 +65,31 @@ serve(async (req) => {
   }
 
   try {
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    // Require admin role for statewide scrape operations
+    let auth;
+    try {
+      auth = await requireAdmin(req);
+    } catch (res) {
+      if (res instanceof Response) return res;
+      throw res;
+    }
 
+    const supabase = createServiceClient();
     const { action, jobId, counties, jobType, batchSize = 20 }: ScrapeJobRequest = await req.json();
+
+    // Input validation
+    if (!["start", "cancel", "status", "queue"].includes(action)) {
+      return new Response(JSON.stringify({ success: false, error: "Invalid action" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    if (batchSize < 1 || batchSize > 100) {
+      return new Response(JSON.stringify({ success: false, error: "batchSize must be 1-100" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    console.log(`[statewide-scrape] Admin ${auth.userId} action: ${action}`);
 
     // Handle status check
     if (action === "status") {
@@ -112,8 +133,7 @@ serve(async (req) => {
     if (action === "cancel") {
       if (!jobId) {
         return new Response(JSON.stringify({ success: false, error: "jobId required" }), {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
 
@@ -125,12 +145,10 @@ serve(async (req) => {
 
       if (error) {
         return new Response(JSON.stringify({ success: false, error: error.message }), {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
 
-      // After cancelling, check for queued jobs and start the next one
       EdgeRuntime.waitUntil(processNextQueuedJob(supabase, batchSize));
 
       return new Response(JSON.stringify({ success: true, message: "Job cancelled" }), {
@@ -138,9 +156,8 @@ serve(async (req) => {
       });
     }
 
-    // Handle start - now supports queuing
+    // Handle start/queue
     if (action === "start" || action === "queue") {
-      // Check if there's already a running job
       const { data: runningJob } = await supabase
         .from("scrape_jobs")
         .select("id")
@@ -150,11 +167,8 @@ serve(async (req) => {
       const countiesToScrape = counties || Object.keys(WA_COUNTY_ASSESSORS);
       const estimatedSeconds = countiesToScrape.length * 30;
       const estimatedCompletion = new Date(Date.now() + estimatedSeconds * 1000).toISOString();
-
-      // If a job is running, queue this one; otherwise start immediately
       const initialStatus = runningJob ? "queued" : "pending";
 
-      // Create job record
       const { data: job, error: createError } = await supabase
         .from("scrape_jobs")
         .insert({
@@ -163,21 +177,17 @@ serve(async (req) => {
           counties: countiesToScrape,
           counties_total: countiesToScrape.length,
           estimated_completion: estimatedCompletion,
+          created_by: auth.userId,
         })
         .select()
         .single();
 
       if (createError) {
-        console.error("Failed to create job:", createError);
         return new Response(JSON.stringify({ success: false, error: createError.message }), {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
 
-      console.log(`Created scrape job ${job.id} with status ${initialStatus} for ${countiesToScrape.length} counties`);
-
-      // Only start processing if no other job is running
       if (!runningJob) {
         EdgeRuntime.waitUntil(processStatewideJob(supabase, job.id, countiesToScrape, batchSize));
       }
@@ -188,7 +198,7 @@ serve(async (req) => {
           jobId: job.id,
           queued: !!runningJob,
           message: runningJob 
-            ? `Job queued (another job is running). Will start automatically when current job completes.`
+            ? `Job queued. Will start automatically when current job completes.`
             : `Started ${jobType || "statewide"} scrape for ${countiesToScrape.length} counties`,
           estimatedCompletion,
         }),
@@ -197,15 +207,13 @@ serve(async (req) => {
     }
 
     return new Response(JSON.stringify({ success: false, error: "Invalid action" }), {
-      status: 400,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
     console.error("Statewide scrape error:", errorMessage);
     return new Response(JSON.stringify({ success: false, error: errorMessage }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 });
@@ -216,8 +224,6 @@ async function processNextQueuedJob(
   batchSize: number
 ) {
   console.log("Checking for queued jobs...");
-
-  // Get the next queued job (oldest first)
   const { data: nextJob, error } = await supabase
     .from("scrape_jobs")
     .select("*")
@@ -226,22 +232,11 @@ async function processNextQueuedJob(
     .limit(1)
     .maybeSingle();
 
-  if (error) {
-    console.error("Error fetching queued job:", error);
-    return;
-  }
-
-  if (!nextJob) {
-    console.log("No queued jobs found");
-    return;
-  }
+  if (error) { console.error("Error fetching queued job:", error); return; }
+  if (!nextJob) { console.log("No queued jobs found"); return; }
 
   console.log(`Starting queued job ${nextJob.id} (${nextJob.job_type})`);
-
-  const counties = Array.isArray(nextJob.counties) 
-    ? nextJob.counties as string[] 
-    : Object.keys(WA_COUNTY_ASSESSORS);
-
+  const counties = Array.isArray(nextJob.counties) ? nextJob.counties as string[] : Object.keys(WA_COUNTY_ASSESSORS);
   await processStatewideJob(supabase, nextJob.id, counties, batchSize);
 }
 
@@ -253,142 +248,53 @@ async function processStatewideJob(
   batchSize: number
 ) {
   console.log(`Background job ${jobId}: Starting processing of ${counties.length} counties`);
-
   try {
-    // Mark job as running
-    await supabase
-      .from("scrape_jobs")
-      .update({ status: "running", started_at: new Date().toISOString() })
-      .eq("id", jobId);
+    await supabase.from("scrape_jobs").update({ status: "running", started_at: new Date().toISOString() }).eq("id", jobId);
 
     let totalEnriched = 0;
     let totalSales = 0;
     const errors: Array<{ county: string; error: string }> = [];
 
     for (let i = 0; i < counties.length; i++) {
-      // Check if job was cancelled
-      const { data: jobCheck } = await supabase
-        .from("scrape_jobs")
-        .select("status")
-        .eq("id", jobId)
-        .single();
-
-      if (jobCheck?.status === "cancelled") {
-        console.log(`Job ${jobId} was cancelled`);
-        break;
-      }
+      const { data: jobCheck } = await supabase.from("scrape_jobs").select("status").eq("id", jobId).single();
+      if (jobCheck?.status === "cancelled") { console.log(`Job ${jobId} was cancelled`); break; }
 
       const county = counties[i];
       const assessorUrl = WA_COUNTY_ASSESSORS[county];
-
-      if (!assessorUrl) {
-        console.log(`No URL for county ${county}, skipping`);
-        continue;
-      }
+      if (!assessorUrl) continue;
 
       console.log(`Processing county ${i + 1}/${counties.length}: ${county}`);
-
-      // Update current progress
-      await supabase
-        .from("scrape_jobs")
-        .update({
-          current_county: county,
-          counties_completed: i,
-        })
-        .eq("id", jobId);
+      await supabase.from("scrape_jobs").update({ current_county: county, counties_completed: i }).eq("id", jobId);
 
       try {
-        // Fetch parcels needing enrichment for this county
-        const { data: parcels } = await supabase
-          .from("parcels")
-          .select("parcel_number")
-          .or("building_area.is.null,year_built.is.null,bedrooms.is.null")
-          .limit(batchSize);
-
+        const { data: parcels } = await supabase.from("parcels").select("parcel_number").or("building_area.is.null,year_built.is.null,bedrooms.is.null").limit(batchSize);
         const parcelIds = parcels?.map((p) => p.parcel_number) || [];
+        if (parcelIds.length === 0) continue;
 
-        if (parcelIds.length === 0) {
-          console.log(`No parcels need enrichment for ${county}`);
-          continue;
-        }
-
-        // Call the assessor-scrape function
-        const { data: scrapeResult, error: scrapeError } = await supabase.functions.invoke(
-          "assessor-scrape",
-          {
-            body: {
-              assessorUrl,
-              parcelIds,
-              action: "enrich",
-            },
-          }
-        );
+        const { data: scrapeResult, error: scrapeError } = await supabase.functions.invoke("assessor-scrape", {
+          body: { assessorUrl, parcelIds, action: "enrich" },
+        });
 
         if (scrapeError) {
-          console.error(`Error scraping ${county}:`, scrapeError);
           errors.push({ county, error: scrapeError.message });
         } else if (scrapeResult) {
           totalEnriched += scrapeResult.enriched || 0;
           totalSales += scrapeResult.salesAdded || 0;
-          console.log(
-            `${county}: enriched ${scrapeResult.enriched || 0}, sales ${scrapeResult.salesAdded || 0}`
-          );
         }
       } catch (err) {
-        const errorMsg = err instanceof Error ? err.message : "Unknown error";
-        console.error(`Exception scraping ${county}:`, errorMsg);
-        errors.push({ county, error: errorMsg });
+        errors.push({ county, error: err instanceof Error ? err.message : "Unknown error" });
       }
 
-      // Update totals after each county
-      await supabase
-        .from("scrape_jobs")
-        .update({
-          counties_completed: i + 1,
-          parcels_enriched: totalEnriched,
-          sales_added: totalSales,
-          errors: errors,
-        })
-        .eq("id", jobId);
-
-      // Rate limit: 2 seconds between counties
+      await supabase.from("scrape_jobs").update({ counties_completed: i + 1, parcels_enriched: totalEnriched, sales_added: totalSales, errors }).eq("id", jobId);
       await new Promise((r) => setTimeout(r, 2000));
     }
 
-    // Mark job as completed
     const finalStatus = errors.length === counties.length ? "failed" : "completed";
-    await supabase
-      .from("scrape_jobs")
-      .update({
-        status: finalStatus,
-        completed_at: new Date().toISOString(),
-        current_county: null,
-        counties_completed: counties.length,
-        parcels_enriched: totalEnriched,
-        sales_added: totalSales,
-        errors: errors,
-      })
-      .eq("id", jobId);
-
-    console.log(
-      `Job ${jobId} ${finalStatus}: enriched ${totalEnriched} parcels, ${totalSales} sales, ${errors.length} errors`
-    );
-
-    // Process next queued job
+    await supabase.from("scrape_jobs").update({ status: finalStatus, completed_at: new Date().toISOString(), current_county: null, counties_completed: counties.length, parcels_enriched: totalEnriched, sales_added: totalSales, errors }).eq("id", jobId);
     await processNextQueuedJob(supabase, batchSize);
-
   } catch (error) {
     console.error(`Job ${jobId} failed:`, error);
-    await supabase
-      .from("scrape_jobs")
-      .update({
-        status: "failed",
-        completed_at: new Date().toISOString(),
-        errors: [{ county: "system", error: error instanceof Error ? error.message : "Unknown error" }],
-      })
-      .eq("id", jobId);
-
-    // Even on failure, try to process next queued job
+    await supabase.from("scrape_jobs").update({ status: "failed", completed_at: new Date().toISOString(), errors: [{ county: "system", error: error instanceof Error ? error.message : "Unknown error" }] }).eq("id", jobId);
     await processNextQueuedJob(supabase, batchSize);
   }
 }
