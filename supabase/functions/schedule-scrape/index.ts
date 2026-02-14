@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { requireAdmin, createServiceClient } from "../_shared/auth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -19,30 +20,50 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+    // Require admin role for schedule management
+    let auth;
+    try {
+      auth = await requireAdmin(req);
+    } catch (res) {
+      if (res instanceof Response) return res;
+      throw res;
+    }
 
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+    const supabase = createServiceClient();
 
     const { action, scheduleId, cronExpression, counties, batchSize }: ScheduleRequest = await req.json();
 
-    console.log(`[schedule-scrape] Action: ${action}, Schedule ID: ${scheduleId}`);
+    // Input validation
+    if (!["create", "pause", "resume", "delete", "trigger"].includes(action)) {
+      return new Response(JSON.stringify({ success: false, error: "Invalid action" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    if (!scheduleId || typeof scheduleId !== "string") {
+      return new Response(JSON.stringify({ success: false, error: "scheduleId is required" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    if (cronExpression && !/^[\d\s\*\/\-\,]+$/.test(cronExpression)) {
+      return new Response(JSON.stringify({ success: false, error: "Invalid cron expression format" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    console.log(`[schedule-scrape] Admin ${auth.userId} Action: ${action}, Schedule ID: ${scheduleId}`);
 
     switch (action) {
       case "create": {
-        // Create cron job using pg_cron
         const jobName = `scrape_${scheduleId.slice(0, 8)}`;
         const functionUrl = `${supabaseUrl}/functions/v1/statewide-scrape`;
-        
-        // Build the HTTP request body
         const requestBody = JSON.stringify({
           counties: counties || [],
           batchSize: batchSize || 10,
           scheduledJobId: scheduleId,
         });
 
-        // Schedule the cron job
         const { data: cronResult, error: cronError } = await supabase.rpc("schedule_scrape_job", {
           p_job_name: jobName,
           p_cron_expression: cronExpression || "0 2 * * *",
@@ -53,116 +74,66 @@ Deno.serve(async (req) => {
 
         if (cronError) {
           console.error("[schedule-scrape] Failed to create cron job:", cronError);
-          
-          // Fallback: just mark as scheduled without actual cron job
-          // The UI will show when to run, but automated execution won't work
           console.log("[schedule-scrape] Cron scheduling not available, schedule saved for manual runs");
         } else {
-          // Update the schedule record with cron job ID
-          await supabase
-            .from("scheduled_scrapes")
-            .update({ cron_job_id: cronResult })
-            .eq("id", scheduleId);
+          await supabase.from("scheduled_scrapes").update({ cron_job_id: cronResult }).eq("id", scheduleId);
         }
 
-        return new Response(
-          JSON.stringify({ success: true, message: "Schedule created" }),
-          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+        return new Response(JSON.stringify({ success: true, message: "Schedule created" }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
       }
 
       case "pause": {
-        // Get the cron job ID
-        const { data: schedule } = await supabase
-          .from("scheduled_scrapes")
-          .select("cron_job_id")
-          .eq("id", scheduleId)
-          .single();
-
+        const { data: schedule } = await supabase.from("scheduled_scrapes").select("cron_job_id").eq("id", scheduleId).single();
         if (schedule?.cron_job_id) {
           await supabase.rpc("pause_scrape_job", { p_job_id: schedule.cron_job_id });
         }
-
-        return new Response(
-          JSON.stringify({ success: true, message: "Schedule paused" }),
-          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+        return new Response(JSON.stringify({ success: true, message: "Schedule paused" }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
       }
 
       case "resume": {
-        const { data: schedule } = await supabase
-          .from("scheduled_scrapes")
-          .select("cron_job_id")
-          .eq("id", scheduleId)
-          .single();
-
+        const { data: schedule } = await supabase.from("scheduled_scrapes").select("cron_job_id").eq("id", scheduleId).single();
         if (schedule?.cron_job_id) {
           await supabase.rpc("resume_scrape_job", { p_job_id: schedule.cron_job_id });
         }
-
-        return new Response(
-          JSON.stringify({ success: true, message: "Schedule resumed" }),
-          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+        return new Response(JSON.stringify({ success: true, message: "Schedule resumed" }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
       }
 
       case "delete": {
-        const { data: schedule } = await supabase
-          .from("scheduled_scrapes")
-          .select("cron_job_id")
-          .eq("id", scheduleId)
-          .single();
-
+        const { data: schedule } = await supabase.from("scheduled_scrapes").select("cron_job_id").eq("id", scheduleId).single();
         if (schedule?.cron_job_id) {
           await supabase.rpc("unschedule_scrape_job", { p_job_id: schedule.cron_job_id });
         }
-
-        return new Response(
-          JSON.stringify({ success: true, message: "Schedule deleted" }),
-          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+        return new Response(JSON.stringify({ success: true, message: "Schedule deleted" }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
       }
 
       case "trigger": {
-        // Manually trigger a scheduled scrape
-        const { data: schedule } = await supabase
-          .from("scheduled_scrapes")
-          .select("*")
-          .eq("id", scheduleId)
-          .single();
+        const { data: schedule } = await supabase.from("scheduled_scrapes").select("*").eq("id", scheduleId).single();
+        if (!schedule) throw new Error("Schedule not found");
 
-        if (!schedule) {
-          throw new Error("Schedule not found");
-        }
-
-        // Call statewide-scrape function
         const response = await fetch(`${supabaseUrl}/functions/v1/statewide-scrape`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${supabaseAnonKey}`,
           },
-          body: JSON.stringify({
-            action: "start",
-            counties: schedule.counties,
-            batchSize: schedule.batch_size,
-          }),
+          body: JSON.stringify({ action: "start", counties: schedule.counties, batchSize: schedule.batch_size }),
         });
 
-        if (!response.ok) {
-          throw new Error(`Failed to trigger scrape: ${response.statusText}`);
-        }
+        if (!response.ok) throw new Error(`Failed to trigger scrape: ${response.statusText}`);
 
-        // Update last_run_at
-        await supabase
-          .from("scheduled_scrapes")
-          .update({ last_run_at: new Date().toISOString() })
-          .eq("id", scheduleId);
+        await supabase.from("scheduled_scrapes").update({ last_run_at: new Date().toISOString() }).eq("id", scheduleId);
 
-        return new Response(
-          JSON.stringify({ success: true, message: "Scrape triggered" }),
-          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+        return new Response(JSON.stringify({ success: true, message: "Scrape triggered" }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
       }
 
       default:
@@ -171,7 +142,7 @@ Deno.serve(async (req) => {
   } catch (error) {
     console.error("[schedule-scrape] Error:", error);
     return new Response(
-      JSON.stringify({ success: false, error: error.message }),
+      JSON.stringify({ success: false, error: error instanceof Error ? error.message : "Unknown error" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
