@@ -38,6 +38,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useIngestPipeline, type IngestStep, type TargetTable, type FieldMapping } from "@/hooks/useIngestPipeline";
 import { PACS_EXPORT_GUIDE } from "@/config/pacsFieldMappings";
+import { PACSMultiTableImport } from "./PACSMultiTableImport";
 
 const PIPELINE_STEPS: { id: IngestStep; label: string; icon: React.ReactNode }[] = [
   { id: "upload", label: "Upload", icon: <Upload className="w-4 h-4" /> },
@@ -53,6 +54,7 @@ export function IngestWizard() {
   const pipeline = useIngestPipeline();
   const [isDragging, setIsDragging] = useState(false);
   const [loadingSample, setLoadingSample] = useState(false);
+  const [showPACSMulti, setShowPACSMulti] = useState(false);
 
   const stepIndex = STEP_ORDER.indexOf(pipeline.step);
 
@@ -69,6 +71,11 @@ export function IngestWizard() {
     const file = e.target.files?.[0];
     if (file) pipeline.handleFileUpload(file);
   };
+
+  // Show PACS multi-table import if selected
+  if (showPACSMulti) {
+    return <PACSMultiTableImport onBack={() => setShowPACSMulti(false)} />;
+  }
 
   // Step: Select target table
   if (pipeline.step === "select") {
@@ -96,36 +103,56 @@ export function IngestWizard() {
 
         <h3 className="text-lg font-medium">What are you importing?</h3>
         
-        {/* PACS Migration Card */}
-        <Card
-          className="bg-gradient-to-br from-amber-500/10 to-tf-cyan/10 border-amber-500/30 hover:border-amber-500/60 cursor-pointer transition-all"
-          onClick={() => {
-            pipeline.setImportProfile("pacs");
-            pipeline.setTargetTable("parcels");
-            pipeline.setStep("upload");
-          }}
-        >
-          <CardContent className="p-6">
-            <div className="flex items-start gap-4">
-              <span className="text-4xl">🏛️</span>
-              <div className="flex-1">
-                <div className="flex items-center gap-2">
-                  <h4 className="font-medium text-lg">PACS Migration (True Automation)</h4>
-                  <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30 text-xs">Benton County</Badge>
-                </div>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Pre-configured field mappings for CIAPS database exports — property, sales, assessments, permits, exemptions
-                </p>
-                <div className="flex gap-2 mt-2 flex-wrap">
-                  {["property", "sale", "property_val_hist", "permit", "exemption"].map(t => (
-                    <Badge key={t} variant="outline" className="text-xs font-mono">{t}</Badge>
-                  ))}
+        {/* PACS Migration Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Card
+            className="bg-gradient-to-br from-amber-500/10 to-tf-cyan/10 border-amber-500/30 hover:border-amber-500/60 cursor-pointer transition-all"
+            onClick={() => setShowPACSMulti(true)}
+          >
+            <CardContent className="p-6">
+              <div className="flex items-start gap-4">
+                <span className="text-4xl">🏛️</span>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <h4 className="font-medium text-lg">PACS Multi-Table Import</h4>
+                    <Badge className="bg-tf-green/20 text-tf-green border-tf-green/30 text-xs">Recommended</Badge>
+                  </div>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Drop all PACS CSV exports at once — auto-joins situs, imprv, land, permits on <code className="text-tf-cyan">prop_id</code>
+                  </p>
+                  <div className="flex gap-1.5 mt-2 flex-wrap">
+                    {["situs", "imprv", "imprv_items", "land_detail", "permits"].map(t => (
+                      <Badge key={t} variant="outline" className="text-xs font-mono">{t}</Badge>
+                    ))}
+                  </div>
                 </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-        
+            </CardContent>
+          </Card>
+
+          <Card
+            className="bg-gradient-to-br from-amber-500/5 to-transparent border-amber-500/20 hover:border-amber-500/40 cursor-pointer transition-all"
+            onClick={() => {
+              pipeline.setImportProfile("pacs");
+              pipeline.setTargetTable("parcels");
+              pipeline.setStep("upload");
+            }}
+          >
+            <CardContent className="p-6">
+              <div className="flex items-start gap-4">
+                <span className="text-4xl">📄</span>
+                <div className="flex-1">
+                  <h4 className="font-medium text-lg">PACS Single File</h4>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Import one pre-joined CSV with PACS field aliases (prop_id, appraised_val, etc.)
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <h3 className="text-lg font-medium">Or import standard data:</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {([
             { id: "parcels" as TargetTable, label: "County Roll / Parcels", desc: "Property records, values, and characteristics", icon: "🏠" },
