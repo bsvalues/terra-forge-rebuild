@@ -448,32 +448,32 @@ export function PermitsWorkflow() {
             </div>
           )}
 
-          <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setSelectedPermit(null)}>
-              Close
-            </Button>
-            <StatusTransitionDropdown
-              currentStatus={selectedPermit.status}
-              transitions={PERMIT_TRANSITIONS}
-              onTransition={(newStatus) =>
-                changePermitStatus.mutate({ permit: selectedPermit, newStatus })
-              }
-              isPending={changePermitStatus.isPending}
-              accentClass="bg-tf-green hover:bg-tf-green/90"
-            />
-            <Button
-              variant="outline"
-              onClick={() => {
-                if (selectedPermit) {
+          {selectedPermit && (
+            <DialogFooter className="gap-2">
+              <Button variant="outline" onClick={() => setSelectedPermit(null)}>
+                Close
+              </Button>
+              <StatusTransitionDropdown
+                currentStatus={selectedPermit.status}
+                transitions={PERMIT_TRANSITIONS}
+                onTransition={(newStatus) =>
+                  changePermitStatus.mutate({ permit: selectedPermit, newStatus })
+                }
+                isPending={changePermitStatus.isPending}
+                accentClass="bg-tf-green hover:bg-tf-green/90"
+              />
+              <Button
+                variant="outline"
+                onClick={() => {
                   handleNavigateToParcel(selectedPermit);
                   setSelectedPermit(null);
-                }
-              }}
-            >
-              <MapPin className="w-4 h-4 mr-2" />
-              View Parcel
-            </Button>
-          </DialogFooter>
+                }}
+              >
+                <MapPin className="w-4 h-4 mr-2" />
+                View Parcel
+              </Button>
+            </DialogFooter>
+          )}
         </DialogContent>
       </Dialog>
     </div>

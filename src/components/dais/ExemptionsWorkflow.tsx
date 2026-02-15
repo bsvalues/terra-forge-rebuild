@@ -465,32 +465,32 @@ export function ExemptionsWorkflow() {
             </div>
           )}
 
-          <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setSelectedExemption(null)}>
-              Close
-            </Button>
-            <StatusTransitionDropdown
-              currentStatus={selectedExemption.status}
-              transitions={EXEMPTION_TRANSITIONS}
-              onTransition={(newStatus) =>
-                changeExemptionStatus.mutate({ exemption: selectedExemption, newStatus })
-              }
-              isPending={changeExemptionStatus.isPending}
-              accentClass="bg-tf-gold hover:bg-tf-gold/90 text-black"
-            />
-            <Button
-              variant="outline"
-              onClick={() => {
-                if (selectedExemption) {
+          {selectedExemption && (
+            <DialogFooter className="gap-2">
+              <Button variant="outline" onClick={() => setSelectedExemption(null)}>
+                Close
+              </Button>
+              <StatusTransitionDropdown
+                currentStatus={selectedExemption.status}
+                transitions={EXEMPTION_TRANSITIONS}
+                onTransition={(newStatus) =>
+                  changeExemptionStatus.mutate({ exemption: selectedExemption, newStatus })
+                }
+                isPending={changeExemptionStatus.isPending}
+                accentClass="bg-tf-gold hover:bg-tf-gold/90 text-black"
+              />
+              <Button
+                variant="outline"
+                onClick={() => {
                   handleNavigateToParcel(selectedExemption);
                   setSelectedExemption(null);
-                }
-              }}
-            >
-              <MapPin className="w-4 h-4 mr-2" />
-              View Parcel
-            </Button>
-          </DialogFooter>
+                }}
+              >
+                <MapPin className="w-4 h-4 mr-2" />
+                View Parcel
+              </Button>
+            </DialogFooter>
+          )}
         </DialogContent>
       </Dialog>
     </div>
