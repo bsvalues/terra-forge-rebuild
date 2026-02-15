@@ -361,21 +361,28 @@ export function CommandBriefing({ onNavigate }: CommandBriefingProps) {
             {recentJobs && recentJobs.length > 0 ? (
               <div className="space-y-3">
                 {recentJobs.map((job: any) => (
-                  <div key={job.id} className="flex items-center justify-between p-3 rounded-lg bg-tf-surface/50">
+                  <button
+                    key={job.id}
+                    onClick={() => onNavigate(`ids:versions:${job.id}`)}
+                    className="w-full flex items-center justify-between p-3 rounded-lg bg-tf-surface/50 hover:bg-tf-surface hover:border-purple-500/30 border border-transparent transition-colors text-left group"
+                  >
                     <div>
                       <p className="text-sm font-medium">{job.file_name}</p>
                       <p className="text-xs text-muted-foreground">
                         {job.target_table} • {job.row_count?.toLocaleString() || 0} rows
                       </p>
                     </div>
-                    <Badge variant="outline" className={
-                      job.status === "complete" ? "bg-tf-green/10 text-tf-green border-tf-green/30" :
-                      job.status === "failed" ? "bg-destructive/10 text-destructive border-destructive/30" :
-                      "bg-tf-cyan/10 text-tf-cyan border-tf-cyan/30"
-                    }>
-                      {job.status}
-                    </Badge>
-                  </div>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline" className={
+                        job.status === "complete" ? "bg-tf-green/10 text-tf-green border-tf-green/30" :
+                        job.status === "failed" ? "bg-destructive/10 text-destructive border-destructive/30" :
+                        "bg-tf-cyan/10 text-tf-cyan border-tf-cyan/30"
+                      }>
+                        {job.status}
+                      </Badge>
+                      <ArrowRight className="w-3.5 h-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </div>
+                  </button>
                 ))}
               </div>
             ) : (

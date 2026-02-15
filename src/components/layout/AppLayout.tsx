@@ -20,6 +20,7 @@ export function AppLayout() {
   const [pendingTab, setPendingTab] = useState<string | null>(null);
   const [pendingSubTab, setPendingSubTab] = useState<string | null>(null);
   const [pendingIdsPillar, setPendingIdsPillar] = useState<string | null>(null);
+  const [pendingIdsJobId, setPendingIdsJobId] = useState<string | null>(null);
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const [controlCenterOpen, setControlCenterOpen] = useState(false);
 
@@ -33,6 +34,7 @@ export function AppLayout() {
     } else if (target.startsWith("ids:")) {
       const parts = target.split(":");
       setPendingIdsPillar(parts[1]);
+      setPendingIdsJobId(parts[2] ?? null);
       setActiveModule("ids");
     } else {
       setActiveModule(target);
@@ -62,6 +64,8 @@ export function AppLayout() {
           <IDSCommandCenter
             initialPillar={pendingIdsPillar}
             onPillarConsumed={() => setPendingIdsPillar(null)}
+            highlightJobId={pendingIdsJobId}
+            onJobIdConsumed={() => setPendingIdsJobId(null)}
           />
         );
       case "workbench":
