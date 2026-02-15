@@ -46,6 +46,8 @@ export function useActiveStudyPeriod() {
 export function useVEIMetrics(studyPeriodId: string | undefined) {
   return useQuery({
     queryKey: ["vei-metrics", studyPeriodId],
+    staleTime: 2 * 60 * 1000,
+    refetchOnWindowFocus: true,
     queryFn: async () => {
       if (!studyPeriodId) return null;
 
