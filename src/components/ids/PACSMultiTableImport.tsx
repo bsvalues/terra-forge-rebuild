@@ -40,6 +40,11 @@ const TABLE_LABELS: Record<PACSTableType, { label: string; icon: string; require
   account: { label: "Accounts (Names)", icon: "📋", required: false },
   permits: { label: "Permits", icon: "📄", required: false },
   address: { label: "Mailing Addresses", icon: "✉️", required: false },
+  roll_value_history: { label: "Roll Value History", icon: "📊", required: false },
+  exempt: { label: "Exemptions", icon: "🛡️", required: false },
+  linked_owners: { label: "Linked Owners", icon: "👥", required: false },
+  sketches: { label: "Sketches", icon: "✏️", required: false },
+  images: { label: "Property Images", icon: "📸", required: false },
   unknown: { label: "Unknown", icon: "❓", required: false },
 };
 
@@ -66,7 +71,6 @@ export function PACSMultiTableImport({ onBack }: PACSMultiTableImportProps) {
       if (!file.name.endsWith(".csv") && !file.name.endsWith(".txt")) continue;
       try {
         const parsed = await parsePACSFile(file);
-        // Replace if same type already exists
         const existingIdx = newTables.findIndex(t => t.type === parsed.type);
         if (existingIdx >= 0) {
           newTables[existingIdx] = parsed;
@@ -111,8 +115,15 @@ export function PACSMultiTableImport({ onBack }: PACSMultiTableImportProps) {
     setPublishProgress(0);
     let imported = 0;
     let failed = 0;
-
     const BATCH_SIZE = 500;
+
+    // Determine progress allocation based on what data exists
+    const hasPermits = joinResult.permits.length > 0;
+    const hasAssessments = joinResult.assessments.length > 0;
+    const hasExemptions = joinResult.exemptions.length > 0;
+    const phases = 1 + (hasPermits ? 1 : 0) + (hasAssessments ? 1 : 0) + (hasExemptions ? 1 : 0) + 1; // +1 for backfill
+    const phaseSize = Math.floor(95 / phases);
+    let progressBase = 0;
 
     // Phase 1: Upsert parcels
     const parcelRecords = joinResult.parcels.map(p => ({
@@ -120,7 +131,7 @@ export function PACSMultiTableImport({ onBack }: PACSMultiTableImportProps) {
       county_id: profile.county_id,
     }));
 
-    setPublishPhase(`Phase 1: Publishing ${parcelRecords.length.toLocaleString()} parcels...`);
+    setPublishPhase(`Phase 1/${phases}: Publishing ${parcelRecords.length.toLocaleString()} parcels...`);
 
     for (let i = 0; i < parcelRecords.length; i += BATCH_SIZE) {
       const batch = parcelRecords.slice(i, i + BATCH_SIZE);
@@ -133,32 +144,34 @@ export function PACSMultiTableImport({ onBack }: PACSMultiTableImportProps) {
       } else {
         imported += batch.length;
       }
-      setPublishProgress(Math.round(((i + batch.length) / parcelRecords.length) * 60));
+      setPublishProgress(progressBase + Math.round(((i + batch.length) / parcelRecords.length) * phaseSize));
+    }
+    progressBase += phaseSize;
+
+    // Build parcel ID lookup for downstream phases
+    const parcelLookup: Record<string, string> = {};
+    let offset = 0;
+    let hasMore = true;
+    setPublishPhase("Resolving parcel IDs...");
+    while (hasMore) {
+      const { data } = await supabase
+        .from("parcels")
+        .select("id, parcel_number")
+        .eq("county_id", profile.county_id)
+        .range(offset, offset + 999);
+      if (data && data.length > 0) {
+        for (const p of data) parcelLookup[p.parcel_number] = p.id;
+        offset += data.length;
+        hasMore = data.length === 1000;
+      } else {
+        hasMore = false;
+      }
     }
 
-    // Phase 2: Upsert permits (need parcel_id lookup)
-    if (joinResult.permits.length > 0) {
-      setPublishPhase("Resolving parcel IDs for permits...");
-      
-      const parcelLookup: Record<string, string> = {};
-      let offset = 0;
-      let hasMore = true;
-      while (hasMore) {
-        const { data } = await supabase
-          .from("parcels")
-          .select("id, parcel_number")
-          .eq("county_id", profile.county_id)
-          .range(offset, offset + 999);
-        if (data && data.length > 0) {
-          for (const p of data) parcelLookup[p.parcel_number] = p.id;
-          offset += data.length;
-          hasMore = data.length === 1000;
-        } else {
-          hasMore = false;
-        }
-      }
-
-      setPublishPhase(`Phase 2: Publishing ${joinResult.permits.length.toLocaleString()} permits...`);
+    // Phase 2: Permits
+    if (hasPermits) {
+      const phaseNum = 2;
+      setPublishPhase(`Phase ${phaseNum}/${phases}: Publishing ${joinResult.permits.length.toLocaleString()} permits...`);
       
       const permitRecords = joinResult.permits
         .map(p => {
@@ -185,11 +198,79 @@ export function PACSMultiTableImport({ onBack }: PACSMultiTableImportProps) {
         } else {
           imported += batch.length;
         }
-        setPublishProgress(60 + Math.round(((i + batch.length) / permitRecords.length) * 40));
+        setPublishProgress(progressBase + Math.round(((i + batch.length) / permitRecords.length) * phaseSize));
       }
+      progressBase += phaseSize;
     }
 
-    // Phase 3: Backfill assessments for current tax year
+    // Phase 3: Assessments (from roll_value_history)
+    if (hasAssessments) {
+      setPublishPhase(`Publishing ${joinResult.assessments.length.toLocaleString()} assessment records...`);
+      
+      const assessmentRecords = joinResult.assessments
+        .map(a => {
+          const parcelId = parcelLookup[a.parcel_number];
+          if (!parcelId) return null;
+          return {
+            parcel_id: parcelId,
+            county_id: profile.county_id,
+            tax_year: a.tax_year,
+            improvement_value: a.improvement_value,
+            land_value: a.land_value,
+            total_value: a.total_value,
+          };
+        })
+        .filter(Boolean);
+
+      for (let i = 0; i < assessmentRecords.length; i += BATCH_SIZE) {
+        const batch = assessmentRecords.slice(i, i + BATCH_SIZE);
+        const { error } = await supabase.from("assessments").upsert(batch as any[], {
+          onConflict: "parcel_id,tax_year",
+        });
+        if (error) {
+          console.error("Assessment batch error:", error.message);
+          failed += batch.length;
+        } else {
+          imported += batch.length;
+        }
+        setPublishProgress(progressBase + Math.round(((i + batch.length) / assessmentRecords.length) * phaseSize));
+      }
+      progressBase += phaseSize;
+    }
+
+    // Phase 4: Exemptions
+    if (hasExemptions) {
+      setPublishPhase(`Publishing ${joinResult.exemptions.length.toLocaleString()} exemption records...`);
+      
+      const exemptionRecords = joinResult.exemptions
+        .map(e => {
+          const parcelId = parcelLookup[e.parcel_number];
+          if (!parcelId) return null;
+          return {
+            parcel_id: parcelId,
+            exemption_type: e.exemption_type,
+            status: "active",
+            tax_year: 2026,
+            exemption_percentage: e.exemption_percentage,
+          };
+        })
+        .filter(Boolean);
+
+      for (let i = 0; i < exemptionRecords.length; i += BATCH_SIZE) {
+        const batch = exemptionRecords.slice(i, i + BATCH_SIZE);
+        const { error } = await supabase.from("exemptions").upsert(batch as any[]);
+        if (error) {
+          console.error("Exemption batch error:", error.message);
+          failed += batch.length;
+        } else {
+          imported += batch.length;
+        }
+        setPublishProgress(progressBase + Math.round(((i + batch.length) / exemptionRecords.length) * phaseSize));
+      }
+      progressBase += phaseSize;
+    }
+
+    // Final Phase: Backfill assessments
     setPublishPhase("Backfilling assessments for TY 2026...");
     const { error: backfillError } = await supabase.rpc("backfill_assessments" as any, {
       p_county_id: profile.county_id,
@@ -212,7 +293,6 @@ export function PACSMultiTableImport({ onBack }: PACSMultiTableImportProps) {
   if (step === "upload") {
     return (
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-        {/* Header */}
         <Card className="bg-gradient-to-br from-amber-500/10 to-tf-cyan/10 border-amber-500/30">
           <CardContent className="p-6">
             <div className="flex items-center gap-4">
@@ -228,7 +308,6 @@ export function PACSMultiTableImport({ onBack }: PACSMultiTableImportProps) {
           </CardContent>
         </Card>
 
-        {/* Drop Zone */}
         <Card className="bg-tf-elevated/50 border-tf-border">
           <CardContent className="p-8">
             <div
@@ -249,7 +328,7 @@ export function PACSMultiTableImport({ onBack }: PACSMultiTableImportProps) {
                 Drop all PACS CSV files here
               </h3>
               <p className="text-sm text-muted-foreground mb-4">
-                situs.csv, imprv.csv, imprv_items.csv, land_detail.csv, owner.csv, account.csv, permits.csv
+                situs, imprv, imprv_items, land_detail, owner, account, permits, roll_value_history, exempt, linked_owners, sketches, images
               </p>
               <input
                 type="file"
@@ -268,7 +347,6 @@ export function PACSMultiTableImport({ onBack }: PACSMultiTableImportProps) {
           </CardContent>
         </Card>
 
-        {/* Detected Tables */}
         {tables.length > 0 && (
           <Card className="bg-tf-elevated/50 border-tf-border">
             <CardHeader className="pb-2">
@@ -278,7 +356,7 @@ export function PACSMultiTableImport({ onBack }: PACSMultiTableImportProps) {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                 {tables.map(t => {
                   const meta = TABLE_LABELS[t.type];
                   return (
@@ -309,7 +387,6 @@ export function PACSMultiTableImport({ onBack }: PACSMultiTableImportProps) {
           </Card>
         )}
 
-        {/* Actions */}
         <div className="flex justify-between">
           <Button variant="ghost" onClick={onBack}>
             <ArrowLeft className="w-4 h-4 mr-2" />Back
@@ -345,25 +422,39 @@ export function PACSMultiTableImport({ onBack }: PACSMultiTableImportProps) {
           </CardContent>
         </Card>
 
-        {/* Join Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
           {[
             { label: "Parcels", value: s.joinedParcels, icon: "🏠" },
-            { label: "With Improvements", value: s.imprvCount > 0 ? `${s.imprvCount} rows` : "—", icon: "🔨" },
-            { label: "With Land Data", value: s.landCount > 0 ? `${s.landCount} rows` : "—", icon: "🌿" },
-            { label: "Permits", value: s.joinedPermits, icon: "📄" },
+            { label: "Improvements", value: s.imprvCount > 0 ? s.imprvCount : "—", icon: "🔨" },
+            { label: "Land Records", value: s.landCount > 0 ? s.landCount : "—", icon: "🌿" },
+            { label: "Permits", value: s.joinedPermits > 0 ? s.joinedPermits : "—", icon: "📄" },
+            { label: "Assessments", value: s.joinedAssessments > 0 ? s.joinedAssessments : "—", icon: "📊" },
+            { label: "Exemptions", value: s.joinedExemptions > 0 ? s.joinedExemptions : "—", icon: "🛡️" },
           ].map(stat => (
             <Card key={stat.label} className="bg-tf-elevated/50 border-tf-border">
-              <CardContent className="p-4 text-center">
-                <span className="text-2xl">{stat.icon}</span>
-                <p className="text-lg font-semibold mt-1">{typeof stat.value === "number" ? stat.value.toLocaleString() : stat.value}</p>
+              <CardContent className="p-3 text-center">
+                <span className="text-xl">{stat.icon}</span>
+                <p className="text-base font-semibold mt-1">{typeof stat.value === "number" ? stat.value.toLocaleString() : stat.value}</p>
                 <p className="text-xs text-muted-foreground">{stat.label}</p>
               </CardContent>
             </Card>
           ))}
         </div>
 
-        {/* Sample Preview */}
+        {/* Metadata tables (reference only) */}
+        {(s.sketchCount > 0 || s.imageCount > 0 || s.linkedOwnerCount > 0) && (
+          <Card className="bg-tf-elevated/50 border-tf-border">
+            <CardContent className="p-4">
+              <p className="text-xs text-muted-foreground mb-2">📎 Reference data (cataloged, not published)</p>
+              <div className="flex gap-4 text-xs">
+                {s.sketchCount > 0 && <span>✏️ {s.sketchCount.toLocaleString()} sketches</span>}
+                {s.imageCount > 0 && <span>📸 {s.imageCount.toLocaleString()} images</span>}
+                {s.linkedOwnerCount > 0 && <span>👥 {s.linkedOwnerCount.toLocaleString()} linked owners</span>}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         <Card className="bg-tf-elevated/50 border-tf-border">
           <CardHeader className="pb-2">
             <CardTitle className="text-base">Sample Parcels (first 5)</CardTitle>
@@ -400,7 +491,6 @@ export function PACSMultiTableImport({ onBack }: PACSMultiTableImportProps) {
           </CardContent>
         </Card>
 
-        {/* Actions */}
         <div className="flex justify-between">
           <Button variant="ghost" onClick={() => setStep("upload")}>
             <ArrowLeft className="w-4 h-4 mr-2" />Back to Upload
@@ -408,7 +498,9 @@ export function PACSMultiTableImport({ onBack }: PACSMultiTableImportProps) {
           <Button className="bg-tf-green hover:bg-tf-green/80 text-black" onClick={publish}>
             <Rocket className="w-4 h-4 mr-2" />
             Publish {s.joinedParcels.toLocaleString()} Parcels
+            {s.joinedAssessments > 0 && ` + ${s.joinedAssessments.toLocaleString()} Assessments`}
             {s.joinedPermits > 0 && ` + ${s.joinedPermits.toLocaleString()} Permits`}
+            {s.joinedExemptions > 0 && ` + ${s.joinedExemptions.toLocaleString()} Exemptions`}
           </Button>
         </div>
       </motion.div>
