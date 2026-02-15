@@ -95,6 +95,7 @@ const SUITE_REGISTRY: SuiteEntry[] = [
   { id: "atlas", name: "TerraAtlas", mission: "See the county — maps, layers, spatial tools", icon: Map, status: "native", target: "workbench:atlas", accentVar: "--suite-atlas" },
   { id: "dais", name: "TerraDais", mission: "Operate value — permits, exemptions, appeals", icon: Building2, status: "native", target: "workbench:dais", accentVar: "--suite-dais" },
   { id: "dossier", name: "TerraDossier", mission: "Prove decisions — evidence, narratives, packets", icon: FolderOpen, status: "native", target: "workbench:dossier", accentVar: "--suite-dossier" },
+  { id: "factory", name: "Factory", mission: "Mass appraisal — regression, cost, comp review", icon: Globe, status: "native", target: "factory", accentVar: "--suite-forge" },
   { id: "pilot", name: "TerraPilot", mission: "AI copilot — guidance, drafting, synthesis", icon: Sparkles, status: "native", target: "workbench:pilot", accentVar: "--tf-transcend-cyan" },
   { id: "ids", name: "IDS", mission: "Intelligent Data Suite — ingest, quality, routing", icon: Database, status: "native", target: "ids", accentVar: "--tf-transcend-cyan" },
 ];

@@ -271,6 +271,185 @@ export type Database = {
           },
         ]
       }
+      calibration_runs: {
+        Row: {
+          coefficients: Json
+          county_id: string
+          created_at: string
+          created_by: string
+          diagnostics: Json
+          id: string
+          model_type: string
+          neighborhood_code: string
+          r_squared: number | null
+          rmse: number | null
+          sample_size: number | null
+          status: string
+          updated_at: string
+          variables: string[]
+        }
+        Insert: {
+          coefficients?: Json
+          county_id: string
+          created_at?: string
+          created_by?: string
+          diagnostics?: Json
+          id?: string
+          model_type?: string
+          neighborhood_code: string
+          r_squared?: number | null
+          rmse?: number | null
+          sample_size?: number | null
+          status?: string
+          updated_at?: string
+          variables?: string[]
+        }
+        Update: {
+          coefficients?: Json
+          county_id?: string
+          created_at?: string
+          created_by?: string
+          diagnostics?: Json
+          id?: string
+          model_type?: string
+          neighborhood_code?: string
+          r_squared?: number | null
+          rmse?: number | null
+          sample_size?: number | null
+          status?: string
+          updated_at?: string
+          variables?: string[]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calibration_runs_county_id_fkey"
+            columns: ["county_id"]
+            isOneToOne: false
+            referencedRelation: "counties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      comp_grids: {
+        Row: {
+          county_id: string
+          created_at: string
+          created_by: string
+          criteria: Json
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          county_id: string
+          created_at?: string
+          created_by?: string
+          criteria?: Json
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          county_id?: string
+          created_at?: string
+          created_by?: string
+          criteria?: Json
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comp_grids_county_id_fkey"
+            columns: ["county_id"]
+            isOneToOne: false
+            referencedRelation: "counties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cost_depreciation: {
+        Row: {
+          age_from: number
+          age_to: number
+          condition_modifier: number
+          created_at: string
+          depreciation_pct: number
+          id: string
+          schedule_id: string
+        }
+        Insert: {
+          age_from?: number
+          age_to?: number
+          condition_modifier?: number
+          created_at?: string
+          depreciation_pct?: number
+          id?: string
+          schedule_id: string
+        }
+        Update: {
+          age_from?: number
+          age_to?: number
+          condition_modifier?: number
+          created_at?: string
+          depreciation_pct?: number
+          id?: string
+          schedule_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cost_depreciation_schedule_id_fkey"
+            columns: ["schedule_id"]
+            isOneToOne: false
+            referencedRelation: "cost_schedules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cost_schedules: {
+        Row: {
+          base_cost_per_sqft: number
+          county_id: string
+          created_at: string
+          created_by: string
+          effective_year: number
+          id: string
+          property_class: string
+          quality_grade: string
+          updated_at: string
+        }
+        Insert: {
+          base_cost_per_sqft: number
+          county_id: string
+          created_at?: string
+          created_by?: string
+          effective_year?: number
+          id?: string
+          property_class: string
+          quality_grade?: string
+          updated_at?: string
+        }
+        Update: {
+          base_cost_per_sqft?: number
+          county_id?: string
+          created_at?: string
+          created_by?: string
+          effective_year?: number
+          id?: string
+          property_class?: string
+          quality_grade?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cost_schedules_county_id_fkey"
+            columns: ["county_id"]
+            isOneToOne: false
+            referencedRelation: "counties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       counties: {
         Row: {
           config: Json | null
@@ -1513,6 +1692,70 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      value_adjustments: {
+        Row: {
+          adjustment_reason: string | null
+          adjustment_type: string
+          applied_at: string
+          applied_by: string
+          calibration_run_id: string | null
+          county_id: string
+          id: string
+          new_value: number
+          parcel_id: string
+          previous_value: number
+          rolled_back_at: string | null
+        }
+        Insert: {
+          adjustment_reason?: string | null
+          adjustment_type?: string
+          applied_at?: string
+          applied_by?: string
+          calibration_run_id?: string | null
+          county_id: string
+          id?: string
+          new_value: number
+          parcel_id: string
+          previous_value: number
+          rolled_back_at?: string | null
+        }
+        Update: {
+          adjustment_reason?: string | null
+          adjustment_type?: string
+          applied_at?: string
+          applied_by?: string
+          calibration_run_id?: string | null
+          county_id?: string
+          id?: string
+          new_value?: number
+          parcel_id?: string
+          previous_value?: number
+          rolled_back_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "value_adjustments_calibration_run_id_fkey"
+            columns: ["calibration_run_id"]
+            isOneToOne: false
+            referencedRelation: "calibration_runs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "value_adjustments_county_id_fkey"
+            columns: ["county_id"]
+            isOneToOne: false
+            referencedRelation: "counties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "value_adjustments_parcel_id_fkey"
+            columns: ["parcel_id"]
+            isOneToOne: false
+            referencedRelation: "parcels"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       vei_metrics: {
         Row: {

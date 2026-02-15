@@ -9,6 +9,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import Property from "./pages/Property";
+import Factory from "./pages/Factory";
 
 const queryClient = new QueryClient();
 
@@ -34,6 +35,22 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Property />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/factory"
+              element={
+                <ProtectedRoute>
+                  <Factory />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/factory/:mode"
+              element={
+                <ProtectedRoute>
+                  <Factory />
                 </ProtectedRoute>
               }
             />
