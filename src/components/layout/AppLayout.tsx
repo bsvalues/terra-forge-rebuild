@@ -73,7 +73,7 @@ export function AppLayout({ initialParcel: routeParcel, initialModule, initialFa
   const renderStage = () => {
     switch (activeModule) {
       case "dashboard":
-        return <SuiteHub onNavigate={handleNavigate} />;
+        return <SuiteHub onNavigate={handleNavigate} onParcelNavigate={handleParcelNavigate} />;
       case "ids":
         return (
           <IDSCommandCenter

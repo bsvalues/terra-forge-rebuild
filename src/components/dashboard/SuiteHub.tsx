@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -18,14 +18,17 @@ import {
   BarChart3,
   FileText,
   CheckCircle2,
+  MapPin,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { TerraTraceActivityFeed } from "@/components/proof/TerraTraceActivityFeed";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
+import { useDebounce } from "@/hooks/useDebounce";
 
 interface SuiteHubProps {
   onNavigate: (target: string) => void;
+  onParcelNavigate?: (parcel: { id: string; parcelNumber: string; address: string; assessedValue: number }) => void;
 }
 
 // ─── Data hooks ───────────────────────────────────────────────
@@ -156,18 +159,59 @@ const SUITE_REGISTRY: SuiteEntry[] = [
 
 // ─── Component ────────────────────────────────────────────────
 
-export function SuiteHub({ onNavigate }: SuiteHubProps) {
+export function SuiteHub({ onNavigate, onParcelNavigate }: SuiteHubProps) {
   const vitals = useSystemVitals();
   const [searchValue, setSearchValue] = useState("");
+  const [searchFocused, setSearchFocused] = useState(false);
+  const debouncedSearch = useDebounce(searchValue, 250);
+  const searchRef = useRef<HTMLDivElement>(null);
 
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchValue.trim()) {
+  // Live parcel search
+  const { data: searchResults } = useQuery({
+    queryKey: ["hub-parcel-search", debouncedSearch],
+    queryFn: async () => {
+      const term = debouncedSearch.trim();
+      if (term.length < 2) return [];
+      const { data } = await supabase
+        .from("parcels")
+        .select("id, parcel_number, address, city, assessed_value, neighborhood_code")
+        .or(`parcel_number.ilike.%${term}%,address.ilike.%${term}%`)
+        .limit(8);
+      return data || [];
+    },
+    enabled: debouncedSearch.trim().length >= 2,
+    staleTime: 10_000,
+  });
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+        setSearchFocused(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const handleSelectParcel = (p: any) => {
+    setSearchValue("");
+    setSearchFocused(false);
+    if (onParcelNavigate) {
+      onParcelNavigate({
+        id: p.id,
+        parcelNumber: p.parcel_number,
+        address: p.address,
+        assessedValue: p.assessed_value,
+      });
+    } else {
       onNavigate("workbench");
     }
   };
 
   const totalWorkflows = (vitals.workflows?.appeals || 0) + (vitals.workflows?.permits || 0) + (vitals.workflows?.exemptions || 0);
+
+  const showDropdown = searchFocused && searchValue.trim().length >= 2 && searchResults && searchResults.length > 0;
 
   return (
     <div className="p-6 pb-24 space-y-8 max-w-5xl mx-auto">
@@ -189,12 +233,9 @@ export function SuiteHub({ onNavigate }: SuiteHubProps) {
         </div>
 
         {/* Workbench Hero Card */}
-        <button
-          onClick={() => onNavigate("workbench")}
-          className="w-full text-left material-bento p-6 group hover:border-[hsl(var(--tf-transcend-cyan)/0.3)] transition-all duration-300"
-        >
+        <div className="w-full text-left material-bento p-6">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
+            <button onClick={() => onNavigate("workbench")} className="flex items-center gap-4 group">
               <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[hsl(var(--tf-transcend-cyan))] to-[hsl(var(--tf-bright-cyan))] flex items-center justify-center shadow-[0_4px_16px_hsl(var(--tf-transcend-cyan)/0.3)]">
                 <Search className="w-6 h-6 text-[hsl(var(--tf-substrate))]" />
               </div>
@@ -202,12 +243,62 @@ export function SuiteHub({ onNavigate }: SuiteHubProps) {
                 <h2 className="text-lg font-medium text-foreground">Property Workbench</h2>
                 <p className="text-sm text-muted-foreground">One parcel, one screen, every role</p>
               </div>
+            </button>
+            <button onClick={() => onNavigate("workbench")} className="group">
+              <ArrowRight className="w-5 h-5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+            </button>
+          </div>
+
+          {/* Live Search Bar */}
+          <div ref={searchRef} className="relative mt-4 pt-4 border-t border-border/50">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <input
+                type="text"
+                value={searchValue}
+                onChange={(e) => setSearchValue(e.target.value)}
+                onFocus={() => setSearchFocused(true)}
+                placeholder="Search by PIN or address..."
+                className="w-full h-10 pl-10 pr-4 rounded-lg bg-[hsl(var(--tf-elevated))] border border-border/50 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-[hsl(var(--tf-transcend-cyan)/0.5)] focus:border-[hsl(var(--tf-transcend-cyan)/0.3)] transition-all"
+              />
             </div>
-            <ArrowRight className="w-5 h-5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+
+            {/* Search Results Dropdown */}
+            <AnimatePresence>
+              {showDropdown && (
+                <motion.div
+                  initial={{ opacity: 0, y: -4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -4 }}
+                  className="absolute z-50 w-full mt-1 rounded-lg bg-card border border-border shadow-xl overflow-hidden"
+                >
+                  {searchResults!.map((p: any) => (
+                    <button
+                      key={p.id}
+                      onClick={() => handleSelectParcel(p)}
+                      className="w-full text-left px-4 py-3 hover:bg-muted/50 transition-colors flex items-center gap-3 border-b border-border/30 last:border-b-0"
+                    >
+                      <MapPin className="w-4 h-4 text-tf-cyan shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-medium text-foreground truncate">{p.address}</div>
+                        <div className="text-xs text-muted-foreground flex items-center gap-2">
+                          <span className="font-mono">{p.parcel_number}</span>
+                          {p.city && <span>• {p.city}</span>}
+                          {p.neighborhood_code && <span>• {p.neighborhood_code}</span>}
+                        </div>
+                      </div>
+                      <span className="text-xs font-medium text-tf-cyan shrink-0">
+                        {new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(p.assessed_value)}
+                      </span>
+                    </button>
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
           {/* Inline vitals */}
-          <div className="flex items-center gap-6 mt-4 pt-4 border-t border-border/50 flex-wrap">
+          <div className="flex items-center gap-6 mt-4 flex-wrap">
             <Vital label="Parcels" value={vitals.parcels.toLocaleString()} />
             <Vital label="Sales" value={vitals.sales.toLocaleString()} />
             <Vital label="Assessments" value={vitals.assessments.toLocaleString()} />
@@ -218,7 +309,7 @@ export function SuiteHub({ onNavigate }: SuiteHubProps) {
               <Vital label="Pending" value={totalWorkflows.toString()} highlight />
             )}
           </div>
-        </button>
+        </div>
       </motion.section>
 
       {/* ── System Vitals ── */}
