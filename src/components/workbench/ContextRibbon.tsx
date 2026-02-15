@@ -11,7 +11,8 @@ import {
   Check,
   Clock,
   FileText,
-  Navigation
+  Navigation,
+  Link2
 } from "lucide-react";
 import { useWorkbench } from "./WorkbenchContext";
 import { WorkModeSelector } from "./WorkModeSelector";
@@ -30,6 +31,7 @@ import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { NotificationBell } from "@/components/geoequity/NotificationBell";
+import { useToast } from "@/hooks/use-toast";
 
 interface SearchResult {
   id: string;
@@ -54,9 +56,11 @@ interface StudyPeriodResult {
 
 export function ContextRibbon() {
   const { parcel, studyPeriod, setParcel, setStudyPeriod, clearParcel, setActiveTab } = useWorkbench();
+  const { toast } = useToast();
   const [searchOpen, setSearchOpen] = useState(false);
   const [periodOpen, setPeriodOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [linkCopied, setLinkCopied] = useState(false);
   const debouncedQuery = useDebounce(searchQuery, 300);
 
   const hasParcel = parcel.id !== null;
@@ -157,6 +161,16 @@ export function ContextRibbon() {
     return `${startDate.toLocaleDateString("en-US", { month: "short", year: "numeric" })} — ${endDate.toLocaleDateString("en-US", { month: "short", year: "numeric" })}`;
   };
 
+  const handleCopyParcelLink = useCallback(() => {
+    if (!parcel.id) return;
+    const url = `${window.location.origin}/property/${parcel.id}`;
+    navigator.clipboard.writeText(url).then(() => {
+      setLinkCopied(true);
+      toast({ title: "Link copied", description: `Parcel ${parcel.parcelNumber} link copied to clipboard` });
+      setTimeout(() => setLinkCopied(false), 2000);
+    });
+  }, [parcel.id, parcel.parcelNumber, toast]);
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "active":
@@ -238,6 +252,21 @@ export function ContextRibbon() {
                   <span className="hidden sm:inline">Locate</span>
                 </Button>
               )}
+
+              {/* Copy Parcel Link */}
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 gap-1.5 text-xs text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                onClick={handleCopyParcelLink}
+              >
+                {linkCopied ? (
+                  <Check className="w-3 h-3 text-tf-green" />
+                ) : (
+                  <Link2 className="w-3 h-3" />
+                )}
+                <span className="hidden sm:inline">{linkCopied ? "Copied" : "Link"}</span>
+              </Button>
 
               <Button
                 variant="ghost"
