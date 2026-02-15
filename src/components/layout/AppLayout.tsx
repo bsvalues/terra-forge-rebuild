@@ -9,14 +9,24 @@ import { PropertyWorkbench } from "@/components/workbench";
 import { SuiteHub } from "@/components/dashboard/SuiteHub";
 import { useContextMode } from "@/hooks/useContextMode";
 
-export function AppLayout() {
-  const [activeModule, setActiveModule] = useState("dashboard");
+interface AppLayoutProps {
+  initialParcel?: {
+    id: string;
+    parcelNumber: string;
+    address: string;
+    assessedValue: number;
+  } | null;
+  initialModule?: string;
+}
+
+export function AppLayout({ initialParcel: routeParcel, initialModule }: AppLayoutProps) {
+  const [activeModule, setActiveModule] = useState(initialModule || "dashboard");
   const [pendingParcel, setPendingParcel] = useState<{
     id: string;
     parcelNumber: string;
     address: string;
     assessedValue: number;
-  } | null>(null);
+  } | null>(routeParcel ?? null);
   const [pendingTab, setPendingTab] = useState<string | null>(null);
   const [pendingSubTab, setPendingSubTab] = useState<string | null>(null);
   const [pendingIdsPillar, setPendingIdsPillar] = useState<string | null>(null);
