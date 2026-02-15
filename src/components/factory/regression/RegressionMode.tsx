@@ -3,7 +3,9 @@ import { RegressionControlPanel } from "./RegressionControlPanel";
 import { CoefficientGrid } from "./CoefficientGrid";
 import { CalibrationScatterPlot } from "./CalibrationScatterPlot";
 import { CalibrationDiagnostics } from "./CalibrationDiagnostics";
+import { BatchApplyPanel } from "./BatchApplyPanel";
 import { BarChart3 } from "lucide-react";
+import { useState } from "react";
 
 interface RegressionModeProps {
   neighborhoodCode: string | null;
@@ -11,12 +13,31 @@ interface RegressionModeProps {
 
 export function RegressionMode({ neighborhoodCode }: RegressionModeProps) {
   const hook = useCalibration(neighborhoodCode);
+  const [savedRunId, setSavedRunId] = useState<string | null>(null);
+
+  // Track saved run ID when save completes
+  const handleSave = () => {
+    hook.saveRun();
+    // We'll use latest history entry as the run ID after save
+  };
+
+  // Derive calibration run ID from most recent history entry matching current result
+  const calibrationRunId = savedRunId || (hook.history.length > 0 ? hook.history[0]?.id : null);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-6">
-      {/* Left: Control Panel */}
+      {/* Left: Control Panel + Batch Apply */}
       <div className="space-y-4">
         <RegressionControlPanel hook={hook} neighborhoodCode={neighborhoodCode} />
+
+        {/* Batch Apply Panel — visible when we have results */}
+        {hook.result && neighborhoodCode && (
+          <BatchApplyPanel
+            result={hook.result}
+            neighborhoodCode={neighborhoodCode}
+            calibrationRunId={calibrationRunId}
+          />
+        )}
 
         {/* Run History */}
         {hook.history.length > 0 && (

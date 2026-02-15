@@ -6,6 +6,7 @@ import { RegressionMode } from "./regression/RegressionMode";
 import { CostMode } from "./cost/CostMode";
 import { CompMode } from "./comps/CompMode";
 import { ScenarioMode } from "./scenarios/ScenarioMode";
+import { AdjustmentLedger } from "./AdjustmentLedger";
 import { BarChart3, DollarSign, Grid3X3, FlaskConical, Factory as FactoryIcon } from "lucide-react";
 
 export type FactoryMode = "regression" | "cost" | "comps" | "scenarios";
@@ -98,6 +99,9 @@ export function FactoryLayout({ initialMode }: FactoryLayoutProps) {
           );
         })}
       </Tabs>
+
+      {/* Adjustment Ledger — always visible below tabs */}
+      <AdjustmentLedger />
     </div>
   );
 }

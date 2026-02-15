@@ -87,6 +87,91 @@ export async function createValueOverride(
 }
 
 /**
+ * Batch apply value adjustments from a calibration run.
+ * Writes predicted values to parcels and records in value_adjustments ledger.
+ */
+export async function batchApplyAdjustments(
+  calibrationRunId: string,
+  adjustments: Array<{
+    parcelId: string;
+    previousValue: number;
+    newValue: number;
+  }>,
+  adjustmentType: string = "regression",
+  reason?: string
+): Promise<{ applied: number; errors: string[] }> {
+  assertWriteLane("value_adjustments", SOURCE);
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("county_id")
+    .single();
+
+  const countyId = profile?.county_id ?? "00000000-0000-0000-0000-000000000001";
+  const errors: string[] = [];
+  let applied = 0;
+
+  // Create a correlation ID for this batch
+  const correlationId = crypto.randomUUID();
+
+  for (const adj of adjustments) {
+    try {
+      // Update the parcel's assessed value
+      const { error: updateError } = await supabase
+        .from("parcels")
+        .update({ assessed_value: adj.newValue })
+        .eq("id", adj.parcelId);
+
+      if (updateError) {
+        errors.push(`Parcel ${adj.parcelId}: ${updateError.message}`);
+        continue;
+      }
+
+      // Record in value_adjustments ledger
+      const { error: insertError } = await supabase
+        .from("value_adjustments")
+        .insert({
+          county_id: countyId,
+          parcel_id: adj.parcelId,
+          adjustment_type: adjustmentType,
+          previous_value: adj.previousValue,
+          new_value: adj.newValue,
+          adjustment_reason: reason || `Batch ${adjustmentType} calibration`,
+          calibration_run_id: calibrationRunId,
+        });
+
+      if (insertError) {
+        errors.push(`Ledger ${adj.parcelId}: ${insertError.message}`);
+        continue;
+      }
+
+      applied++;
+    } catch (err: any) {
+      errors.push(`${adj.parcelId}: ${err.message}`);
+    }
+  }
+
+  // Emit a single trace event for the entire batch
+  await emitTraceEvent({
+    sourceModule: SOURCE,
+    eventType: "model_run_completed",
+    eventData: {
+      batchSize: adjustments.length,
+      applied,
+      errors: errors.length,
+      adjustmentType,
+      calibrationRunId,
+      reason,
+    },
+    correlationId,
+    artifactType: "model_receipt",
+    artifactId: calibrationRunId,
+  });
+
+  return { applied, errors };
+}
+
+/**
  * Record a model run completion.
  */
 export async function recordModelRun(
