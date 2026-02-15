@@ -1,8 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Grid3X3 } from "lucide-react";
+import { Grid3X3, ExternalLink } from "lucide-react";
 
 interface CompModeProps {
   neighborhoodCode: string | null;
@@ -23,6 +24,7 @@ function ratioBadge(ratio: number | null) {
 }
 
 export function CompMode({ neighborhoodCode }: CompModeProps) {
+  const navigate = useNavigate();
   const { data: parcels = [], isLoading } = useQuery({
     queryKey: ["comp-grid", neighborhoodCode],
     enabled: !!neighborhoodCode,
@@ -110,11 +112,12 @@ export function CompMode({ neighborhoodCode }: CompModeProps) {
                 <TableHead className="text-xs text-right">Sale Price</TableHead>
                 <TableHead className="text-xs text-right">Ratio</TableHead>
                 <TableHead className="text-xs text-center">Flag</TableHead>
+                <TableHead className="text-xs text-center">Action</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading && (
-                <TableRow><TableCell colSpan={6} className="text-center text-sm text-muted-foreground py-8">Loading…</TableCell></TableRow>
+                <TableRow><TableCell colSpan={7} className="text-center text-sm text-muted-foreground py-8">Loading…</TableCell></TableRow>
               )}
               {parcels.map((p) => (
                 <TableRow key={p.id}>
@@ -133,6 +136,14 @@ export function CompMode({ neighborhoodCode }: CompModeProps) {
                         {p.ratio >= 0.9 && p.ratio <= 1.1 ? "✓" : p.ratio >= 0.8 && p.ratio <= 1.2 ? "⚠" : "✗"}
                       </Badge>
                     )}
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <button
+                      onClick={() => navigate(`/property/${p.id}`)}
+                      className="inline-flex items-center gap-1 text-[10px] text-tf-cyan hover:underline"
+                    >
+                      <ExternalLink className="w-3 h-3" />
+                    </button>
                   </TableCell>
                 </TableRow>
               ))}

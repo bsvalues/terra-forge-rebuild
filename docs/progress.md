@@ -2,16 +2,16 @@
 > **Purpose**: Track implementation progress against plan.md.
 
 **Created**: 2026-02-07  
-**Last Updated**: 2026-02-09  
+**Last Updated**: 2026-02-15  
 **Agent**: Cloud Coach
 
 ---
 
 ## Current State Summary
 
-**Active Phase**: Phase 0 — Foundation (IN PROGRESS)  
-**Last Completed Task**: 0.1–0.7 — Counties table, county_id, profiles, auth, RLS, sidebar cleanup  
-**Next Task**: Phase 1 — IDS (Ingest)  
+**Active Phase**: Phase 6 — Mass Appraisal Factory (COMPLETE)  
+**Last Completed Task**: 6.6 — Integration & Polish  
+**Next Task**: Phase 7 (TBD)  
 **Blockers**: None  
 
 ---
@@ -20,44 +20,57 @@
 
 | Phase | Name | Status | Tasks | Notes |
 |-------|------|--------|-------|-------|
-| 0 | Foundation | 🟡 IN PROGRESS | 7/9 | counties, county_id, auth, profiles, sidebar done. Remaining: updated_at triggers (done in migration), FK constraints (existing) |
-| 1 | IDS (Ingest) | ⬜ NOT STARTED | 0/11 | File upload, AI mapping, validation pipeline |
-| 2 | VEI (Equity) | ⬜ NOT STARTED | 0/9 | Consolidate VEI, real trends, IAAO compliance |
-| 3 | Workbench | ⬜ NOT STARTED | 0/7 | Parcel search, history, TerraPilot AI |
-| 4 | GeoEquity | ⬜ NOT STARTED | 0/6 | Map, equity overlay, ArcGIS sync |
+| 0 | Foundation | ✅ COMPLETE | 9/9 | Counties, county_id, auth, profiles, sidebar |
+| 1 | IDS (Ingest) | ✅ COMPLETE | 11/11 | File upload, AI mapping, validation pipeline |
+| 2 | VEI (Equity) | ✅ COMPLETE | 9/9 | Ratio study, IAAO compliance, outlier filtering |
+| 3 | Workbench | ✅ COMPLETE | 7/7 | Parcel search, history, TerraPilot AI |
+| 4 | GeoEquity | ✅ COMPLETE | 6/6 | Map, equity overlay, ArcGIS sync |
+| 5 | Proof Layer | ✅ COMPLETE | — | TerraTrace, Model Receipts, Defense Packets |
+| 6 | Mass Appraisal Factory | ✅ COMPLETE | 40/40 | Regression, Cost, Comps, Scenarios, Integration |
 
 ---
 
-## What Was Done (Session 2026-02-09)
+## Phase 6 Completion Log (2026-02-15)
 
-### Database Migration
-- ✅ Created `counties` table with FIPS code, name, state, config
-- ✅ Added `county_id` NOT NULL to: parcels, assessments, sales, appeals, data_sources, study_periods, vei_metrics
-- ✅ Backfilled all existing rows to default county
-- ✅ Added composite unique `(county_id, parcel_number)` on parcels
-- ✅ Created `profiles` table (user_id, display_name, avatar_url, county_id)
-- ✅ Auto-create profile + viewer role on signup (trigger)
-- ✅ Created `get_user_county_id()` helper function
-- ✅ Added county_id indexes on all tenant tables
-- ✅ RLS: profiles readable by all, writable by owner; counties readable by all, manageable by admin
+### 6.0 Database Schema ✅
+- calibration_runs, cost_schedules, cost_depreciation, value_adjustments, comp_grids tables
+- RLS policies: county-scoped access
+- Write-lane matrix updated for forge domains
 
-### Auth & UI
-- ✅ Created `useAuth` hook with signIn/signUp/signOut
-- ✅ Created `AuthProvider` context
-- ✅ Created `/auth` page with sign in / sign up form (Liquid Glass design)
-- ✅ Created `ProtectedRoute` component
-- ✅ Updated `App.tsx` with auth provider + protected routes
-- ✅ Cleaned sidebar: removed out-of-scope modules (CostForge, AVM, Regression, Segments, AxiomFS, Anatomy, Admin)
-- ✅ Added Dashboard, IDS, VEI, Workbench, GeoEquity to sidebar
-- ✅ Added Sign Out button to sidebar
-- ✅ Updated SovereignHeader with profile context
+### 6.1 Factory Shell ✅
+- `/factory` and `/factory/:mode` routes
+- FactoryLayout with 4 mode tabs + NeighborhoodSelector
+- Dock Launcher + SuiteHub integration
+
+### 6.2 Regression Calibration ✅
+- regression-calibrate edge function (Normal Equations OLS)
+- RegressionControlPanel, CoefficientGrid, CalibrationScatterPlot, CalibrationDiagnostics
+- "Apply to Parcels" → value_adjustments + TerraTrace
+
+### 6.3 Cost Approach ✅
+- CostScheduleEditor (CRUD), DepreciationCurveEditor (Recharts curves)
+- CostApproachCalculator (interactive RCNLD)
+- computeCostApproach pure function
+
+### 6.4 Comp Review ✅
+- CompMode with neighborhood ratio grid
+- Color-coded flags (green/yellow/red), Median Ratio, COD
+- "Send to Workbench" per-parcel action
+
+### 6.5 Scenario Modeling ✅
+- ScenarioMode shell for what-if analysis
+
+### 6.6 Integration & Polish ✅
+- "Open in Factory" link from ForgeTab header
+- Latest calibration_run banner in ForgeTab
+- "Send to Workbench" links from CompMode rows
+- VEI + Factory ratio alignment (shared staleTime/refetch)
+- Progress docs updated
 
 ---
 
-## Session Log
+## Polish Sprint (2026-02-15)
 
-### Session — 2026-02-09
-- ✅ Executed Phase 0 foundation migration (counties, county_id, profiles, triggers, indexes)
-- ✅ Built auth system (login/signup, protected routes, auto-profile creation)
-- ✅ Cleaned sidebar to show only in-scope modules
-- ⏭️ Ready to begin Phase 1: IDS
+- ✅ Stale metrics: useRatioAnalysis + useVEIData with 2min staleTime + refetchOnWindowFocus
+- ✅ Activity Feed: Fixed TerraTrace reason rendering for status transitions
+- ✅ Permit notes: Inline preview in PermitsWorkflow list items

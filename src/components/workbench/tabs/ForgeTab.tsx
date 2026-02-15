@@ -1,15 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Hammer, TrendingUp, Calculator, BarChart3, Activity, AlertTriangle, ChevronRight, Brain, Layers, Microscope, Compass } from "lucide-react";
-import { useWorkbench } from "../WorkbenchContext";
-import { VEIMetricCard } from "@/components/vei/VEIMetricCard";
-import { VEISummaryPanel } from "@/components/vei/VEISummaryPanel";
-import { PRDTrendChart } from "@/components/vei/charts/PRDTrendChart";
-import { CODTrendChart } from "@/components/vei/charts/CODTrendChart";
-import { TierRatioPlot } from "@/components/vei/charts/TierRatioPlot";
-import { VEIDashboardSkeleton } from "@/components/vei/VEIDashboardSkeleton";
+import { Hammer, TrendingUp, Activity, Brain, Layers, Microscope, Compass, Factory as FactoryIcon, ExternalLink } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { Badge } from "@/components/ui/badge";
 import { CompsView } from "./CompsView";
-import { VEIEmptyState } from "@/components/vei/VEIEmptyState";
 import { VEIDashboard } from "@/components/vei/VEIDashboard";
 import { RegressionStudioDashboard } from "@/components/regression/RegressionStudioDashboard";
 import { AVMStudioDashboard } from "@/components/avm/AVMStudioDashboard";
@@ -45,6 +41,23 @@ export function ForgeTab() {
     { id: "comps", label: "Comparables", icon: TrendingUp },
   ];
 
+  const navigate = useNavigate();
+
+  // Latest calibration run for context
+  const { data: latestRun } = useQuery({
+    queryKey: ["latest-calibration-run"],
+    staleTime: 60_000,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("calibration_runs")
+        .select("id, neighborhood_code, r_squared, sample_size, status, created_at")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .single();
+      return data;
+    },
+  });
+
   return (
     <div className="h-full flex flex-col">
       {/* Forge Header */}
@@ -64,21 +77,50 @@ export function ForgeTab() {
             </div>
           </div>
 
-          {/* Sub-view Tabs */}
-          <Tabs value={activeView} onValueChange={(v) => setActiveView(v as ForgeView)}>
-            <TabsList className="bg-tf-surface/50">
-              {forgeViews.map((view) => {
-                const Icon = view.icon;
-                return (
-                  <TabsTrigger key={view.id} value={view.id} className="text-xs gap-1.5">
-                    <Icon className="w-3.5 h-3.5" />
-                    {view.label}
-                  </TabsTrigger>
-                );
-              })}
-            </TabsList>
-          </Tabs>
+          <div className="flex items-center gap-3">
+            {/* Open in Factory link */}
+            <button
+              onClick={() => navigate("/factory/regression")}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-muted-foreground hover:text-foreground hover:bg-[hsl(var(--tf-surface))] transition-colors"
+            >
+              <FactoryIcon className="w-3.5 h-3.5" />
+              Open in Factory
+              <ExternalLink className="w-3 h-3" />
+            </button>
+
+            {/* Sub-view Tabs */}
+            <Tabs value={activeView} onValueChange={(v) => setActiveView(v as ForgeView)}>
+              <TabsList className="bg-tf-surface/50">
+                {forgeViews.map((view) => {
+                  const Icon = view.icon;
+                  return (
+                    <TabsTrigger key={view.id} value={view.id} className="text-xs gap-1.5">
+                      <Icon className="w-3.5 h-3.5" />
+                      {view.label}
+                    </TabsTrigger>
+                  );
+                })}
+              </TabsList>
+            </Tabs>
+          </div>
         </div>
+
+        {/* Latest calibration run banner */}
+        {latestRun && (
+          <div className="mt-3 flex items-center gap-3 p-2 rounded-lg bg-[hsl(var(--tf-surface)/0.5)] border border-border/30">
+            <Badge variant="outline" className="text-[10px]">{latestRun.status}</Badge>
+            <span className="text-xs text-muted-foreground">
+              Latest calibration: <span className="text-foreground font-medium">{latestRun.neighborhood_code}</span>
+              {" · "}R² {latestRun.r_squared?.toFixed(4) ?? "—"} · {latestRun.sample_size ?? 0} samples
+            </span>
+            <button
+              onClick={() => navigate(`/factory/regression`)}
+              className="ml-auto text-[10px] text-tf-cyan hover:underline"
+            >
+              View →
+            </button>
+          </div>
+        )}
       </motion.div>
 
       {/* Content Area */}
