@@ -37,6 +37,7 @@ import {
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 import { useIngestPipeline, type IngestStep, type TargetTable, type FieldMapping } from "@/hooks/useIngestPipeline";
+import { PACS_EXPORT_GUIDE } from "@/config/pacsFieldMappings";
 
 const PIPELINE_STEPS: { id: IngestStep; label: string; icon: React.ReactNode }[] = [
   { id: "upload", label: "Upload", icon: <Upload className="w-4 h-4" /> },
@@ -94,6 +95,37 @@ export function IngestWizard() {
         </Card>
 
         <h3 className="text-lg font-medium">What are you importing?</h3>
+        
+        {/* PACS Migration Card */}
+        <Card
+          className="bg-gradient-to-br from-amber-500/10 to-tf-cyan/10 border-amber-500/30 hover:border-amber-500/60 cursor-pointer transition-all"
+          onClick={() => {
+            pipeline.setImportProfile("pacs");
+            pipeline.setTargetTable("parcels");
+            pipeline.setStep("upload");
+          }}
+        >
+          <CardContent className="p-6">
+            <div className="flex items-start gap-4">
+              <span className="text-4xl">🏛️</span>
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <h4 className="font-medium text-lg">PACS Migration (True Automation)</h4>
+                  <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30 text-xs">Benton County</Badge>
+                </div>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Pre-configured field mappings for CIAPS database exports — property, sales, assessments, permits, exemptions
+                </p>
+                <div className="flex gap-2 mt-2 flex-wrap">
+                  {["property", "sale", "property_val_hist", "permit", "exemption"].map(t => (
+                    <Badge key={t} variant="outline" className="text-xs font-mono">{t}</Badge>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {([
             { id: "parcels" as TargetTable, label: "County Roll / Parcels", desc: "Property records, values, and characteristics", icon: "🏠" },
@@ -108,6 +140,7 @@ export function IngestWizard() {
                 item.id === "combined" && "border-tf-gold/30 bg-gradient-to-br from-tf-gold/5 to-tf-cyan/5"
               )}
               onClick={() => {
+                pipeline.setImportProfile("generic");
                 pipeline.setTargetTable(item.id);
                 pipeline.setStep("upload");
               }}
@@ -161,6 +194,35 @@ export function IngestWizard() {
         {/* Upload Step */}
         {pipeline.step === "upload" && (
           <motion.div key="upload" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
+            {/* PACS Profile Banner */}
+            {pipeline.importProfile === "pacs" && (
+              <Card className="bg-gradient-to-r from-amber-500/10 to-transparent border-amber-500/30 mb-4">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">🏛️</span>
+                    <div className="flex-1">
+                      <h4 className="font-medium text-amber-400">PACS Migration Mode Active</h4>
+                      <p className="text-xs text-muted-foreground">
+                        True Automation field aliases loaded — prop_id, appraised_val, sl_price, etc. will auto-map
+                      </p>
+                    </div>
+                    <div className="flex gap-2">
+                      {(["parcels", "sales", "assessments"] as TargetTable[]).map(t => (
+                        <Badge
+                          key={t}
+                          variant={pipeline.targetTable === t ? "default" : "outline"}
+                          className={cn("cursor-pointer text-xs", pipeline.targetTable === t && "bg-amber-500/20 text-amber-400 border-amber-500/30")}
+                          onClick={() => pipeline.setTargetTable(t)}
+                        >
+                          {t}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             <Card className="bg-tf-elevated/50 border-tf-border">
               <CardContent className="p-8">
                 <div
@@ -173,13 +235,33 @@ export function IngestWizard() {
                   )}
                 >
                   <Upload className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-                  <h3 className="text-lg font-medium mb-2">Drop your {pipeline.targetTable} file here</h3>
+                  <h3 className="text-lg font-medium mb-2">Drop your {pipeline.importProfile === "pacs" ? "PACS " : ""}{pipeline.targetTable} file here</h3>
                   <p className="text-sm text-muted-foreground mb-4">CSV, TXT, or Excel (.xlsx) files • UTF-8 encoding</p>
                   <input type="file" accept=".csv,.txt,.xlsx,.xls" onChange={handleFileInput} className="hidden" id="ingest-file" />
                   <label htmlFor="ingest-file">
                     <Button variant="outline" asChild><span><FileSpreadsheet className="w-4 h-4 mr-2" />Browse Files</span></Button>
                   </label>
                 </div>
+
+                {/* PACS SQL Query Templates */}
+                {pipeline.importProfile === "pacs" && (
+                  <div className="mt-4 pt-4 border-t border-tf-border">
+                    <p className="text-sm font-medium mb-2">📋 SQL Export Templates for SSMS:</p>
+                    <div className="space-y-2">
+                      {Object.entries(PACS_EXPORT_GUIDE.queryTemplates).map(([table, query]) => (
+                        <details key={table} className="group">
+                          <summary className="text-xs font-mono text-tf-cyan cursor-pointer hover:text-tf-bright-cyan">
+                            {table}.csv — click to view query
+                          </summary>
+                          <pre className="mt-1 p-3 rounded bg-muted/30 text-xs font-mono overflow-x-auto whitespace-pre-wrap text-muted-foreground">
+                            {query}
+                          </pre>
+                        </details>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {/* Sample Data Loader */}
                 <div className="mt-4 pt-4 border-t border-tf-border">
                   <p className="text-xs text-muted-foreground mb-2">Or load sample county data:</p>
