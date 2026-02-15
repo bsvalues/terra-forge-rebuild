@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import {
   ChevronLeft,
   ChevronRight,
@@ -10,6 +10,8 @@ import {
   Plus,
   Play,
   ClipboardList,
+  PanelLeftOpen,
+  PanelLeftClose,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -31,28 +33,25 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useWorkbench } from "./WorkbenchContext";
-import {
-  useReviewQueues,
-  useReviewQueueItems,
-  useCreateReviewQueue,
-  useMarkReviewed,
-  useSkipItem,
-  useQueueNavigation,
-} from "@/hooks/useReviewQueue";
+import { useReviewQueueContext } from "./ReviewQueueContext";
+import { useCreateReviewQueue } from "@/hooks/useReviewQueue";
 
 export function ReviewQueueBar() {
   const { setParcel } = useWorkbench();
-  const [activeQueueId, setActiveQueueId] = useState<string | null>(null);
+  const {
+    activeQueueId,
+    setActiveQueueId,
+    queues,
+    nav,
+    markReviewed,
+    skipItem,
+    createQueue,
+    sidebarOpen,
+    setSidebarOpen,
+  } = useReviewQueueContext();
+
   const [createOpen, setCreateOpen] = useState(false);
   const [selectOpen, setSelectOpen] = useState(false);
-
-  const { data: queues } = useReviewQueues();
-  const { data: items } = useReviewQueueItems(activeQueueId);
-  const createQueue = useCreateReviewQueue();
-  const markReviewed = useMarkReviewed();
-  const skipItem = useSkipItem();
-
-  const nav = useQueueNavigation(items);
 
   // Sync current queue item to workbench parcel context
   useEffect(() => {
@@ -88,16 +87,16 @@ export function ReviewQueueBar() {
 
   const handleCloseQueue = useCallback(() => {
     setActiveQueueId(null);
-  }, []);
+    setSidebarOpen(false);
+  }, [setActiveQueueId, setSidebarOpen]);
 
-  // No active queue — show launch button
+  // No active queue — show launch buttons
   if (!activeQueueId) {
     return (
       <div className="flex items-center gap-2 px-4 py-2 bg-muted/30 border-b border-border/30">
         <ClipboardList className="w-4 h-4 text-muted-foreground" />
         <span className="text-xs text-muted-foreground">Review Queue</span>
 
-        {/* Select existing queue */}
         {queues && queues.length > 0 && (
           <Dialog open={selectOpen} onOpenChange={setSelectOpen}>
             <DialogTrigger asChild>
@@ -116,6 +115,7 @@ export function ReviewQueueBar() {
                     key={q.id}
                     onClick={() => {
                       setActiveQueueId(q.id);
+                      setSidebarOpen(true);
                       setSelectOpen(false);
                     }}
                     className="w-full text-left p-3 rounded-lg border border-border/50 hover:bg-muted/40 transition-colors"
@@ -134,12 +134,12 @@ export function ReviewQueueBar() {
           </Dialog>
         )}
 
-        {/* Create new queue */}
         <CreateQueueDialog
           open={createOpen}
           onOpenChange={setCreateOpen}
           onCreated={(queueId) => {
             setActiveQueueId(queueId);
+            setSidebarOpen(true);
             setCreateOpen(false);
           }}
           createQueue={createQueue}
@@ -157,6 +157,16 @@ export function ReviewQueueBar() {
       animate={{ opacity: 1, y: 0 }}
       className="flex items-center gap-3 px-4 py-2 bg-primary/5 border-b border-primary/20"
     >
+      {/* Sidebar toggle */}
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-7 w-7 shrink-0"
+        onClick={() => setSidebarOpen(!sidebarOpen)}
+      >
+        {sidebarOpen ? <PanelLeftClose className="w-4 h-4" /> : <PanelLeftOpen className="w-4 h-4" />}
+      </Button>
+
       {/* Queue name + close */}
       <div className="flex items-center gap-2 min-w-0">
         <ListChecks className="w-4 h-4 text-primary shrink-0" />
@@ -199,20 +209,12 @@ export function ReviewQueueBar() {
 
       {/* Navigation controls */}
       <div className="flex items-center gap-1 shrink-0">
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-7 w-7"
-          onClick={nav.goPrev}
-          disabled={!nav.hasPrev}
-        >
+        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={nav.goPrev} disabled={!nav.hasPrev}>
           <ChevronLeft className="w-4 h-4" />
         </Button>
 
         <Button
-          variant="ghost"
-          size="sm"
-          className="h-7 text-xs gap-1"
+          variant="ghost" size="sm" className="h-7 text-xs gap-1"
           onClick={handleSkip}
           disabled={!nav.currentItem || nav.currentItem.status !== "pending"}
         >
@@ -230,13 +232,7 @@ export function ReviewQueueBar() {
           Complete
         </Button>
 
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-7 w-7"
-          onClick={nav.goNext}
-          disabled={!nav.hasNext}
-        >
+        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={nav.goNext} disabled={!nav.hasNext}>
           <ChevronRight className="w-4 h-4" />
         </Button>
       </div>
@@ -302,34 +298,20 @@ function CreateQueueDialog({
               className="h-9"
             />
           </div>
-
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label className="text-xs">Neighborhood Code (optional)</Label>
-              <Input
-                placeholder="e.g., 101"
-                value={neighborhood}
-                onChange={(e) => setNeighborhood(e.target.value)}
-                className="h-9"
-              />
+              <Input placeholder="e.g., 101" value={neighborhood} onChange={(e) => setNeighborhood(e.target.value)} className="h-9" />
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs">Property Class (optional)</Label>
-              <Input
-                placeholder="e.g., Residential"
-                value={propertyClass}
-                onChange={(e) => setPropertyClass(e.target.value)}
-                className="h-9"
-              />
+              <Input placeholder="e.g., Residential" value={propertyClass} onChange={(e) => setPropertyClass(e.target.value)} className="h-9" />
             </div>
           </div>
-
           <div className="space-y-1.5">
             <Label className="text-xs">Max Parcels</Label>
             <Select value={limit} onValueChange={setLimit}>
-              <SelectTrigger className="h-9">
-                <SelectValue />
-              </SelectTrigger>
+              <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="25">25 parcels</SelectItem>
                 <SelectItem value="50">50 parcels</SelectItem>
@@ -339,12 +321,7 @@ function CreateQueueDialog({
               </SelectContent>
             </Select>
           </div>
-
-          <Button
-            onClick={handleSubmit}
-            disabled={!name.trim() || createQueue.isPending}
-            className="w-full bg-primary text-primary-foreground"
-          >
+          <Button onClick={handleSubmit} disabled={!name.trim() || createQueue.isPending} className="w-full bg-primary text-primary-foreground">
             {createQueue.isPending ? "Creating..." : "Create & Start Review"}
           </Button>
         </div>
