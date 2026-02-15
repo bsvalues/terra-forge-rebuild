@@ -351,6 +351,183 @@ export type Database = {
           },
         ]
       }
+      dossier_documents: {
+        Row: {
+          county_id: string
+          created_at: string
+          description: string | null
+          document_type: string
+          file_name: string
+          file_path: string
+          file_size_bytes: number | null
+          id: string
+          mime_type: string | null
+          parcel_id: string
+          updated_at: string
+          uploaded_by: string
+        }
+        Insert: {
+          county_id?: string
+          created_at?: string
+          description?: string | null
+          document_type?: string
+          file_name: string
+          file_path: string
+          file_size_bytes?: number | null
+          id?: string
+          mime_type?: string | null
+          parcel_id: string
+          updated_at?: string
+          uploaded_by?: string
+        }
+        Update: {
+          county_id?: string
+          created_at?: string
+          description?: string | null
+          document_type?: string
+          file_name?: string
+          file_path?: string
+          file_size_bytes?: number | null
+          id?: string
+          mime_type?: string | null
+          parcel_id?: string
+          updated_at?: string
+          uploaded_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dossier_documents_county_id_fkey"
+            columns: ["county_id"]
+            isOneToOne: false
+            referencedRelation: "counties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dossier_documents_parcel_id_fkey"
+            columns: ["parcel_id"]
+            isOneToOne: false
+            referencedRelation: "parcels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dossier_narratives: {
+        Row: {
+          ai_generated: boolean
+          content: string
+          county_id: string
+          created_at: string
+          created_by: string
+          id: string
+          model_used: string | null
+          narrative_type: string
+          parcel_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          ai_generated?: boolean
+          content: string
+          county_id?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          model_used?: string | null
+          narrative_type?: string
+          parcel_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          ai_generated?: boolean
+          content?: string
+          county_id?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          model_used?: string | null
+          narrative_type?: string
+          parcel_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dossier_narratives_county_id_fkey"
+            columns: ["county_id"]
+            isOneToOne: false
+            referencedRelation: "counties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dossier_narratives_parcel_id_fkey"
+            columns: ["parcel_id"]
+            isOneToOne: false
+            referencedRelation: "parcels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dossier_packets: {
+        Row: {
+          assembled_by: string
+          county_id: string
+          created_at: string
+          document_ids: string[]
+          id: string
+          metadata: Json | null
+          narrative_ids: string[]
+          packet_type: string
+          parcel_id: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          assembled_by?: string
+          county_id?: string
+          created_at?: string
+          document_ids?: string[]
+          id?: string
+          metadata?: Json | null
+          narrative_ids?: string[]
+          packet_type?: string
+          parcel_id: string
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          assembled_by?: string
+          county_id?: string
+          created_at?: string
+          document_ids?: string[]
+          id?: string
+          metadata?: Json | null
+          narrative_ids?: string[]
+          packet_type?: string
+          parcel_id?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dossier_packets_county_id_fkey"
+            columns: ["county_id"]
+            isOneToOne: false
+            referencedRelation: "counties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dossier_packets_parcel_id_fkey"
+            columns: ["parcel_id"]
+            isOneToOne: false
+            referencedRelation: "parcels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       exemptions: {
         Row: {
           applicant_name: string | null
