@@ -113,8 +113,8 @@ export function AppealsWorkflow() {
   const [selectedAppeal, setSelectedAppeal] = useState<Appeal | null>(null);
 
   const changeStatus = useMutation({
-    mutationFn: async ({ appeal, newStatus }: { appeal: Appeal; newStatus: string }) => {
-      return updateAppealStatus(appeal.id, appeal.parcel?.id, newStatus, appeal.status);
+    mutationFn: async ({ appeal, newStatus, reason }: { appeal: Appeal; newStatus: string; reason?: string }) => {
+      return updateAppealStatus(appeal.id, appeal.parcel?.id, newStatus, appeal.status, reason);
     },
     onSuccess: (_, { newStatus }) => {
       queryClient.invalidateQueries({ queryKey: ["appeals-workflow"] });
@@ -467,8 +467,8 @@ export function AppealsWorkflow() {
               <StatusTransitionDropdown
                 currentStatus={selectedAppeal.status}
                 transitions={APPEAL_TRANSITIONS}
-                onTransition={(newStatus) =>
-                  changeStatus.mutate({ appeal: selectedAppeal, newStatus })
+                onTransition={(newStatus, reason) =>
+                  changeStatus.mutate({ appeal: selectedAppeal, newStatus, reason })
                 }
                 isPending={changeStatus.isPending}
                 accentClass="bg-suite-dais hover:bg-suite-dais/90"

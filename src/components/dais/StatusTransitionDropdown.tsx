@@ -16,6 +16,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { ChevronDown, Loader2, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -107,7 +109,8 @@ const VARIANT_STYLES: Record<string, string> = {
 interface StatusTransitionDropdownProps {
   currentStatus: string;
   transitions: Record<string, StatusTransition[]>;
-  onTransition: (newStatus: string) => void;
+  /** Called with (newStatus, reason). Reason is non-empty only for destructive actions. */
+  onTransition: (newStatus: string, reason?: string) => void;
   isPending: boolean;
   accentClass?: string;
 }
@@ -121,15 +124,25 @@ export function StatusTransitionDropdown({
 }: StatusTransitionDropdownProps) {
   const available = transitions[currentStatus] ?? [];
   const [pendingTransition, setPendingTransition] = useState<StatusTransition | null>(null);
+  const [reason, setReason] = useState("");
 
   if (available.length === 0) return null;
 
   const handleSelect = (t: StatusTransition) => {
     if (t.variant === "destructive") {
+      setReason("");
       setPendingTransition(t);
     } else {
       onTransition(t.to);
     }
+  };
+
+  const handleConfirm = () => {
+    if (pendingTransition) {
+      onTransition(pendingTransition.to, reason.trim() || undefined);
+    }
+    setPendingTransition(null);
+    setReason("");
   };
 
   return (
@@ -166,7 +179,15 @@ export function StatusTransitionDropdown({
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <AlertDialog open={!!pendingTransition} onOpenChange={() => setPendingTransition(null)}>
+      <AlertDialog
+        open={!!pendingTransition}
+        onOpenChange={(open) => {
+          if (!open) {
+            setPendingTransition(null);
+            setReason("");
+          }
+        }}
+      >
         <AlertDialogContent className="border-destructive/30">
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2 text-destructive">
@@ -175,17 +196,32 @@ export function StatusTransitionDropdown({
             </AlertDialogTitle>
             <AlertDialogDescription>
               You are about to <strong className="text-foreground">{pendingTransition?.label?.toLowerCase()}</strong> this record.
-              This action is recorded in the audit trail and may be difficult to reverse. Are you sure?
+              This action is recorded in the audit trail and may be difficult to reverse.
             </AlertDialogDescription>
           </AlertDialogHeader>
+
+          <div className="space-y-2">
+            <Label htmlFor="destructive-reason" className="text-sm font-medium">
+              Reason <span className="text-destructive">*</span>
+            </Label>
+            <Textarea
+              id="destructive-reason"
+              placeholder="Document why this action is being taken…"
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              className="min-h-[80px] bg-muted/50 border-border"
+            />
+            <p className="text-xs text-muted-foreground">
+              Required. This reason will be stored in the audit trail.
+            </p>
+          </div>
+
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              onClick={() => {
-                if (pendingTransition) onTransition(pendingTransition.to);
-                setPendingTransition(null);
-              }}
+              disabled={!reason.trim()}
+              onClick={handleConfirm}
             >
               {pendingTransition?.label}
             </AlertDialogAction>
