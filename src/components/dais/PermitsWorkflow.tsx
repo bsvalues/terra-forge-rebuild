@@ -37,10 +37,12 @@ import {
   ClipboardList,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useWorkbench } from "@/components/workbench/WorkbenchContext";
 import { cn } from "@/lib/utils";
 import { NewPermitDialog } from "./NewPermitDialog";
+import { updatePermitStatus } from "@/services/suites/daisService";
+import { toast } from "@/hooks/use-toast";
 
 interface Permit {
   id: string;
@@ -112,10 +114,26 @@ const PERMIT_TYPES = {
 
 export function PermitsWorkflow() {
   const { setParcel, setActiveTab } = useWorkbench();
+  const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [selectedPermit, setSelectedPermit] = useState<Permit | null>(null);
   const [showNewPermitDialog, setShowNewPermitDialog] = useState(false);
+
+  const changePermitStatus = useMutation({
+    mutationFn: async ({ permit, newStatus }: { permit: Permit; newStatus: string }) => {
+      return updatePermitStatus(permit.id, permit.parcel?.id, newStatus, permit.status);
+    },
+    onSuccess: (_, { newStatus }) => {
+      queryClient.invalidateQueries({ queryKey: ["permits-workflow"] });
+      queryClient.invalidateQueries({ queryKey: ["permits-stats"] });
+      toast({ title: "Permit Updated", description: `Status changed to ${newStatus}` });
+      setSelectedPermit(null);
+    },
+    onError: (err: Error) => {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    },
+  });
 
   const { data: permits = [], isLoading } = useQuery({
     queryKey: ["permits-workflow", statusFilter],
@@ -429,10 +447,40 @@ export function PermitsWorkflow() {
             </div>
           )}
 
-          <DialogFooter className="gap-2">
+          <DialogFooter className="gap-2 flex-wrap">
             <Button variant="outline" onClick={() => setSelectedPermit(null)}>
               Close
             </Button>
+            {selectedPermit.status === "pending" && (
+              <Button
+                disabled={changePermitStatus.isPending}
+                onClick={() => changePermitStatus.mutate({ permit: selectedPermit, newStatus: "approved" })}
+                className="bg-tf-green hover:bg-tf-green/90"
+              >
+                <CheckCircle className="w-4 h-4 mr-2" />
+                Approve
+              </Button>
+            )}
+            {selectedPermit.status === "approved" && (
+              <Button
+                disabled={changePermitStatus.isPending}
+                onClick={() => changePermitStatus.mutate({ permit: selectedPermit, newStatus: "issued" })}
+                className="bg-tf-cyan hover:bg-tf-cyan/90"
+              >
+                <FileCheck className="w-4 h-4 mr-2" />
+                Issue Permit
+              </Button>
+            )}
+            {(selectedPermit.status === "pending" || selectedPermit.status === "approved") && (
+              <Button
+                variant="destructive"
+                disabled={changePermitStatus.isPending}
+                onClick={() => changePermitStatus.mutate({ permit: selectedPermit, newStatus: "failed" })}
+              >
+                <XCircle className="w-4 h-4 mr-2" />
+                Reject
+              </Button>
+            )}
             <Button
               onClick={() => {
                 if (selectedPermit) {
