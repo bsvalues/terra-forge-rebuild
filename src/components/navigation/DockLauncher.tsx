@@ -5,6 +5,7 @@ import {
   Database,
   Search,
   Factory,
+  Shield,
   LogOut,
 } from "lucide-react";
 import { useAuthContext } from "@/contexts/AuthContext";
@@ -20,6 +21,7 @@ const dockItems = [
   { id: "workbench", label: "Workbench", icon: Search, shortcut: "⌘2" },
   { id: "factory", label: "Factory", icon: Factory, shortcut: "⌘3" },
   { id: "ids", label: "IDS", icon: Database, shortcut: "⌘4" },
+  { id: "sync", label: "Sync", icon: Shield, shortcut: "⌘5" },
 ];
 
 export function DockLauncher({ activeModule, onModuleChange }: DockLauncherProps) {
