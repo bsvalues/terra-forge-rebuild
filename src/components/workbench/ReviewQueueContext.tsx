@@ -9,6 +9,7 @@ import {
   ReviewQueue,
   ReviewQueueItem,
 } from "@/hooks/useReviewQueue";
+import { emitTraceEventAsync } from "@/services/terraTrace";
 
 interface ReviewQueueContextValue {
   activeQueueId: string | null;
@@ -21,6 +22,10 @@ interface ReviewQueueContextValue {
   skipItem: ReturnType<typeof useSkipItem>;
   sidebarOpen: boolean;
   setSidebarOpen: (open: boolean) => void;
+  /** Mark reviewed with trace emission */
+  markReviewedWithTrace: (itemId: string, parcelId: string, notes?: string) => void;
+  /** Skip with trace emission */
+  skipItemWithTrace: (itemId: string, parcelId: string, notes?: string) => void;
 }
 
 const ReviewQueueCtx = createContext<ReviewQueueContextValue | null>(null);
@@ -36,6 +41,32 @@ export function ReviewQueueProvider({ children }: { children: ReactNode }) {
   const skipItem = useSkipItem();
   const nav = useQueueNavigation(items);
 
+  const markReviewedWithTrace = useCallback(
+    (itemId: string, parcelId: string, notes?: string) => {
+      markReviewed.mutate({ itemId, notes });
+      emitTraceEventAsync({
+        parcelId,
+        sourceModule: "os",
+        eventType: "review_completed",
+        eventData: { queueId: activeQueueId, itemId, notes },
+      });
+    },
+    [markReviewed, activeQueueId]
+  );
+
+  const skipItemWithTrace = useCallback(
+    (itemId: string, parcelId: string, notes?: string) => {
+      skipItem.mutate({ itemId, notes });
+      emitTraceEventAsync({
+        parcelId,
+        sourceModule: "os",
+        eventType: "review_skipped",
+        eventData: { queueId: activeQueueId, itemId, notes },
+      });
+    },
+    [skipItem, activeQueueId]
+  );
+
   return (
     <ReviewQueueCtx.Provider
       value={{
@@ -49,6 +80,8 @@ export function ReviewQueueProvider({ children }: { children: ReactNode }) {
         skipItem,
         sidebarOpen,
         setSidebarOpen,
+        markReviewedWithTrace,
+        skipItemWithTrace,
       }}
     >
       {children}
