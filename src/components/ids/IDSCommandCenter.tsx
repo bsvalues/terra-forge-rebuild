@@ -18,9 +18,11 @@ import { RoutingPillar } from "./pillars/RoutingPillar";
 interface IDSCommandCenterProps {
   initialPillar?: string | null;
   onPillarConsumed?: () => void;
+  highlightJobId?: string | null;
+  onJobIdConsumed?: () => void;
 }
 
-export function IDSCommandCenter({ initialPillar, onPillarConsumed }: IDSCommandCenterProps = {}) {
+export function IDSCommandCenter({ initialPillar, onPillarConsumed, highlightJobId, onJobIdConsumed }: IDSCommandCenterProps = {}) {
   const [activePillar, setActivePillar] = useState(initialPillar || "inventory");
 
   useEffect(() => {
@@ -107,7 +109,7 @@ export function IDSCommandCenter({ initialPillar, onPillarConsumed }: IDSCommand
         </TabsContent>
 
         <TabsContent value="versions" className="mt-0">
-          <VersionsPillar />
+          <VersionsPillar highlightJobId={highlightJobId} onJobIdConsumed={onJobIdConsumed} />
         </TabsContent>
 
         <TabsContent value="routing" className="mt-0">
