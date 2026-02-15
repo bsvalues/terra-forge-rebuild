@@ -55,13 +55,17 @@ export async function updatePermitStatus(
   permitId: string,
   parcelId: string,
   newStatus: string,
-  previousStatus: string
+  previousStatus: string,
+  reason?: string
 ) {
   assertWriteLane("permits", SOURCE);
 
+  const updatePayload: Record<string, unknown> = { status: newStatus };
+  if (reason) updatePayload.notes = reason;
+
   const { data, error } = await supabase
     .from("permits")
-    .update({ status: newStatus })
+    .update(updatePayload)
     .eq("id", permitId)
     .select()
     .single();
@@ -72,7 +76,7 @@ export async function updatePermitStatus(
     parcelId,
     sourceModule: SOURCE,
     eventType: "permit_status_changed",
-    eventData: { previousStatus, newStatus },
+    eventData: { previousStatus, newStatus, reason },
     artifactType: "permit",
     artifactId: permitId,
   });
@@ -123,13 +127,17 @@ export async function updateExemptionStatus(
   exemptionId: string,
   parcelId: string,
   newStatus: string,
-  previousStatus: string
+  previousStatus: string,
+  reason?: string
 ) {
   assertWriteLane("exemptions", SOURCE);
 
+  const updatePayload: Record<string, unknown> = { status: newStatus };
+  if (reason) updatePayload.notes = reason;
+
   const { data, error } = await supabase
     .from("exemptions")
-    .update({ status: newStatus })
+    .update(updatePayload)
     .eq("id", exemptionId)
     .select()
     .single();
@@ -140,7 +148,7 @@ export async function updateExemptionStatus(
     parcelId,
     sourceModule: SOURCE,
     eventType: "exemption_status_changed",
-    eventData: { previousStatus, newStatus },
+    eventData: { previousStatus, newStatus, reason },
     artifactType: "exemption",
     artifactId: exemptionId,
   });

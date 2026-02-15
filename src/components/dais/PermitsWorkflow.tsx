@@ -122,8 +122,8 @@ export function PermitsWorkflow() {
   const [showNewPermitDialog, setShowNewPermitDialog] = useState(false);
 
   const changePermitStatus = useMutation({
-    mutationFn: async ({ permit, newStatus }: { permit: Permit; newStatus: string }) => {
-      return updatePermitStatus(permit.id, permit.parcel?.id, newStatus, permit.status);
+    mutationFn: async ({ permit, newStatus, reason }: { permit: Permit; newStatus: string; reason?: string }) => {
+      return updatePermitStatus(permit.id, permit.parcel?.id, newStatus, permit.status, reason);
     },
     onSuccess: (_, { newStatus }) => {
       queryClient.invalidateQueries({ queryKey: ["permits-workflow"] });
@@ -456,8 +456,8 @@ export function PermitsWorkflow() {
               <StatusTransitionDropdown
                 currentStatus={selectedPermit.status}
                 transitions={PERMIT_TRANSITIONS}
-                onTransition={(newStatus) =>
-                  changePermitStatus.mutate({ permit: selectedPermit, newStatus })
+                onTransition={(newStatus, reason) =>
+                  changePermitStatus.mutate({ permit: selectedPermit, newStatus, reason })
                 }
                 isPending={changePermitStatus.isPending}
                 accentClass="bg-tf-green hover:bg-tf-green/90"

@@ -115,11 +115,11 @@ export function ExemptionsWorkflow() {
   const [showNewExemptionDialog, setShowNewExemptionDialog] = useState(false);
 
   const changeExemptionStatus = useMutation({
-    mutationFn: async ({ exemption, newStatus }: { exemption: Exemption; newStatus: string }) => {
+    mutationFn: async ({ exemption, newStatus, reason }: { exemption: Exemption; newStatus: string; reason?: string }) => {
       if (newStatus === "approved" || newStatus === "denied") {
-        return decideExemption(exemption.id, exemption.parcel?.id, newStatus);
+        return decideExemption(exemption.id, exemption.parcel?.id, newStatus, reason);
       }
-      return updateExemptionStatus(exemption.id, exemption.parcel?.id, newStatus, exemption.status);
+      return updateExemptionStatus(exemption.id, exemption.parcel?.id, newStatus, exemption.status, reason);
     },
     onSuccess: (_, { newStatus }) => {
       queryClient.invalidateQueries({ queryKey: ["exemptions-workflow"] });
@@ -473,8 +473,8 @@ export function ExemptionsWorkflow() {
               <StatusTransitionDropdown
                 currentStatus={selectedExemption.status}
                 transitions={EXEMPTION_TRANSITIONS}
-                onTransition={(newStatus) =>
-                  changeExemptionStatus.mutate({ exemption: selectedExemption, newStatus })
+                onTransition={(newStatus, reason) =>
+                  changeExemptionStatus.mutate({ exemption: selectedExemption, newStatus, reason })
                 }
                 isPending={changeExemptionStatus.isPending}
                 accentClass="bg-tf-gold hover:bg-tf-gold/90 text-black"
