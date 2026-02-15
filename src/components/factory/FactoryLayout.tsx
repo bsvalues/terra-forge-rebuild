@@ -2,6 +2,7 @@ import { useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { NeighborhoodSelector } from "./NeighborhoodSelector";
+import { RegressionMode } from "./regression/RegressionMode";
 import { BarChart3, DollarSign, Grid3X3, FlaskConical, Factory as FactoryIcon } from "lucide-react";
 
 export type FactoryMode = "regression" | "cost" | "comps" | "scenarios";
@@ -80,7 +81,11 @@ export function FactoryLayout({ initialMode }: FactoryLayoutProps) {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.2 }}
               >
-                <FactoryPlaceholder mode={mode} description={meta.description} neighborhood={neighborhood} />
+                {mode === "regression" ? (
+                  <RegressionMode neighborhoodCode={neighborhood} />
+                ) : (
+                  <FactoryPlaceholder mode={mode} description={meta.description} neighborhood={neighborhood} />
+                )}
               </motion.div>
             </TabsContent>
           );
