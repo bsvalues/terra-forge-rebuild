@@ -40,6 +40,7 @@ import {
   History,
 } from "lucide-react";
 import { AppealTimeline } from "./AppealTimeline";
+import { StatusTransitionDropdown, APPEAL_TRANSITIONS } from "./StatusTransitionDropdown";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useWorkbench } from "@/components/workbench/WorkbenchContext";
@@ -458,41 +459,19 @@ export function AppealsWorkflow() {
             </div>
           )}
 
-          <DialogFooter className="gap-2 flex-wrap">
+          <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setSelectedAppeal(null)}>
               Close
             </Button>
-            {selectedAppeal.status === "pending" && (
-              <Button
-                variant="outline"
-                disabled={changeStatus.isPending}
-                onClick={() => changeStatus.mutate({ appeal: selectedAppeal, newStatus: "scheduled" })}
-                className="border-tf-cyan/50 text-tf-cyan hover:bg-tf-cyan/10"
-              >
-                <Calendar className="w-4 h-4 mr-2" />
-                Schedule Hearing
-              </Button>
-            )}
-            {(selectedAppeal.status === "pending" || selectedAppeal.status === "scheduled" || selectedAppeal.status === "in_hearing") && (
-              <>
-                <Button
-                  disabled={changeStatus.isPending}
-                  onClick={() => changeStatus.mutate({ appeal: selectedAppeal, newStatus: "resolved" })}
-                  className="bg-tf-green hover:bg-tf-green/90"
-                >
-                  <CheckCircle className="w-4 h-4 mr-2" />
-                  Resolve
-                </Button>
-                <Button
-                  variant="destructive"
-                  disabled={changeStatus.isPending}
-                  onClick={() => changeStatus.mutate({ appeal: selectedAppeal, newStatus: "denied" })}
-                >
-                  <XCircle className="w-4 h-4 mr-2" />
-                  Deny
-                </Button>
-              </>
-            )}
+            <StatusTransitionDropdown
+              currentStatus={selectedAppeal.status}
+              transitions={APPEAL_TRANSITIONS}
+              onTransition={(newStatus) =>
+                changeStatus.mutate({ appeal: selectedAppeal, newStatus })
+              }
+              isPending={changeStatus.isPending}
+              accentClass="bg-suite-dais hover:bg-suite-dais/90"
+            />
             <Button
               onClick={() => {
                 if (selectedAppeal) {
@@ -500,7 +479,7 @@ export function AppealsWorkflow() {
                   setSelectedAppeal(null);
                 }
               }}
-              className="bg-suite-dais hover:bg-suite-dais/90"
+              variant="outline"
             >
               <MapPin className="w-4 h-4 mr-2" />
               View Parcel

@@ -25,6 +25,7 @@ export type TraceEventType =
   | "appeal_filed"
   | "appeal_resolved"
   | "exemption_decided"
+  | "exemption_status_changed"
   | "permit_status_changed";
 
 export type ArtifactType =

@@ -41,6 +41,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useWorkbench } from "@/components/workbench/WorkbenchContext";
 import { cn } from "@/lib/utils";
 import { NewPermitDialog } from "./NewPermitDialog";
+import { StatusTransitionDropdown, PERMIT_TRANSITIONS } from "./StatusTransitionDropdown";
 import { updatePermitStatus } from "@/services/suites/daisService";
 import { toast } from "@/hooks/use-toast";
 
@@ -447,48 +448,27 @@ export function PermitsWorkflow() {
             </div>
           )}
 
-          <DialogFooter className="gap-2 flex-wrap">
+          <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setSelectedPermit(null)}>
               Close
             </Button>
-            {selectedPermit.status === "pending" && (
-              <Button
-                disabled={changePermitStatus.isPending}
-                onClick={() => changePermitStatus.mutate({ permit: selectedPermit, newStatus: "approved" })}
-                className="bg-tf-green hover:bg-tf-green/90"
-              >
-                <CheckCircle className="w-4 h-4 mr-2" />
-                Approve
-              </Button>
-            )}
-            {selectedPermit.status === "approved" && (
-              <Button
-                disabled={changePermitStatus.isPending}
-                onClick={() => changePermitStatus.mutate({ permit: selectedPermit, newStatus: "issued" })}
-                className="bg-tf-cyan hover:bg-tf-cyan/90"
-              >
-                <FileCheck className="w-4 h-4 mr-2" />
-                Issue Permit
-              </Button>
-            )}
-            {(selectedPermit.status === "pending" || selectedPermit.status === "approved") && (
-              <Button
-                variant="destructive"
-                disabled={changePermitStatus.isPending}
-                onClick={() => changePermitStatus.mutate({ permit: selectedPermit, newStatus: "failed" })}
-              >
-                <XCircle className="w-4 h-4 mr-2" />
-                Reject
-              </Button>
-            )}
+            <StatusTransitionDropdown
+              currentStatus={selectedPermit.status}
+              transitions={PERMIT_TRANSITIONS}
+              onTransition={(newStatus) =>
+                changePermitStatus.mutate({ permit: selectedPermit, newStatus })
+              }
+              isPending={changePermitStatus.isPending}
+              accentClass="bg-tf-green hover:bg-tf-green/90"
+            />
             <Button
+              variant="outline"
               onClick={() => {
                 if (selectedPermit) {
                   handleNavigateToParcel(selectedPermit);
                   setSelectedPermit(null);
                 }
               }}
-              className="bg-tf-green hover:bg-tf-green/90"
             >
               <MapPin className="w-4 h-4 mr-2" />
               View Parcel

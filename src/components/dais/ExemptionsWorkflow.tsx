@@ -44,7 +44,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useWorkbench } from "@/components/workbench/WorkbenchContext";
 import { cn } from "@/lib/utils";
 import { NewExemptionDialog } from "./NewExemptionDialog";
-import { decideExemption } from "@/services/suites/daisService";
+import { StatusTransitionDropdown, EXEMPTION_TRANSITIONS } from "./StatusTransitionDropdown";
+import { decideExemption, updateExemptionStatus } from "@/services/suites/daisService";
 import { toast } from "@/hooks/use-toast";
 
 interface Exemption {
@@ -113,13 +114,16 @@ export function ExemptionsWorkflow() {
   const [selectedExemption, setSelectedExemption] = useState<Exemption | null>(null);
   const [showNewExemptionDialog, setShowNewExemptionDialog] = useState(false);
 
-  const decideExemptionMutation = useMutation({
-    mutationFn: async ({ exemption, decision }: { exemption: Exemption; decision: "approved" | "denied" }) => {
-      return decideExemption(exemption.id, exemption.parcel?.id, decision);
+  const changeExemptionStatus = useMutation({
+    mutationFn: async ({ exemption, newStatus }: { exemption: Exemption; newStatus: string }) => {
+      if (newStatus === "approved" || newStatus === "denied") {
+        return decideExemption(exemption.id, exemption.parcel?.id, newStatus);
+      }
+      return updateExemptionStatus(exemption.id, exemption.parcel?.id, newStatus, exemption.status);
     },
-    onSuccess: (_, { decision }) => {
+    onSuccess: (_, { newStatus }) => {
       queryClient.invalidateQueries({ queryKey: ["exemptions-workflow"] });
-      toast({ title: "Exemption Updated", description: `Exemption ${decision}` });
+      toast({ title: "Exemption Updated", description: `Status changed to ${newStatus}` });
       setSelectedExemption(null);
     },
     onError: (err: Error) => {
@@ -461,38 +465,27 @@ export function ExemptionsWorkflow() {
             </div>
           )}
 
-          <DialogFooter className="gap-2 flex-wrap">
+          <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setSelectedExemption(null)}>
               Close
             </Button>
-            {selectedExemption.status === "pending" && (
-              <>
-                <Button
-                  disabled={decideExemptionMutation.isPending}
-                  onClick={() => decideExemptionMutation.mutate({ exemption: selectedExemption, decision: "approved" })}
-                  className="bg-tf-green hover:bg-tf-green/90"
-                >
-                  <CheckCircle className="w-4 h-4 mr-2" />
-                  Approve
-                </Button>
-                <Button
-                  variant="destructive"
-                  disabled={decideExemptionMutation.isPending}
-                  onClick={() => decideExemptionMutation.mutate({ exemption: selectedExemption, decision: "denied" })}
-                >
-                  <XCircle className="w-4 h-4 mr-2" />
-                  Deny
-                </Button>
-              </>
-            )}
+            <StatusTransitionDropdown
+              currentStatus={selectedExemption.status}
+              transitions={EXEMPTION_TRANSITIONS}
+              onTransition={(newStatus) =>
+                changeExemptionStatus.mutate({ exemption: selectedExemption, newStatus })
+              }
+              isPending={changeExemptionStatus.isPending}
+              accentClass="bg-tf-gold hover:bg-tf-gold/90 text-black"
+            />
             <Button
+              variant="outline"
               onClick={() => {
                 if (selectedExemption) {
                   handleNavigateToParcel(selectedExemption);
                   setSelectedExemption(null);
                 }
               }}
-              className="bg-tf-gold hover:bg-tf-gold/90 text-black"
             >
               <MapPin className="w-4 h-4 mr-2" />
               View Parcel
