@@ -9,6 +9,8 @@ import { PropertyWorkbench } from "@/components/workbench";
 import { SuiteHub } from "@/components/dashboard/SuiteHub";
 import { FactoryLayout } from "@/components/factory/FactoryLayout";
 import { SyncDashboard } from "@/components/sync/SyncDashboard";
+import { VEIDashboard } from "@/components/vei/VEIDashboard";
+import { GeoEquityDashboard } from "@/components/geoequity/GeoEquityDashboard";
 import { useContextMode } from "@/hooks/useContextMode";
 
 interface AppLayoutProps {
@@ -94,6 +96,18 @@ export function AppLayout({ initialParcel: routeParcel, initialModule, initialFa
         );
       case "factory":
         return <FactoryLayout initialMode={initialFactoryMode} />;
+      case "vei":
+        return (
+          <div className="p-6 max-w-7xl mx-auto">
+            <VEIDashboard />
+          </div>
+        );
+      case "geoequity":
+        return (
+          <div className="p-6 max-w-7xl mx-auto">
+            <GeoEquityDashboard />
+          </div>
+        );
       case "sync":
         return (
           <div className="p-6 max-w-7xl mx-auto">

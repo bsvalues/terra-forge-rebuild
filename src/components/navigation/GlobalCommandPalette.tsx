@@ -15,6 +15,10 @@ import {
   Search,
   Globe,
   Keyboard,
+  BarChart3,
+  Map,
+  Factory,
+  Shield,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
@@ -28,9 +32,13 @@ interface GlobalCommandPaletteProps {
 }
 
 const MODULE_ITEMS = [
-  { id: "dashboard", label: "Command Briefing", icon: Home, shortcut: "1" },
+  { id: "dashboard", label: "Suite Hub (Home)", icon: Home, shortcut: "1" },
   { id: "workbench", label: "Property Workbench", icon: Search, shortcut: "2" },
-  { id: "ids", label: "Intelligent Data Suite", icon: Database, shortcut: "3" },
+  { id: "factory", label: "Mass Appraisal Factory", icon: Factory, shortcut: "3" },
+  { id: "ids", label: "Intelligent Data Suite", icon: Database, shortcut: "4" },
+  { id: "vei", label: "VEI Equity Analysis", icon: BarChart3, shortcut: "5" },
+  { id: "geoequity", label: "GeoEquity Map", icon: Map, shortcut: "6" },
+  { id: "sync", label: "TerraFusionSync", icon: Shield, shortcut: "7" },
 ];
 
 export function GlobalCommandPalette({
