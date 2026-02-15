@@ -918,6 +918,104 @@ export type Database = {
           },
         ]
       }
+      review_queue_items: {
+        Row: {
+          created_at: string
+          id: string
+          notes: string | null
+          parcel_id: string
+          position: number
+          queue_id: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          parcel_id: string
+          position: number
+          queue_id: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          parcel_id?: string
+          position?: number
+          queue_id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "review_queue_items_parcel_id_fkey"
+            columns: ["parcel_id"]
+            isOneToOne: false
+            referencedRelation: "parcels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "review_queue_items_queue_id_fkey"
+            columns: ["queue_id"]
+            isOneToOne: false
+            referencedRelation: "review_queues"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      review_queues: {
+        Row: {
+          county_id: string
+          created_at: string
+          created_by: string
+          description: string | null
+          filter_criteria: Json | null
+          id: string
+          name: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          county_id?: string
+          created_at?: string
+          created_by: string
+          description?: string | null
+          filter_criteria?: Json | null
+          id?: string
+          name: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          county_id?: string
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          filter_criteria?: Json | null
+          id?: string
+          name?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "review_queues_county_id_fkey"
+            columns: ["county_id"]
+            isOneToOne: false
+            referencedRelation: "counties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sales: {
         Row: {
           county_id: string
