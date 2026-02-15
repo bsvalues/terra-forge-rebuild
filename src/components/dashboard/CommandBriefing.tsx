@@ -18,6 +18,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { TerraTraceActivityFeed } from "@/components/proof/TerraTraceActivityFeed";
 
 interface CommandBriefingProps {
   onNavigate: (module: string) => void;
@@ -350,41 +351,55 @@ export function CommandBriefing({ onNavigate }: CommandBriefingProps) {
         </motion.div>
       )}
 
-      {/* Recent Activity */}
-      <Card className="bg-tf-elevated/50 border-tf-border">
-        <CardHeader>
-          <CardTitle className="text-base font-medium">Recent Ingest Activity</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {recentJobs && recentJobs.length > 0 ? (
-            <div className="space-y-3">
-              {recentJobs.map((job: any) => (
-                <div key={job.id} className="flex items-center justify-between p-3 rounded-lg bg-tf-surface/50">
-                  <div>
-                    <p className="text-sm font-medium">{job.file_name}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {job.target_table} • {job.row_count?.toLocaleString() || 0} rows
-                    </p>
+      {/* Recent Activity + TerraTrace */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Card className="bg-tf-elevated/50 border-tf-border">
+          <CardHeader>
+            <CardTitle className="text-base font-medium">Recent Ingest Activity</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {recentJobs && recentJobs.length > 0 ? (
+              <div className="space-y-3">
+                {recentJobs.map((job: any) => (
+                  <div key={job.id} className="flex items-center justify-between p-3 rounded-lg bg-tf-surface/50">
+                    <div>
+                      <p className="text-sm font-medium">{job.file_name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {job.target_table} • {job.row_count?.toLocaleString() || 0} rows
+                      </p>
+                    </div>
+                    <Badge variant="outline" className={
+                      job.status === "complete" ? "bg-tf-green/10 text-tf-green border-tf-green/30" :
+                      job.status === "failed" ? "bg-destructive/10 text-destructive border-destructive/30" :
+                      "bg-tf-cyan/10 text-tf-cyan border-tf-cyan/30"
+                    }>
+                      {job.status}
+                    </Badge>
                   </div>
-                  <Badge variant="outline" className={
-                    job.status === "complete" ? "bg-tf-green/10 text-tf-green border-tf-green/30" :
-                    job.status === "failed" ? "bg-destructive/10 text-destructive border-destructive/30" :
-                    "bg-tf-cyan/10 text-tf-cyan border-tf-cyan/30"
-                  }>
-                    {job.status}
-                  </Badge>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-8 text-muted-foreground">
-              <AlertTriangle className="w-8 h-8 mx-auto mb-3 opacity-30" />
-              <p className="text-sm">No ingest activity yet</p>
-              <p className="text-xs mt-1">Import data through the IDS module to get started</p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                <AlertTriangle className="w-8 h-8 mx-auto mb-3 opacity-30" />
+                <p className="text-sm">No ingest activity yet</p>
+                <p className="text-xs mt-1">Import data through the IDS module to get started</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card className="bg-tf-elevated/50 border-tf-border">
+          <CardHeader>
+            <CardTitle className="text-base font-medium flex items-center gap-2">
+              <Activity className="w-4 h-4 text-tf-cyan" />
+              TerraTrace Feed
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <TerraTraceActivityFeed limit={5} />
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
