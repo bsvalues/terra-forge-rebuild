@@ -122,12 +122,11 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Fetch parcels with sales in this neighborhood
+    // Fetch parcels in this neighborhood (with any non-null building_area > 0)
     const { data: parcels, error: pErr } = await supabase
       .from("parcels")
       .select("id, building_area, land_area, year_built, bedrooms, bathrooms, assessed_value")
-      .eq("neighborhood_code", neighborhood_code)
-      .not("building_area", "is", null);
+      .eq("neighborhood_code", neighborhood_code);
 
     if (pErr) throw pErr;
     if (!parcels?.length) {
@@ -157,18 +156,20 @@ Deno.serve(async (req) => {
     }
 
     // Build observations
+    // Treat 0 as missing for area/value fields
     const VARIABLE_MAP: Record<string, (p: any) => number | null> = {
-      building_area: (p) => p.building_area,
-      land_area: (p) => p.land_area,
-      year_built: (p) => p.year_built,
-      bedrooms: (p) => p.bedrooms,
+      building_area: (p) => (p.building_area && p.building_area > 0) ? p.building_area : null,
+      land_area: (p) => (p.land_area && p.land_area > 0) ? p.land_area : null,
+      year_built: (p) => p.year_built ?? null,
+      bedrooms: (p) => p.bedrooms ?? null,
       bathrooms: (p) => p.bathrooms ? Number(p.bathrooms) : null,
     };
 
     const observations: Observation[] = [];
+    const skipReasons = { no_sale: 0, missing_vars: 0 };
     for (const p of parcels) {
       const salePrice = latestSales.get(p.id);
-      if (!salePrice) continue;
+      if (!salePrice) { skipReasons.no_sale++; continue; }
 
       const features: number[] = [1]; // intercept
       let valid = true;
@@ -177,12 +178,26 @@ Deno.serve(async (req) => {
         if (val == null) { valid = false; break; }
         features.push(val);
       }
-      if (!valid) continue;
+      if (!valid) { skipReasons.missing_vars++; continue; }
       observations.push({ parcel_id: p.id, sale_price: salePrice, features });
     }
 
-    if (observations.length < variables.length + 2) {
-      return new Response(JSON.stringify({ error: `Insufficient observations (${observations.length}). Need at least ${variables.length + 2}.` }), {
+    const minObs = variables.length + 2;
+    if (observations.length < minObs) {
+      return new Response(JSON.stringify({
+        error: `Insufficient observations (${observations.length}). Need at least ${minObs}.`,
+        debug: {
+          parcels_in_neighborhood: parcels.length,
+          parcels_with_sales: latestSales.size,
+          skipped_no_sale: skipReasons.no_sale,
+          skipped_missing_vars: skipReasons.missing_vars,
+          hint: skipReasons.missing_vars > 0
+            ? `${skipReasons.missing_vars} parcels had null/zero values for selected variables (${variables.join(", ")}). Try fewer variables.`
+            : skipReasons.no_sale > 0
+              ? "Parcels exist but have no qualified sales."
+              : "No parcels found in this neighborhood.",
+        },
+      }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
