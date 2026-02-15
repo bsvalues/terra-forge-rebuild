@@ -10,9 +10,18 @@ import type { TraceEventParams } from "@/types/parcel360";
  */
 export async function emitTraceEvent(params: TraceEventParams): Promise<string | null> {
   try {
+    // Resolve county_id from user profile (required by RLS)
+    const { data: countyRow } = await supabase.rpc("get_user_county_id");
+    const countyId = countyRow as unknown as string | null;
+    if (!countyId) {
+      console.warn("[TerraTrace] No county_id for user — skipping trace event");
+      return null;
+    }
+
     const { data, error } = await supabase
       .from("trace_events" as any)
       .insert({
+        county_id: countyId,
         parcel_id: params.parcelId || null,
         source_module: params.sourceModule,
         event_type: params.eventType,
