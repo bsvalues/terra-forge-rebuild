@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Building2, FileCheck, Scale, Bell, ClipboardCheck } from "lucide-react";
+import { Building2, FileCheck, Scale, Bell, ClipboardCheck, ShieldCheck } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { WorkflowStats } from "@/components/dais/WorkflowStats";
 import { AppealsWorkflow } from "@/components/dais/AppealsWorkflow";
 import { PermitsWorkflow } from "@/components/dais/PermitsWorkflow";
 import { ExemptionsWorkflow } from "@/components/dais/ExemptionsWorkflow";
+import { CertificationDashboard } from "@/components/dais/CertificationDashboard";
 import { useWorkbench } from "../WorkbenchContext";
 
 interface DaisTabProps {
@@ -81,6 +82,13 @@ export function DaisTab({ initialCategory, onCategoryConsumed }: DaisTabProps) {
             <Bell className="w-4 h-4" />
             Notices
           </TabsTrigger>
+          <TabsTrigger 
+            value="certification"
+            className="gap-2 data-[state=active]:bg-[hsl(var(--tf-optimized-green)/0.2)] data-[state=active]:text-tf-green"
+          >
+            <ShieldCheck className="w-4 h-4" />
+            Certification
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="permits" className="mt-0">
@@ -111,6 +119,10 @@ export function DaisTab({ initialCategory, onCategoryConsumed }: DaisTabProps) {
               <p className="text-sm mt-1">Generate and track assessment notices and correspondence</p>
             </div>
           </motion.div>
+        </TabsContent>
+
+        <TabsContent value="certification" className="mt-0">
+          <CertificationDashboard />
         </TabsContent>
       </Tabs>
     </div>
