@@ -7,6 +7,7 @@ import { AppealsWorkflow } from "@/components/dais/AppealsWorkflow";
 import { PermitsWorkflow } from "@/components/dais/PermitsWorkflow";
 import { ExemptionsWorkflow } from "@/components/dais/ExemptionsWorkflow";
 import { CertificationDashboard } from "@/components/dais/CertificationDashboard";
+import { NoticesPanel } from "@/components/dais/NoticesPanel";
 import { useWorkbench } from "../WorkbenchContext";
 
 interface DaisTabProps {
@@ -104,21 +105,7 @@ export function DaisTab({ initialCategory, onCategoryConsumed }: DaisTabProps) {
         </TabsContent>
 
         <TabsContent value="notices" className="mt-0">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="material-bento rounded-2xl p-6"
-          >
-            <h3 className="text-lg font-medium text-foreground mb-4 flex items-center gap-2">
-              <Bell className="w-5 h-5 text-tf-cyan" />
-              Official Notices
-            </h3>
-            <div className="text-center py-12 text-muted-foreground">
-              <Bell className="w-12 h-12 mx-auto mb-4 opacity-30" />
-              <p>Notice generation coming soon</p>
-              <p className="text-sm mt-1">Generate and track assessment notices and correspondence</p>
-            </div>
-          </motion.div>
+          <NoticesPanel />
         </TabsContent>
 
         <TabsContent value="certification" className="mt-0">

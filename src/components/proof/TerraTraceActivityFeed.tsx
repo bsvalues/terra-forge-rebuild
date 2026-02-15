@@ -1,6 +1,7 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -19,6 +20,7 @@ import {
   Sparkles,
   MapPin,
   Globe,
+  Radio,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -107,6 +109,31 @@ interface UnifiedEvent {
 }
 
 export function TerraTraceActivityFeed({ parcelId, limit = 20 }: TerraTraceActivityFeedProps) {
+  const queryClient = useQueryClient();
+
+  // Realtime subscription for live trace events
+  useEffect(() => {
+    const channel = supabase
+      .channel("trace-realtime")
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "trace_events",
+          ...(parcelId ? { filter: `parcel_id=eq.${parcelId}` } : {}),
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["terra-trace-feed", parcelId, limit] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [parcelId, limit, queryClient]);
+
   // Query trace_events
   const { data: traceEvents = [], isLoading: loadingTrace } = useQuery({
     queryKey: ["terra-trace-feed", parcelId, limit],
@@ -211,6 +238,12 @@ export function TerraTraceActivityFeed({ parcelId, limit = 20 }: TerraTraceActiv
   return (
     <ScrollArea className="h-[300px]">
       <div className="relative pl-6 space-y-3">
+        {/* Realtime indicator */}
+        <div className="flex items-center gap-1.5 mb-2">
+          <Radio className="w-3 h-3 text-chart-2 animate-pulse" />
+          <span className="text-[10px] text-chart-2 font-medium">LIVE</span>
+        </div>
+
         {/* Timeline line */}
         <div className="absolute left-[11px] top-2 bottom-2 w-px bg-border/50" />
 

@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -87,45 +87,50 @@ export function ParcelSearchPanel() {
     setDetailSheetOpen(true);
   };
 
-  // Fetch parcels with filters
-  const { data: parcels = [], isLoading } = useQuery({
-    queryKey: ["parcels-search", filters],
+  const [page, setPage] = useState(0);
+  const PAGE_SIZE = 50;
+
+  // Reset page when filters change
+  useEffect(() => {
+    setPage(0);
+  }, [filters]);
+
+  // Fetch parcels with filters and pagination
+  const { data: parcelsResult, isLoading } = useQuery({
+    queryKey: ["parcels-search", filters, page],
     queryFn: async () => {
       let query = supabase
         .from("parcels")
-        .select("*")
+        .select("*", { count: "exact" })
         .order("assessed_value", { ascending: false })
-        .limit(100);
+        .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
 
-      // Apply address filter
       if (filters.address.trim()) {
         query = query.ilike("address", `%${filters.address}%`);
       }
-
-      // Apply city filter
       if (filters.city.trim()) {
         query = query.ilike("city", `%${filters.city}%`);
       }
-
-      // Apply value range
       if (filters.minValue > 0) {
         query = query.gte("assessed_value", filters.minValue);
       }
       if (filters.maxValue < 5000000) {
         query = query.lte("assessed_value", filters.maxValue);
       }
-
-      // Apply property class filter
       if (filters.propertyClasses.length > 0) {
         query = query.in("property_class", filters.propertyClasses);
       }
 
-      const { data, error } = await query;
+      const { data, error, count } = await query;
       if (error) throw error;
-      return (data || []) as Parcel[];
+      return { parcels: (data || []) as Parcel[], totalCount: count || 0 };
     },
     staleTime: 30000,
   });
+
+  const parcels = parcelsResult?.parcels || [];
+  const totalCount = parcelsResult?.totalCount || 0;
+  const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
   // Get unique cities and neighborhoods for filter options
   const { data: filterOptions } = useQuery({
@@ -212,7 +217,7 @@ export function ParcelSearchPanel() {
             </Button>
           )}
           <Badge variant="outline" className="text-muted-foreground">
-            {parcels.length} results
+            {totalCount.toLocaleString()} results
           </Badge>
         </div>
       </div>
@@ -423,9 +428,32 @@ export function ParcelSearchPanel() {
                   ))}
                 </tbody>
               </table>
-              {parcels.length >= 100 && (
-                <div className="p-3 text-center text-xs text-muted-foreground border-t">
-                  Showing first 100 results. Refine your search for more specific results.
+              {/* Pagination controls */}
+              {totalPages > 1 && (
+                <div className="p-3 border-t border-border/30 flex items-center justify-between">
+                  <span className="text-[10px] text-muted-foreground">
+                    Page {page + 1} of {totalPages} ({totalCount.toLocaleString()} total)
+                  </span>
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-6 text-[10px] px-2"
+                      disabled={page === 0}
+                      onClick={() => setPage(p => p - 1)}
+                    >
+                      Previous
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-6 text-[10px] px-2"
+                      disabled={page >= totalPages - 1}
+                      onClick={() => setPage(p => p + 1)}
+                    >
+                      Next
+                    </Button>
+                  </div>
                 </div>
               )}
             </ScrollArea>
