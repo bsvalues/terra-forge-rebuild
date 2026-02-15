@@ -17,6 +17,7 @@ export type PACSTableType =
   | "situs" 
   | "imprv" 
   | "imprv_items" 
+  | "imprv_details"
   | "land_detail" 
   | "owner" 
   | "account" 
@@ -27,12 +28,14 @@ export type PACSTableType =
   | "linked_owners"
   | "sketches"
   | "images"
+  | "prop_val"
   | "unknown";
 
 const TABLE_SIGNATURES: Record<PACSTableType, string[]> = {
   situs: ["situs_display", "situs_street", "situs_city", "situs_zip"],
   imprv: ["imprv_id", "imprv_val", "living_area", "actual_year_built"],
   imprv_items: ["imprv_id", "bedrooms", "baths", "foundation", "extwall_desc"],
+  imprv_details: ["imprv_det_type_cd", "imprv_det_desc", "imprv_det_area", "imprv_det_class_cd"],
   land_detail: ["size_acres", "size_square_feet", "land_type_cd", "land_soil_code"],
   owner: ["owner_id"],
   account: ["acct_id", "file_as_name"],
@@ -43,6 +46,7 @@ const TABLE_SIGNATURES: Record<PACSTableType, string[]> = {
   linked_owners: ["file_as_name", "owner_desc"],
   sketches: ["sketch", "imprv_id"],
   images: ["image_path", "image_nm", "image_type"],
+  prop_val: ["property_use_cd", "hood_cd", "appraised_val", "geo_id"],
   unknown: [],
 };
 
@@ -122,6 +126,7 @@ export interface UnifiedParcel {
   bathrooms: number | null;
   land_area: number | null;
   property_class: string | null;
+  neighborhood_code: string | null;
 }
 
 export interface UnifiedPermit {
@@ -158,6 +163,7 @@ export interface PACSJoinResult {
     situsCount: number;
     imprvCount: number;
     imprvItemsCount: number;
+    imprvDetailsCount: number;
     landCount: number;
     ownerCount: number;
     permitCount: number;
@@ -166,6 +172,7 @@ export interface PACSJoinResult {
     linkedOwnerCount: number;
     sketchCount: number;
     imageCount: number;
+    propValCount: number;
     joinedParcels: number;
     joinedPermits: number;
     joinedAssessments: number;
@@ -179,10 +186,12 @@ export function joinPACSTables(tables: PACSParsedTable[]): PACSJoinResult {
   const situsTable = byType("situs");
   const imprvTable = byType("imprv");
   const imprvItemsTable = byType("imprv_items");
+  const imprvDetailsTable = byType("imprv_details");
   const landTable = byType("land_detail");
   const permitsTable = byType("permits");
   const rollValueTable = byType("roll_value_history");
   const exemptTable = byType("exempt");
+  const propValTable = byType("prop_val");
   
   // ---- Build lookup maps ----
   
@@ -287,6 +296,62 @@ export function joinPACSTables(tables: PACSParsedTable[]): PACSJoinResult {
     }
   }
   
+  // Improvement details: aggregate living area and condition by prop_id
+  const detailsByProp = new Map<string, { living_area: number; below_grade: number; condition: string | null; year_built: number | null; num_stories: number | null }>();
+  if (imprvDetailsTable) {
+    for (const row of imprvDetailsTable.rows) {
+      const pid = row.prop_id?.trim();
+      if (!pid) continue;
+      const detType = (row.imprv_det_type_cd || row.imprv_det_desc || "").trim().toUpperCase();
+      const isMainArea = detType.includes("MA") || detType.includes("MAIN AREA");
+      const area = parseFloat((row.imprv_det_area || "0").replace(/[,]/g, "")) || 0;
+      const la = parseFloat((row.living_area || "0").replace(/[,]/g, "")) || 0;
+      const bla = parseFloat((row.below_grade_living_area || "0").replace(/[,]/g, "")) || 0;
+      const existing = detailsByProp.get(pid) || { living_area: 0, below_grade: 0, condition: null, year_built: null, num_stories: null };
+      
+      // Sum living area from rows that have it, or from MA-type rows
+      if (la > 0) {
+        existing.living_area = Math.max(existing.living_area, la);
+      } else if (isMainArea && area > 0) {
+        existing.living_area = Math.max(existing.living_area, area);
+      }
+      if (bla > 0) existing.below_grade = Math.max(existing.below_grade, bla);
+      
+      const cond = row.condition_cd?.trim();
+      if (cond && cond !== "" && !existing.condition) existing.condition = cond;
+      
+      const yb = parseInt(row.yr_built || "") || null;
+      if (yb && (!existing.year_built || yb > existing.year_built)) existing.year_built = yb;
+      
+      const stories = parseFloat(row.num_stories || "") || null;
+      if (stories && !existing.num_stories) existing.num_stories = stories;
+      
+      detailsByProp.set(pid, existing);
+    }
+  }
+  
+  // Prop val: master valuation record with neighborhood codes, property class, assessed values
+  const propValByProp = new Map<string, { hood_cd: string | null; property_use_cd: string | null; property_use_desc: string | null; appraised_val: number; assessed_val: number; land_hstd: number; land_non_hstd: number; imprv_hstd: number; imprv_non_hstd: number; legal_acreage: number | null; geo_id: string | null }>();
+  if (propValTable) {
+    for (const row of propValTable.rows) {
+      const pid = row.prop_id?.trim();
+      if (!pid) continue;
+      propValByProp.set(pid, {
+        hood_cd: row.hood_cd?.trim() || null,
+        property_use_cd: row.property_use_cd?.trim() || null,
+        property_use_desc: row.property_use_desc?.trim() || null,
+        appraised_val: parseFloat((row.appraised_val || "0").replace(/[,$]/g, "")) || 0,
+        assessed_val: parseFloat((row.assessed_val || "0").replace(/[,$]/g, "")) || 0,
+        land_hstd: parseFloat((row.land_hstd_val || "0").replace(/[,$]/g, "")) || 0,
+        land_non_hstd: parseFloat((row.land_non_hstd_val || "0").replace(/[,$]/g, "")) || 0,
+        imprv_hstd: parseFloat((row.imprv_hstd_val || "0").replace(/[,$]/g, "")) || 0,
+        imprv_non_hstd: parseFloat((row.imprv_non_hstd_val || "0").replace(/[,$]/g, "")) || 0,
+        legal_acreage: parseFloat((row.legal_acreage || "").replace(/[,]/g, "")) || null,
+        geo_id: row.geo_id?.trim() || null,
+      });
+    }
+  }
+
   // Land: sum acres per prop_id
   const landByProp = new Map<string, number>();
   if (landTable) {
@@ -315,16 +380,25 @@ export function joinPACSTables(tables: PACSParsedTable[]): PACSJoinResult {
       const imprv = imprvByProp.get(pid);
       const imprvId = imprv?.imprv_id || "";
       const items = (imprvId && itemsByImprv.get(imprvId)) || itemsByProp.get(pid);
+      const details = detailsByProp.get(pid);
       const landArea = landByProp.get(pid) || null;
       const rollVal = latestRollByProp.get(pid);
+      const pv = propValByProp.get(pid);
       
       const address = (row.situs_display || "").trim();
       if (!address || address === "") continue;
       
-      // Use roll value history if available, otherwise fall back to imprv totals
-      const assessedValue = rollVal?.assessed_val || imprv?.total_imprv_val || 0;
-      const improvementValue = rollVal?.improvement_value ?? imprv?.total_imprv_val ?? null;
-      const landValue = rollVal?.land_value ?? null;
+      // Value priority: prop_val > roll_value_history > imprv totals
+      const assessedValue = pv?.assessed_val || rollVal?.assessed_val || imprv?.total_imprv_val || 0;
+      const improvementValue = pv ? (pv.imprv_hstd + pv.imprv_non_hstd) || rollVal?.improvement_value || null : rollVal?.improvement_value ?? imprv?.total_imprv_val ?? null;
+      const landValue = pv ? (pv.land_hstd + pv.land_non_hstd) || rollVal?.land_value || null : rollVal?.land_value ?? null;
+      
+      // Living area: prefer imprv table, fall back to imprv_details aggregation
+      const buildingArea = imprv?.living_area || details?.living_area || null;
+      const yearBuilt = imprv?.year_built || details?.year_built || null;
+      
+      // Land area: prefer land_detail, fall back to prop_val legal_acreage
+      const effectiveLandArea = landArea || (pv?.legal_acreage ? Math.round(pv.legal_acreage * 43560) : null);
       
       parcels.push({
         parcel_number: pid,
@@ -335,12 +409,13 @@ export function joinPACSTables(tables: PACSParsedTable[]): PACSJoinResult {
         assessed_value: assessedValue,
         improvement_value: improvementValue,
         land_value: landValue,
-        building_area: imprv?.living_area || null,
-        year_built: imprv?.year_built || null,
+        building_area: buildingArea,
+        year_built: yearBuilt,
         bedrooms: items?.bedrooms || null,
         bathrooms: items?.bathrooms || null,
-        land_area: landArea,
-        property_class: null,
+        land_area: effectiveLandArea,
+        property_class: pv?.property_use_cd || null,
+        neighborhood_code: pv?.hood_cd || null,
       });
     }
   }
@@ -402,6 +477,7 @@ export function joinPACSTables(tables: PACSParsedTable[]): PACSJoinResult {
       situsCount: situsTable?.rowCount || 0,
       imprvCount: imprvTable?.rowCount || 0,
       imprvItemsCount: imprvItemsTable?.rowCount || 0,
+      imprvDetailsCount: imprvDetailsTable?.rowCount || 0,
       landCount: landTable?.rowCount || 0,
       ownerCount: tables.find(t => t.type === "owner")?.rowCount || 0,
       permitCount: permitsTable?.rowCount || 0,
@@ -410,6 +486,7 @@ export function joinPACSTables(tables: PACSParsedTable[]): PACSJoinResult {
       linkedOwnerCount: tables.find(t => t.type === "linked_owners")?.rowCount || 0,
       sketchCount: tables.find(t => t.type === "sketches")?.rowCount || 0,
       imageCount: tables.find(t => t.type === "images")?.rowCount || 0,
+      propValCount: propValTable?.rowCount || 0,
       joinedParcels: parcels.length,
       joinedPermits: permits.length,
       joinedAssessments: allAssessments.length,

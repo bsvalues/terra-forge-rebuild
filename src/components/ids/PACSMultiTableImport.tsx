@@ -34,7 +34,8 @@ type Step = "upload" | "review" | "publishing" | "complete";
 const TABLE_LABELS: Record<PACSTableType, { label: string; icon: string; required: boolean }> = {
   situs: { label: "Situs (Addresses)", icon: "📍", required: true },
   imprv: { label: "Improvements", icon: "🏠", required: false },
-  imprv_items: { label: "Improvement Details", icon: "🛏️", required: false },
+  imprv_items: { label: "Improvement Items", icon: "🛏️", required: false },
+  imprv_details: { label: "Improvement Details", icon: "📐", required: false },
   land_detail: { label: "Land Detail", icon: "🌿", required: false },
   owner: { label: "Owner Links", icon: "👤", required: false },
   account: { label: "Accounts (Names)", icon: "📋", required: false },
@@ -45,6 +46,7 @@ const TABLE_LABELS: Record<PACSTableType, { label: string; icon: string; require
   linked_owners: { label: "Linked Owners", icon: "👥", required: false },
   sketches: { label: "Sketches", icon: "✏️", required: false },
   images: { label: "Property Images", icon: "📸", required: false },
+  prop_val: { label: "Property Valuation", icon: "💰", required: false },
   unknown: { label: "Unknown", icon: "❓", required: false },
 };
 
@@ -328,7 +330,7 @@ export function PACSMultiTableImport({ onBack }: PACSMultiTableImportProps) {
                 Drop all PACS CSV files here
               </h3>
               <p className="text-sm text-muted-foreground mb-4">
-                situs, imprv, imprv_items, land_detail, owner, account, permits, roll_value_history, exempt, linked_owners, sketches, images
+                situs, imprv, imprv_items, imprv_details, land_detail, owner, account, permits, roll_value_history, exempt, prop_val, linked_owners, sketches, images
               </p>
               <input
                 type="file"
