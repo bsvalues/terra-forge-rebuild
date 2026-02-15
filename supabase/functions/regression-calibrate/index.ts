@@ -163,7 +163,21 @@ Deno.serve(async (req) => {
       year_built: (p) => p.year_built ?? null,
       bedrooms: (p) => p.bedrooms ?? null,
       bathrooms: (p) => p.bathrooms ? Number(p.bathrooms) : null,
+      assessed_value: (p) => (p.assessed_value && p.assessed_value > 0) ? p.assessed_value : null,
     };
+
+    // Auto-prune: only keep variables that have data for at least some parcels with sales
+    const parcelsWithSales = parcels.filter(p => latestSales.has(p.id));
+    const usableVariables = variables.filter(v => {
+      const extractor = VARIABLE_MAP[v];
+      if (!extractor) return false;
+      const validCount = parcelsWithSales.filter(p => extractor(p) != null).length;
+      return validCount >= 1; // At least 1 parcel has this variable
+    });
+
+    // If no usable variables, fall back to assessed_value as the sole predictor
+    const finalVariables = usableVariables.length > 0 ? usableVariables : 
+      (VARIABLE_MAP["assessed_value"] ? ["assessed_value"] : []);
 
     const observations: Observation[] = [];
     const skipReasons = { no_sale: 0, missing_vars: 0 };
@@ -173,7 +187,7 @@ Deno.serve(async (req) => {
 
       const features: number[] = [1]; // intercept
       let valid = true;
-      for (const v of variables) {
+      for (const v of finalVariables) {
         const val = VARIABLE_MAP[v]?.(p);
         if (val == null) { valid = false; break; }
         features.push(val);
@@ -182,7 +196,7 @@ Deno.serve(async (req) => {
       observations.push({ parcel_id: p.id, sale_price: salePrice, features });
     }
 
-    const minObs = variables.length + 2;
+    const minObs = finalVariables.length + 2;
     if (observations.length < minObs) {
       return new Response(JSON.stringify({
         error: `Insufficient observations (${observations.length}). Need at least ${minObs}.`,
@@ -191,8 +205,10 @@ Deno.serve(async (req) => {
           parcels_with_sales: latestSales.size,
           skipped_no_sale: skipReasons.no_sale,
           skipped_missing_vars: skipReasons.missing_vars,
+          requested_variables: variables,
+          usable_variables: finalVariables,
           hint: skipReasons.missing_vars > 0
-            ? `${skipReasons.missing_vars} parcels had null/zero values for selected variables (${variables.join(", ")}). Try fewer variables.`
+            ? `${skipReasons.missing_vars} parcels had null/zero values for variables (${finalVariables.join(", ")}). Ensure parcel data is populated.`
             : skipReasons.no_sale > 0
               ? "Parcels exist but have no qualified sales."
               : "No parcels found in this neighborhood.",
@@ -210,7 +226,7 @@ Deno.serve(async (req) => {
     const result = solveOLS(X, y);
 
     // Build coefficient labels
-    const labels = ["intercept", ...variables];
+    const labels = ["intercept", ...finalVariables];
     const coefficients = labels.map((label, i) => ({
       variable: label,
       coefficient: result.coefficients[i],
@@ -229,7 +245,8 @@ Deno.serve(async (req) => {
 
     const response = {
       neighborhood_code,
-      variables,
+      variables: finalVariables,
+      variables_requested: variables,
       sample_size: observations.length,
       r_squared: result.rSquared,
       rmse: result.rmse,
