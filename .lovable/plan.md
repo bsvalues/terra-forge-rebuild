@@ -1,238 +1,192 @@
 
 
-# TerraFusion OS: From App to Operating Environment
-## Strategic Implementation Plan — The "Engineering Certainty" Transformation
+# Parcel 360 Foundation: Event Spine + Write Lanes + Snapshot Contracts
+
+## What We Are Building
+
+Three foundational layers that transform the Property Workbench from "a screen with tabs" into a **governed operational cockpit** where every action is auditable, every write is lane-enforced, and every parcel's state is composable from authoritative sources.
+
+**Build order: Trace (foundation) -> Write Lanes (enforcement) -> Snapshot (composition) -> Route + UX wiring**
 
 ---
 
-## Executive Summary
+## Phase A: TerraTrace Event Spine
 
-The uploaded documents define a clear architectural vision: TerraFusion must transition from a "sidebar app" (2016-era) to a **Valuation Operating Environment** (2026-era). After auditing every component against the six strategy documents and two visual decks, the current codebase has significant structural gaps that must be addressed in phases.
+The immutable audit backbone. Without this, nothing else is provable.
 
-### Current State vs. Vision
+### Database
+
+Create a `trace_events` table:
+
+| Column | Type | Purpose |
+|--------|------|---------|
+| id | uuid (PK, default gen_random_uuid) | Unique event ID |
+| created_at | timestamptz (default now) | Immutable timestamp |
+| county_id | uuid (FK counties, NOT NULL) | Tenant isolation |
+| parcel_id | uuid (FK parcels, nullable) | Parcel scope (null for system events) |
+| actor_id | uuid (NOT NULL, default auth.uid) | Who did it |
+| source_module | text (NOT NULL) | "forge", "atlas", "dais", "dossier", "pilot", "os" |
+| event_type | text (NOT NULL) | Registry-controlled event name |
+| event_data | jsonb (default '{}') | Structured payload (before/after, reason codes, artifact refs) |
+| correlation_id | uuid (nullable) | Groups related events into a logical operation |
+| causation_id | uuid (nullable) | Points to the event that caused this one |
+| artifact_type | text (nullable) | "assessment", "appeal", "permit", "exemption", "document", "model_receipt" |
+| artifact_id | uuid (nullable) | FK to the specific record |
+
+**Indexes**: `(parcel_id, created_at DESC)`, `(county_id, created_at DESC)`, `(correlation_id)`
+
+**RLS**: Users can INSERT (auto-enriched with county_id via `get_user_county_id()`). Users can SELECT only their county's events. No UPDATE or DELETE (append-only).
+
+**Realtime**: Enabled via `ALTER PUBLICATION supabase_realtime ADD TABLE public.trace_events` for live activity feeds.
+
+### TypeScript Service (`src/services/terraTrace.ts`)
+
+- `emitTraceEvent(params)` -- inserts into `trace_events` with automatic actor_id from session
+- Typed `TraceEventParams` interface with discriminated unions per event_type
+- Event taxonomy (minimum set):
+  - `parcel_updated` -- characteristic edits
+  - `value_override_created` -- manual value change with reason
+  - `workflow_state_changed` -- appeal/permit/exemption status transitions
+  - `document_added` / `evidence_attached`
+  - `notice_generated`
+  - `model_run_completed`
+  - `review_completed` / `review_skipped` (queue actions)
+  - `parcel_viewed` (tab navigation, optional)
+  - `pilot_tool_invoked` / `pilot_tool_completed`
+
+### Activity Feed Upgrade
+
+Refactor `TerraTraceActivityFeed` to read from `trace_events` (with fallback to `model_receipts` for legacy data). Richer event icons, filtering by source_module, and realtime subscription for live updates.
+
+---
+
+## Phase B: Write-Lane Enforcement
+
+The "traffic lights" that ensure Workbench orchestrates while suites execute.
+
+### Contracts (`src/services/writeLane.ts`)
+
+- `WRITE_LANE_MATRIX` constant mapping each data domain to its owning module:
+  - Parcel characteristics, valuations, comps, models -> "forge"
+  - GIS layers, boundaries, spatial annotations -> "atlas"
+  - Permits, exemptions, appeals, notices, workflows -> "dais"
+  - Documents, narratives, packets -> "dossier"
+  - Trace events, user prefs -> "os"
+  - Pilot profile -> "pilot"
+
+- `WriteIntent` type: `{ domain, action, sourceModule, parcelId, payload }`
+- `resolveWriteLane(domain)` -- returns owning module
+- `assertWriteLane(domain, sourceModule)` -- throws if mismatch (dev-time safety)
+
+### Suite Services (`src/services/suites/`)
+
+Four service modules, each wrapping domain writes + trace emission:
+
+- **forgeService.ts**: `updateParcelCharacteristics()`, `createValueOverride()`, `recordModelRun()` -- each performs the DB write AND calls `emitTraceEvent` with `source_module: "forge"`
+- **daisService.ts**: `updateAppealStatus()`, `updatePermitStatus()`, `decideExemption()`, `generateNotice()` -- emits with `source_module: "dais"`
+- **dossierService.ts**: `addDocument()`, `createNarrative()`, `assemblePacket()` -- emits with `source_module: "dossier"`
+- **atlasService.ts**: `updateBoundary()`, `addSpatialAnnotation()` -- emits with `source_module: "atlas"`
+
+### Refactor Existing Mutations
+
+- `useParcelMutations.ts` -- wrap `useUpdateParcel` through `forgeService.updateParcelCharacteristics()` so every parcel edit automatically emits a trace event with before/after diff
+- Review queue actions (complete/skip) -- emit `review_completed` / `review_skipped` trace events
+
+---
+
+## Phase C: Parcel360 Snapshot (Read Contract)
+
+The composed read model that answers "what is this parcel's complete state?"
+
+### Types (`src/types/parcel360.ts`)
 
 ```text
-+--------------------------------------------------+
-|  CURRENT (2016-Era Sidebar App)                  |
-|                                                  |
-|  +----------+  +-----------------------------+   |
-|  | Sidebar  |  | Header (basic)              |   |
-|  | (tree)   |  +-----------------------------+   |
-|  |          |  |                             |   |
-|  | Dashboard|  |  Module Content             |   |
-|  | IDS      |  |  (glass-card everywhere)    |   |
-|  | VEI      |  |                             |   |
-|  | Workbench|  |  No Context Mode            |   |
-|  | GeoEquity|  |  No Model Receipts          |   |
-|  | Settings |  |  No Quality Gates           |   |
-|  +----------+  +-----------------------------+   |
-+--------------------------------------------------+
-
-+--------------------------------------------------+
-|  VISION (2026-Era Operating Environment)         |
-|                                                  |
-|  +--------------------------------------------+ |
-|  | Top System Bar (County | Year | Role | Sync)| |
-|  +--------------------------------------------+ |
-|  | Command Palette (Cmd+K) — Universal Teleport| |
-|  +--------------------------------------------+ |
-|  |                                            | |
-|  |  STAGE (Canonical Scenes via Context Mode)  | |
-|  |  +------+ +------+ +------+               | |
-|  |  |Bento | |Bento | |Bento |  Attention    | |
-|  |  |Card  | |Card  | |Card  |  Allocators   | |
-|  |  +------+ +------+ +------+               | |
-|  |                                            | |
-|  +----+-----------+-----------+---------------+ |
-|  | Dock Launcher  | Control Center (drawer)   | |
-|  +----------------+---------------------------+ |
-+--------------------------------------------------+
+Parcel360Snapshot
+  identity: { parcelNumber, address, city, state, zip, countyId, propertyClass, neighborhoodCode }
+  characteristics: { yearBuilt, bedrooms, bathrooms, buildingArea, landArea, lat, lng }
+  valuation: { assessedValue, landValue, improvementValue, latestAssessment, history[] }
+  sales: { recentSales[], qualifiedCount }
+  workflows: { pendingAppeals[], activeExemptions[], openPermits[], certificationStatus }
+  evidence: { modelReceiptCount, lastModelRun, recentTraceEvents[] }
+  freshness: { identityAsOf, valuationAsOf, workflowsAsOf, evidenceAsOf }
+  missingDomains: string[]  -- graceful degradation
+  isComplete: boolean
 ```
 
----
+### Composed Hook (`src/hooks/useParcel360.ts`)
 
-## Phase 1: The OS Shell (Layout Primitives)
-**Goal:** Replace the sidebar-tree navigation with the 5 spatial primitives.
+- Orchestrates parallel queries to parcels, assessments, sales, appeals, exemptions, permits, model_receipts, trace_events
+- Each domain query is independent -- if one fails, others render with explicit "not loaded" state
+- Returns typed `Parcel360Snapshot` with per-domain loading/error states
+- Auto-invalidates when new trace_events arrive (realtime subscription)
 
-### 1.1 Top System Bar
-Replace `SovereignHeader.tsx` with a persistent context bar showing:
-- **County context** (e.g., "Benton County, WA")
-- **Tax Year** selector (persistent, not per-module)
-- **User Role** badge (Assessor, Deputy, Analyst)
-- **Sync Status** indicator (real-time data freshness)
-- **Cmd+K** shortcut hint
+### SummaryTab Upgrade
 
-**Technical:** New component `TopSystemBar.tsx` using `context-ribbon` CSS class (already defined in `index.css`). Solid background with subtle border, no heavy glass.
-
-### 1.2 Dock Launcher (Replace Sidebar)
-Replace the vertical `SovereignSidebar.tsx` with a horizontal **Dock** anchored to the bottom of the screen (macOS-style):
-- Suite icons with labels on hover
-- Active suite indicator with subtle glow
-- Collapses to icon-only by default
-- Keyboard shortcuts (Cmd+1 through Cmd+5)
-
-**Technical:** New component `DockLauncher.tsx`. Uses `glass-panel` for the dock container (approved OS chrome surface). Spring animations for icon hover (stiffness: 300, damping: 25).
-
-### 1.3 Stage (Main Workspace)
-The `renderModule()` switch in `AppLayout.tsx` becomes the "Stage" — the full-width workspace where Canonical Scenes render. Remove the sidebar margin calculation entirely.
-
-### 1.4 Control Center (Drawer)
-New slide-over drawer component for quick toggles:
-- Map layer controls
-- Parcel filters
-- Model version selector
-- Audit Mode toggle
-
-**Technical:** New component `ControlCenter.tsx` using Radix Sheet, triggered from the Top System Bar.
-
-### 1.5 Global Command Palette
-Move `CommandPalette.tsx` from being Workbench-scoped to **OS-level** in `AppLayout.tsx`:
-- Search parcels globally
-- Jump to any suite
-- Switch work modes
-- Navigate to any parcel by PIN
-
-**Technical:** Lift the Cmd+K listener to `AppLayout.tsx`. Add parcel search via database query.
+- Consume `useParcel360` instead of individual hooks
+- Show domain freshness indicators (small timestamps per section)
+- Explicit "Not loaded" / "No data" states per domain (never silent failures)
+- Operational blockers section: "What blocks certification?" (pending appeals, missing docs, uncertified assessments)
 
 ---
 
-## Phase 2: The 4-Layer Material System (CSS Governance)
+## Phase D: Direct Parcel Route + Parcel Lens
 
-### 2.1 Layer 1 — Liquid Glass (Shell Only)
-**Current violation:** `glass-card` is used on VEI metric cards, data tables, ingest wizard cards, and dense grids. The documents explicitly forbid this.
+### Route (`/property/:parcelId`)
 
-**Fix:** Create distinct material classes:
-- `.material-shell` — Glass with blur (Top System Bar, Dock, Command Palette, modals ONLY)
-- `.material-bento` — Solid elevated surface for data cards (no blur, no backdrop-filter)
-- `.material-interactive` — Reserved for commitment action buttons
-- `.material-signal` — Neon/kinetic type for alerts
+- New protected route in `App.tsx`
+- `src/pages/Property.tsx` -- reads parcelId from URL, fetches parcel record, passes to `PropertyWorkbench` as `initialParcel`
+- Loading state while fetching, 404 if not found
+- Enables deep-linking and bookmarking of specific parcels
 
-**Replace** all `glass-card` usage in data-dense components (VEIDashboard, IngestWizard, CommandBriefing) with `.material-bento`.
+### Parcel Lens Contract
 
-### 2.2 Layer 2 — Bento Grids (Attention Allocators)
-Ensure all dashboard grids use **transform-based animations only** (no layout shift). Current Framer Motion `y: 20` animations are acceptable, but add the Zero CLS rule:
-- Grid containers use `will-change: transform`
-- No dynamic height changes on load
-- Bento cards promote the "next required step" (e.g., "QA Gate Failed: 15 parcels missing")
+Each suite tab is parcel-scoped when in Workbench mode:
+- Forge: only valuation artifacts for this parcel
+- Atlas: only spatial context for this parcel
+- Dais: only workflow state for this parcel
+- Dossier: only evidence for this parcel
+- Pilot: operates inside parcel scope, never bulk actions
 
-### 2.3 Layer 3 — Tactile Maximalism (Commitment Actions Only)
-Create a new `CommitmentButton` component with "stiff + bouncy" spring physics:
-- Spring config: `stiffness: 400, damping: 10`
-- Scale on press: `0.95` with bounce recovery
-- Reserved ONLY for: Run, Publish, Certify, Export, Lock Model, Generate Defense Packet, Approve Calibration
-
-**Current violation:** Regular buttons and navigation use whileTap scale effects. These must be removed from non-commitment actions.
-
-### 2.4 Layer 4 — Signal (Neon Alerts)
-Create a `SignalBadge` component for critical system states:
-- "Audit Mode Active" — cyan neon glow
-- "Model Locked" — gold pulse
-- "COD Exceeded Target" — red kinetic text
-- "Roll Certification" — green celebration effect
-
-All signal text must include a tint layer for WCAG AA contrast on glass surfaces.
+"Open in Factory Mode" drill-out links for cross-parcel views (explicit context exit).
 
 ---
 
-## Phase 3: Quality Gates (Performance + Accessibility)
+## Files Created
 
-### 3.1 Hardware Detection
-Add a `useQualityGates` hook that detects:
-- `navigator.hardwareConcurrency < 4` (low cores)
-- `navigator.deviceMemory < 4` (low RAM)
-- `CSS.supports('backdrop-filter', 'blur(1px)')` (capability check)
-- `prefers-reduced-motion` media query
-- `prefers-reduced-transparency` media query
+| File | Purpose |
+|------|---------|
+| `src/types/parcel360.ts` | Parcel360Snapshot, TraceEvent, WriteIntent interfaces |
+| `src/services/terraTrace.ts` | emitTraceEvent + event taxonomy constants |
+| `src/services/writeLane.ts` | WRITE_LANE_MATRIX + assertWriteLane + resolveWriteLane |
+| `src/services/suites/forgeService.ts` | Forge domain writes with trace |
+| `src/services/suites/daisService.ts` | Dais domain writes with trace |
+| `src/services/suites/dossierService.ts` | Dossier domain writes with trace |
+| `src/services/suites/atlasService.ts` | Atlas domain writes with trace |
+| `src/hooks/useParcel360.ts` | Composed snapshot hook |
+| `src/pages/Property.tsx` | /property/:parcelId route handler |
 
-### 3.2 Liquid Frost Fallback
-When quality gates trigger, replace all `backdrop-filter: blur()` with solid frosted fills:
-- `.material-shell` becomes `.material-frost` (solid `hsl(var(--tf-glass))` with no blur)
-- Disable spring animations, use simple opacity transitions
-- Disable kinetic type / neon glow effects
+## Files Modified
 
-### 3.3 CSS Custom Properties for Gate Control
-```text
-:root {
-  --enable-glass: 1;      /* 0 on low-power */
-  --enable-motion: 1;     /* 0 on prefers-reduced-motion */
-  --enable-signal: 1;     /* 0 on prefers-reduced-transparency */
-}
-```
-
----
-
-## Phase 4: The Proof Layer (Model Receipts + Defend Loop)
-
-### 4.1 Model Receipt Component
-Every valuation run, ratio study computation, or calibration produces a **Model Receipt** containing:
-- Inputs (all data points used)
-- Model Version (algorithm identifier)
-- Timestamp + Operator ID
-- Outputs (resulting values and statistics)
-
-**Technical:** New `ModelReceipt.tsx` component. Receipts are stored in a `model_receipts` database table and displayed as expandable cards in the Dossier tab.
-
-### 4.2 TerraTrace Activity Feed
-Surface TerraTrace audit events in the Property Workbench Summary tab as a real-time activity feed. Every TerraPilot tool execution, VEI computation, and IDS publish action appears as a trace event.
-
-### 4.3 Defense Packet Generator
-A "Generate Defense Packet" commitment action button (Tactile Maximalism layer) that assembles:
-- Model Receipts for the parcel
-- Comparable sales data
-- Narrative (auto-generated via TerraGPT)
-- Ratio study excerpt
-
----
-
-## Phase 5: Context Mode (Canonical Scenes)
-
-### 5.1 Scene Library (Initial 6 Scenes)
-Rather than static module switching, the Stage renders **Canonical Scenes** based on user intent:
-
-| Scene | Trigger | Primary Components |
-|-------|---------|-------------------|
-| Ingestion Gate | User navigates to IDS | QA checklists, data health, ingest wizard |
-| Ratio Study Cockpit | User opens VEI | COD/PRD metrics, tier plots, drift warnings |
-| Neighborhood Review | User opens GeoEquity | Map, parcel details, sales data |
-| Property Workbench | User selects a parcel | Summary, Forge, Atlas, Dais, Dossier tabs |
-| Calibration Run | User runs a model | Parameters, distributions, impact analysis |
-| Appeal Defense Pack | User enters Case mode | Comps, narrative builder, audit trail |
-
-### 5.2 Context Mode Processor
-A `useContextMode` hook that selects the correct scene arrangement based on:
-- Current work mode (Overview, Valuation, Mapping, Admin, Case)
-- Active parcel context
-- Workflow stage in the annual cycle
-
-This is "Agentic UX" — the system selects known component arrangements, never generating new UI.
-
----
+| File | Change |
+|------|--------|
+| Database migration | Create `trace_events` table + RLS + indexes + realtime |
+| `src/App.tsx` | Add `/property/:parcelId` protected route |
+| `src/components/proof/TerraTraceActivityFeed.tsx` | Read from `trace_events` with `model_receipts` fallback |
+| `src/hooks/useParcelMutations.ts` | Route through forgeService |
+| `src/components/workbench/tabs/SummaryTab.tsx` | Consume useParcel360, show freshness + blockers |
+| `src/components/workbench/ReviewQueueContext.tsx` | Emit trace events on review actions |
 
 ## Implementation Sequence
 
-| Order | Deliverable | Estimated Complexity |
-|-------|-------------|---------------------|
-| 1 | Material System CSS refactor (Layer 1-4 classes) | Medium |
-| 2 | Top System Bar + Dock Launcher (replace sidebar) | High |
-| 3 | Global Command Palette (Cmd+K everywhere) | Medium |
-| 4 | Quality Gates hook + Liquid Frost fallback | Medium |
-| 5 | CommitmentButton + SignalBadge components | Low |
-| 6 | Control Center drawer | Medium |
-| 7 | Model Receipt component + database table | High |
-| 8 | TerraTrace Activity Feed in Summary tab | Medium |
-| 9 | Context Mode processor + Scene library | High |
-| 10 | Defense Packet Generator | High |
-
----
-
-## Non-Negotiable Standards (From Documents)
-
-1. **3 Clicks to Value** — Every action reachable via Dock, Stage, or Cmd+K
-2. **Zero Ad-Hoc CSS** — All surfaces use material system tokens
-3. **60fps Performance** — Quality Gates enforce hardware-aware degradation
-4. **WCAG AA Compliance** — Tint layers on all glass surfaces
-5. **Zero CLS** — All Bento transitions use transforms, never re-layout
-6. **Audit as First-Class Material** — Model Receipts visible at the point of action
-
-This plan transforms TerraFusion from a "sidebar app that looks nice" into a **Valuation Operating Environment that manufactures certainty**.
+1. Database migration (trace_events table with RLS, indexes, realtime)
+2. TypeScript types (parcel360.ts -- all contracts in one file)
+3. TerraTrace emission service (terraTrace.ts)
+4. Write-lane matrix + assertion utility (writeLane.ts)
+5. Suite services (forge, dais, dossier, atlas)
+6. useParcel360 composed hook
+7. Refactor useParcelMutations through forgeService
+8. Upgrade TerraTraceActivityFeed to read trace_events
+9. Upgrade SummaryTab to use Parcel360 snapshot
+10. Add /property/:parcelId route
+11. End-to-end verification
 
