@@ -118,6 +118,8 @@ export function AppealsWorkflow() {
     },
     onSuccess: (_, { newStatus }) => {
       queryClient.invalidateQueries({ queryKey: ["appeals-workflow"] });
+      queryClient.invalidateQueries({ queryKey: ["p360-appeals"] });
+      queryClient.invalidateQueries({ queryKey: ["p360-trace"] });
       toast({ title: "Appeal Updated", description: `Status changed to ${newStatus}` });
       setSelectedAppeal(null);
     },

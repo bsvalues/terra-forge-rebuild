@@ -128,6 +128,9 @@ export function PermitsWorkflow() {
     onSuccess: (_, { newStatus }) => {
       queryClient.invalidateQueries({ queryKey: ["permits-workflow"] });
       queryClient.invalidateQueries({ queryKey: ["permits-stats"] });
+      // Refresh Parcel360 snapshot so Summary counts update immediately
+      queryClient.invalidateQueries({ queryKey: ["p360-permits"] });
+      queryClient.invalidateQueries({ queryKey: ["p360-trace"] });
       toast({ title: "Permit Updated", description: `Status changed to ${newStatus}` });
       setSelectedPermit(null);
     },
@@ -443,6 +446,15 @@ export function PermitsWorkflow() {
                       Status: {selectedPermit.inspection_status}
                     </div>
                   )}
+                </div>
+              )}
+
+              {selectedPermit.notes && (
+                <div className="space-y-1">
+                  <div className="text-xs text-muted-foreground">Notes / Reason</div>
+                  <div className="text-sm bg-destructive/10 border border-destructive/20 rounded-lg p-3 text-foreground">
+                    {selectedPermit.notes}
+                  </div>
                 </div>
               )}
             </div>

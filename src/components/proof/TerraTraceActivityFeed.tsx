@@ -282,25 +282,58 @@ export function TerraTraceActivityFeed({ parcelId, limit = 20 }: TerraTraceActiv
 }
 
 function renderEventData(data: Record<string, unknown>) {
+  const elements: React.ReactNode[] = [];
+
+  // Elevated reason callout for destructive actions
+  if (data.reason && typeof data.reason === "string") {
+    elements.push(
+      <span key="reason" className="block w-full text-[11px] bg-destructive/10 border border-destructive/20 rounded px-2 py-1 text-foreground italic">
+        "{data.reason}"
+      </span>
+    );
+  }
+
   // Special handling for parcel_updated diffs
   const changes = data.changes as { before?: Record<string, unknown>; after?: Record<string, unknown> } | undefined;
   if (changes?.before && changes?.after) {
-    return Object.keys(changes.after).slice(0, 4).map((key) => (
-      <span key={key} className="text-[10px] bg-muted rounded px-1.5 py-0.5 text-muted-foreground">
-        {key.replace(/_/g, " ")}:{" "}
-        <span className="line-through opacity-60">{formatVal(changes.before?.[key])}</span>
-        {" → "}
-        <span className="text-foreground font-medium">{formatVal(changes.after?.[key])}</span>
-      </span>
-    ));
+    elements.push(
+      ...Object.keys(changes.after).slice(0, 4).map((key) => (
+        <span key={key} className="text-[10px] bg-muted rounded px-1.5 py-0.5 text-muted-foreground">
+          {key.replace(/_/g, " ")}:{" "}
+          <span className="line-through opacity-60">{formatVal(changes.before?.[key])}</span>
+          {" → "}
+          <span className="text-foreground font-medium">{formatVal(changes.after?.[key])}</span>
+        </span>
+      ))
+    );
+    return elements;
   }
 
-  // Default: show top-level scalar values
-  return Object.entries(data).slice(0, 3).map(([key, val]) => (
-    <span key={key} className="text-[10px] bg-muted rounded px-1.5 py-0.5 text-muted-foreground">
-      {key.replace(/_/g, " ")}: <span className="text-foreground font-medium">{formatVal(val)}</span>
-    </span>
-  ));
+  // Status transitions: show previous → new
+  if (data.previousStatus !== undefined && data.newStatus !== undefined) {
+    elements.push(
+      <span key="transition" className="text-[10px] bg-muted rounded px-1.5 py-0.5 text-muted-foreground">
+        <span className="line-through opacity-60">{formatVal(data.previousStatus)}</span>
+        {" → "}
+        <span className="text-foreground font-medium">{formatVal(data.newStatus)}</span>
+      </span>
+    );
+    return elements;
+  }
+
+  // Default: show top-level scalar values (skip reason since already shown)
+  elements.push(
+    ...Object.entries(data)
+      .filter(([key]) => key !== "reason")
+      .slice(0, 3)
+      .map(([key, val]) => (
+        <span key={key} className="text-[10px] bg-muted rounded px-1.5 py-0.5 text-muted-foreground">
+          {key.replace(/_/g, " ")}: <span className="text-foreground font-medium">{formatVal(val)}</span>
+        </span>
+      ))
+  );
+
+  return elements;
 }
 
 function formatVal(val: unknown): string {
