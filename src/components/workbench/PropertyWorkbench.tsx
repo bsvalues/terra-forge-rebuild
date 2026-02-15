@@ -26,6 +26,9 @@ import { AdminDashboard } from "@/components/admin";
 // Command Palette
 import { CommandPalette } from "./CommandPalette";
 
+// Review Queue
+import { ReviewQueueBar } from "./ReviewQueueBar";
+
 const TAB_COMPONENTS: Record<SuiteTab, React.ComponentType> = {
   summary: SummaryTab,
   forge: ForgeTab,
@@ -108,6 +111,9 @@ function WorkbenchContent({ initialParcel, onParcelConsumed, initialTab, onTabCo
       
       {/* Context Ribbon - Always visible */}
       <ContextRibbon />
+
+      {/* Review Queue Bar */}
+      <ReviewQueueBar />
 
       {/* Suite Tab Navigation */}
       <div className="px-4 bg-tf-surface/50 backdrop-blur-sm">
