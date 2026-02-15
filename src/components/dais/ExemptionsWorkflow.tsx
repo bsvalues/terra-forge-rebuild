@@ -123,6 +123,8 @@ export function ExemptionsWorkflow() {
     },
     onSuccess: (_, { newStatus }) => {
       queryClient.invalidateQueries({ queryKey: ["exemptions-workflow"] });
+      queryClient.invalidateQueries({ queryKey: ["p360-exemptions"] });
+      queryClient.invalidateQueries({ queryKey: ["p360-trace"] });
       toast({ title: "Exemption Updated", description: `Status changed to ${newStatus}` });
       setSelectedExemption(null);
     },

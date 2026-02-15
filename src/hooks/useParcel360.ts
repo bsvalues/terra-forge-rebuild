@@ -296,8 +296,9 @@ export function useParcel360(parcelId: string | null): Parcel360Snapshot | null 
         taxYear: e.tax_year,
       }));
 
+    const CLOSED_PERMIT_STATUSES = ["completed", "cancelled", "passed", "failed", "expired"];
     const openPermits: PermitSummary[] = (permits.data || [])
-      .filter((p) => p.status !== "completed" && p.status !== "cancelled")
+      .filter((p) => !CLOSED_PERMIT_STATUSES.includes(p.status))
       .map((p) => ({
         id: p.id,
         status: p.status,
