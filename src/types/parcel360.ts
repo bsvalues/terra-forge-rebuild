@@ -36,6 +36,8 @@ export type ArtifactType =
   | "permit"
   | "exemption"
   | "document"
+  | "narrative"
+  | "packet"
   | "model_receipt";
 
 // ============================================================
