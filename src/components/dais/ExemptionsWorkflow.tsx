@@ -40,10 +40,12 @@ import {
   Users,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useWorkbench } from "@/components/workbench/WorkbenchContext";
 import { cn } from "@/lib/utils";
 import { NewExemptionDialog } from "./NewExemptionDialog";
+import { decideExemption } from "@/services/suites/daisService";
+import { toast } from "@/hooks/use-toast";
 
 interface Exemption {
   id: string;
@@ -105,10 +107,25 @@ const EXEMPTION_TYPES = {
 
 export function ExemptionsWorkflow() {
   const { setParcel, setActiveTab } = useWorkbench();
+  const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [selectedExemption, setSelectedExemption] = useState<Exemption | null>(null);
   const [showNewExemptionDialog, setShowNewExemptionDialog] = useState(false);
+
+  const decideExemptionMutation = useMutation({
+    mutationFn: async ({ exemption, decision }: { exemption: Exemption; decision: "approved" | "denied" }) => {
+      return decideExemption(exemption.id, exemption.parcel?.id, decision);
+    },
+    onSuccess: (_, { decision }) => {
+      queryClient.invalidateQueries({ queryKey: ["exemptions-workflow"] });
+      toast({ title: "Exemption Updated", description: `Exemption ${decision}` });
+      setSelectedExemption(null);
+    },
+    onError: (err: Error) => {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    },
+  });
 
   const { data: exemptions = [], isLoading } = useQuery({
     queryKey: ["exemptions-workflow", statusFilter],
@@ -444,10 +461,30 @@ export function ExemptionsWorkflow() {
             </div>
           )}
 
-          <DialogFooter className="gap-2">
+          <DialogFooter className="gap-2 flex-wrap">
             <Button variant="outline" onClick={() => setSelectedExemption(null)}>
               Close
             </Button>
+            {selectedExemption.status === "pending" && (
+              <>
+                <Button
+                  disabled={decideExemptionMutation.isPending}
+                  onClick={() => decideExemptionMutation.mutate({ exemption: selectedExemption, decision: "approved" })}
+                  className="bg-tf-green hover:bg-tf-green/90"
+                >
+                  <CheckCircle className="w-4 h-4 mr-2" />
+                  Approve
+                </Button>
+                <Button
+                  variant="destructive"
+                  disabled={decideExemptionMutation.isPending}
+                  onClick={() => decideExemptionMutation.mutate({ exemption: selectedExemption, decision: "denied" })}
+                >
+                  <XCircle className="w-4 h-4 mr-2" />
+                  Deny
+                </Button>
+              </>
+            )}
             <Button
               onClick={() => {
                 if (selectedExemption) {

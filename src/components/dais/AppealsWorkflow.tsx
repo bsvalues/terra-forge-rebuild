@@ -41,9 +41,11 @@ import {
 } from "lucide-react";
 import { AppealTimeline } from "./AppealTimeline";
 import { supabase } from "@/integrations/supabase/client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useWorkbench } from "@/components/workbench/WorkbenchContext";
 import { cn } from "@/lib/utils";
+import { updateAppealStatus } from "@/services/suites/daisService";
+import { toast } from "@/hooks/use-toast";
 
 interface Appeal {
   id: string;
@@ -104,9 +106,24 @@ const STATUS_CONFIG = {
 
 export function AppealsWorkflow() {
   const { setParcel, setActiveTab } = useWorkbench();
+  const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [selectedAppeal, setSelectedAppeal] = useState<Appeal | null>(null);
+
+  const changeStatus = useMutation({
+    mutationFn: async ({ appeal, newStatus }: { appeal: Appeal; newStatus: string }) => {
+      return updateAppealStatus(appeal.id, appeal.parcel?.id, newStatus, appeal.status);
+    },
+    onSuccess: (_, { newStatus }) => {
+      queryClient.invalidateQueries({ queryKey: ["appeals-workflow"] });
+      toast({ title: "Appeal Updated", description: `Status changed to ${newStatus}` });
+      setSelectedAppeal(null);
+    },
+    onError: (err: Error) => {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    },
+  });
 
   // Fetch appeals with parcel info
   const { data: appeals = [], isLoading } = useQuery({
@@ -441,10 +458,41 @@ export function AppealsWorkflow() {
             </div>
           )}
 
-          <DialogFooter className="gap-2">
+          <DialogFooter className="gap-2 flex-wrap">
             <Button variant="outline" onClick={() => setSelectedAppeal(null)}>
               Close
             </Button>
+            {selectedAppeal.status === "pending" && (
+              <Button
+                variant="outline"
+                disabled={changeStatus.isPending}
+                onClick={() => changeStatus.mutate({ appeal: selectedAppeal, newStatus: "scheduled" })}
+                className="border-tf-cyan/50 text-tf-cyan hover:bg-tf-cyan/10"
+              >
+                <Calendar className="w-4 h-4 mr-2" />
+                Schedule Hearing
+              </Button>
+            )}
+            {(selectedAppeal.status === "pending" || selectedAppeal.status === "scheduled" || selectedAppeal.status === "in_hearing") && (
+              <>
+                <Button
+                  disabled={changeStatus.isPending}
+                  onClick={() => changeStatus.mutate({ appeal: selectedAppeal, newStatus: "resolved" })}
+                  className="bg-tf-green hover:bg-tf-green/90"
+                >
+                  <CheckCircle className="w-4 h-4 mr-2" />
+                  Resolve
+                </Button>
+                <Button
+                  variant="destructive"
+                  disabled={changeStatus.isPending}
+                  onClick={() => changeStatus.mutate({ appeal: selectedAppeal, newStatus: "denied" })}
+                >
+                  <XCircle className="w-4 h-4 mr-2" />
+                  Deny
+                </Button>
+              </>
+            )}
             <Button
               onClick={() => {
                 if (selectedAppeal) {
