@@ -149,6 +149,96 @@ export async function updateExemptionStatus(
 }
 
 /**
+ * Create a new permit with trace emission.
+ */
+export async function createPermitRecord(params: {
+  parcel_id: string;
+  permit_number: string;
+  permit_type: string;
+  description?: string | null;
+  estimated_value?: number | null;
+}) {
+  assertWriteLane("permits", SOURCE);
+
+  const { data, error } = await supabase
+    .from("permits")
+    .insert({
+      parcel_id: params.parcel_id,
+      permit_number: params.permit_number,
+      permit_type: params.permit_type,
+      description: params.description || null,
+      estimated_value: params.estimated_value || null,
+      status: "pending",
+    })
+    .select()
+    .single();
+
+  if (error) throw error;
+
+  await emitTraceEvent({
+    parcelId: params.parcel_id,
+    sourceModule: SOURCE,
+    eventType: "permit_created",
+    eventData: {
+      permit_number: params.permit_number,
+      permit_type: params.permit_type,
+      estimated_value: params.estimated_value,
+    },
+    artifactType: "permit",
+    artifactId: data.id,
+  });
+
+  return data;
+}
+
+/**
+ * Create a new exemption with trace emission.
+ */
+export async function createExemptionRecord(params: {
+  parcel_id: string;
+  exemption_type: string;
+  applicant_name?: string | null;
+  exemption_amount?: number | null;
+  exemption_percentage?: number | null;
+  notes?: string | null;
+  tax_year?: number;
+}) {
+  assertWriteLane("exemptions", SOURCE);
+
+  const { data, error } = await supabase
+    .from("exemptions")
+    .insert({
+      parcel_id: params.parcel_id,
+      exemption_type: params.exemption_type,
+      applicant_name: params.applicant_name || null,
+      exemption_amount: params.exemption_amount || null,
+      exemption_percentage: params.exemption_percentage || null,
+      notes: params.notes || null,
+      status: "pending",
+      tax_year: params.tax_year || new Date().getFullYear(),
+    })
+    .select()
+    .single();
+
+  if (error) throw error;
+
+  await emitTraceEvent({
+    parcelId: params.parcel_id,
+    sourceModule: SOURCE,
+    eventType: "exemption_created",
+    eventData: {
+      exemption_type: params.exemption_type,
+      applicant_name: params.applicant_name,
+      exemption_amount: params.exemption_amount,
+    },
+    artifactType: "exemption",
+    artifactId: data.id,
+  });
+
+  return data;
+}
+
+/**
  * Generate a notice with trace emission.
  */
 export async function generateNotice(

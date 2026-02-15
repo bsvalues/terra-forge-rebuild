@@ -30,6 +30,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { ClipboardCheck, Loader2, Search } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { createExemptionRecord } from "@/services/suites/daisService";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "@/hooks/use-toast";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -84,17 +85,14 @@ export function NewExemptionDialog({ open, onOpenChange }: NewExemptionDialogPro
 
   const createExemption = useMutation({
     mutationFn: async (data: ExemptionFormData) => {
-      const { error } = await supabase.from("exemptions").insert({
+      return createExemptionRecord({
         parcel_id: data.parcel_id,
         exemption_type: data.exemption_type,
         applicant_name: data.applicant_name,
-        exemption_amount: data.exemption_amount || null,
-        exemption_percentage: data.exemption_percentage || null,
-        notes: data.notes || null,
-        status: "pending",
-        tax_year: new Date().getFullYear(),
+        exemption_amount: data.exemption_amount,
+        exemption_percentage: data.exemption_percentage,
+        notes: data.notes,
       });
-      if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["exemptions-workflow"] });

@@ -459,32 +459,32 @@ export function AppealsWorkflow() {
             </div>
           )}
 
-          <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setSelectedAppeal(null)}>
-              Close
-            </Button>
-            <StatusTransitionDropdown
-              currentStatus={selectedAppeal.status}
-              transitions={APPEAL_TRANSITIONS}
-              onTransition={(newStatus) =>
-                changeStatus.mutate({ appeal: selectedAppeal, newStatus })
-              }
-              isPending={changeStatus.isPending}
-              accentClass="bg-suite-dais hover:bg-suite-dais/90"
-            />
-            <Button
-              onClick={() => {
-                if (selectedAppeal) {
+          {selectedAppeal && (
+            <DialogFooter className="gap-2">
+              <Button variant="outline" onClick={() => setSelectedAppeal(null)}>
+                Close
+              </Button>
+              <StatusTransitionDropdown
+                currentStatus={selectedAppeal.status}
+                transitions={APPEAL_TRANSITIONS}
+                onTransition={(newStatus) =>
+                  changeStatus.mutate({ appeal: selectedAppeal, newStatus })
+                }
+                isPending={changeStatus.isPending}
+                accentClass="bg-suite-dais hover:bg-suite-dais/90"
+              />
+              <Button
+                onClick={() => {
                   handleNavigateToParcel(selectedAppeal);
                   setSelectedAppeal(null);
-                }
-              }}
-              variant="outline"
-            >
-              <MapPin className="w-4 h-4 mr-2" />
-              View Parcel
-            </Button>
-          </DialogFooter>
+                }}
+                variant="outline"
+              >
+                <MapPin className="w-4 h-4 mr-2" />
+                View Parcel
+              </Button>
+            </DialogFooter>
+          )}
         </DialogContent>
       </Dialog>
     </div>

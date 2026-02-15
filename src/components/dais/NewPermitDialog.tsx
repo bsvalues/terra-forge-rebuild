@@ -30,6 +30,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { FileCheck, Loader2, Search } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { createPermitRecord } from "@/services/suites/daisService";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "@/hooks/use-toast";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -82,15 +83,13 @@ export function NewPermitDialog({ open, onOpenChange }: NewPermitDialogProps) {
 
   const createPermit = useMutation({
     mutationFn: async (data: PermitFormData) => {
-      const { error } = await supabase.from("permits").insert({
+      return createPermitRecord({
         parcel_id: data.parcel_id,
         permit_number: data.permit_number,
         permit_type: data.permit_type,
-        description: data.description || null,
-        estimated_value: data.estimated_value || null,
-        status: "pending",
+        description: data.description,
+        estimated_value: data.estimated_value,
       });
-      if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["permits-workflow"] });
