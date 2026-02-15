@@ -9,10 +9,10 @@
 
 ## Current State Summary
 
-**Active Phase**: Phase 7 — Value Adjustment Ledger (COMPLETE)  
-**Last Completed Task**: 7.5 — Auto-Narrative Generation  
-**Next Task**: Phase 8 (TBD)  
-**Blockers**: None  
+**Active Phase**: Phase 8 — TerraPilot Agentic Intelligence (COMPLETE)  
+**Last Completed Task**: 8.4 — Workbench Navigation Wiring  
+**Next Task**: Phase 9 (TBD)  
+**Blockers**: None
 
 ---
 
@@ -28,6 +28,34 @@
 | 5 | Proof Layer | ✅ COMPLETE | — | TerraTrace, Model Receipts, Defense Packets |
 | 6 | Mass Appraisal Factory | ✅ COMPLETE | 40/40 | Regression, Cost, Comps, Scenarios, Integration |
 | 7 | Value Adjustment Ledger | ✅ COMPLETE | 5/5 | Batch Apply, Rollback, Ledger UI, Auto-Narrative |
+| 8 | TerraPilot Agentic Intelligence | ✅ COMPLETE | 4/4 | Tool calling, 7 tools, UI badges, navigation |
+
+---
+
+## Phase 8 Completion Log (2026-02-15)
+
+### 8.1 Edge Function Tool Framework ✅
+- Agentic loop with up to 3 tool rounds before streaming final response
+- 7 tool definitions: search_parcels, fetch_comps, get_parcel_details, get_neighborhood_stats, get_recent_activity, navigate_to_parcel, get_workflow_summary
+- Mode-aware tool filtering (Pilot gets all tools, Muse gets read-only subset)
+
+### 8.2 Tool Execution Handlers ✅
+- Each tool queries live database via service client
+- fetch_comps: neighborhood + value-range matching with subject context
+- get_neighborhood_stats: computes median/avg/min/max from parcel population
+- navigate_to_parcel: returns client-side navigation intent
+
+### 8.3 Chat UI Tool Rendering ✅
+- Tool call badges with per-tool icons (Search, MapPin, BarChart3, etc.)
+- Active tool execution spinner with tool-specific labels
+- Tool metadata streamed as SSE event prefix before content tokens
+- Suggestion chips for common Pilot queries
+
+### 8.4 Workbench Navigation Wiring ✅
+- navigate_to_parcel tool triggers React Router navigation to /property/:id
+- Tab switching via tool result (summary/forge/atlas/dais/dossier)
+- handleNavigationAction callback integrated into stream parser
+
 
 ---
 

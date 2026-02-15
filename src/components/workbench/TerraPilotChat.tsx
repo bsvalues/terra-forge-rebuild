@@ -1,32 +1,63 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, Loader2, Sparkles, User } from "lucide-react";
+import { Send, Loader2, Sparkles, User, Search, MapPin, BarChart3, Activity, Navigation, Briefcase } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Badge } from "@/components/ui/badge";
 import { useWorkbench } from "./WorkbenchContext";
 import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
+
+interface ToolCallResult {
+  tool_name: string;
+  tool_call_id: string;
+  result: Record<string, unknown>;
+}
 
 interface Message {
   id: string;
   role: "user" | "assistant";
   content: string;
   timestamp: Date;
+  toolCalls?: ToolCallResult[];
 }
 
 interface TerraPilotChatProps {
   fullscreen?: boolean;
 }
 
+const TOOL_ICONS: Record<string, typeof Search> = {
+  search_parcels: Search,
+  fetch_comps: BarChart3,
+  get_parcel_details: MapPin,
+  get_neighborhood_stats: BarChart3,
+  get_recent_activity: Activity,
+  navigate_to_parcel: Navigation,
+  get_workflow_summary: Briefcase,
+};
+
+const TOOL_LABELS: Record<string, string> = {
+  search_parcels: "Searching parcels",
+  fetch_comps: "Finding comparables",
+  get_parcel_details: "Loading parcel details",
+  get_neighborhood_stats: "Analyzing neighborhood",
+  get_recent_activity: "Checking activity",
+  navigate_to_parcel: "Navigating",
+  get_workflow_summary: "Checking workflows",
+};
+
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/terrapilot-chat`;
 
 export function TerraPilotChat({ fullscreen = false }: TerraPilotChatProps) {
-  const { pilotMode, parcel, studyPeriod, setSystemState } = useWorkbench();
+  const { pilotMode, parcel, studyPeriod, setSystemState, setParcel, setActiveTab } = useWorkbench();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [activeTools, setActiveTools] = useState<string[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
 
@@ -34,7 +65,17 @@ export function TerraPilotChat({ fullscreen = false }: TerraPilotChatProps) {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [messages]);
+  }, [messages, activeTools]);
+
+  // Handle navigation actions from tool results
+  const handleNavigationAction = useCallback((result: Record<string, unknown>) => {
+    if (result.action === "navigate" && result.parcel_id) {
+      navigate(`/property/${result.parcel_id}`);
+      if (result.tab) {
+        setActiveTab(result.tab as any);
+      }
+    }
+  }, [navigate, setActiveTab]);
 
   const sendMessage = useCallback(async () => {
     if (!input.trim() || isLoading) return;
@@ -51,6 +92,7 @@ export function TerraPilotChat({ fullscreen = false }: TerraPilotChatProps) {
     setInput("");
     setIsLoading(true);
     setSystemState("processing");
+    setActiveTools([]);
 
     abortRef.current = new AbortController();
 
@@ -77,7 +119,7 @@ export function TerraPilotChat({ fullscreen = false }: TerraPilotChatProps) {
       if (!resp.ok) {
         const errBody = await resp.json().catch(() => ({}));
         if (resp.status === 429) {
-          toast({ title: "Rate Limit", description: "Too many requests. Please wait a moment.", variant: "destructive" });
+          toast({ title: "Rate Limit", description: "Too many requests. Please wait.", variant: "destructive" });
         } else if (resp.status === 402) {
           toast({ title: "Credits Exhausted", description: "Please add credits to continue.", variant: "destructive" });
         } else {
@@ -91,22 +133,22 @@ export function TerraPilotChat({ fullscreen = false }: TerraPilotChatProps) {
 
       if (!resp.body) throw new Error("No response body");
 
-      // Stream SSE tokens
       const reader = resp.body.getReader();
       const decoder = new TextDecoder();
       let textBuffer = "";
       let assistantSoFar = "";
       let streamDone = false;
+      let capturedToolCalls: ToolCallResult[] = [];
 
-      const upsertAssistant = (chunk: string) => {
+      const upsertAssistant = (chunk: string, toolCalls?: ToolCallResult[]) => {
         assistantSoFar += chunk;
         const content = assistantSoFar;
         setMessages((prev) => {
           const last = prev[prev.length - 1];
           if (last?.role === "assistant") {
-            return prev.map((m, i) => (i === prev.length - 1 ? { ...m, content } : m));
+            return prev.map((m, i) => (i === prev.length - 1 ? { ...m, content, toolCalls: toolCalls || m.toolCalls } : m));
           }
-          return [...prev, { id: crypto.randomUUID(), role: "assistant", content, timestamp: new Date() }];
+          return [...prev, { id: crypto.randomUUID(), role: "assistant", content, timestamp: new Date(), toolCalls }];
         });
       };
 
@@ -126,8 +168,24 @@ export function TerraPilotChat({ fullscreen = false }: TerraPilotChatProps) {
           if (jsonStr === "[DONE]") { streamDone = true; break; }
           try {
             const parsed = JSON.parse(jsonStr);
+            
+            // Check for tool call metadata event
+            if (parsed.tool_calls) {
+              capturedToolCalls = parsed.tool_calls as ToolCallResult[];
+              setActiveTools(capturedToolCalls.map(tc => tc.tool_name));
+              // Process navigation actions
+              for (const tc of capturedToolCalls) {
+                if (tc.tool_name === "navigate_to_parcel" && tc.result) {
+                  handleNavigationAction(tc.result as Record<string, unknown>);
+                }
+              }
+              // Set tools on the upcoming assistant message
+              upsertAssistant("", capturedToolCalls);
+              continue;
+            }
+            
             const content = parsed.choices?.[0]?.delta?.content as string | undefined;
-            if (content) upsertAssistant(content);
+            if (content) upsertAssistant(content, capturedToolCalls.length > 0 ? capturedToolCalls : undefined);
           } catch {
             textBuffer = line + "\n" + textBuffer;
             break;
@@ -146,24 +204,27 @@ export function TerraPilotChat({ fullscreen = false }: TerraPilotChatProps) {
           if (jsonStr === "[DONE]") continue;
           try {
             const parsed = JSON.parse(jsonStr);
+            if (parsed.tool_calls) continue;
             const content = parsed.choices?.[0]?.delta?.content as string | undefined;
             if (content) upsertAssistant(content);
           } catch { /* ignore */ }
         }
       }
 
+      setActiveTools([]);
       setSystemState("success");
       setTimeout(() => setSystemState("idle"), 2000);
     } catch (error: any) {
       if (error.name === "AbortError") return;
       console.error("TerraPilot error:", error);
       setSystemState("alert");
-      toast({ title: "TerraPilot Error", description: "Failed to get response. Please try again.", variant: "destructive" });
+      toast({ title: "TerraPilot Error", description: "Failed to get response.", variant: "destructive" });
       setTimeout(() => setSystemState("idle"), 3000);
     } finally {
       setIsLoading(false);
+      setActiveTools([]);
     }
-  }, [input, isLoading, messages, pilotMode, parcel, studyPeriod, setSystemState, toast]);
+  }, [input, isLoading, messages, pilotMode, parcel, studyPeriod, setSystemState, toast, handleNavigationAction, setActiveTab, navigate]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -173,8 +234,8 @@ export function TerraPilotChat({ fullscreen = false }: TerraPilotChatProps) {
   };
 
   const placeholders = {
-    pilot: "Ask TerraPilot to execute tasks, find comps, run models...",
-    muse: "Ask TerraPilot to draft documents, explain valuations...",
+    pilot: "Search parcels, find comps, check workflows...",
+    muse: "Draft documents, explain valuations...",
   };
 
   return (
@@ -184,9 +245,22 @@ export function TerraPilotChat({ fullscreen = false }: TerraPilotChatProps) {
           {messages.length === 0 ? (
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="text-center py-8">
               <Sparkles className={`w-12 h-12 mx-auto mb-4 ${pilotMode === "pilot" ? "text-tf-cyan" : "text-tf-purple"} opacity-50`} />
-              <p className="text-muted-foreground text-sm">
-                {pilotMode === "pilot" ? "Ready to execute. What would you like to do?" : "Ready to create. What would you like me to draft?"}
+              <p className="text-muted-foreground text-sm mb-4">
+                {pilotMode === "pilot" ? "Ready to execute. I can search, analyze, and navigate." : "Ready to create. What would you like me to draft?"}
               </p>
+              {pilotMode === "pilot" && (
+                <div className="flex flex-wrap gap-2 justify-center max-w-md mx-auto">
+                  {["Search parcels in 98225", "Show open appeals", "Find comps for active parcel", "Neighborhood stats"].map((suggestion) => (
+                    <button
+                      key={suggestion}
+                      onClick={() => setInput(suggestion)}
+                      className="text-xs px-3 py-1.5 rounded-full border border-border/50 text-muted-foreground hover:text-foreground hover:border-tf-cyan/50 transition-colors"
+                    >
+                      {suggestion}
+                    </button>
+                  ))}
+                </div>
+              )}
             </motion.div>
           ) : (
             <AnimatePresence>
@@ -204,16 +278,32 @@ export function TerraPilotChat({ fullscreen = false }: TerraPilotChatProps) {
                       <Sparkles className="w-4 h-4" />
                     </div>
                   )}
-                  <div className={`max-w-[80%] rounded-2xl px-4 py-2.5 ${
-                    message.role === "user" ? "bg-tf-elevated text-foreground" : "glass-subtle text-foreground"
-                  }`}>
-                    {message.role === "assistant" ? (
-                      <div className="text-sm prose prose-sm dark:prose-invert max-w-none prose-p:my-1 prose-ul:my-1 prose-li:my-0.5 prose-headings:my-2">
-                        <ReactMarkdown>{message.content}</ReactMarkdown>
+                  <div className={`max-w-[85%] space-y-2`}>
+                    {/* Tool call badges */}
+                    {message.toolCalls && message.toolCalls.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 mb-1">
+                        {message.toolCalls.map((tc) => {
+                          const Icon = TOOL_ICONS[tc.tool_name] || Activity;
+                          return (
+                            <Badge key={tc.tool_call_id} variant="outline" className="text-[10px] gap-1 border-tf-cyan/30 text-tf-cyan">
+                              <Icon className="w-3 h-3" />
+                              {TOOL_LABELS[tc.tool_name] || tc.tool_name}
+                            </Badge>
+                          );
+                        })}
                       </div>
-                    ) : (
-                      <p className="text-sm whitespace-pre-wrap">{message.content}</p>
                     )}
+                    <div className={`rounded-2xl px-4 py-2.5 ${
+                      message.role === "user" ? "bg-tf-elevated text-foreground" : "glass-subtle text-foreground"
+                    }`}>
+                      {message.role === "assistant" ? (
+                        <div className="text-sm prose prose-sm dark:prose-invert max-w-none prose-p:my-1 prose-ul:my-1 prose-li:my-0.5 prose-headings:my-2 prose-table:my-2 prose-th:px-2 prose-th:py-1 prose-td:px-2 prose-td:py-1">
+                          <ReactMarkdown>{message.content}</ReactMarkdown>
+                        </div>
+                      ) : (
+                        <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                      )}
+                    </div>
                   </div>
                   {message.role === "user" && (
                     <div className="w-7 h-7 rounded-full bg-tf-elevated flex items-center justify-center flex-shrink-0">
@@ -225,7 +315,30 @@ export function TerraPilotChat({ fullscreen = false }: TerraPilotChatProps) {
             </AnimatePresence>
           )}
 
-          {isLoading && messages[messages.length - 1]?.role !== "assistant" && (
+          {/* Active tool execution indicator */}
+          {activeTools.length > 0 && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex gap-3">
+              <div className={`w-7 h-7 rounded-full flex items-center justify-center ${
+                pilotMode === "pilot" ? "bg-tf-cyan/20 text-tf-cyan" : "bg-tf-purple/20 text-tf-purple"
+              }`}>
+                <Loader2 className="w-4 h-4 animate-spin" />
+              </div>
+              <div className="glass-subtle rounded-2xl px-4 py-2.5 space-y-1">
+                {activeTools.map((tool) => {
+                  const Icon = TOOL_ICONS[tool] || Activity;
+                  return (
+                    <div key={tool} className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Icon className="w-3.5 h-3.5 text-tf-cyan" />
+                      <span>{TOOL_LABELS[tool] || tool}</span>
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                    </div>
+                  );
+                })}
+              </div>
+            </motion.div>
+          )}
+
+          {isLoading && activeTools.length === 0 && messages[messages.length - 1]?.role !== "assistant" && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex gap-3">
               <div className={`w-7 h-7 rounded-full flex items-center justify-center ${
                 pilotMode === "pilot" ? "bg-tf-cyan/20 text-tf-cyan" : "bg-tf-purple/20 text-tf-purple"
