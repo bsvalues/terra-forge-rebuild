@@ -269,13 +269,7 @@ export function TerraTraceActivityFeed({ parcelId, limit = 20 }: TerraTraceActiv
                 {/* Output summary */}
                 {event.outputs && (
                   <div className="flex gap-2 mt-2 flex-wrap">
-                    {Object.entries(event.outputs).slice(0, 3).map(([key, val]) => (
-                      <span key={key} className="text-[10px] bg-muted rounded px-1.5 py-0.5 text-muted-foreground">
-                        {key.replace(/_/g, " ")}: <span className="text-foreground font-medium">
-                          {typeof val === "number" ? val.toLocaleString(undefined, { maximumFractionDigits: 4 }) : String(val)}
-                        </span>
-                      </span>
-                    ))}
+                    {renderEventData(event.outputs)}
                   </div>
                 )}
               </div>
@@ -285,6 +279,35 @@ export function TerraTraceActivityFeed({ parcelId, limit = 20 }: TerraTraceActiv
       </div>
     </ScrollArea>
   );
+}
+
+function renderEventData(data: Record<string, unknown>) {
+  // Special handling for parcel_updated diffs
+  const changes = data.changes as { before?: Record<string, unknown>; after?: Record<string, unknown> } | undefined;
+  if (changes?.before && changes?.after) {
+    return Object.keys(changes.after).slice(0, 4).map((key) => (
+      <span key={key} className="text-[10px] bg-muted rounded px-1.5 py-0.5 text-muted-foreground">
+        {key.replace(/_/g, " ")}:{" "}
+        <span className="line-through opacity-60">{formatVal(changes.before?.[key])}</span>
+        {" → "}
+        <span className="text-foreground font-medium">{formatVal(changes.after?.[key])}</span>
+      </span>
+    ));
+  }
+
+  // Default: show top-level scalar values
+  return Object.entries(data).slice(0, 3).map(([key, val]) => (
+    <span key={key} className="text-[10px] bg-muted rounded px-1.5 py-0.5 text-muted-foreground">
+      {key.replace(/_/g, " ")}: <span className="text-foreground font-medium">{formatVal(val)}</span>
+    </span>
+  ));
+}
+
+function formatVal(val: unknown): string {
+  if (val === null || val === undefined) return "—";
+  if (typeof val === "number") return val.toLocaleString(undefined, { maximumFractionDigits: 4 });
+  if (typeof val === "object") return JSON.stringify(val);
+  return String(val);
 }
 
 function getTimeAgo(date: Date): string {
