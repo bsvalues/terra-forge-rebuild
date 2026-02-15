@@ -15,6 +15,9 @@ import {
   FolderOpen,
   Sparkles,
   Map,
+  BarChart3,
+  FileText,
+  CheckCircle2,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -46,6 +49,33 @@ function useSystemVitals() {
     staleTime: 60_000,
   });
 
+  const assessments = useQuery({
+    queryKey: ["hub-assessments"],
+    queryFn: async () => {
+      const { count } = await supabase.from("assessments").select("*", { count: "exact", head: true });
+      return count || 0;
+    },
+    staleTime: 60_000,
+  });
+
+  const permits = useQuery({
+    queryKey: ["hub-permits-total"],
+    queryFn: async () => {
+      const { count } = await supabase.from("permits").select("*", { count: "exact", head: true });
+      return count || 0;
+    },
+    staleTime: 60_000,
+  });
+
+  const exemptions = useQuery({
+    queryKey: ["hub-exemptions-total"],
+    queryFn: async () => {
+      const { count } = await supabase.from("exemptions").select("*", { count: "exact", head: true });
+      return count || 0;
+    },
+    staleTime: 60_000,
+  });
+
   const dataQuality = useQuery({
     queryKey: ["hub-data-quality"],
     queryFn: async () => {
@@ -64,16 +94,38 @@ function useSystemVitals() {
   const workflows = useQuery({
     queryKey: ["hub-workflows"],
     queryFn: async () => {
-      const [appeals, permits, exemptions] = await Promise.all([
+      const [appeals, pendingPermits, pendingExemptions] = await Promise.all([
         supabase.from("appeals").select("*", { count: "exact", head: true }).in("status", ["filed", "pending", "scheduled"]),
         supabase.from("permits").select("*", { count: "exact", head: true }).in("status", ["applied", "pending", "issued"]),
         supabase.from("exemptions").select("*", { count: "exact", head: true }).eq("status", "pending"),
       ]);
-      return { appeals: appeals.count || 0, permits: permits.count || 0, exemptions: exemptions.count || 0 };
+      return { appeals: appeals.count || 0, permits: pendingPermits.count || 0, exemptions: pendingExemptions.count || 0 };
     },
   });
 
-  return { parcels: parcels.data || 0, sales: sales.data || 0, dataQuality: dataQuality.data, workflows: workflows.data };
+  const recentJobs = useQuery({
+    queryKey: ["hub-recent-jobs"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("ingest_jobs")
+        .select("id, file_name, target_table, status, row_count, rows_imported, created_at")
+        .order("created_at", { ascending: false })
+        .limit(3);
+      return data || [];
+    },
+    staleTime: 30_000,
+  });
+
+  return {
+    parcels: parcels.data || 0,
+    sales: sales.data || 0,
+    assessments: assessments.data || 0,
+    permits: permits.data || 0,
+    exemptions: exemptions.data || 0,
+    dataQuality: dataQuality.data,
+    workflows: workflows.data,
+    recentJobs: recentJobs.data || [],
+  };
 }
 
 // ─── Suite Registry ───────────────────────────────────────────
@@ -95,6 +147,8 @@ const SUITE_REGISTRY: SuiteEntry[] = [
   { id: "atlas", name: "TerraAtlas", mission: "See the county — maps, layers, spatial tools", icon: Map, status: "native", target: "workbench:atlas", accentVar: "--suite-atlas" },
   { id: "dais", name: "TerraDais", mission: "Operate value — permits, exemptions, appeals", icon: Building2, status: "native", target: "workbench:dais", accentVar: "--suite-dais" },
   { id: "dossier", name: "TerraDossier", mission: "Prove decisions — evidence, narratives, packets", icon: FolderOpen, status: "native", target: "workbench:dossier", accentVar: "--suite-dossier" },
+  { id: "vei", name: "VEI Suite", mission: "Equity analysis — IAAO ratio studies, COD, PRD", icon: BarChart3, status: "native", target: "vei", accentVar: "--suite-forge" },
+  { id: "geoequity", name: "GeoEquity", mission: "Spatial equity — heatmaps, neighborhood analysis", icon: Globe, status: "native", target: "geoequity", accentVar: "--suite-atlas" },
   { id: "factory", name: "Factory", mission: "Mass appraisal — regression, cost, comp review", icon: Globe, status: "native", target: "factory", accentVar: "--suite-forge" },
   { id: "pilot", name: "TerraPilot", mission: "AI copilot — guidance, drafting, synthesis", icon: Sparkles, status: "native", target: "workbench:pilot", accentVar: "--tf-transcend-cyan" },
   { id: "ids", name: "IDS", mission: "Intelligent Data Suite — ingest, quality, routing", icon: Database, status: "native", target: "ids", accentVar: "--tf-transcend-cyan" },
@@ -153,9 +207,12 @@ export function SuiteHub({ onNavigate }: SuiteHubProps) {
           </div>
 
           {/* Inline vitals */}
-          <div className="flex items-center gap-6 mt-4 pt-4 border-t border-border/50">
+          <div className="flex items-center gap-6 mt-4 pt-4 border-t border-border/50 flex-wrap">
             <Vital label="Parcels" value={vitals.parcels.toLocaleString()} />
             <Vital label="Sales" value={vitals.sales.toLocaleString()} />
+            <Vital label="Assessments" value={vitals.assessments.toLocaleString()} />
+            <Vital label="Permits" value={vitals.permits.toLocaleString()} />
+            <Vital label="Exemptions" value={vitals.exemptions.toLocaleString()} />
             <Vital label="Data Quality" value={`${vitals.dataQuality?.overall ?? 0}%`} />
             {totalWorkflows > 0 && (
               <Vital label="Pending" value={totalWorkflows.toString()} highlight />
@@ -272,6 +329,53 @@ export function SuiteHub({ onNavigate }: SuiteHubProps) {
           ))}
         </div>
       </motion.section>
+
+      {/* ── Recent Ingest Activity ── */}
+      {vitals.recentJobs.length > 0 && (
+        <motion.section
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.35, duration: 0.35 }}
+        >
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-widest flex items-center gap-2">
+              <Upload className="w-3.5 h-3.5" />
+              Recent Ingests
+            </h3>
+            <button
+              onClick={() => onNavigate("ids:versions")}
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
+            >
+              View all <ArrowRight className="w-3 h-3" />
+            </button>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {vitals.recentJobs.map((job: any) => (
+              <button
+                key={job.id}
+                onClick={() => onNavigate(`ids:versions:${job.id}`)}
+                className="material-bento p-4 text-left group"
+              >
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-sm font-medium truncate flex-1">{job.file_name}</span>
+                  <Badge variant="outline" className={
+                    job.status === "complete"
+                      ? "bg-[hsl(var(--tf-optimized-green)/0.1)] text-tf-green border-[hsl(var(--tf-optimized-green)/0.3)] text-[10px]"
+                      : job.status === "failed"
+                      ? "bg-destructive/10 text-destructive border-destructive/30 text-[10px]"
+                      : "text-[10px]"
+                  }>
+                    {job.status}
+                  </Badge>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {job.target_table} • {(job.rows_imported || job.row_count || 0).toLocaleString()} rows
+                </p>
+              </button>
+            ))}
+          </div>
+        </motion.section>
+      )}
 
       {/* ── Activity Feed ── */}
       <motion.section
