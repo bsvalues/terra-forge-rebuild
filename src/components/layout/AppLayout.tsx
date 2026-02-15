@@ -6,7 +6,7 @@ import { GlobalCommandPalette } from "@/components/navigation/GlobalCommandPalet
 import { ControlCenter } from "@/components/navigation/ControlCenter";
 import { IDSCommandCenter } from "@/components/ids/IDSCommandCenter";
 import { PropertyWorkbench } from "@/components/workbench";
-import { CommandBriefing } from "@/components/dashboard/CommandBriefing";
+import { SuiteHub } from "@/components/dashboard/SuiteHub";
 import { useContextMode } from "@/hooks/useContextMode";
 
 export function AppLayout() {
@@ -58,7 +58,7 @@ export function AppLayout() {
   const renderStage = () => {
     switch (activeModule) {
       case "dashboard":
-        return <CommandBriefing onNavigate={handleNavigate} />;
+        return <SuiteHub onNavigate={handleNavigate} />;
       case "ids":
         return (
           <IDSCommandCenter
@@ -80,7 +80,7 @@ export function AppLayout() {
           />
         );
       default:
-        return <CommandBriefing onNavigate={handleNavigate} />;
+        return <SuiteHub onNavigate={handleNavigate} />;
     }
   };
 
