@@ -7,6 +7,7 @@ import { ControlCenter } from "@/components/navigation/ControlCenter";
 import { IDSCommandCenter } from "@/components/ids/IDSCommandCenter";
 import { PropertyWorkbench } from "@/components/workbench";
 import { SuiteHub } from "@/components/dashboard/SuiteHub";
+import { FactoryLayout } from "@/components/factory/FactoryLayout";
 import { useContextMode } from "@/hooks/useContextMode";
 
 interface AppLayoutProps {
@@ -17,9 +18,10 @@ interface AppLayoutProps {
     assessedValue: number;
   } | null;
   initialModule?: string;
+  initialFactoryMode?: string;
 }
 
-export function AppLayout({ initialParcel: routeParcel, initialModule }: AppLayoutProps) {
+export function AppLayout({ initialParcel: routeParcel, initialModule, initialFactoryMode }: AppLayoutProps) {
   const [activeModule, setActiveModule] = useState(initialModule || "dashboard");
   const [pendingParcel, setPendingParcel] = useState<{
     id: string;
@@ -89,6 +91,8 @@ export function AppLayout({ initialParcel: routeParcel, initialModule }: AppLayo
             onSubTabConsumed={() => setPendingSubTab(null)}
           />
         );
+      case "factory":
+        return <FactoryLayout initialMode={initialFactoryMode} />;
       default:
         return <SuiteHub onNavigate={handleNavigate} />;
     }

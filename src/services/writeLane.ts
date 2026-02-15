@@ -13,6 +13,10 @@ export const WRITE_LANE_MATRIX: Record<WriteDomain, SourceModule> = {
   valuations: "forge",
   comps: "forge",
   models: "forge",
+  calibration_runs: "forge",
+  cost_schedules: "forge",
+  value_adjustments: "forge",
+  comp_grids: "forge",
 
   // Atlas (GIS Suite)
   gis_layers: "atlas",
