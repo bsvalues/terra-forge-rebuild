@@ -40,6 +40,8 @@ export function useRatioAnalysis(params: RatioAnalysisParams = {}) {
 
   return useQuery({
     queryKey: ["ratio-analysis", taxYear, salesStartDate, salesEndDate, neighborhoodCode, outlierMethod],
+    staleTime: 2 * 60 * 1000, // 2 min — refresh after data imports or calibration runs
+    refetchOnWindowFocus: true,
     queryFn: async () => {
       const { data, error } = await supabase.rpc("compute_ratio_statistics", {
         p_tax_year: taxYear,

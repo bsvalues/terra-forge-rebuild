@@ -309,7 +309,7 @@ function renderEventData(data: Record<string, unknown>) {
     return elements;
   }
 
-  // Status transitions: show previous → new
+  // Status transitions: show previous → new, then reason
   if (data.previousStatus !== undefined && data.newStatus !== undefined) {
     elements.push(
       <span key="transition" className="text-[10px] bg-muted rounded px-1.5 py-0.5 text-muted-foreground">
@@ -318,6 +318,7 @@ function renderEventData(data: Record<string, unknown>) {
         <span className="text-foreground font-medium">{formatVal(data.newStatus)}</span>
       </span>
     );
+    // Reason already handled above — return combined elements
     return elements;
   }
 

@@ -352,6 +352,11 @@ export function PermitsWorkflow() {
                                 </>
                               )}
                             </div>
+                            {permit.notes && (
+                              <div className="text-xs text-muted-foreground/80 mt-1 truncate max-w-[350px] italic">
+                                📝 {permit.notes}
+                              </div>
+                            )}
                           </div>
                         </div>
 
