@@ -4,9 +4,11 @@ import { useAuthContext } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import Papa from "papaparse";
 import * as XLSX from "xlsx";
+import { getPACSEnhancedAliases } from "@/config/pacsFieldMappings";
 
 export type IngestStep = "select" | "upload" | "mapping" | "validate" | "preview" | "publish" | "complete";
 export type TargetTable = "parcels" | "sales" | "assessments" | "combined";
+export type ImportProfile = "generic" | "pacs";
 
 export interface ParsedFile {
   headers: string[];
@@ -146,6 +148,7 @@ export function useIngestPipeline() {
   const { profile } = useAuthContext();
   const [step, setStep] = useState<IngestStep>("select");
   const [targetTable, setTargetTable] = useState<TargetTable>("parcels");
+  const [importProfile, setImportProfile] = useState<ImportProfile>("generic");
   const [parsedFile, setParsedFile] = useState<ParsedFile | null>(null);
   const [mappings, setMappings] = useState<FieldMapping[]>([]);
   const [validation, setValidation] = useState<ValidationResult | null>(null);
@@ -156,6 +159,9 @@ export function useIngestPipeline() {
 
   // Combined mode: detect if file has both parcel and sales fields
   const [detectedCombined, setDetectedCombined] = useState(false);
+
+  // Use PACS-enhanced aliases when profile is "pacs"
+  const effectiveAliases = importProfile === "pacs" ? getPACSEnhancedAliases(FIELD_ALIASES) : FIELD_ALIASES;
 
   const schema = TARGET_SCHEMAS[targetTable];
   const holyTrinity = HOLY_TRINITY[targetTable];
@@ -236,7 +242,7 @@ export function useIngestPipeline() {
       let bestMatch: { target: string; confidence: number } | null = null;
 
       for (const field of schema) {
-        const aliases = FIELD_ALIASES[field.name] || [field.name];
+        const aliases = effectiveAliases[field.name] || [field.name];
         
         // Exact match
         if (aliases.includes(normalized)) {
@@ -276,7 +282,7 @@ export function useIngestPipeline() {
     }
 
     return results;
-  }, [schema, holyTrinity]);
+  }, [schema, holyTrinity, effectiveAliases]);
 
   const handleFileUpload = useCallback(async (file: File) => {
     try {
@@ -686,11 +692,13 @@ export function useIngestPipeline() {
     setPublishing(false);
     setPublishProgress(0);
     setPublishPhase("");
+    setImportProfile("generic");
   }, []);
 
   return {
     step, setStep,
     targetTable, setTargetTable,
+    importProfile, setImportProfile,
     parsedFile,
     mappings, setMappings,
     validation,
