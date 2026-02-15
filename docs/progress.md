@@ -9,9 +9,9 @@
 
 ## Current State Summary
 
-**Active Phase**: Phase 6 — Mass Appraisal Factory (COMPLETE)  
-**Last Completed Task**: 6.6 — Integration & Polish  
-**Next Task**: Phase 7 (TBD)  
+**Active Phase**: Phase 7 — Value Adjustment Ledger (COMPLETE)  
+**Last Completed Task**: 7.5 — Auto-Narrative Generation  
+**Next Task**: Phase 8 (TBD)  
 **Blockers**: None  
 
 ---
@@ -27,6 +27,7 @@
 | 4 | GeoEquity | ✅ COMPLETE | 6/6 | Map, equity overlay, ArcGIS sync |
 | 5 | Proof Layer | ✅ COMPLETE | — | TerraTrace, Model Receipts, Defense Packets |
 | 6 | Mass Appraisal Factory | ✅ COMPLETE | 40/40 | Regression, Cost, Comps, Scenarios, Integration |
+| 7 | Value Adjustment Ledger | ✅ COMPLETE | 5/5 | Batch Apply, Rollback, Ledger UI, Auto-Narrative |
 
 ---
 

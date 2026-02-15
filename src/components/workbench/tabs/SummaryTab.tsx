@@ -19,9 +19,11 @@ import {
   XCircle,
   Loader2,
   RefreshCw,
+  BookOpen,
 } from "lucide-react";
 import { useWorkbench } from "../WorkbenchContext";
 import { useParcel360 } from "@/hooks/useParcel360";
+import { useParcelAdjustments } from "@/hooks/useValueAdjustments";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { TerraTraceActivityFeed } from "@/components/proof/TerraTraceActivityFeed";
@@ -274,6 +276,10 @@ function ParcelSummaryContent() {
             <Gavel className="w-3.5 h-3.5" />
             Appeals
           </TabsTrigger>
+          <TabsTrigger value="adjustments" className="text-xs gap-1.5">
+            <BookOpen className="w-3.5 h-3.5" />
+            Adjustments
+          </TabsTrigger>
           <TabsTrigger value="activity" className="text-xs gap-1.5">
             <Activity className="w-3.5 h-3.5" />
             Activity
@@ -435,6 +441,11 @@ function ParcelSummaryContent() {
           </motion.div>
         </TabsContent>
 
+        {/* Adjustments */}
+        <TabsContent value="adjustments">
+          <AdjustmentsSection parcelId={parcel.id} />
+        </TabsContent>
+
         {/* Activity Feed */}
         <TabsContent value="activity">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-card border border-border/50 rounded-2xl p-6">
@@ -447,6 +458,81 @@ function ParcelSummaryContent() {
         </TabsContent>
       </Tabs>
     </div>
+  );
+}
+
+// ---- Adjustments Section ----
+function AdjustmentsSection({ parcelId }: { parcelId: string | null }) {
+  const { data: adjustments, isLoading } = useParcelAdjustments(parcelId);
+
+  const fmt = (v: number) =>
+    new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(v);
+
+  return (
+    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-card border border-border/50 rounded-2xl p-6">
+      <h3 className="text-lg font-medium text-foreground mb-4 flex items-center gap-2">
+        <BookOpen className="w-5 h-5 text-[hsl(var(--suite-forge))]" />
+        Value Adjustment Ledger
+      </h3>
+      {isLoading ? (
+        <div className="space-y-3">{[1, 2, 3].map((i) => <Skeleton key={i} className="h-12 w-full" />)}</div>
+      ) : adjustments && adjustments.length > 0 ? (
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-border/50 text-muted-foreground text-xs">
+                <th className="text-left py-2 pr-4">Date</th>
+                <th className="text-left py-2 pr-4">Type</th>
+                <th className="text-right py-2 pr-4">Previous</th>
+                <th className="text-right py-2 pr-4">New</th>
+                <th className="text-center py-2 pr-4">Change</th>
+                <th className="text-center py-2">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {adjustments.map((adj) => {
+                const delta = adj.new_value - adj.previous_value;
+                const pct = adj.previous_value > 0 ? (delta / adj.previous_value) * 100 : 0;
+                const isRolledBack = !!adj.rolled_back_at;
+                return (
+                  <tr key={adj.id} className={cn(
+                    "border-b border-border/20 hover:bg-muted/20 transition-colors",
+                    isRolledBack && "opacity-50"
+                  )}>
+                    <td className="py-2.5 pr-4 font-medium text-xs">
+                      {new Date(adj.applied_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                    </td>
+                    <td className="py-2.5 pr-4">
+                      <Badge variant="outline" className="text-[10px]">{adj.adjustment_type}</Badge>
+                    </td>
+                    <td className="text-right py-2.5 pr-4 text-muted-foreground">{fmt(adj.previous_value)}</td>
+                    <td className="text-right py-2.5 pr-4 font-medium">{fmt(adj.new_value)}</td>
+                    <td className="text-center py-2.5 pr-4">
+                      <span className={cn(
+                        "flex items-center justify-center gap-0.5 text-xs",
+                        delta >= 0 ? "text-chart-5" : "text-destructive"
+                      )}>
+                        {delta >= 0 ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
+                        {Math.abs(pct).toFixed(1)}%
+                      </span>
+                    </td>
+                    <td className="text-center py-2.5">
+                      {isRolledBack ? (
+                        <Badge variant="outline" className="text-[10px] text-destructive border-destructive/30">Rolled Back</Badge>
+                      ) : (
+                        <Badge className="text-[10px] bg-chart-5/20 text-chart-5 border-chart-5/30">Active</Badge>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <p className="text-center py-6 text-muted-foreground text-sm">No value adjustments recorded for this parcel</p>
+      )}
+    </motion.div>
   );
 }
 
