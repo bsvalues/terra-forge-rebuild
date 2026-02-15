@@ -9,9 +9,9 @@
 
 ## Current State Summary
 
-**Active Phase**: Phase 8 — TerraPilot Agentic Intelligence (COMPLETE)  
-**Last Completed Task**: 8.4 — Workbench Navigation Wiring  
-**Next Task**: Phase 9 (TBD)  
+**Active Phase**: Phase 9 — TerraFusionSync Operational Resilience (IN PROGRESS)  
+**Last Completed Task**: 9.3 — SyncDashboard UI  
+**Next Task**: Phase 9 continued (Data Source Registry, Conflict Resolution)  
 **Blockers**: None
 
 ---
@@ -29,6 +29,42 @@
 | 6 | Mass Appraisal Factory | ✅ COMPLETE | 40/40 | Regression, Cost, Comps, Scenarios, Integration |
 | 7 | Value Adjustment Ledger | ✅ COMPLETE | 5/5 | Batch Apply, Rollback, Ledger UI, Auto-Narrative |
 | 8 | TerraPilot Agentic Intelligence | ✅ COMPLETE | 4/4 | Tool calling, 7 tools, UI badges, navigation |
+| 9 | TerraFusionSync Resilience | 🔄 IN PROGRESS | 3/6 | Circuit breaker, health monitor, sync contracts |
+
+---
+
+## Phase 9 Progress Log (2026-02-15)
+
+### 9.1 Circuit Breaker Service ✅
+- `src/services/circuitBreaker.ts` — Full circuit breaker with CLOSED/OPEN/HALF_OPEN states
+- Retry helper with exponential backoff (`withRetry`)
+- Named breaker registry (`getCircuitBreaker`, `getAllCircuitMetrics`)
+- Configurable thresholds: failure count, reset timeout, slow call detection
+- Fallback support when circuit is OPEN
+
+### 9.2 Health Monitor Edge Function ✅
+- `supabase/functions/system-health/index.ts` — 6-point health check
+- Checks: database, parcels, trace_events, sales freshness, ingest pipeline, storage
+- Returns overall status (healthy/degraded/unhealthy) with per-service latency
+- 503 on unhealthy, 200 on healthy/degraded
+
+### 9.3 Sync Envelope + SAGA Contracts ✅
+- `src/types/sync.ts` — Full type system for TerraFusionSync
+- SyncEnvelope: idempotency key, tenant isolation, payload hash, schema version
+- SagaDefinition + SagaStep: durable workflow tracking with compensation
+- 4 SAGA templates: bulk_import, assessment_update, pacs_migration, sync_refresh
+- SystemHealth + HealthCheck + DataSourceConfig types
+
+### 9.4 SyncDashboard UI ✅
+- `src/components/sync/SyncDashboard.tsx` — Operational resilience dashboard
+- Real-time health status with per-service cards
+- Circuit breaker state visualization
+- SAGA template catalog
+- Wired into bottom dock navigation (⌘5)
+
+### Remaining Phase 9 Tasks
+- [ ] 9.5 Data Source Registry UI (multi-source ingest management)
+- [ ] 9.6 Conflict Resolution Queue (review queue for sync discrepancies)
 
 ---
 

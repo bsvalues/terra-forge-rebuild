@@ -8,6 +8,7 @@ import { IDSCommandCenter } from "@/components/ids/IDSCommandCenter";
 import { PropertyWorkbench } from "@/components/workbench";
 import { SuiteHub } from "@/components/dashboard/SuiteHub";
 import { FactoryLayout } from "@/components/factory/FactoryLayout";
+import { SyncDashboard } from "@/components/sync/SyncDashboard";
 import { useContextMode } from "@/hooks/useContextMode";
 
 interface AppLayoutProps {
@@ -93,6 +94,12 @@ export function AppLayout({ initialParcel: routeParcel, initialModule, initialFa
         );
       case "factory":
         return <FactoryLayout initialMode={initialFactoryMode} />;
+      case "sync":
+        return (
+          <div className="p-6 max-w-7xl mx-auto">
+            <SyncDashboard />
+          </div>
+        );
       default:
         return <SuiteHub onNavigate={handleNavigate} />;
     }
