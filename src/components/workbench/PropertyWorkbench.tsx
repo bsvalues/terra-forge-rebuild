@@ -6,6 +6,7 @@ import {
   ResizableHandle 
 } from "@/components/ui/resizable";
 import { WorkbenchProvider, useWorkbench } from "./WorkbenchContext";
+import { ReviewQueueProvider } from "./ReviewQueueContext";
 import { ContextRibbon } from "./ContextRibbon";
 import { SuiteTabNavigation } from "./SuiteTabNavigation";
 import { TerraPilotPanel } from "./TerraPilotPanel";
@@ -28,6 +29,7 @@ import { CommandPalette } from "./CommandPalette";
 
 // Review Queue
 import { ReviewQueueBar } from "./ReviewQueueBar";
+import { ReviewQueueSidebar } from "./ReviewQueueSidebar";
 
 const TAB_COMPONENTS: Record<SuiteTab, React.ComponentType> = {
   summary: SummaryTab,
@@ -75,7 +77,6 @@ function WorkbenchContent({ initialParcel, onParcelConsumed, initialTab, onTabCo
       if (validTabs.includes(initialTab as SuiteTab)) {
         setActiveTab(initialTab as SuiteTab);
       }
-      // Handle sub-tab (e.g., "appeals" within "dais")
       if (initialSubTab) {
         setDaisCategory(initialSubTab);
         onSubTabConsumed?.();
@@ -90,13 +91,8 @@ function WorkbenchContent({ initialParcel, onParcelConsumed, initialTab, onTabCo
   if (workMode === "admin") {
     return (
       <div className="flex flex-col h-screen bg-background">
-        {/* Command Palette - Global keyboard shortcut handler */}
         <CommandPalette />
-        
-        {/* Context Ribbon - Always visible */}
         <ContextRibbon />
-        
-        {/* Admin Dashboard Content */}
         <div className="flex-1 overflow-auto">
           <AdminDashboard />
         </div>
@@ -120,45 +116,53 @@ function WorkbenchContent({ initialParcel, onParcelConsumed, initialTab, onTabCo
         <SuiteTabNavigation />
       </div>
 
-      {/* Main Content Area with Resizable Pilot Panel */}
-      <div className="flex-1 overflow-hidden">
-        <ResizablePanelGroup direction="horizontal">
-          {/* Main Suite Content */}
-          <ResizablePanel defaultSize={pilotPanelOpen ? 70 : 100} minSize={50}>
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={activeTab}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.2 }}
-                className="h-full overflow-auto"
-              >
-                {activeTab === "dais" ? (
-                  <DaisTab initialCategory={daisCategory} onCategoryConsumed={() => setDaisCategory(null)} />
-                ) : (
-                  <TabComponent />
-                )}
-              </motion.div>
-            </AnimatePresence>
-          </ResizablePanel>
+      {/* Main Content Area with Queue Sidebar + Pilot Panel */}
+      <div className="flex-1 overflow-hidden flex">
+        {/* Queue Progress Sidebar */}
+        <AnimatePresence>
+          <ReviewQueueSidebar />
+        </AnimatePresence>
 
-          {/* TerraPilot Panel */}
-          {pilotPanelOpen && activeTab !== "pilot" && (
-            <>
-              <ResizableHandle withHandle />
-              <ResizablePanel 
-                defaultSize={30} 
-                minSize={20} 
-                maxSize={45}
-                collapsible
-                onCollapse={() => setPilotPanelOpen(false)}
-              >
-                <TerraPilotPanel onClose={() => setPilotPanelOpen(false)} />
-              </ResizablePanel>
-            </>
-          )}
-        </ResizablePanelGroup>
+        {/* Main + Pilot */}
+        <div className="flex-1 overflow-hidden">
+          <ResizablePanelGroup direction="horizontal">
+            {/* Main Suite Content */}
+            <ResizablePanel defaultSize={pilotPanelOpen ? 70 : 100} minSize={50}>
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={activeTab}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.2 }}
+                  className="h-full overflow-auto"
+                >
+                  {activeTab === "dais" ? (
+                    <DaisTab initialCategory={daisCategory} onCategoryConsumed={() => setDaisCategory(null)} />
+                  ) : (
+                    <TabComponent />
+                  )}
+                </motion.div>
+              </AnimatePresence>
+            </ResizablePanel>
+
+            {/* TerraPilot Panel */}
+            {pilotPanelOpen && activeTab !== "pilot" && (
+              <>
+                <ResizableHandle withHandle />
+                <ResizablePanel 
+                  defaultSize={30} 
+                  minSize={20} 
+                  maxSize={45}
+                  collapsible
+                  onCollapse={() => setPilotPanelOpen(false)}
+                >
+                  <TerraPilotPanel onClose={() => setPilotPanelOpen(false)} />
+                </ResizablePanel>
+              </>
+            )}
+          </ResizablePanelGroup>
+        </div>
       </div>
 
       {/* Floating Pilot Toggle (when panel is closed) */}
@@ -189,14 +193,16 @@ interface PropertyWorkbenchProps {
 export function PropertyWorkbench({ initialParcel, onParcelConsumed, initialTab, onTabConsumed, initialSubTab, onSubTabConsumed }: PropertyWorkbenchProps = {}) {
   return (
     <WorkbenchProvider>
-      <WorkbenchContent
-        initialParcel={initialParcel}
-        onParcelConsumed={onParcelConsumed}
-        initialTab={initialTab}
-        onTabConsumed={onTabConsumed}
-        initialSubTab={initialSubTab}
-        onSubTabConsumed={onSubTabConsumed}
-      />
+      <ReviewQueueProvider>
+        <WorkbenchContent
+          initialParcel={initialParcel}
+          onParcelConsumed={onParcelConsumed}
+          initialTab={initialTab}
+          onTabConsumed={onTabConsumed}
+          initialSubTab={initialSubTab}
+          onSubTabConsumed={onSubTabConsumed}
+        />
+      </ReviewQueueProvider>
     </WorkbenchProvider>
   );
 }
