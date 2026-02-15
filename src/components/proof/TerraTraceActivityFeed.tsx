@@ -166,21 +166,24 @@ export function TerraTraceActivityFeed({ parcelId, limit = 20 }: TerraTraceActiv
       isLegacy: false,
     })),
     // Legacy model_receipts (only those not already covered by trace)
-    ...receipts.map((r) => ({
-      id: r.id,
-      createdAt: r.created_at,
-      type: r.model_type,
-      sourceModule: "forge",
-      label: r.model_type.replace(/_/g, " "),
-      icon: LEGACY_ICONS[r.model_type] || Receipt,
-      color: LEGACY_COLORS[r.model_type] || "text-muted-foreground",
-      moduleColor: MODULE_COLORS.forge,
-      actorId: r.operator_id,
-      outputs: r.outputs && typeof r.outputs === "object" && Object.keys(r.outputs as object).length > 0
-        ? r.outputs as Record<string, unknown>
-        : null,
-      isLegacy: true,
-    })),
+    ...receipts.map((r) => {
+      const modelType = r.model_type || "unknown";
+      return {
+        id: r.id,
+        createdAt: r.created_at,
+        type: modelType,
+        sourceModule: "forge",
+        label: modelType.replace(/_/g, " "),
+        icon: LEGACY_ICONS[modelType] || Receipt,
+        color: LEGACY_COLORS[modelType] || "text-muted-foreground",
+        moduleColor: MODULE_COLORS.forge,
+        actorId: r.operator_id,
+        outputs: r.outputs && typeof r.outputs === "object" && Object.keys(r.outputs as object).length > 0
+          ? r.outputs as Record<string, unknown>
+          : null,
+        isLegacy: true,
+      };
+    }),
   ]
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     .slice(0, limit);
