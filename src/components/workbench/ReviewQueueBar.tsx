@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { motion } from "framer-motion";
 import {
   ChevronLeft,
@@ -89,6 +89,49 @@ export function ReviewQueueBar() {
     setActiveQueueId(null);
     setSidebarOpen(false);
   }, [setActiveQueueId, setSidebarOpen]);
+
+  // Keyboard shortcuts for rapid review cycling
+  useEffect(() => {
+    if (!activeQueueId) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Don't capture if user is typing in an input
+      const tag = (e.target as HTMLElement).tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+
+      switch (e.key) {
+        case "ArrowRight":
+        case "j":
+          e.preventDefault();
+          nav.goNext();
+          break;
+        case "ArrowLeft":
+        case "k":
+          e.preventDefault();
+          nav.goPrev();
+          break;
+        case "c":
+          e.preventDefault();
+          handleMarkReviewed();
+          break;
+        case "s":
+          e.preventDefault();
+          handleSkip();
+          break;
+        case "n":
+          e.preventDefault();
+          nav.jumpToNextPending();
+          break;
+        case "Escape":
+          e.preventDefault();
+          handleCloseQueue();
+          break;
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [activeQueueId, nav, handleMarkReviewed, handleSkip, handleCloseQueue]);
 
   // No active queue — show launch buttons
   if (!activeQueueId) {
@@ -207,8 +250,11 @@ export function ReviewQueueBar() {
         </Badge>
       )}
 
-      {/* Navigation controls */}
+      {/* Navigation controls + keyboard hints */}
       <div className="flex items-center gap-1 shrink-0">
+        <span className="text-[9px] text-muted-foreground mr-1 hidden md:inline" title="Keyboard: ←/→ navigate, C complete, S skip, N next pending, Esc close">
+          ⌨️
+        </span>
         <Button variant="ghost" size="icon" className="h-7 w-7" onClick={nav.goPrev} disabled={!nav.hasPrev}>
           <ChevronLeft className="w-4 h-4" />
         </Button>

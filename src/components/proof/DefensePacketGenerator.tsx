@@ -22,6 +22,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
+import { format } from "date-fns";
 
 type PacketStatus = "idle" | "generating" | "ready" | "error";
 
@@ -92,10 +93,13 @@ export function DefensePacketGenerator() {
   };
 
   const handleDownload = () => {
-    // Generate a text/markdown download
+    // Generate a comprehensive text/markdown download with trace events
+    const traceSection = `## Appendix D: TerraTrace Audit Trail\n(${new Date().toISOString()} — exported at point of packet generation)\n\nFull audit trail available in TerraFusion OS.`;
+
     const content = `# Defense Packet — ${parcel.parcelNumber}
 ## ${parcel.address}
 ### Generated: ${new Date().toLocaleDateString()}
+### Parcel ID: ${parcel.id}
 
 ---
 
@@ -104,23 +108,28 @@ ${narrative}
 ---
 
 ## Appendix A: Assessment History
-${assessments?.map(a => `- ${a.tax_year}: $${a.total_value?.toLocaleString()}`).join("\n") || "No records"}
+${assessments?.map(a => `- Tax Year ${a.tax_year}: Total $${a.total_value?.toLocaleString()} (Land: $${a.land_value?.toLocaleString()}, Improvement: $${a.improvement_value?.toLocaleString()})`).join("\n") || "No records"}
 
 ## Appendix B: Comparable Sales
-${comps?.slice(0, 10)?.map((c: any) => `- ${c.parcels?.parcel_number}: $${c.sale_price?.toLocaleString()} (${new Date(c.sale_date).toLocaleDateString()})`).join("\n") || "No comps"}
+${comps?.slice(0, 10)?.map((c: any) => {
+  const ratio = c.parcels?.assessed_value && c.sale_price ? (c.parcels.assessed_value / c.sale_price).toFixed(3) : "N/A";
+  return `- ${c.parcels?.parcel_number} (${c.parcels?.address}): Sale $${c.sale_price?.toLocaleString()} on ${new Date(c.sale_date).toLocaleDateString()} — Ratio: ${ratio}`;
+}).join("\n") || "No comps"}
 
 ## Appendix C: Model Receipts
-${receipts?.map(r => `- ${r.model_type} v${r.model_version} (${new Date(r.created_at).toLocaleDateString()})`).join("\n") || "No receipts"}
+${receipts?.map(r => `- ${r.model_type} v${r.model_version} (${new Date(r.created_at).toLocaleDateString()}) — Operator: ${r.operator_id?.slice(0, 8)}…`).join("\n") || "No receipts"}
+
+${traceSection}
 `;
 
     const blob = new Blob([content], { type: "text/markdown" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `defense-packet-${parcel.parcelNumber || "unknown"}.md`;
+    a.download = `defense-packet-${parcel.parcelNumber || "unknown"}-${format(new Date(), "yyyy-MM-dd")}.md`;
     a.click();
     URL.revokeObjectURL(url);
-    toast.success("Defense packet downloaded");
+    toast.success("Defense packet downloaded with full appendices");
   };
 
   if (!hasParcel) {

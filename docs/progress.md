@@ -9,9 +9,9 @@
 
 ## Current State Summary
 
-**Active Phase**: Phase 11 — Hub Intelligence & Certification Pipeline (✅ COMPLETE)  
-**Last Completed Task**: 11.3 — Factory Scenario Mode with what-if sliders  
-**Next Task**: Phase 12 planning  
+**Active Phase**: Phase 12 — Production Hardening (✅ COMPLETE)  
+**Last Completed Task**: 12.5 — Performance pagination gates  
+**Next Task**: Phase 13 planning  
 **Blockers**: None
 
 ---
@@ -32,6 +32,45 @@
 | 9 | TerraFusionSync Resilience | ✅ COMPLETE | 6/6 | Circuit breaker, health monitor, sync contracts, data source registry, conflict resolution |
 | 10 | Operational Completeness | ✅ COMPLETE | 3/3 | VEI + GeoEquity dock modules, enriched Suite Hub, expanded command palette |
 | 11 | Hub Intelligence & Certification | ✅ COMPLETE | 3/3 | Live parcel search, certification dashboard, scenario modeling |
+| 12 | Production Hardening | ✅ COMPLETE | 5/5 | Realtime trace feed, notice generation, defense packet export, keyboard review queue, pagination |
+
+---
+
+## Phase 12 Production Hardening Log (2026-02-15)
+
+### 12.1 Realtime Activity Feed ✅
+- `TerraTraceActivityFeed` now subscribes to `postgres_changes` on `trace_events` table
+- Live LIVE indicator with pulsing radio icon
+- Auto-invalidates query cache on new INSERT events
+- Parcel-scoped filtering via realtime channel filter
+
+### 12.2 Notice Generation Pipeline ✅
+- `src/components/dais/NoticesPanel.tsx` — Full notice generation UI
+- 4 template types: Assessment Change, Hearing Notice, Exemption Decision, General Correspondence
+- Recipient fields, parcel context injection, customizable body
+- Download as text, mark-as-sent workflow
+- Integrated into DaisTab replacing placeholder
+
+### 12.3 Defense Packet One-Click Export ✅
+- Enhanced `DefensePacketGenerator.tsx` with richer appendices
+- Appendix A: Full assessment breakdown (land + improvement + total)
+- Appendix B: Comp ratios included alongside sale data
+- Appendix C: Operator IDs on model receipts
+- Appendix D: TerraTrace audit trail reference
+- Date-stamped filenames
+
+### 12.4 Bulk Review Queue Keyboard Navigation ✅
+- `ReviewQueueBar` now captures keyboard events when queue is active
+- Shortcuts: →/j (next), ←/k (prev), C (complete), S (skip), N (next pending), Esc (close)
+- Input/textarea/select elements excluded from capture
+- Keyboard hint indicator in navigation bar
+
+### 12.5 Performance Pagination Gates ✅
+- `ParcelSearchPanel` upgraded from fixed 100-row limit to server-side pagination
+- `select("*", { count: "exact" })` for total count
+- 50-row page size with Previous/Next controls
+- Page resets on filter change
+- Total count displayed in results badge
 
 ---
 
