@@ -9,9 +9,9 @@
 
 ## Current State Summary
 
-**Active Phase**: Phase 9 — TerraFusionSync Operational Resilience (IN PROGRESS)  
-**Last Completed Task**: 9.3 — SyncDashboard UI  
-**Next Task**: Phase 9 continued (Data Source Registry, Conflict Resolution)  
+**Active Phase**: Phase 9 — TerraFusionSync Operational Resilience (✅ COMPLETE)  
+**Last Completed Task**: 9.6 — Conflict Resolution Queue  
+**Next Task**: Phase 10 planning (PACS ETL expanded to 15 table types, ready for next major feature phase)  
 **Blockers**: None
 
 ---
@@ -29,7 +29,7 @@
 | 6 | Mass Appraisal Factory | ✅ COMPLETE | 40/40 | Regression, Cost, Comps, Scenarios, Integration |
 | 7 | Value Adjustment Ledger | ✅ COMPLETE | 5/5 | Batch Apply, Rollback, Ledger UI, Auto-Narrative |
 | 8 | TerraPilot Agentic Intelligence | ✅ COMPLETE | 4/4 | Tool calling, 7 tools, UI badges, navigation |
-| 9 | TerraFusionSync Resilience | 🔄 IN PROGRESS | 3/6 | Circuit breaker, health monitor, sync contracts |
+| 9 | TerraFusionSync Resilience | ✅ COMPLETE | 6/6 | Circuit breaker, health monitor, sync contracts, data source registry, conflict resolution |
 
 ---
 
@@ -62,9 +62,20 @@
 - SAGA template catalog
 - Wired into bottom dock navigation (⌘5)
 
-### Remaining Phase 9 Tasks
-- [ ] 9.5 Data Source Registry UI (multi-source ingest management)
-- [ ] 9.6 Conflict Resolution Queue (review queue for sync discrepancies)
+### 9.5 Data Source Registry ✅
+- `src/components/sync/DataSourceRegistry.tsx` — Multi-source ingest management panel
+- CRUD operations against `data_sources` table with county-scoped RLS
+- Support for 6 source types: CSV Upload, ArcGIS REST, API Endpoint, Legacy CAMA, FTP Feed, Manual Entry
+- Sync status badges, record counts, last sync timestamps
+- Register dialog with source type selection and connection URL
+
+### 9.6 Conflict Resolution Queue ✅
+- `src/components/sync/ConflictResolutionQueue.tsx` — Sync discrepancy review queue
+- Side-by-side diff viewer (Local vs Remote values)
+- Severity-tagged conflict cards (low/medium/high)
+- Resolution actions: Keep Local, Accept Remote, Dismiss
+- Detail dialog with full conflict context
+- Demo conflicts seeded for UX validation
 
 ---
 

@@ -17,8 +17,11 @@ import {
   HardDrive,
   FileText,
   ArrowRightLeft,
+  GitCompare,
 } from "lucide-react";
 import { useSystemHealth } from "@/hooks/useSystemHealth";
+import { DataSourceRegistry } from "./DataSourceRegistry";
+import { ConflictResolutionQueue } from "./ConflictResolutionQueue";
 import type { ServiceHealth } from "@/types/sync";
 import type { CircuitMetrics } from "@/services/circuitBreaker";
 import { cn } from "@/lib/utils";
@@ -223,6 +226,12 @@ export function SyncDashboard() {
           ))}
         </div>
       </div>
+
+      {/* Data Source Registry */}
+      <DataSourceRegistry />
+
+      {/* Conflict Resolution Queue */}
+      <ConflictResolutionQueue />
     </div>
   );
 }
