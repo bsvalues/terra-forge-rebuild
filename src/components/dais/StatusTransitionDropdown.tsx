@@ -1,11 +1,22 @@
+import { useState } from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { ChevronDown, Loader2 } from "lucide-react";
+import { ChevronDown, Loader2, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export interface StatusTransition {
@@ -109,40 +120,78 @@ export function StatusTransitionDropdown({
   accentClass = "bg-suite-dais hover:bg-suite-dais/90",
 }: StatusTransitionDropdownProps) {
   const available = transitions[currentStatus] ?? [];
+  const [pendingTransition, setPendingTransition] = useState<StatusTransition | null>(null);
 
   if (available.length === 0) return null;
 
+  const handleSelect = (t: StatusTransition) => {
+    if (t.variant === "destructive") {
+      setPendingTransition(t);
+    } else {
+      onTransition(t.to);
+    }
+  };
+
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button disabled={isPending} className={cn("gap-2", accentClass)}>
-          {isPending ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
-          ) : (
-            <>
-              Change Status
-              <ChevronDown className="w-4 h-4" />
-            </>
-          )}
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent
-        align="end"
-        className="z-50 bg-popover border border-border shadow-lg min-w-[180px]"
-      >
-        {available.map((t) => (
-          <DropdownMenuItem
-            key={t.to}
-            onClick={() => onTransition(t.to)}
-            className={cn(
-              "cursor-pointer",
-              VARIANT_STYLES[t.variant ?? "default"]
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button disabled={isPending} className={cn("gap-2", accentClass)}>
+            {isPending ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <>
+                Change Status
+                <ChevronDown className="w-4 h-4" />
+              </>
             )}
-          >
-            {t.label}
-          </DropdownMenuItem>
-        ))}
-      </DropdownMenuContent>
-    </DropdownMenu>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent
+          align="end"
+          className="z-50 bg-popover border border-border shadow-lg min-w-[180px]"
+        >
+          {available.map((t) => (
+            <DropdownMenuItem
+              key={t.to}
+              onClick={() => handleSelect(t)}
+              className={cn(
+                "cursor-pointer",
+                VARIANT_STYLES[t.variant ?? "default"]
+              )}
+            >
+              {t.label}
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      <AlertDialog open={!!pendingTransition} onOpenChange={() => setPendingTransition(null)}>
+        <AlertDialogContent className="border-destructive/30">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2 text-destructive">
+              <AlertTriangle className="w-5 h-5" />
+              Confirm Destructive Action
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              You are about to <strong className="text-foreground">{pendingTransition?.label?.toLowerCase()}</strong> this record.
+              This action is recorded in the audit trail and may be difficult to reverse. Are you sure?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                if (pendingTransition) onTransition(pendingTransition.to);
+                setPendingTransition(null);
+              }}
+            >
+              {pendingTransition?.label}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
