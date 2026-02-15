@@ -60,7 +60,10 @@ export function useCalibration(neighborhoodCode: string | null) {
       });
 
       if (error) throw error;
-      if (data?.error) throw new Error(data.error);
+      if (data?.error) {
+        const hint = data?.debug?.hint || "";
+        throw new Error(`${data.error}${hint ? ` — ${hint}` : ""}`);
+      }
       return data as CalibrationResult;
     },
     onSuccess: (data) => {
