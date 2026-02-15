@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { updateParcelCharacteristics } from "@/services/suites/forgeService";
 
 export interface ParcelUpdatePayload {
   address?: string;
@@ -45,20 +46,26 @@ export function useUpdateParcel(parcelId: string | null) {
     mutationFn: async (updates: ParcelUpdatePayload) => {
       if (!parcelId) throw new Error("No parcel selected");
 
-      const { data, error } = await supabase
+      // Fetch current data for before/after diff
+      const { data: current } = await supabase
         .from("parcels")
-        .update(updates)
+        .select("*")
         .eq("id", parcelId)
-        .select()
         .single();
 
-      if (error) throw error;
-      return data;
+      // Route through forgeService (write-lane enforced + trace emission)
+      return updateParcelCharacteristics(
+        parcelId,
+        updates,
+        current ? (current as Record<string, unknown>) : undefined
+      );
     },
     onSuccess: () => {
       toast.success("Parcel updated successfully");
       queryClient.invalidateQueries({ queryKey: ["parcel-search"] });
       queryClient.invalidateQueries({ queryKey: ["parcel-details", parcelId] });
+      queryClient.invalidateQueries({ queryKey: ["p360-identity", parcelId] });
+      queryClient.invalidateQueries({ queryKey: ["p360-trace", parcelId] });
     },
     onError: (error: any) => {
       toast.error("Failed to update parcel", {

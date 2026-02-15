@@ -1256,6 +1256,66 @@ export type Database = {
           },
         ]
       }
+      trace_events: {
+        Row: {
+          actor_id: string
+          artifact_id: string | null
+          artifact_type: string | null
+          causation_id: string | null
+          correlation_id: string | null
+          county_id: string
+          created_at: string
+          event_data: Json
+          event_type: string
+          id: string
+          parcel_id: string | null
+          source_module: string
+        }
+        Insert: {
+          actor_id?: string
+          artifact_id?: string | null
+          artifact_type?: string | null
+          causation_id?: string | null
+          correlation_id?: string | null
+          county_id: string
+          created_at?: string
+          event_data?: Json
+          event_type: string
+          id?: string
+          parcel_id?: string | null
+          source_module: string
+        }
+        Update: {
+          actor_id?: string
+          artifact_id?: string | null
+          artifact_type?: string | null
+          causation_id?: string | null
+          correlation_id?: string | null
+          county_id?: string
+          created_at?: string
+          event_data?: Json
+          event_type?: string
+          id?: string
+          parcel_id?: string | null
+          source_module?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trace_events_county_id_fkey"
+            columns: ["county_id"]
+            isOneToOne: false
+            referencedRelation: "counties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trace_events_parcel_id_fkey"
+            columns: ["parcel_id"]
+            isOneToOne: false
+            referencedRelation: "parcels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
