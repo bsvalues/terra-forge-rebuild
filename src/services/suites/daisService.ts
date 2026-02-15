@@ -117,6 +117,38 @@ export async function decideExemption(
 }
 
 /**
+ * Update exemption status generically (for non-approve/deny transitions).
+ */
+export async function updateExemptionStatus(
+  exemptionId: string,
+  parcelId: string,
+  newStatus: string,
+  previousStatus: string
+) {
+  assertWriteLane("exemptions", SOURCE);
+
+  const { data, error } = await supabase
+    .from("exemptions")
+    .update({ status: newStatus })
+    .eq("id", exemptionId)
+    .select()
+    .single();
+
+  if (error) throw error;
+
+  await emitTraceEvent({
+    parcelId,
+    sourceModule: SOURCE,
+    eventType: "exemption_status_changed",
+    eventData: { previousStatus, newStatus },
+    artifactType: "exemption",
+    artifactId: exemptionId,
+  });
+
+  return data;
+}
+
+/**
  * Generate a notice with trace emission.
  */
 export async function generateNotice(
