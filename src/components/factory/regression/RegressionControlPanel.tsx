@@ -1,6 +1,9 @@
+import { useState } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { CommitmentButton } from "@/components/ui/commitment-button";
-import { Save, Play, Loader2 } from "lucide-react";
+import { Save, Play, Loader2, Compass } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { useFieldCohort } from "@/hooks/useFieldCohort";
 import type { useCalibration } from "@/hooks/useCalibration";
 
 interface RegressionControlPanelProps {
@@ -10,6 +13,8 @@ interface RegressionControlPanelProps {
 
 export function RegressionControlPanel({ hook, neighborhoodCode }: RegressionControlPanelProps) {
   const { availableVariables, selectedVars, setSelectedVars, runCalibration, isRunning, saveRun, isSaving, result } = hook;
+  const { cohort, count: fieldCount } = useFieldCohort();
+  const [fieldFilter, setFieldFilter] = useState(false);
 
   const toggleVar = (id: string) => {
     setSelectedVars((prev) =>
@@ -36,6 +41,23 @@ export function RegressionControlPanel({ hook, neighborhoodCode }: RegressionCon
           ))}
         </div>
       </div>
+
+      {/* Field Cohort Filter — recently inspected strata */}
+      {fieldCount > 0 && (
+        <div className="border border-border/50 rounded-lg p-3 space-y-2">
+          <label className="flex items-center gap-2 cursor-pointer">
+            <Checkbox checked={fieldFilter} onCheckedChange={(c) => setFieldFilter(!!c)} />
+            <Compass className="w-3.5 h-3.5 text-primary" />
+            <span className="text-sm text-foreground">Recently Inspected</span>
+            <Badge variant="outline" className="ml-auto text-[10px]">{fieldCount}</Badge>
+          </label>
+          {fieldFilter && (
+            <p className="text-[11px] text-muted-foreground pl-6">
+              Cohort filter active — {fieldCount} field-verified parcels will seed recalibration strata.
+            </p>
+          )}
+        </div>
+      )}
 
       {!neighborhoodCode && (
         <p className="text-xs text-[hsl(var(--tf-sacred-gold))] bg-[hsl(var(--tf-sacred-gold)/0.1)] px-3 py-2 rounded-lg">
