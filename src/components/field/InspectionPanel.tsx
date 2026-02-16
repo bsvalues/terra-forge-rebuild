@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   ArrowLeft, Camera, Ruler, ClipboardCheck, MessageSquare,
@@ -7,6 +7,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { CommitmentButton } from "@/components/ui/commitment-button";
 import { Textarea } from "@/components/ui/textarea";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
@@ -62,10 +63,10 @@ export function InspectionPanel({ assignment, onBack }: InspectionPanelProps) {
   const [anomalyType, setAnomalyType] = useState("boundary_mismatch");
   const [anomalyDesc, setAnomalyDesc] = useState("");
 
-  // Load observations
-  useState(() => {
+  // Load observations on mount
+  useEffect(() => {
     getObservations(assignment.id).then(setObservations);
-  });
+  }, [assignment.id]);
 
   const getLocation = useCallback((): Promise<{ lat: number | null; lng: number | null }> => {
     return new Promise((resolve) => {
@@ -304,9 +305,9 @@ export function InspectionPanel({ assignment, onBack }: InspectionPanelProps) {
 
         {/* Anomaly Tab */}
         <TabsContent value="anomaly" className="mt-4 space-y-4">
-          <Card className="border-border/50 border-amber-500/20">
+          <Card className="border-border/50 border-destructive/20">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm text-amber-400">
+              <CardTitle className="text-sm text-destructive">
                 <AlertTriangle className="w-4 h-4 inline mr-1" />
                 Flag Spatial Anomaly
               </CardTitle>
@@ -339,7 +340,7 @@ export function InspectionPanel({ assignment, onBack }: InspectionPanelProps) {
                 onClick={handleSaveAnomaly}
                 disabled={saving || !anomalyDesc.trim()}
                 variant="outline"
-                className="w-full border-amber-500/30 text-amber-400 hover:bg-amber-500/10"
+                className="w-full border-destructive/30 text-destructive hover:bg-destructive/10"
               >
                 <AlertTriangle className="w-4 h-4 mr-2" />
                 Flag Anomaly
@@ -380,11 +381,11 @@ export function InspectionPanel({ assignment, onBack }: InspectionPanelProps) {
         </Card>
       )}
 
-      {/* Complete Button */}
-      <Button onClick={handleComplete} className="w-full" size="lg">
-        <CheckCircle2 className="w-5 h-5 mr-2" />
+      {/* Complete Button — Commitment Action */}
+      <CommitmentButton onClick={handleComplete} className="w-full py-3">
+        <CheckCircle2 className="w-5 h-5" />
         Complete Inspection
-      </Button>
+      </CommitmentButton>
     </div>
   );
 }
