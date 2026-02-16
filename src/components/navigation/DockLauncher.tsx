@@ -34,6 +34,11 @@ const dockItems = [
   { id: "sync", label: "Sync", icon: Shield, shortcut: "⌘8" },
 ];
 
+// Contextual dock sets — when deep in a module, show only relevant companions
+const CONTEXTUAL_DOCK: Record<string, string[]> = {
+  field: ["dashboard", "field", "sync", "geoequity", "workbench"],
+};
+
 const VISIBLE_COUNT_MOBILE = 5;
 
 export function DockLauncher({ activeModule, onModuleChange }: DockLauncherProps) {
@@ -50,8 +55,14 @@ export function DockLauncher({ activeModule, onModuleChange }: DockLauncherProps
     return () => clearInterval(interval);
   }, []);
 
-  const visibleItems = isMobile ? dockItems.slice(0, VISIBLE_COUNT_MOBILE) : dockItems;
-  const overflowItems = isMobile ? dockItems.slice(VISIBLE_COUNT_MOBILE) : [];
+  // Contextual dock: in Field mode on mobile, show only relevant companions
+  const contextualIds = isMobile && CONTEXTUAL_DOCK[activeModule];
+  const baseDockItems = contextualIds
+    ? dockItems.filter((i) => contextualIds.includes(i.id))
+    : dockItems;
+
+  const visibleItems = isMobile && !contextualIds ? baseDockItems.slice(0, VISIBLE_COUNT_MOBILE) : baseDockItems;
+  const overflowItems = isMobile && !contextualIds ? baseDockItems.slice(VISIBLE_COUNT_MOBILE) : [];
 
   // If the active module is in the overflow, swap it into visible
   const activeInOverflow = isMobile && overflowItems.some((i) => i.id === activeModule);
