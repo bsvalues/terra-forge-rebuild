@@ -17,10 +17,12 @@ import {
   TierSlopeDrilldownDialog,
   AppealsDrilldownDialog 
 } from "./drilldown";
-import { Activity, TrendingUp, BarChart3, AlertTriangle, Percent, Target, Filter, Info } from "lucide-react";
+import { Activity, TrendingUp, BarChart3, AlertTriangle, Percent, Target, Filter, Info, Compass } from "lucide-react";
 import { useRatioAnalysis, useTaxYears, type OutlierMethod } from "@/hooks/useRatioAnalysis";
 import { useHistoricalRatioTrend, useAppealsByValueTier } from "@/hooks/useHistoricalRatioTrend";
+import { useFieldCohort } from "@/hooks/useFieldCohort";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const containerVariants = {
@@ -45,6 +47,9 @@ export function VEIDashboard() {
   const [salesEndDate, setSalesEndDate] = useState<Date>(new Date());
   const [activeDrilldown, setActiveDrilldown] = useState<DrilldownType>(null);
   const [outlierMethod, setOutlierMethod] = useState<OutlierMethod>("bounds");
+  const [fieldCohortFilter, setFieldCohortFilter] = useState(false);
+
+  const { cohort: fieldCohort, count: fieldCount } = useFieldCohort();
 
   const salesStartStr = format(salesStartDate, "yyyy-MM-dd");
   const salesEndStr = format(salesEndDate, "yyyy-MM-dd");
@@ -247,6 +252,24 @@ export function VEIDashboard() {
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
+            {/* Field Cohort Filter — recently inspected strata */}
+            {fieldCount > 0 && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <label className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border/50 cursor-pointer hover:bg-muted/40 transition-colors">
+                      <Checkbox checked={fieldCohortFilter} onCheckedChange={(c) => setFieldCohortFilter(!!c)} />
+                      <Compass className="w-3.5 h-3.5 text-primary" />
+                      <span className="text-xs font-medium text-foreground">Field Verified</span>
+                      <Badge variant="outline" className="text-[10px] ml-1">{fieldCount}</Badge>
+                    </label>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="max-w-xs text-xs">
+                    <p>Filter ratio study to include only parcels with recent field inspections. This creates a "truth-verified" cohort for measuring COD/PRD improvement after field work.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
             <VEIExportActions data={exportData} />
           </div>
         </motion.div>
