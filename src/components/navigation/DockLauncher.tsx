@@ -9,6 +9,7 @@ import {
   LogOut,
   BarChart3,
   Map,
+  Compass,
 } from "lucide-react";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -25,7 +26,8 @@ const dockItems = [
   { id: "ids", label: "IDS", icon: Database, shortcut: "⌘4" },
   { id: "vei", label: "VEI", icon: BarChart3, shortcut: "⌘5" },
   { id: "geoequity", label: "GeoEquity", icon: Map, shortcut: "⌘6" },
-  { id: "sync", label: "Sync", icon: Shield, shortcut: "⌘7" },
+  { id: "field", label: "Field", icon: Compass, shortcut: "⌘7" },
+  { id: "sync", label: "Sync", icon: Shield, shortcut: "⌘8" },
 ];
 
 export function DockLauncher({ activeModule, onModuleChange }: DockLauncherProps) {

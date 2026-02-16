@@ -4,7 +4,7 @@
 // ============================================================
 // Source Module — who initiated the action
 // ============================================================
-export type SourceModule = "forge" | "atlas" | "dais" | "dossier" | "pilot" | "os";
+export type SourceModule = "forge" | "atlas" | "dais" | "dossier" | "pilot" | "os" | "field";
 
 // ============================================================
 // TerraTrace Event Types (registry-controlled)
@@ -28,7 +28,11 @@ export type TraceEventType =
   | "exemption_status_changed"
   | "permit_created"
   | "exemption_created"
-  | "permit_status_changed";
+  | "permit_status_changed"
+  | "field_photo_captured"
+  | "field_note_added"
+  | "spatial_anomaly_flagged"
+  | "field_inspection_completed";
 
 export type ArtifactType =
   | "assessment"

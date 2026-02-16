@@ -1,0 +1,304 @@
+import { useState, useEffect, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  MapPin, ClipboardCheck, Camera, Wifi, WifiOff, Upload, ChevronRight,
+  AlertTriangle, CheckCircle2, Clock, Plus
+} from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { toast } from "sonner";
+import {
+  getAssignments,
+  getQueueStats,
+  saveAssignments,
+  type FieldAssignment,
+  type InspectionStatus,
+} from "@/services/fieldStore";
+import { syncPendingObservations } from "@/services/fieldSync";
+import { supabase } from "@/integrations/supabase/client";
+import { InspectionPanel } from "./InspectionPanel";
+
+export function FieldStudioDashboard() {
+  const [assignments, setAssignments] = useState<FieldAssignment[]>([]);
+  const [activeInspection, setActiveInspection] = useState<FieldAssignment | null>(null);
+  const [queueStats, setQueueStats] = useState({ pending: 0, synced: 0, error: 0, total: 0 });
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [activeTab, setActiveTab] = useState("assigned");
+
+  // Online/offline detection
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
+  }, []);
+
+  // Load assignments from IndexedDB
+  const loadData = useCallback(async () => {
+    const [allAssignments, stats] = await Promise.all([
+      getAssignments(),
+      getQueueStats(),
+    ]);
+    setAssignments(allAssignments);
+    setQueueStats(stats);
+  }, []);
+
+  useEffect(() => { loadData(); }, [loadData]);
+
+  // Pull assignments from server
+  const pullAssignments = async () => {
+    if (!isOnline) {
+      toast.error("Cannot pull assignments while offline");
+      return;
+    }
+    try {
+      const { data: parcels, error } = await supabase
+        .from("parcels")
+        .select("id, parcel_number, address, city, latitude, longitude, assessed_value, property_class")
+        .order("updated_at", { ascending: true })
+        .limit(20);
+
+      if (error) throw error;
+      if (!parcels?.length) {
+        toast.info("No parcels available for assignment");
+        return;
+      }
+
+      const newAssignments: FieldAssignment[] = parcels.map((p) => ({
+        id: crypto.randomUUID(),
+        parcelId: p.id,
+        parcelNumber: p.parcel_number,
+        address: p.address,
+        city: p.city,
+        latitude: p.latitude,
+        longitude: p.longitude,
+        currentValue: p.assessed_value,
+        propertyClass: p.property_class,
+        priority: "routine" as const,
+        status: "assigned" as const,
+        assignedAt: new Date().toISOString(),
+        inspectedAt: null,
+        notes: null,
+      }));
+
+      await saveAssignments(newAssignments);
+      await loadData();
+      toast.success(`${newAssignments.length} assignments cached for field work`);
+    } catch (err: any) {
+      toast.error("Failed to pull assignments", { description: err.message });
+    }
+  };
+
+  // Sync pending observations
+  const handleSync = async () => {
+    if (!isOnline) {
+      toast.error("Cannot sync while offline");
+      return;
+    }
+    setIsSyncing(true);
+    try {
+      const result = await syncPendingObservations();
+      await loadData();
+      if (result.synced > 0) toast.success(`${result.synced} observations synced`);
+      if (result.errors > 0) toast.error(`${result.errors} failed to sync`);
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const filterByStatus = (status: InspectionStatus) =>
+    assignments.filter((a) => a.status === status);
+
+  if (activeInspection) {
+    return (
+      <InspectionPanel
+        assignment={activeInspection}
+        onBack={() => {
+          setActiveInspection(null);
+          loadData();
+        }}
+      />
+    );
+  }
+
+  return (
+    <div className="p-4 sm:p-6 max-w-5xl mx-auto space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Field Studio</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            Offline-first inspection · Event-sourced truth capture
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          {/* Online indicator */}
+          <Badge
+            variant="outline"
+            className={isOnline
+              ? "border-primary/40 text-primary bg-primary/10"
+              : "border-destructive/40 text-destructive bg-destructive/10"
+            }
+          >
+            {isOnline ? <Wifi className="w-3 h-3 mr-1" /> : <WifiOff className="w-3 h-3 mr-1" />}
+            {isOnline ? "Online" : "Offline"}
+          </Badge>
+        </div>
+      </div>
+
+      {/* Sync Bar */}
+      <Card className="border-border/50 bg-card/80">
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex-1">
+              <div className="flex items-center gap-4 text-sm">
+                <span className="text-muted-foreground">
+                  <Clock className="w-3.5 h-3.5 inline mr-1" />
+                  {queueStats.pending} pending
+                </span>
+                <span className="text-emerald-400">
+                  <CheckCircle2 className="w-3.5 h-3.5 inline mr-1" />
+                  {queueStats.synced} synced
+                </span>
+                {queueStats.error > 0 && (
+                  <span className="text-destructive">
+                    <AlertTriangle className="w-3.5 h-3.5 inline mr-1" />
+                    {queueStats.error} errors
+                  </span>
+                )}
+              </div>
+              {queueStats.total > 0 && (
+                <Progress
+                  value={(queueStats.synced / queueStats.total) * 100}
+                  className="mt-2 h-1.5"
+                />
+              )}
+            </div>
+            <div className="flex gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={pullAssignments}
+                disabled={!isOnline}
+              >
+                <Plus className="w-4 h-4 mr-1" />
+                Pull
+              </Button>
+              <Button
+                size="sm"
+                onClick={handleSync}
+                disabled={!isOnline || isSyncing || queueStats.pending === 0}
+                className="bg-primary text-primary-foreground"
+              >
+                <Upload className="w-4 h-4 mr-1" />
+                {isSyncing ? "Syncing..." : "Sync"}
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Assignment Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="bg-muted/50">
+          <TabsTrigger value="assigned" className="text-xs sm:text-sm">
+            <MapPin className="w-3.5 h-3.5 mr-1" />
+            Assigned ({filterByStatus("assigned").length})
+          </TabsTrigger>
+          <TabsTrigger value="in_progress" className="text-xs sm:text-sm">
+            <ClipboardCheck className="w-3.5 h-3.5 mr-1" />
+            In Progress ({filterByStatus("in_progress").length})
+          </TabsTrigger>
+          <TabsTrigger value="completed" className="text-xs sm:text-sm">
+            <CheckCircle2 className="w-3.5 h-3.5 mr-1" />
+            Done ({filterByStatus("completed").length + filterByStatus("synced").length})
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="assigned" className="mt-4 space-y-2">
+          <AssignmentList
+            items={filterByStatus("assigned")}
+            onSelect={setActiveInspection}
+            emptyMessage="No assignments. Tap 'Pull' to fetch parcels."
+          />
+        </TabsContent>
+        <TabsContent value="in_progress" className="mt-4 space-y-2">
+          <AssignmentList
+            items={filterByStatus("in_progress")}
+            onSelect={setActiveInspection}
+            emptyMessage="No inspections in progress."
+          />
+        </TabsContent>
+        <TabsContent value="completed" className="mt-4 space-y-2">
+          <AssignmentList
+            items={[...filterByStatus("completed"), ...filterByStatus("synced")]}
+            onSelect={setActiveInspection}
+            emptyMessage="No completed inspections."
+          />
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+}
+
+// ── Assignment Card List ───────────────────────────────────────────
+function AssignmentList({
+  items,
+  onSelect,
+  emptyMessage,
+}: {
+  items: FieldAssignment[];
+  onSelect: (a: FieldAssignment) => void;
+  emptyMessage: string;
+}) {
+  if (items.length === 0) {
+    return (
+      <div className="text-center py-12 text-muted-foreground">
+        <MapPin className="w-8 h-8 mx-auto mb-2 opacity-40" />
+        <p className="text-sm">{emptyMessage}</p>
+      </div>
+    );
+  }
+
+  return (
+    <AnimatePresence>
+      {items.map((a) => (
+        <motion.div
+          key={a.id}
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, x: -20 }}
+        >
+          <Card
+            className="cursor-pointer hover:border-primary/30 transition-colors border-border/50 bg-card/80"
+            onClick={() => onSelect(a)}
+          >
+            <CardContent className="p-4 flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                <MapPin className="w-5 h-5 text-primary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-medium text-sm text-foreground truncate">{a.address}</p>
+                <p className="text-xs text-muted-foreground">
+                  {a.parcelNumber} · {a.propertyClass || "—"} · ${a.currentValue?.toLocaleString()}
+                </p>
+              </div>
+              <Badge variant="outline" className="text-[10px] shrink-0">
+                {a.priority}
+              </Badge>
+              <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />
+            </CardContent>
+          </Card>
+        </motion.div>
+      ))}
+    </AnimatePresence>
+  );
+}

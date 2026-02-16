@@ -6,6 +6,7 @@ import { GlobalCommandPalette } from "@/components/navigation/GlobalCommandPalet
 import { ControlCenter } from "@/components/navigation/ControlCenter";
 import { IDSCommandCenter } from "@/components/ids/IDSCommandCenter";
 import { PropertyWorkbench } from "@/components/workbench";
+import { FieldStudioDashboard } from "@/components/field";
 import { SuiteHub } from "@/components/dashboard/SuiteHub";
 import { FactoryLayout } from "@/components/factory/FactoryLayout";
 import { SyncDashboard } from "@/components/sync/SyncDashboard";
@@ -114,6 +115,8 @@ export function AppLayout({ initialParcel: routeParcel, initialModule, initialFa
             <SyncDashboard />
           </div>
         );
+      case "field":
+        return <FieldStudioDashboard />;
       default:
         return <SuiteHub onNavigate={handleNavigate} />;
     }
