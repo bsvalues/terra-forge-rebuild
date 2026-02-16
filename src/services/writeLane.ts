@@ -56,6 +56,18 @@ export function resolveWriteLane(domain: WriteDomain): SourceModule {
  */
 export function assertWriteLane(domain: WriteDomain, sourceModule: SourceModule): void {
   const owner = WRITE_LANE_MATRIX[domain];
+
+  // Field Studio is a routing module — it NEVER owns any write lane.
+  // It may only enqueue FieldObservation events; canonical writes go through domain services.
+  if (sourceModule === "field" && domain !== "trace_events") {
+    const msg = `[WriteLane] FIELD GUARDRAIL: "field" module attempted direct write to "${domain}". Field Studio must route through domain services.`;
+    console.error(msg);
+    if (import.meta.env.DEV) {
+      throw new Error(msg);
+    }
+    return;
+  }
+
   if (owner !== sourceModule) {
     const msg = `[WriteLane] VIOLATION: "${sourceModule}" attempted to write to "${domain}" (owned by "${owner}")`;
     console.error(msg);

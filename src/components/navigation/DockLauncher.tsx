@@ -1,4 +1,5 @@
-import { motion } from "framer-motion";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import {
   Home,
@@ -10,9 +11,11 @@ import {
   BarChart3,
   Map,
   Compass,
+  MoreHorizontal,
 } from "lucide-react";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface DockLauncherProps {
   activeModule: string;
@@ -30,13 +33,29 @@ const dockItems = [
   { id: "sync", label: "Sync", icon: Shield, shortcut: "⌘8" },
 ];
 
+const VISIBLE_COUNT_MOBILE = 5;
+
 export function DockLauncher({ activeModule, onModuleChange }: DockLauncherProps) {
   const { signOut } = useAuthContext();
+  const isMobile = useIsMobile();
+  const [overflowOpen, setOverflowOpen] = useState(false);
+
+  const visibleItems = isMobile ? dockItems.slice(0, VISIBLE_COUNT_MOBILE) : dockItems;
+  const overflowItems = isMobile ? dockItems.slice(VISIBLE_COUNT_MOBILE) : [];
+
+  // If the active module is in the overflow, swap it into visible
+  const activeInOverflow = isMobile && overflowItems.some((i) => i.id === activeModule);
+  const displayItems = activeInOverflow
+    ? [...visibleItems.slice(0, VISIBLE_COUNT_MOBILE - 1), dockItems.find((i) => i.id === activeModule)!]
+    : visibleItems;
+  const displayOverflow = activeInOverflow
+    ? [...overflowItems.filter((i) => i.id !== activeModule), visibleItems[VISIBLE_COUNT_MOBILE - 1]]
+    : overflowItems;
 
   return (
     <div className="dock-launcher material-shell">
       <nav className="flex items-center gap-0.5 sm:gap-1">
-        {dockItems.map((item) => {
+        {displayItems.map((item) => {
           const Icon = item.icon;
           const isActive = activeModule === item.id;
 
@@ -74,6 +93,59 @@ export function DockLauncher({ activeModule, onModuleChange }: DockLauncherProps
             </Tooltip>
           );
         })}
+
+        {/* Overflow "More" button — mobile only */}
+        {isMobile && displayOverflow.length > 0 && (
+          <div className="relative">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <motion.button
+                  onClick={() => setOverflowOpen(!overflowOpen)}
+                  className="dock-item px-2"
+                  whileHover={{ y: -4 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <MoreHorizontal className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-[8px] mt-0.5 text-muted-foreground">More</span>
+                </motion.button>
+              </TooltipTrigger>
+              <TooltipContent side="top" className="text-xs">More modules</TooltipContent>
+            </Tooltip>
+
+            <AnimatePresence>
+              {overflowOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 8 }}
+                  className="absolute bottom-14 right-0 bg-card border border-border/60 rounded-lg p-2 shadow-xl min-w-[140px] z-50"
+                >
+                  {displayOverflow.map((item) => {
+                    const Icon = item.icon;
+                    const isActive = activeModule === item.id;
+                    return (
+                      <button
+                        key={item.id}
+                        onClick={() => {
+                          onModuleChange(item.id);
+                          setOverflowOpen(false);
+                        }}
+                        className={cn(
+                          "flex items-center gap-2 w-full px-3 py-2 rounded-md text-sm transition-colors",
+                          isActive ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted/50"
+                        )}
+                      >
+                        <Icon className="w-4 h-4" />
+                        <span>{item.label}</span>
+                        <kbd className="ml-auto text-[10px] opacity-60">{item.shortcut}</kbd>
+                      </button>
+                    );
+                  })}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        )}
 
         {/* Separator */}
         <div className="w-px h-6 bg-border/50 mx-0.5 sm:mx-1" />
