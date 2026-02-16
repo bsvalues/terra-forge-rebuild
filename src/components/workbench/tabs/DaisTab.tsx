@@ -6,7 +6,7 @@ import { WorkflowStats } from "@/components/dais/WorkflowStats";
 import { AppealsWorkflow } from "@/components/dais/AppealsWorkflow";
 import { PermitsWorkflow } from "@/components/dais/PermitsWorkflow";
 import { ExemptionsWorkflow } from "@/components/dais/ExemptionsWorkflow";
-import { CertificationDashboard } from "@/components/dais/CertificationDashboard";
+import { CertificationPipeline } from "@/components/dais/CertificationPipeline";
 import { NoticesPanel } from "@/components/dais/NoticesPanel";
 import { useWorkbench } from "../WorkbenchContext";
 
@@ -109,7 +109,7 @@ export function DaisTab({ initialCategory, onCategoryConsumed }: DaisTabProps) {
         </TabsContent>
 
         <TabsContent value="certification" className="mt-0">
-          <CertificationDashboard />
+          <CertificationPipeline />
         </TabsContent>
       </Tabs>
     </div>

@@ -34,7 +34,8 @@ export type TraceEventType =
   | "spatial_anomaly_flagged"
   | "field_inspection_completed"
   | "neighborhood_certified"
-  | "batch_adjustment_applied";
+  | "batch_adjustment_applied"
+  | "county_roll_certified";
 
 export type ArtifactType =
   | "assessment"
