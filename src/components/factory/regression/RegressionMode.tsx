@@ -4,6 +4,7 @@ import { CoefficientGrid } from "./CoefficientGrid";
 import { CalibrationScatterPlot } from "./CalibrationScatterPlot";
 import { CalibrationDiagnostics } from "./CalibrationDiagnostics";
 import { BatchApplyPanel } from "./BatchApplyPanel";
+import { RecentBatchesPanel } from "./RecentBatchesPanel";
 import { BarChart3 } from "lucide-react";
 import { useState } from "react";
 
@@ -38,6 +39,9 @@ export function RegressionMode({ neighborhoodCode }: RegressionModeProps) {
             calibrationRunId={calibrationRunId}
           />
         )}
+
+        {/* Recent Batches with Rollback */}
+        <RecentBatchesPanel />
 
         {/* Run History */}
         {hook.history.length > 0 && (
