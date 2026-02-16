@@ -127,8 +127,8 @@ export function AppLayout({ initialParcel: routeParcel, initialModule, initialFa
         onOpenControlCenter={() => setControlCenterOpen(true)}
       />
 
-      {/* Stage — Full-width workspace */}
-      <main className="flex-1 overflow-auto pb-16">
+      {/* Stage — Full-width workspace with safe bottom padding for dock */}
+      <main className="flex-1 overflow-auto pb-20 sm:pb-16">
         <AnimatePresence mode="wait">
           <motion.div
             key={activeModule}

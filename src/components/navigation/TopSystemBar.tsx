@@ -63,35 +63,44 @@ export function TopSystemBar({ onOpenCommandPalette, onOpenControlCenter }: TopS
         </div>
       </div>
 
-      {/* Center: Cmd+K hint */}
+      {/* Center: Cmd+K hint — hidden on mobile */}
       <button
         onClick={onOpenCommandPalette}
-        className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted/40 hover:bg-muted/60 transition-colors text-muted-foreground hover:text-foreground text-sm"
+        className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted/40 hover:bg-muted/60 transition-colors text-muted-foreground hover:text-foreground text-sm"
       >
         <Command className="w-3.5 h-3.5" />
-        <span>Search parcels, suites, actions...</span>
-        <kbd className="ml-2 inline-flex h-5 items-center gap-0.5 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
+        <span className="hidden md:inline">Search parcels, suites, actions...</span>
+        <span className="md:hidden">Search...</span>
+        <kbd className="ml-2 hidden md:inline-flex h-5 items-center gap-0.5 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
           ⌘K
         </kbd>
       </button>
 
+      {/* Mobile: search icon only */}
+      <button
+        onClick={onOpenCommandPalette}
+        className="sm:hidden p-2 rounded-lg hover:bg-muted/40 transition-colors"
+      >
+        <Command className="w-4 h-4 text-muted-foreground" />
+      </button>
+
       {/* Right: Role + Sync + Control Center + User */}
-      <div className="flex items-center gap-2">
-        {/* Role Badge */}
-        <Badge variant="outline" className="text-[10px] px-2 py-0.5 border-tf-cyan/30 text-tf-cyan">
+      <div className="flex items-center gap-1 sm:gap-2">
+        {/* Role Badge — hidden on mobile */}
+        <Badge variant="outline" className="hidden md:inline-flex text-[10px] px-2 py-0.5 border-tf-cyan/30 text-tf-cyan">
           {profile?.display_name || "Analyst"}
         </Badge>
 
-        {/* Sync Status */}
+        {/* Sync Status — compact on mobile */}
         <Tooltip>
           <TooltipTrigger asChild>
-            <div className="flex items-center gap-1.5 px-2 py-1 rounded-md">
+            <div className="flex items-center gap-1 px-1.5 sm:px-2 py-1 rounded-md">
               {isOnline ? (
                 <Wifi className="w-3.5 h-3.5 text-tf-green" />
               ) : (
                 <WifiOff className="w-3.5 h-3.5 text-tf-red" />
               )}
-              <span className="text-[10px] text-muted-foreground">
+              <span className="text-[10px] text-muted-foreground hidden sm:inline">
                 {parcelsCount?.toLocaleString() || "—"}
               </span>
             </div>
@@ -104,7 +113,7 @@ export function TopSystemBar({ onOpenCommandPalette, onOpenControlCenter }: TopS
         {/* Control Center */}
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onOpenControlCenter}>
+            <Button variant="ghost" size="icon" className="h-7 w-7 sm:h-8 sm:w-8" onClick={onOpenControlCenter}>
               <SlidersHorizontal className="w-4 h-4 text-muted-foreground" />
             </Button>
           </TooltipTrigger>
