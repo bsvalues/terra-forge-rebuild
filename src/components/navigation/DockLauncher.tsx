@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { getQueueStats } from "@/services/fieldStore";
 import {
   Home,
   Database,
@@ -39,6 +40,15 @@ export function DockLauncher({ activeModule, onModuleChange }: DockLauncherProps
   const { signOut } = useAuthContext();
   const isMobile = useIsMobile();
   const [overflowOpen, setOverflowOpen] = useState(false);
+  const [pendingSync, setPendingSync] = useState(0);
+
+  // Poll unsynced observation count — the leprechaun demands accountability
+  useEffect(() => {
+    const poll = () => getQueueStats().then((s) => setPendingSync(s.pending)).catch(() => {});
+    poll();
+    const interval = setInterval(poll, 10_000);
+    return () => clearInterval(interval);
+  }, []);
 
   const visibleItems = isMobile ? dockItems.slice(0, VISIBLE_COUNT_MOBILE) : dockItems;
   const overflowItems = isMobile ? dockItems.slice(VISIBLE_COUNT_MOBILE) : [];
@@ -58,13 +68,14 @@ export function DockLauncher({ activeModule, onModuleChange }: DockLauncherProps
         {displayItems.map((item) => {
           const Icon = item.icon;
           const isActive = activeModule === item.id;
+          const showBadge = item.id === "field" && pendingSync > 0;
 
           return (
             <Tooltip key={item.id}>
               <TooltipTrigger asChild>
                 <motion.button
                   onClick={() => onModuleChange(item.id)}
-                  className="dock-item px-2 sm:px-3"
+                  className="dock-item px-2 sm:px-3 relative"
                   data-active={isActive}
                   whileHover={{ y: -6, scale: 1.1 }}
                   whileTap={{ scale: 0.95 }}
@@ -76,6 +87,12 @@ export function DockLauncher({ activeModule, onModuleChange }: DockLauncherProps
                       isActive ? "text-tf-cyan" : "text-muted-foreground"
                     )}
                   />
+                  {/* Unsynced badge — the paste-eating sentinel watches over field data */}
+                  {showBadge && (
+                    <span className="absolute -top-1 -right-0.5 min-w-[16px] h-4 px-1 rounded-full bg-destructive text-destructive-foreground text-[9px] font-bold flex items-center justify-center leading-none">
+                      {pendingSync > 99 ? "99+" : pendingSync}
+                    </span>
+                  )}
                   <span
                     className={cn(
                       "text-[8px] sm:text-[9px] mt-0.5 transition-colors hidden xs:inline",
@@ -88,6 +105,7 @@ export function DockLauncher({ activeModule, onModuleChange }: DockLauncherProps
               </TooltipTrigger>
               <TooltipContent side="top" className="text-xs">
                 {item.label}
+                {showBadge && ` (${pendingSync} unsynced)`}
                 <kbd className="ml-2 text-[10px] text-muted-foreground">{item.shortcut}</kbd>
               </TooltipContent>
             </Tooltip>
