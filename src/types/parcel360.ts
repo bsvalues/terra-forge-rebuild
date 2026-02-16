@@ -32,7 +32,9 @@ export type TraceEventType =
   | "field_photo_captured"
   | "field_note_added"
   | "spatial_anomaly_flagged"
-  | "field_inspection_completed";
+  | "field_inspection_completed"
+  | "neighborhood_certified"
+  | "batch_adjustment_applied";
 
 export type ArtifactType =
   | "assessment"
