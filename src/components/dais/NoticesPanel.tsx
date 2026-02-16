@@ -1,17 +1,20 @@
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
+import { useMutation } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { generateNotice } from "@/services/suites/daisService";
 import {
   Bell,
   FileText,
   Send,
   Download,
   Loader2,
-  CheckCircle,
   Home,
   Scale,
   ClipboardCheck,
   Calendar,
+  Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -19,13 +22,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -77,12 +73,12 @@ interface GeneratedNotice {
   body: string;
   generatedAt: string;
   status: "draft" | "sent";
+  aiDrafted: boolean;
 }
 
 export function NoticesPanel() {
   const { parcel } = useWorkbench();
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
-  const [generating, setGenerating] = useState(false);
   const [notices, setNotices] = useState<GeneratedNotice[]>([]);
   const [createOpen, setCreateOpen] = useState(false);
 
@@ -92,50 +88,106 @@ export function NoticesPanel() {
   const [customSubject, setCustomSubject] = useState("");
   const [customBody, setCustomBody] = useState("");
 
-  const handleGenerate = async () => {
-    if (!selectedTemplate) return;
-    setGenerating(true);
+  const generateMutation = useMutation({
+    mutationFn: async () => {
+      if (!selectedTemplate) throw new Error("Select a notice type");
 
-    const template = NOTICE_TEMPLATES.find((t) => t.id === selectedTemplate);
+      const template = NOTICE_TEMPLATES.find((t) => t.id === selectedTemplate);
+      let noticeContent: string;
+      let aiDrafted = false;
 
-    // Simulate AI notice generation
-    await new Promise((r) => setTimeout(r, 1200));
+      // Use AI drafting for assessment_change notices when parcel context is available
+      if (selectedTemplate === "assessment_change" && parcel.id) {
+        try {
+          const { data, error } = await supabase.functions.invoke("draft-notice", {
+            body: {
+              parcelNumber: parcel.parcelNumber || "N/A",
+              address: parcel.address || "N/A",
+              previousValue: parcel.assessedValue || 0,
+              newValue: parcel.assessedValue || 0,
+              neighborhoodCode: parcel.neighborhoodCode || "N/A",
+              rSquared: "N/A",
+              method: "Manual Review",
+              noticeType: "assessment_change",
+              recipientName: recipientName || "Property Owner",
+            },
+          });
 
-    const subjects: Record<string, string> = {
-      assessment_change: `Notice of Assessment Change — ${parcel.parcelNumber || "N/A"}`,
-      hearing_notice: `Board of Equalization Hearing Notice — ${parcel.parcelNumber || "N/A"}`,
-      exemption_decision: `Exemption Application Decision — ${parcel.parcelNumber || "N/A"}`,
-      general_correspondence: customSubject || `Correspondence — ${parcel.parcelNumber || "N/A"}`,
+          if (error) throw error;
+          noticeContent = data?.notice || "";
+          aiDrafted = true;
+        } catch {
+          // Fallback to template
+          noticeContent = generateTemplateContent(selectedTemplate);
+        }
+      } else {
+        noticeContent = selectedTemplate === "general_correspondence" && customBody
+          ? customBody
+          : generateTemplateContent(selectedTemplate);
+      }
+
+      // Record in TerraTrace via daisService
+      if (parcel.id) {
+        await generateNotice(parcel.id, selectedTemplate, {
+          parcelNumber: parcel.parcelNumber,
+          address: parcel.address,
+          recipient: recipientName || "Property Owner",
+          aiDrafted,
+        });
+      }
+
+      const subjects: Record<string, string> = {
+        assessment_change: `Notice of Assessment Change — ${parcel.parcelNumber || "N/A"}`,
+        hearing_notice: `Board of Equalization Hearing Notice — ${parcel.parcelNumber || "N/A"}`,
+        exemption_decision: `Exemption Application Decision — ${parcel.parcelNumber || "N/A"}`,
+        general_correspondence: customSubject || `Correspondence — ${parcel.parcelNumber || "N/A"}`,
+      };
+
+      return {
+        id: crypto.randomUUID(),
+        type: selectedTemplate,
+        parcelNumber: parcel.parcelNumber || "Unknown",
+        recipient: recipientName || "Property Owner",
+        subject: subjects[selectedTemplate] || "Notice",
+        body: noticeContent,
+        generatedAt: new Date().toISOString(),
+        status: "draft" as const,
+        aiDrafted,
+      };
+    },
+    onSuccess: (notice) => {
+      setNotices((prev) => [notice, ...prev]);
+      setCreateOpen(false);
+      setSelectedTemplate(null);
+      setRecipientName("");
+      setRecipientAddress("");
+      setCustomSubject("");
+      setCustomBody("");
+      toast.success(
+        notice.aiDrafted ? "AI-drafted notice generated" : "Notice generated",
+        { icon: notice.aiDrafted ? <Sparkles className="w-4 h-4" /> : undefined }
+      );
+    },
+    onError: (err: Error) => {
+      toast.error(err.message);
+    },
+  });
+
+  function generateTemplateContent(type: string): string {
+    const name = recipientName || "Property Owner";
+    const addr = parcel.address || "[Address]";
+    const pin = parcel.parcelNumber || "[PIN]";
+    const val = (parcel.assessedValue || 0).toLocaleString();
+
+    const templates: Record<string, string> = {
+      assessment_change: `Dear ${name},\n\nThis notice is to inform you that the assessed value of your property located at ${addr} (Parcel ${pin}) has been adjusted for the current tax year.\n\nPrevious Assessed Value: $${val}\nRevised Assessed Value: [To be determined]\n\nYou have the right to appeal this assessment within 30 days of this notice. Please contact our office for further information.\n\nSincerely,\nCounty Assessor's Office`,
+      hearing_notice: `Dear ${name},\n\nYou are hereby notified that a hearing has been scheduled for your appeal regarding property at ${addr} (Parcel ${pin}).\n\nHearing Date: [Scheduled Date]\nLocation: County Board of Equalization\nTime: [Scheduled Time]\n\nPlease bring all supporting documentation to your hearing.\n\nSincerely,\nBoard of Equalization`,
+      exemption_decision: `Dear ${name},\n\nThis letter is regarding your exemption application for the property located at ${addr} (Parcel ${pin}).\n\nDecision: [Approved/Denied]\nEffective Date: [Date]\n\nIf you have questions regarding this decision, please contact our office.\n\nSincerely,\nCounty Assessor's Office`,
+      general_correspondence: "No content provided.",
     };
 
-    const bodies: Record<string, string> = {
-      assessment_change: `Dear ${recipientName || "Property Owner"},\n\nThis notice is to inform you that the assessed value of your property located at ${parcel.address || "[Address]"} (Parcel ${parcel.parcelNumber || "[PIN]"}) has been adjusted for the current tax year.\n\nPrevious Assessed Value: $${(parcel.assessedValue || 0).toLocaleString()}\nRevised Assessed Value: [To be determined]\n\nYou have the right to appeal this assessment within 30 days of this notice. Please contact our office for further information.\n\nSincerely,\nCounty Assessor's Office`,
-      hearing_notice: `Dear ${recipientName || "Property Owner"},\n\nYou are hereby notified that a hearing has been scheduled for your appeal regarding property at ${parcel.address || "[Address]"} (Parcel ${parcel.parcelNumber || "[PIN]"}).\n\nHearing Date: [Scheduled Date]\nLocation: County Board of Equalization\nTime: [Scheduled Time]\n\nPlease bring all supporting documentation to your hearing.\n\nSincerely,\nBoard of Equalization`,
-      exemption_decision: `Dear ${recipientName || "Applicant"},\n\nThis letter is regarding your exemption application for the property located at ${parcel.address || "[Address]"} (Parcel ${parcel.parcelNumber || "[PIN]"}).\n\nDecision: [Approved/Denied]\nEffective Date: [Date]\n\nIf you have questions regarding this decision, please contact our office.\n\nSincerely,\nCounty Assessor's Office`,
-      general_correspondence: customBody || "No content provided.",
-    };
-
-    const newNotice: GeneratedNotice = {
-      id: crypto.randomUUID(),
-      type: selectedTemplate,
-      parcelNumber: parcel.parcelNumber || "Unknown",
-      recipient: recipientName || "Property Owner",
-      subject: subjects[selectedTemplate] || "Notice",
-      body: bodies[selectedTemplate] || "",
-      generatedAt: new Date().toISOString(),
-      status: "draft",
-    };
-
-    setNotices((prev) => [newNotice, ...prev]);
-    setGenerating(false);
-    setCreateOpen(false);
-    setSelectedTemplate(null);
-    setRecipientName("");
-    setRecipientAddress("");
-    setCustomSubject("");
-    setCustomBody("");
-    toast.success(`${template?.label} generated`);
-  };
+    return templates[type] || "";
+  }
 
   const handleDownload = (notice: GeneratedNotice) => {
     const content = `${notice.subject}\n${"=".repeat(notice.subject.length)}\n\nDate: ${format(new Date(notice.generatedAt), "MMMM d, yyyy")}\nParcel: ${notice.parcelNumber}\nRecipient: ${notice.recipient}\n\n---\n\n${notice.body}`;
@@ -212,6 +264,16 @@ export function NoticesPanel() {
                   </div>
                 </div>
 
+                {/* AI badge for assessment_change */}
+                {selectedTemplate === "assessment_change" && parcel.id && (
+                  <div className="flex items-center gap-2 p-2 rounded-lg bg-[hsl(var(--tf-sacred-gold)/0.1)] border border-[hsl(var(--tf-sacred-gold)/0.2)]">
+                    <Sparkles className="w-4 h-4 text-[hsl(var(--tf-sacred-gold))]" />
+                    <span className="text-[10px] text-[hsl(var(--tf-sacred-gold))]">
+                      AI-powered drafting via TerraPilot Muse
+                    </span>
+                  </div>
+                )}
+
                 {/* Recipient */}
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1">
@@ -271,18 +333,22 @@ export function NoticesPanel() {
                 )}
 
                 <Button
-                  onClick={handleGenerate}
-                  disabled={!selectedTemplate || generating}
+                  onClick={() => generateMutation.mutate()}
+                  disabled={!selectedTemplate || generateMutation.isPending}
                   className="w-full gap-2"
                 >
-                  {generating ? (
+                  {generateMutation.isPending ? (
                     <>
                       <Loader2 className="w-4 h-4 animate-spin" />
-                      Generating…
+                      {selectedTemplate === "assessment_change" && parcel.id ? "AI Drafting…" : "Generating…"}
                     </>
                   ) : (
                     <>
-                      <FileText className="w-4 h-4" />
+                      {selectedTemplate === "assessment_change" && parcel.id ? (
+                        <Sparkles className="w-4 h-4" />
+                      ) : (
+                        <FileText className="w-4 h-4" />
+                      )}
                       Generate Notice
                     </>
                   )}
@@ -318,7 +384,12 @@ export function NoticesPanel() {
                       <div className="flex items-center gap-2">
                         <Icon className={cn("w-4 h-4", template?.color)} />
                         <div>
-                          <p className="text-sm font-medium">{notice.subject}</p>
+                          <p className="text-sm font-medium flex items-center gap-1.5">
+                            {notice.subject}
+                            {notice.aiDrafted && (
+                              <Sparkles className="w-3 h-3 text-[hsl(var(--tf-sacred-gold))]" />
+                            )}
+                          </p>
                           <div className="flex items-center gap-2 mt-0.5">
                             <span className="text-[10px] text-muted-foreground">
                               To: {notice.recipient}

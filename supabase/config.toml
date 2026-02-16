@@ -23,3 +23,18 @@ verify_jwt = false
 
 [functions.terrapilot-chat]
 verify_jwt = false
+
+[functions.draft-notice]
+verify_jwt = false
+
+[functions.schedule-scrape]
+verify_jwt = false
+
+[functions.system-health]
+verify_jwt = false
+
+[functions.regression-calibrate]
+verify_jwt = false
+
+[functions.defense-narrative]
+verify_jwt = false
