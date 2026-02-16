@@ -2,6 +2,7 @@ import { useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { NeighborhoodSelector } from "./NeighborhoodSelector";
+import { FactoryDashboardHeader } from "./FactoryDashboardHeader";
 import { RegressionMode } from "./regression/RegressionMode";
 import { CostMode } from "./cost/CostMode";
 import { CompMode } from "./comps/CompMode";
@@ -55,6 +56,9 @@ export function FactoryLayout({ initialMode }: FactoryLayoutProps) {
 
         <NeighborhoodSelector value={neighborhood} onChange={setNeighborhood} />
       </motion.div>
+
+      {/* Aggregate Stats Dashboard Header */}
+      <FactoryDashboardHeader />
 
       {/* Mode Tabs */}
       <Tabs value={activeMode} onValueChange={handleModeChange} className="space-y-6">
