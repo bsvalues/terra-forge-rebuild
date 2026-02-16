@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { TerraTraceActivityFeed } from "@/components/proof/TerraTraceActivityFeed";
+import { SystemHealthPanel } from "./SystemHealthPanel";
 
 interface CommandBriefingProps {
   onNavigate: (module: string) => void;
@@ -92,6 +93,24 @@ export function CommandBriefing({ onNavigate }: CommandBriefingProps) {
         .select("*", { count: "exact", head: true })
         .eq("status", "pending");
       return count || 0;
+    },
+  });
+
+  // Certification readiness
+  const { data: certStats } = useQuery({
+    queryKey: ["briefing-cert-readiness"],
+    queryFn: async () => {
+      const { count: totalAssessments } = await supabase
+        .from("assessments")
+        .select("*", { count: "exact", head: true });
+      const { count: certifiedCount } = await supabase
+        .from("assessments")
+        .select("*", { count: "exact", head: true })
+        .eq("certified", true);
+      const total = totalAssessments || 0;
+      const certified = certifiedCount || 0;
+      const rate = total > 0 ? Math.round((certified / total) * 100) : 0;
+      return { total, certified, rate };
     },
   });
 
@@ -351,9 +370,56 @@ export function CommandBriefing({ onNavigate }: CommandBriefingProps) {
         </motion.div>
       )}
 
+      {/* System Health + Certification Readiness */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.35 }}
+        className="grid grid-cols-1 md:grid-cols-2 gap-4"
+      >
+        <SystemHealthPanel />
+
+        {/* Certification Readiness */}
+        <Card
+          className="bg-card/50 border-border cursor-pointer hover:border-primary/40 transition-colors group"
+          onClick={() => onNavigate("workbench:dais:certification")}
+        >
+          <CardContent className="p-5">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 rounded-lg bg-chart-5/20">
+                <CheckCircle2 className="w-4 h-4 text-chart-5" />
+              </div>
+              <div className="flex-1">
+                <h4 className="text-sm font-medium">Roll Certification</h4>
+                <p className="text-xs text-muted-foreground">Assessment certification progress</p>
+              </div>
+              <Badge variant="outline" className={`${
+                (certStats?.rate ?? 0) >= 90 ? "bg-chart-5/10 text-chart-5 border-chart-5/30" :
+                (certStats?.rate ?? 0) >= 50 ? "bg-chart-4/10 text-chart-4 border-chart-4/30" :
+                "bg-destructive/10 text-destructive border-destructive/30"
+              }`}>
+                {certStats?.rate ?? 0}%
+              </Badge>
+              <ArrowRight className="w-3.5 h-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+            </div>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-muted-foreground">Certified</span>
+                <span className="text-sm font-medium text-chart-5">{(certStats?.certified ?? 0).toLocaleString()}</span>
+              </div>
+              <Progress value={certStats?.rate ?? 0} className="h-2" />
+              <div className="flex items-center justify-between text-xs text-muted-foreground">
+                <span>{(certStats?.certified ?? 0).toLocaleString()} of {(certStats?.total ?? 0).toLocaleString()} assessments</span>
+                <span className="text-foreground font-medium">{certStats?.rate ?? 0}% complete</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+
       {/* Recent Activity + TerraTrace */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Card className="bg-tf-elevated/50 border-tf-border">
+        <Card className="bg-card/50 border-border">
           <CardHeader>
             <CardTitle className="text-base font-medium">Recent Ingest Activity</CardTitle>
           </CardHeader>
