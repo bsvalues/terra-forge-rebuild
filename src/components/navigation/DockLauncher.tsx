@@ -33,7 +33,7 @@ export function DockLauncher({ activeModule, onModuleChange }: DockLauncherProps
 
   return (
     <div className="dock-launcher material-shell">
-      <nav className="flex items-center gap-1">
+      <nav className="flex items-center gap-0.5 sm:gap-1">
         {dockItems.map((item) => {
           const Icon = item.icon;
           const isActive = activeModule === item.id;
@@ -43,7 +43,7 @@ export function DockLauncher({ activeModule, onModuleChange }: DockLauncherProps
               <TooltipTrigger asChild>
                 <motion.button
                   onClick={() => onModuleChange(item.id)}
-                  className="dock-item"
+                  className="dock-item px-2 sm:px-3"
                   data-active={isActive}
                   whileHover={{ y: -6, scale: 1.1 }}
                   whileTap={{ scale: 0.95 }}
@@ -51,13 +51,13 @@ export function DockLauncher({ activeModule, onModuleChange }: DockLauncherProps
                 >
                   <Icon
                     className={cn(
-                      "w-5 h-5 transition-colors",
+                      "w-4 h-4 sm:w-5 sm:h-5 transition-colors",
                       isActive ? "text-tf-cyan" : "text-muted-foreground"
                     )}
                   />
                   <span
                     className={cn(
-                      "text-[9px] mt-0.5 transition-colors",
+                      "text-[8px] sm:text-[9px] mt-0.5 transition-colors hidden xs:inline",
                       isActive ? "text-tf-cyan font-medium" : "text-muted-foreground"
                     )}
                   >
@@ -74,14 +74,14 @@ export function DockLauncher({ activeModule, onModuleChange }: DockLauncherProps
         })}
 
         {/* Separator */}
-        <div className="w-px h-6 bg-border/50 mx-1" />
+        <div className="w-px h-6 bg-border/50 mx-0.5 sm:mx-1" />
 
         {/* Sign Out */}
         <Tooltip>
           <TooltipTrigger asChild>
             <motion.button
               onClick={signOut}
-              className="dock-item"
+              className="dock-item px-2 sm:px-3"
               whileHover={{ y: -4 }}
               whileTap={{ scale: 0.95 }}
             >

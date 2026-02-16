@@ -214,7 +214,7 @@ export function SuiteHub({ onNavigate, onParcelNavigate }: SuiteHubProps) {
   const showDropdown = searchFocused && searchValue.trim().length >= 2 && searchResults && searchResults.length > 0;
 
   return (
-    <div className="p-6 pb-24 space-y-8 max-w-5xl mx-auto">
+    <div className="p-4 sm:p-6 pb-24 space-y-6 sm:space-y-8 max-w-5xl mx-auto">
 
       {/* ── Hero: Workbench Entry ── */}
       <motion.section
@@ -224,7 +224,7 @@ export function SuiteHub({ onNavigate, onParcelNavigate }: SuiteHubProps) {
         className="space-y-5"
       >
         <div>
-          <h1 className="text-3xl font-light tracking-tight text-foreground">
+          <h1 className="text-2xl sm:text-3xl font-light tracking-tight text-foreground">
             TerraFusion <span className="text-gradient-sovereign font-medium">OS</span>
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
@@ -298,7 +298,7 @@ export function SuiteHub({ onNavigate, onParcelNavigate }: SuiteHubProps) {
           </div>
 
           {/* Inline vitals */}
-          <div className="flex items-center gap-6 mt-4 flex-wrap">
+          <div className="flex items-center gap-3 sm:gap-6 mt-4 flex-wrap">
             <Vital label="Parcels" value={vitals.parcels.toLocaleString()} />
             <Vital label="Sales" value={vitals.sales.toLocaleString()} />
             <Vital label="Assessments" value={vitals.assessments.toLocaleString()} />
