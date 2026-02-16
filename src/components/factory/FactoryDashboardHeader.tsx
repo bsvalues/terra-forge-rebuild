@@ -35,7 +35,7 @@ function useFactoryStats() {
         exemptionsRes,
       ] = await Promise.all([
         supabase.from("parcels").select("*", { count: "exact", head: true }),
-        supabase.from("parcels").select("neighborhood_code").not("neighborhood_code", "is", null),
+        supabase.from("parcels").select("neighborhood_code").not("neighborhood_code", "is", null).limit(1000),
         supabase.from("calibration_runs").select("*", { count: "exact", head: true }),
         supabase.from("assessments").select("parcel_id, certified").eq("tax_year", currentYear),
         supabase.from("value_adjustments").select("*", { count: "exact", head: true }).is("rolled_back_at", null),
