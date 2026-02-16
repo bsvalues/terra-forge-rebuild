@@ -4,7 +4,9 @@ import { CoefficientGrid } from "./CoefficientGrid";
 import { CalibrationScatterPlot } from "./CalibrationScatterPlot";
 import { CalibrationDiagnostics } from "./CalibrationDiagnostics";
 import { BatchApplyPanel } from "./BatchApplyPanel";
+import { BatchNoticePanel } from "./BatchNoticePanel";
 import { RecentBatchesPanel } from "./RecentBatchesPanel";
+import { RollReadinessPanel } from "./RollReadinessPanel";
 import { BarChart3 } from "lucide-react";
 import { useState } from "react";
 
@@ -33,12 +35,24 @@ export function RegressionMode({ neighborhoodCode }: RegressionModeProps) {
 
         {/* Batch Apply Panel — visible when we have results */}
         {hook.result && neighborhoodCode && (
-          <BatchApplyPanel
-            result={hook.result}
-            neighborhoodCode={neighborhoodCode}
-            calibrationRunId={calibrationRunId}
-          />
+          <>
+            <BatchApplyPanel
+              result={hook.result}
+              neighborhoodCode={neighborhoodCode}
+              calibrationRunId={calibrationRunId}
+            />
+
+            {/* Batch Notices — generate assessment change notices for affected parcels */}
+            <BatchNoticePanel
+              calibrationRunId={calibrationRunId}
+              neighborhoodCode={neighborhoodCode}
+              rSquared={hook.result.r_squared}
+            />
+          </>
         )}
+
+        {/* Roll Readiness — certification blocker check */}
+        <RollReadinessPanel neighborhoodCode={neighborhoodCode} />
 
         {/* Recent Batches with Rollback */}
         <RecentBatchesPanel />
