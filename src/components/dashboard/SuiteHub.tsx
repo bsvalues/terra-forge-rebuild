@@ -19,6 +19,7 @@ import {
   FileText,
   CheckCircle2,
   MapPin,
+  Compass,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -150,6 +151,7 @@ const SUITE_REGISTRY: SuiteEntry[] = [
   { id: "atlas", name: "TerraAtlas", mission: "See the county — maps, layers, spatial tools", icon: Map, status: "native", target: "workbench:atlas", accentVar: "--suite-atlas" },
   { id: "dais", name: "TerraDais", mission: "Operate value — permits, exemptions, appeals", icon: Building2, status: "native", target: "workbench:dais", accentVar: "--suite-dais" },
   { id: "dossier", name: "TerraDossier", mission: "Prove decisions — evidence, narratives, packets", icon: FolderOpen, status: "native", target: "workbench:dossier", accentVar: "--suite-dossier" },
+  { id: "field", name: "Field Studio", mission: "Truth capture — inspections, condition, evidence", icon: Compass, status: "native", target: "field", accentVar: "--tf-transcend-cyan" },
   { id: "vei", name: "VEI Suite", mission: "Equity analysis — IAAO ratio studies, COD, PRD", icon: BarChart3, status: "native", target: "vei", accentVar: "--suite-forge" },
   { id: "geoequity", name: "GeoEquity", mission: "Spatial equity — heatmaps, neighborhood analysis", icon: Globe, status: "native", target: "geoequity", accentVar: "--suite-atlas" },
   { id: "factory", name: "Factory", mission: "Mass appraisal — regression, cost, comp review", icon: Globe, status: "native", target: "factory", accentVar: "--suite-forge" },

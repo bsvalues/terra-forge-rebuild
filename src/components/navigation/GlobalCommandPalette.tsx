@@ -19,6 +19,7 @@ import {
   Map,
   Factory,
   Shield,
+  Compass,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
@@ -38,7 +39,8 @@ const MODULE_ITEMS = [
   { id: "ids", label: "Intelligent Data Suite", icon: Database, shortcut: "4" },
   { id: "vei", label: "VEI Equity Analysis", icon: BarChart3, shortcut: "5" },
   { id: "geoequity", label: "GeoEquity Map", icon: Map, shortcut: "6" },
-  { id: "sync", label: "TerraFusionSync", icon: Shield, shortcut: "7" },
+  { id: "field", label: "Field Studio", icon: Compass, shortcut: "7" },
+  { id: "sync", label: "TerraFusionSync", icon: Shield, shortcut: "8" },
 ];
 
 export function GlobalCommandPalette({
@@ -78,7 +80,7 @@ export function GlobalCommandPalette({
         onOpenChange(!open);
       }
 
-      if ((e.metaKey || e.ctrlKey) && !e.shiftKey && ["1", "2", "3", "4", "5"].includes(e.key)) {
+      if ((e.metaKey || e.ctrlKey) && !e.shiftKey && ["1", "2", "3", "4", "5", "6", "7", "8"].includes(e.key)) {
         e.preventDefault();
         const idx = parseInt(e.key) - 1;
         if (MODULE_ITEMS[idx]) {

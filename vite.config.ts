@@ -10,6 +10,19 @@ export default defineConfig(({ mode }) => ({
     host: "::",
     port: 8080,
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          "vendor-three": ["three", "@react-three/fiber", "@react-three/drei"],
+          "vendor-maps": ["leaflet"],
+          "vendor-charts": ["recharts"],
+          "vendor-xlsx": ["xlsx"],
+          "vendor-motion": ["framer-motion"],
+        },
+      },
+    },
+  },
   plugins: [
     react(),
     mode === 'development' &&
