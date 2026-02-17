@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,11 +17,13 @@ import {
   HardDrive,
   FileText,
   ArrowRightLeft,
-  GitCompare,
+  Play,
+  Loader2,
 } from "lucide-react";
 import { useSystemHealth } from "@/hooks/useSystemHealth";
 import { DataSourceRegistry } from "./DataSourceRegistry";
 import { ConflictResolutionQueue } from "./ConflictResolutionQueue";
+import { SagaRunner } from "./SagaRunner";
 import type { ServiceHealth } from "@/types/sync";
 import type { CircuitMetrics } from "@/services/circuitBreaker";
 import { cn } from "@/lib/utils";
@@ -80,7 +82,7 @@ export function SyncDashboard() {
             TerraFusionSync
           </h2>
           <p className="text-sm text-muted-foreground mt-1">
-            Operational Resilience • Health Monitoring • Circuit Breakers
+            Operational Resilience • Health Monitoring • SAGA Orchestration
           </p>
         </div>
         <Button
@@ -199,33 +201,8 @@ export function SyncDashboard() {
         )}
       </div>
 
-      {/* SAGA Templates */}
-      <div>
-        <h3 className="text-sm font-medium text-muted-foreground mb-3 flex items-center gap-2">
-          <ArrowRightLeft className="w-4 h-4" />
-          Available Workflow SAGAs
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {[
-            { id: "bulk_import", label: "Bulk Data Import", steps: 7, desc: "File → validate → parse → transform → stage → import → verify" },
-            { id: "assessment_update", label: "Assessment Update", steps: 6, desc: "Lock → backup → apply → recalc → validate → report" },
-            { id: "pacs_migration", label: "PACS Migration", steps: 6, desc: "Config → extract → transform → load → verify → index" },
-            { id: "sync_refresh", label: "Sync Refresh", steps: 5, desc: "Detect → diff → apply → checksum → notify" },
-          ].map((saga) => (
-            <Card key={saga.id} className="bg-card/50 border-border/50 hover:border-tf-cyan/20 transition-colors">
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-sm font-medium">{saga.label}</span>
-                  <Badge variant="outline" className="text-[10px] font-mono">
-                    {saga.steps} steps
-                  </Badge>
-                </div>
-                <p className="text-xs text-muted-foreground">{saga.desc}</p>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </div>
+      {/* SAGA Runner — live workflow execution */}
+      <SagaRunner />
 
       {/* Data Source Registry */}
       <DataSourceRegistry />
