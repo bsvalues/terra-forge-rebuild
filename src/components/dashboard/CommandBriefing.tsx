@@ -20,7 +20,7 @@ import { TerraTraceActivityFeed } from "@/components/proof/TerraTraceActivityFee
 import { SystemHealthPanel } from "./SystemHealthPanel";
 import { NeighborhoodLeaderboard } from "./NeighborhoodLeaderboard";
 import { useCountyVitals } from "@/hooks/useCountyVitals";
-import { ProvenanceBadge, ScopeHeader } from "@/components/trust";
+import { ProvenanceBadge, ProvenanceNumber, ScopeHeader } from "@/components/trust";
 
 interface CommandBriefingProps {
   onNavigate: (module: string) => void;
@@ -121,7 +121,9 @@ export function CommandBriefing({ onNavigate }: CommandBriefingProps) {
                 <CardContent className="p-6 flex items-center justify-between">
                   <div>
                     <p className="text-sm text-muted-foreground">{card.label}</p>
-                    <p className="text-3xl font-light">{card.value.toLocaleString()}</p>
+                    <ProvenanceNumber source="county-vitals" fetchedAt={vitals?.fetchedAt}>
+                      <p className="text-3xl font-light">{card.value.toLocaleString()}</p>
+                    </ProvenanceNumber>
                   </div>
                   <Icon className={`w-10 h-10 ${card.color} opacity-50`} />
                 </CardContent>
@@ -230,21 +232,27 @@ export function CommandBriefing({ onNavigate }: CommandBriefingProps) {
                 onClick={() => onNavigate("workbench:dais:appeals")}
                 className="p-3 rounded-lg bg-tf-surface/50 hover:bg-tf-surface transition-colors text-center"
               >
-                <p className="text-2xl font-light text-suite-dais">{pendingAppeals}</p>
+                <ProvenanceNumber source="county-vitals" fetchedAt={vitals?.fetchedAt}>
+                  <p className="text-2xl font-light text-suite-dais">{pendingAppeals}</p>
+                </ProvenanceNumber>
                 <p className="text-xs text-muted-foreground mt-1">Appeals</p>
               </button>
               <button
                 onClick={() => onNavigate("workbench:dais:permits")}
                 className="p-3 rounded-lg bg-tf-surface/50 hover:bg-tf-surface transition-colors text-center"
               >
-                <p className="text-2xl font-light text-tf-gold">{openPermits}</p>
+                <ProvenanceNumber source="county-vitals" fetchedAt={vitals?.fetchedAt}>
+                  <p className="text-2xl font-light text-tf-gold">{openPermits}</p>
+                </ProvenanceNumber>
                 <p className="text-xs text-muted-foreground mt-1">Permits</p>
               </button>
               <button
                 onClick={() => onNavigate("workbench:dais:exemptions")}
                 className="p-3 rounded-lg bg-tf-surface/50 hover:bg-tf-surface transition-colors text-center"
               >
-                <p className="text-2xl font-light text-tf-green">{pendingExemptions}</p>
+                <ProvenanceNumber source="county-vitals" fetchedAt={vitals?.fetchedAt}>
+                  <p className="text-2xl font-light text-tf-green">{pendingExemptions}</p>
+                </ProvenanceNumber>
                 <p className="text-xs text-muted-foreground mt-1">Exemptions</p>
               </button>
             </div>
@@ -314,12 +322,16 @@ export function CommandBriefing({ onNavigate }: CommandBriefingProps) {
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-xs text-muted-foreground">Certified</span>
-                <span className="text-sm font-medium text-chart-5">{(certStats?.certified ?? 0).toLocaleString()}</span>
+                <ProvenanceNumber source="county-vitals" fetchedAt={vitals?.fetchedAt}>
+                  <span className="text-sm font-medium text-chart-5">{(certStats?.certified ?? 0).toLocaleString()}</span>
+                </ProvenanceNumber>
               </div>
               <Progress value={certStats?.certRate ?? 0} className="h-2" />
               <div className="flex items-center justify-between text-xs text-muted-foreground">
                 <span>{(certStats?.certified ?? 0).toLocaleString()} of {(certStats?.total ?? 0).toLocaleString()} assessments</span>
-                <span className="text-foreground font-medium">{certStats?.certRate ?? 0}% complete</span>
+                <ProvenanceNumber source="county-vitals" fetchedAt={vitals?.fetchedAt}>
+                  <span className="text-foreground font-medium">{certStats?.certRate ?? 0}% complete</span>
+                </ProvenanceNumber>
               </div>
             </div>
           </CardContent>

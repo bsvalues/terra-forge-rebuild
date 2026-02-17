@@ -29,7 +29,7 @@ import { SmartQuickActions } from "./SmartQuickActions";
 import { useState, useRef, useEffect } from "react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useCountyVitals } from "@/hooks/useCountyVitals";
-import { ProvenanceBadge, ScopeHeader } from "@/components/trust";
+import { ProvenanceBadge, ProvenanceNumber, ScopeHeader } from "@/components/trust";
 
 interface SuiteHubProps {
   onNavigate: (target: string) => void;
@@ -221,12 +221,12 @@ export function SuiteHub({ onNavigate, onParcelNavigate }: SuiteHubProps) {
 
           {/* Inline vitals — single source */}
           <div className="flex items-center gap-3 sm:gap-6 mt-4 flex-wrap">
-            <Vital label="Parcels" value={parcelsTotal.toLocaleString()} />
-            <Vital label="Sales" value={salesTotal.toLocaleString()} />
-            <Vital label="Assessments" value={assessmentsTotal.toLocaleString()} />
-            <Vital label="Data Quality" value={`${qualityOverall}%`} />
+            <Vital label="Parcels" value={parcelsTotal.toLocaleString()} source="county-vitals" fetchedAt={vitals?.fetchedAt} />
+            <Vital label="Sales" value={salesTotal.toLocaleString()} source="county-vitals" fetchedAt={vitals?.fetchedAt} />
+            <Vital label="Assessments" value={assessmentsTotal.toLocaleString()} source="county-vitals" fetchedAt={vitals?.fetchedAt} />
+            <Vital label="Data Quality" value={`${qualityOverall}%`} source="county-vitals" fetchedAt={vitals?.fetchedAt} />
             {totalWorkflows > 0 && (
-              <Vital label="Pending" value={totalWorkflows.toString()} highlight />
+              <Vital label="Pending" value={totalWorkflows.toString()} highlight source="county-vitals" fetchedAt={vitals?.fetchedAt} />
             )}
             <ProvenanceBadge source="county-vitals" fetchedAt={vitals?.fetchedAt} />
           </div>
@@ -282,18 +282,24 @@ export function SuiteHub({ onNavigate, onParcelNavigate }: SuiteHubProps) {
               count={vitals?.workflows.pendingAppeals ?? 0}
               colorClass="text-suite-dais"
               onClick={() => onNavigate("workbench:dais:appeals")}
+              source="county-vitals"
+              fetchedAt={vitals?.fetchedAt}
             />
             <WorkflowButton
               label="Permits"
               count={vitals?.workflows.openPermits ?? 0}
               colorClass="text-tf-gold"
               onClick={() => onNavigate("workbench:dais:permits")}
+              source="county-vitals"
+              fetchedAt={vitals?.fetchedAt}
             />
             <WorkflowButton
               label="Exemptions"
               count={vitals?.workflows.pendingExemptions ?? 0}
               colorClass="text-tf-green"
               onClick={() => onNavigate("workbench:dais:exemptions")}
+              source="county-vitals"
+              fetchedAt={vitals?.fetchedAt}
             />
           </div>
         </div>
@@ -429,13 +435,18 @@ export function SuiteHub({ onNavigate, onParcelNavigate }: SuiteHubProps) {
 
 // ─── Sub-components ───────────────────────────────────────────
 
-function Vital({ label, value, highlight }: { label: string; value: string; highlight?: boolean }) {
+function Vital({ label, value, highlight, source, fetchedAt }: { label: string; value: string; highlight?: boolean; source?: string; fetchedAt?: string | null }) {
+  const inner = (
+    <span className={`text-sm font-medium ${highlight ? "text-suite-dais" : "text-foreground"}`}>
+      {value}
+    </span>
+  );
   return (
     <div className="flex items-center gap-2">
       <span className="text-xs text-muted-foreground">{label}</span>
-      <span className={`text-sm font-medium ${highlight ? "text-suite-dais" : "text-foreground"}`}>
-        {value}
-      </span>
+      {source ? (
+        <ProvenanceNumber source={source} fetchedAt={fetchedAt}>{inner}</ProvenanceNumber>
+      ) : inner}
     </div>
   );
 }
@@ -468,13 +479,14 @@ function StatusBadge({ status }: { status: SuiteStatus }) {
   );
 }
 
-function WorkflowButton({ label, count, colorClass, onClick }: { label: string; count: number; colorClass: string; onClick: () => void }) {
+function WorkflowButton({ label, count, colorClass, onClick, source, fetchedAt }: { label: string; count: number; colorClass: string; onClick: () => void; source?: string; fetchedAt?: string | null }) {
+  const num = <p className={`text-2xl font-light ${colorClass}`}>{count}</p>;
   return (
     <button
       onClick={onClick}
       className="p-3 rounded-lg bg-[hsl(var(--tf-surface)/0.5)] hover:bg-[hsl(var(--tf-surface))] transition-colors text-center"
     >
-      <p className={`text-2xl font-light ${colorClass}`}>{count}</p>
+      {source ? <ProvenanceNumber source={source} fetchedAt={fetchedAt}>{num}</ProvenanceNumber> : num}
       <p className="text-xs text-muted-foreground mt-1">{label}</p>
     </button>
   );
