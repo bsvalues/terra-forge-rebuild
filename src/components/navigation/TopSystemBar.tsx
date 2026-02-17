@@ -9,6 +9,7 @@ import {
   Command,
   SlidersHorizontal,
 } from "lucide-react";
+import { NotificationBell } from "@/components/geoequity/NotificationBell";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -109,6 +110,9 @@ export function TopSystemBar({ onOpenCommandPalette, onOpenControlCenter }: TopS
             <p>{isOnline ? `Synced: ${parcelsCount?.toLocaleString()} parcels` : "Offline"}</p>
           </TooltipContent>
         </Tooltip>
+
+        {/* Notifications */}
+        <NotificationBell />
 
         {/* Control Center */}
         <Tooltip>

@@ -1,11 +1,13 @@
 import { useState, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { FlaskConical, TrendingUp, TrendingDown, DollarSign, Percent, BarChart3, RefreshCw } from "lucide-react";
+import { FlaskConical, TrendingUp, TrendingDown, DollarSign, Percent, BarChart3, RefreshCw, Save, CheckCircle2, Loader2, Target, AlertTriangle } from "lucide-react";
 import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
+import { CommitmentButton } from "@/components/ui/commitment-button";
+import { toast } from "sonner";
 
 interface ScenarioModeProps {
   neighborhoodCode: string | null;
@@ -18,6 +20,15 @@ interface ScenarioConfig {
   targetMedianRatio: number;     // target ratio
 }
 
+interface SavedScenario {
+  id: string;
+  name: string;
+  config: ScenarioConfig;
+  savedAt: string;
+  parcelCount: number;
+  avgChange: number;
+}
+
 const DEFAULT_SCENARIO: ScenarioConfig = {
   landAdjustment: 0,
   improvementAdjustment: 0,
@@ -27,6 +38,9 @@ const DEFAULT_SCENARIO: ScenarioConfig = {
 
 export function ScenarioMode({ neighborhoodCode }: ScenarioModeProps) {
   const [config, setConfig] = useState<ScenarioConfig>(DEFAULT_SCENARIO);
+  const [savedScenarios, setSavedScenarios] = useState<SavedScenario[]>([]);
+  const [scenarioName, setScenarioName] = useState("");
+  const queryClient = useQueryClient();
 
   // Fetch real parcel data for the selected neighborhood
   const { data: parcels, isLoading } = useQuery({
@@ -40,6 +54,24 @@ export function ScenarioMode({ neighborhoodCode }: ScenarioModeProps) {
         query = query.eq("neighborhood_code", neighborhoodCode);
       }
       const { data } = await query.limit(500);
+      return data || [];
+    },
+    staleTime: 120_000,
+  });
+
+  // Fetch sales for VEI ratio preview
+  const { data: sales } = useQuery({
+    queryKey: ["scenario-sales", neighborhoodCode],
+    queryFn: async () => {
+      const twoYearsAgo = new Date();
+      twoYearsAgo.setFullYear(twoYearsAgo.getFullYear() - 2);
+      let query = supabase
+        .from("sales")
+        .select("parcel_id, sale_price")
+        .eq("is_qualified", true)
+        .gt("sale_price", 0)
+        .gte("sale_date", twoYearsAgo.toISOString().split("T")[0]);
+      const { data } = await query.limit(1000);
       return data || [];
     },
     staleTime: 120_000,
@@ -89,6 +121,125 @@ export function ScenarioMode({ neighborhoodCode }: ScenarioModeProps) {
 
     return { details, totalCurrentValue, totalNewValue, totalDelta, avgChange, increases, decreases, unchanged, cappedCount };
   }, [parcels, config]);
+
+  // VEI ratio impact preview
+  const ratioPreview = useMemo(() => {
+    if (!impact || !sales || sales.length === 0) return null;
+
+    const parcelProposed = new Map(impact.details.map(p => [p.id, p.proposed]));
+    const parcelCurrent = new Map(impact.details.map(p => [p.id, p.assessed_value || 0]));
+
+    const currentRatios: number[] = [];
+    const proposedRatios: number[] = [];
+
+    for (const sale of sales) {
+      const current = parcelCurrent.get(sale.parcel_id);
+      const proposed = parcelProposed.get(sale.parcel_id);
+      if (current && current > 0 && sale.sale_price > 0) {
+        currentRatios.push(current / sale.sale_price);
+      }
+      if (proposed && proposed > 0 && sale.sale_price > 0) {
+        proposedRatios.push(proposed / sale.sale_price);
+      }
+    }
+
+    if (currentRatios.length < 3) return null;
+
+    const median = (arr: number[]) => {
+      const sorted = [...arr].sort((a, b) => a - b);
+      return sorted[Math.floor(sorted.length / 2)];
+    };
+    const mean = (arr: number[]) => arr.reduce((s, v) => s + v, 0) / arr.length;
+    const cod = (arr: number[], med: number) =>
+      med > 0 ? (arr.reduce((s, v) => s + Math.abs(v - med), 0) / arr.length / med) * 100 : 0;
+
+    const curMedian = median(currentRatios);
+    const propMedian = median(proposedRatios.length > 0 ? proposedRatios : currentRatios);
+    const curCOD = cod(currentRatios, curMedian);
+    const propCOD = cod(proposedRatios.length > 0 ? proposedRatios : currentRatios, propMedian);
+
+    return {
+      sampleSize: currentRatios.length,
+      currentMedian: curMedian,
+      proposedMedian: propMedian,
+      currentCOD: curCOD,
+      proposedCOD: propCOD,
+      medianDelta: propMedian - curMedian,
+      codDelta: propCOD - curCOD,
+    };
+  }, [impact, sales]);
+
+  // Apply scenario — commit adjustments to value_adjustments table
+  const applyMutation = useMutation({
+    mutationFn: async () => {
+      if (!impact || !neighborhoodCode) throw new Error("No scenario to apply");
+
+      const { data: profile } = await supabase.from("profiles").select("county_id").single();
+      const countyId = profile?.county_id ?? "00000000-0000-0000-0000-000000000001";
+
+      const adjustments = impact.details
+        .filter(p => Math.abs(p.change) > 0.5)
+        .map(p => ({
+          county_id: countyId,
+          parcel_id: p.id,
+          previous_value: p.assessed_value || 0,
+          new_value: p.proposed,
+          adjustment_type: "scenario" as const,
+          adjustment_reason: `Scenario: Land ${config.landAdjustment > 0 ? "+" : ""}${config.landAdjustment}%, Impr ${config.improvementAdjustment > 0 ? "+" : ""}${config.improvementAdjustment}%, Cap ${config.maxCapPct}%`,
+        }));
+
+      if (adjustments.length === 0) throw new Error("No parcels changed — nothing to apply");
+
+      // Batch insert in chunks of 100
+      for (let i = 0; i < adjustments.length; i += 100) {
+        const chunk = adjustments.slice(i, i + 100);
+        const { error } = await supabase.from("value_adjustments").insert(chunk);
+        if (error) throw error;
+      }
+
+      // Update parcel assessed_values
+      for (const adj of adjustments) {
+        await supabase
+          .from("parcels")
+          .update({ assessed_value: adj.new_value })
+          .eq("id", adj.parcel_id);
+      }
+
+      return { applied: adjustments.length };
+    },
+    onSuccess: (data) => {
+      toast.success(`Scenario applied to ${data.applied} parcels`, {
+        description: "Value adjustments recorded in the ledger",
+      });
+      queryClient.invalidateQueries({ queryKey: ["scenario-parcels"] });
+      queryClient.invalidateQueries({ queryKey: ["value-adjustments"] });
+    },
+    onError: (err: Error) => toast.error(err.message),
+  });
+
+  // Save scenario locally
+  const handleSaveScenario = () => {
+    if (!impact) return;
+    const name = scenarioName.trim() || `Scenario ${savedScenarios.length + 1}`;
+    setSavedScenarios(prev => [
+      {
+        id: `sc_${Date.now()}`,
+        name,
+        config: { ...config },
+        savedAt: new Date().toISOString(),
+        parcelCount: impact.details.length,
+        avgChange: impact.avgChange,
+      },
+      ...prev,
+    ].slice(0, 10));
+    setScenarioName("");
+    toast.success(`Scenario "${name}" saved`);
+  };
+
+  const loadScenario = (sc: SavedScenario) => {
+    setConfig(sc.config);
+    toast.info(`Loaded scenario: ${sc.name}`);
+  };
 
   if (!neighborhoodCode) {
     return (
@@ -148,6 +299,97 @@ export function ScenarioMode({ neighborhoodCode }: ScenarioModeProps) {
             </p>
           </div>
         </motion.div>
+
+        {/* VEI Ratio Impact Preview */}
+        {ratioPreview && (
+          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="material-bento p-4 space-y-3">
+            <h3 className="text-sm font-medium text-foreground flex items-center gap-2">
+              <Target className="w-4 h-4 text-primary" />
+              VEI Ratio Impact
+            </h3>
+            <div className="grid grid-cols-2 gap-3 text-center">
+              <div>
+                <p className="text-[10px] text-muted-foreground uppercase">Current Median</p>
+                <p className="text-sm font-mono font-medium">{ratioPreview.currentMedian.toFixed(3)}</p>
+              </div>
+              <div>
+                <p className="text-[10px] text-muted-foreground uppercase">Proposed Median</p>
+                <p className={`text-sm font-mono font-medium ${
+                  Math.abs(ratioPreview.proposedMedian - 1.0) < Math.abs(ratioPreview.currentMedian - 1.0) ? "text-primary" : "text-destructive"
+                }`}>{ratioPreview.proposedMedian.toFixed(3)}</p>
+              </div>
+              <div>
+                <p className="text-[10px] text-muted-foreground uppercase">Current COD</p>
+                <p className="text-sm font-mono font-medium">{ratioPreview.currentCOD.toFixed(1)}%</p>
+              </div>
+              <div>
+                <p className="text-[10px] text-muted-foreground uppercase">Proposed COD</p>
+                <p className={`text-sm font-mono font-medium ${
+                  ratioPreview.proposedCOD < ratioPreview.currentCOD ? "text-primary" : "text-destructive"
+                }`}>{ratioPreview.proposedCOD.toFixed(1)}%</p>
+              </div>
+            </div>
+            <p className="text-[10px] text-muted-foreground text-center">
+              Based on {ratioPreview.sampleSize} qualified sales
+            </p>
+          </motion.div>
+        )}
+
+        {/* Save & Apply Actions */}
+        {impact && (
+          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="material-bento p-4 space-y-3">
+            <div className="flex gap-2">
+              <input
+                type="text"
+                placeholder="Scenario name..."
+                value={scenarioName}
+                onChange={(e) => setScenarioName(e.target.value)}
+                className="flex-1 text-xs bg-muted/50 border border-border/50 rounded-lg px-3 py-1.5 focus:outline-none focus:border-primary/50"
+              />
+              <Button variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={handleSaveScenario}>
+                <Save className="w-3 h-3" /> Save
+              </Button>
+            </div>
+
+            <CommitmentButton
+              onClick={() => applyMutation.mutate()}
+              disabled={applyMutation.isPending || impact.increases + impact.decreases === 0}
+              variant="gold"
+            >
+              {applyMutation.isPending ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <CheckCircle2 className="w-4 h-4" />
+              )}
+              {applyMutation.isPending ? "Applying…" : `Apply to ${impact.increases + impact.decreases} Parcels`}
+            </CommitmentButton>
+
+            {impact.increases + impact.decreases === 0 && (
+              <p className="text-[10px] text-muted-foreground text-center flex items-center justify-center gap-1">
+                <AlertTriangle className="w-3 h-3" /> Adjust parameters to create changes
+              </p>
+            )}
+          </motion.div>
+        )}
+
+        {/* Saved Scenarios */}
+        {savedScenarios.length > 0 && (
+          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="material-bento p-4 space-y-2">
+            <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Saved Scenarios</h3>
+            {savedScenarios.map(sc => (
+              <button
+                key={sc.id}
+                onClick={() => loadScenario(sc)}
+                className="w-full flex items-center justify-between text-xs p-2 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors text-left"
+              >
+                <span className="font-medium text-foreground truncate">{sc.name}</span>
+                <span className={`font-mono ${sc.avgChange >= 0 ? "text-primary" : "text-destructive"}`}>
+                  {sc.avgChange >= 0 ? "+" : ""}{sc.avgChange.toFixed(1)}%
+                </span>
+              </button>
+            ))}
+          </motion.div>
+        )}
       </div>
 
       {/* Right: Impact Analysis */}

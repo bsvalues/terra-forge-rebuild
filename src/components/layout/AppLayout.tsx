@@ -5,6 +5,7 @@ import { DockLauncher } from "@/components/navigation/DockLauncher";
 import { GlobalCommandPalette } from "@/components/navigation/GlobalCommandPalette";
 import { ControlCenter } from "@/components/navigation/ControlCenter";
 import { useContextMode } from "@/hooks/useContextMode";
+import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
 
 // ── Code-split: every route-level module is lazy-loaded ────────────
 const SuiteHub = lazy(() => import("@/components/dashboard/SuiteHub").then(m => ({ default: m.SuiteHub })));
@@ -43,6 +44,7 @@ interface AppLayoutProps {
 
 export function AppLayout({ initialParcel: routeParcel, initialModule, initialFactoryMode }: AppLayoutProps) {
   const [activeModule, setActiveModule] = useState(initialModule || "dashboard");
+  useRealtimeNotifications(); // Subscribe to live trace_events for notification bell
   const [pendingParcel, setPendingParcel] = useState<{
     id: string;
     parcelNumber: string;
