@@ -1,19 +1,39 @@
+// TerraPilot Chat — the mouth of the swarm. It speaks in riddles and also databases.
+// "I choo-choo-choose to execute your write tools." — Ralph, Senior DevOps
+
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, Loader2, Sparkles, User, Search, MapPin, BarChart3, Activity, Navigation, Briefcase, FileText, MessageSquare, BookOpen, ScrollText } from "lucide-react";
+import {
+  Send, Loader2, Sparkles, User, Search, MapPin, BarChart3, Activity,
+  Navigation, Briefcase, FileText, MessageSquare, BookOpen, ScrollText,
+  ShieldCheck, ShieldAlert, CheckCircle2, XCircle, AlertTriangle,
+  Gavel, Home, Award, Pencil,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
+import { CommitmentButton } from "@/components/ui/commitment-button";
 import { useWorkbench } from "./WorkbenchContext";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
+import { cn } from "@/lib/utils";
 
 interface ToolCallResult {
   tool_name: string;
   tool_call_id: string;
   result: Record<string, unknown>;
+}
+
+interface ConfirmationPayload {
+  requires_confirmation: boolean;
+  confirmation_id: string;
+  tool_name: string;
+  risk_level: "medium" | "high";
+  args: Record<string, unknown>;
+  parcel_context: { parcel_number: string; address: string; assessed_value?: number };
+  description: string;
 }
 
 interface Message {
@@ -22,6 +42,8 @@ interface Message {
   content: string;
   timestamp: Date;
   toolCalls?: ToolCallResult[];
+  pendingConfirmation?: ConfirmationPayload;
+  confirmationStatus?: "pending" | "approved" | "rejected";
 }
 
 interface TerraPilotChatProps {
@@ -40,6 +62,10 @@ const TOOL_ICONS: Record<string, typeof Search> = {
   draft_appeal_response: MessageSquare,
   explain_value_change: BookOpen,
   summarize_parcel_history: ScrollText,
+  create_exemption: Home,
+  create_appeal: Gavel,
+  certify_assessment: Award,
+  update_parcel_class: Pencil,
 };
 
 const TOOL_LABELS: Record<string, string> = {
@@ -54,6 +80,10 @@ const TOOL_LABELS: Record<string, string> = {
   draft_appeal_response: "Drafting appeal response",
   explain_value_change: "Explaining value change",
   summarize_parcel_history: "Summarizing history",
+  create_exemption: "Creating exemption",
+  create_appeal: "Filing appeal",
+  certify_assessment: "Certifying assessment",
+  update_parcel_class: "Updating parcel",
 };
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/terrapilot-chat`;
@@ -66,6 +96,7 @@ export function TerraPilotChat({ fullscreen = false }: TerraPilotChatProps) {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [activeTools, setActiveTools] = useState<string[]>([]);
+  const [confirmingAction, setConfirmingAction] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
 
@@ -75,15 +106,78 @@ export function TerraPilotChat({ fullscreen = false }: TerraPilotChatProps) {
     }
   }, [messages, activeTools]);
 
-  // Handle navigation actions from tool results
   const handleNavigationAction = useCallback((result: Record<string, unknown>) => {
     if (result.action === "navigate" && result.parcel_id) {
       navigate(`/property/${result.parcel_id}`);
-      if (result.tab) {
-        setActiveTab(result.tab as any);
-      }
+      if (result.tab) setActiveTab(result.tab as any);
     }
   }, [navigate, setActiveTab]);
+
+  // ── HitL Confirmation Handler ──
+  const handleConfirmAction = useCallback(async (messageId: string, payload: ConfirmationPayload, approved: boolean) => {
+    setMessages(prev => prev.map(m =>
+      m.id === messageId ? { ...m, confirmationStatus: approved ? "approved" : "rejected" } : m
+    ));
+
+    if (!approved) {
+      setMessages(prev => [...prev, {
+        id: crypto.randomUUID(),
+        role: "assistant",
+        content: "Action cancelled. No changes were made.",
+        timestamp: new Date(),
+      }]);
+      return;
+    }
+
+    setConfirmingAction(true);
+    setSystemState("processing");
+
+    try {
+      const resp = await fetch(CHAT_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
+        body: JSON.stringify({
+          messages: [],
+          confirm_action: {
+            tool_name: payload.tool_name,
+            args: payload.args,
+            confirmation_id: payload.confirmation_id,
+          },
+        }),
+      });
+
+      const result = await resp.json();
+
+      if (result.success) {
+        toast({ title: "Action Completed", description: result.message || "Write operation executed successfully." });
+        setMessages(prev => [...prev, {
+          id: crypto.randomUUID(),
+          role: "assistant",
+          content: `✅ **Action completed**: ${result.message || payload.description}`,
+          timestamp: new Date(),
+        }]);
+        setSystemState("success");
+      } else {
+        toast({ title: "Action Failed", description: result.error || "Unknown error", variant: "destructive" });
+        setMessages(prev => [...prev, {
+          id: crypto.randomUUID(),
+          role: "assistant",
+          content: `❌ **Action failed**: ${result.error || "Unknown error"}`,
+          timestamp: new Date(),
+        }]);
+        setSystemState("alert");
+      }
+    } catch (err) {
+      toast({ title: "Network Error", description: "Failed to execute action.", variant: "destructive" });
+      setSystemState("alert");
+    } finally {
+      setConfirmingAction(false);
+      setTimeout(() => setSystemState("idle"), 2000);
+    }
+  }, [toast, setSystemState]);
 
   const sendMessage = useCallback(async () => {
     if (!input.trim() || isLoading) return;
@@ -147,16 +241,25 @@ export function TerraPilotChat({ fullscreen = false }: TerraPilotChatProps) {
       let assistantSoFar = "";
       let streamDone = false;
       let capturedToolCalls: ToolCallResult[] = [];
+      let pendingConfirmation: ConfirmationPayload | undefined;
 
-      const upsertAssistant = (chunk: string, toolCalls?: ToolCallResult[]) => {
+      const upsertAssistant = (chunk: string, toolCalls?: ToolCallResult[], confirmation?: ConfirmationPayload) => {
         assistantSoFar += chunk;
         const content = assistantSoFar;
         setMessages((prev) => {
           const last = prev[prev.length - 1];
           if (last?.role === "assistant") {
-            return prev.map((m, i) => (i === prev.length - 1 ? { ...m, content, toolCalls: toolCalls || m.toolCalls } : m));
+            return prev.map((m, i) => (i === prev.length - 1 ? {
+              ...m, content,
+              toolCalls: toolCalls || m.toolCalls,
+              pendingConfirmation: confirmation || m.pendingConfirmation,
+              confirmationStatus: confirmation ? "pending" as const : m.confirmationStatus,
+            } : m));
           }
-          return [...prev, { id: crypto.randomUUID(), role: "assistant", content, timestamp: new Date(), toolCalls }];
+          return [...prev, {
+            id: crypto.randomUUID(), role: "assistant" as const, content, timestamp: new Date(),
+            toolCalls, pendingConfirmation: confirmation, confirmationStatus: confirmation ? "pending" as const : undefined,
+          }];
         });
       };
 
@@ -177,23 +280,26 @@ export function TerraPilotChat({ fullscreen = false }: TerraPilotChatProps) {
           try {
             const parsed = JSON.parse(jsonStr);
             
-            // Check for tool call metadata event
             if (parsed.tool_calls) {
               capturedToolCalls = parsed.tool_calls as ToolCallResult[];
               setActiveTools(capturedToolCalls.map(tc => tc.tool_name));
-              // Process navigation actions
+
+              // Check for HitL confirmation cards in tool results
               for (const tc of capturedToolCalls) {
-                if (tc.tool_name === "navigate_to_parcel" && tc.result) {
-                  handleNavigationAction(tc.result as Record<string, unknown>);
+                const result = tc.result as Record<string, unknown>;
+                if (result.requires_confirmation) {
+                  pendingConfirmation = result as unknown as ConfirmationPayload;
+                }
+                if (tc.tool_name === "navigate_to_parcel" && result) {
+                  handleNavigationAction(result);
                 }
               }
-              // Set tools on the upcoming assistant message
-              upsertAssistant("", capturedToolCalls);
+              upsertAssistant("", capturedToolCalls, pendingConfirmation);
               continue;
             }
             
             const content = parsed.choices?.[0]?.delta?.content as string | undefined;
-            if (content) upsertAssistant(content, capturedToolCalls.length > 0 ? capturedToolCalls : undefined);
+            if (content) upsertAssistant(content, capturedToolCalls.length > 0 ? capturedToolCalls : undefined, pendingConfirmation);
           } catch {
             textBuffer = line + "\n" + textBuffer;
             break;
@@ -242,7 +348,7 @@ export function TerraPilotChat({ fullscreen = false }: TerraPilotChatProps) {
   };
 
   const placeholders = {
-    pilot: "Search parcels, find comps, check workflows...",
+    pilot: "Search, analyze, create exemptions, file appeals...",
     muse: "Draft documents, explain valuations...",
   };
 
@@ -254,11 +360,16 @@ export function TerraPilotChat({ fullscreen = false }: TerraPilotChatProps) {
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="text-center py-8">
               <Sparkles className={`w-12 h-12 mx-auto mb-4 ${pilotMode === "pilot" ? "text-tf-cyan" : "text-tf-purple"} opacity-50`} />
               <p className="text-muted-foreground text-sm mb-4">
-                {pilotMode === "pilot" ? "Ready to execute. I can search, analyze, and navigate." : "Ready to create. What would you like me to draft?"}
+                {pilotMode === "pilot" ? "Ready to execute. I can search, analyze, and take action." : "Ready to create. What would you like me to draft?"}
               </p>
               {pilotMode === "pilot" && (
                 <div className="flex flex-wrap gap-2 justify-center max-w-md mx-auto">
-                  {["Search parcels in 98225", "Show open appeals", "Find comps for active parcel", "Neighborhood stats"].map((suggestion) => (
+                  {[
+                    "Search parcels in 98225",
+                    "Show open appeals",
+                    "Create exemption for active parcel",
+                    "Certify current assessment",
+                  ].map((suggestion) => (
                     <button
                       key={suggestion}
                       onClick={() => setInput(suggestion)}
@@ -304,7 +415,7 @@ export function TerraPilotChat({ fullscreen = false }: TerraPilotChatProps) {
                       <Sparkles className="w-4 h-4" />
                     </div>
                   )}
-                  <div className={`max-w-[85%] space-y-2`}>
+                  <div className="max-w-[85%] space-y-2">
                     {/* Tool call badges */}
                     {message.toolCalls && message.toolCalls.length > 0 && (
                       <div className="flex flex-wrap gap-1.5 mb-1">
@@ -319,6 +430,8 @@ export function TerraPilotChat({ fullscreen = false }: TerraPilotChatProps) {
                         })}
                       </div>
                     )}
+
+                    {/* Message content */}
                     <div className={`rounded-2xl px-4 py-2.5 ${
                       message.role === "user" ? "bg-tf-elevated text-foreground" : "glass-subtle text-foreground"
                     }`}>
@@ -330,6 +443,16 @@ export function TerraPilotChat({ fullscreen = false }: TerraPilotChatProps) {
                         <p className="text-sm whitespace-pre-wrap">{message.content}</p>
                       )}
                     </div>
+
+                    {/* ── HitL Confirmation Card ── */}
+                    {message.pendingConfirmation && (
+                      <ConfirmationCard
+                        payload={message.pendingConfirmation}
+                        status={message.confirmationStatus || "pending"}
+                        onConfirm={(approved) => handleConfirmAction(message.id, message.pendingConfirmation!, approved)}
+                        isExecuting={confirmingAction}
+                      />
+                    )}
                   </div>
                   {message.role === "user" && (
                     <div className="w-7 h-7 rounded-full bg-tf-elevated flex items-center justify-center flex-shrink-0">
@@ -405,5 +528,120 @@ export function TerraPilotChat({ fullscreen = false }: TerraPilotChatProps) {
         </div>
       </div>
     </div>
+  );
+}
+
+// ── HitL Confirmation Card Component ──
+// "The confirmation button told me it's afraid of commitment." — Ralph, UX therapist
+function ConfirmationCard({
+  payload,
+  status,
+  onConfirm,
+  isExecuting,
+}: {
+  payload: ConfirmationPayload;
+  status: "pending" | "approved" | "rejected";
+  onConfirm: (approved: boolean) => void;
+  isExecuting: boolean;
+}) {
+  const isHigh = payload.risk_level === "high";
+  const Icon = TOOL_ICONS[payload.tool_name] || ShieldAlert;
+
+  const borderColor = isHigh
+    ? "border-[hsl(var(--tf-warning-red)/0.4)]"
+    : "border-[hsl(var(--tf-sacred-gold)/0.4)]";
+  const bgColor = isHigh
+    ? "bg-[hsl(var(--tf-warning-red)/0.06)]"
+    : "bg-[hsl(var(--tf-sacred-gold)/0.06)]";
+  const iconColor = isHigh ? "text-[hsl(var(--tf-warning-red))]" : "text-[hsl(var(--tf-sacred-gold))]";
+
+  if (status === "approved") {
+    return (
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="rounded-xl p-3 border border-[hsl(var(--tf-optimized-green)/0.3)] bg-[hsl(var(--tf-optimized-green)/0.06)]"
+      >
+        <div className="flex items-center gap-2 text-sm">
+          <CheckCircle2 className="w-4 h-4 text-[hsl(var(--tf-optimized-green))]" />
+          <span className="text-[hsl(var(--tf-optimized-green))] font-medium">Approved</span>
+          <span className="text-muted-foreground">— {payload.description}</span>
+        </div>
+      </motion.div>
+    );
+  }
+
+  if (status === "rejected") {
+    return (
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="rounded-xl p-3 border border-border/30 bg-muted/30"
+      >
+        <div className="flex items-center gap-2 text-sm">
+          <XCircle className="w-4 h-4 text-muted-foreground" />
+          <span className="text-muted-foreground">Cancelled — {payload.description}</span>
+        </div>
+      </motion.div>
+    );
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8, scale: 0.95 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ type: "spring", stiffness: 300, damping: 20 }}
+      className={cn("rounded-xl p-4 border-2", borderColor, bgColor)}
+    >
+      {/* Header */}
+      <div className="flex items-center gap-2 mb-2">
+        <div className={cn("w-6 h-6 rounded-full flex items-center justify-center", isHigh ? "bg-[hsl(var(--tf-warning-red)/0.15)]" : "bg-[hsl(var(--tf-sacred-gold)/0.15)]")}>
+          {isHigh ? <ShieldAlert className={cn("w-3.5 h-3.5", iconColor)} /> : <ShieldCheck className={cn("w-3.5 h-3.5", iconColor)} />}
+        </div>
+        <span className={cn("text-xs font-semibold uppercase tracking-wider", iconColor)}>
+          {isHigh ? "⚠ High-Impact Action" : "Confirmation Required"}
+        </span>
+      </div>
+
+      {/* Description */}
+      <div className="flex items-start gap-2 mb-3">
+        <Icon className="w-4 h-4 text-foreground mt-0.5 shrink-0" />
+        <div>
+          <p className="text-sm font-medium text-foreground">{payload.description}</p>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Parcel: {payload.parcel_context.parcel_number} — {payload.parcel_context.address}
+          </p>
+        </div>
+      </div>
+
+      {/* Action Buttons */}
+      <div className="flex items-center gap-2">
+        <CommitmentButton
+          variant={isHigh ? "destructive" : "primary"}
+          onClick={() => onConfirm(true)}
+          disabled={isExecuting}
+          className="text-xs px-4 py-1.5"
+        >
+          {isExecuting ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" /> : <CheckCircle2 className="w-3.5 h-3.5 mr-1" />}
+          {isExecuting ? "Executing..." : "Approve"}
+        </CommitmentButton>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => onConfirm(false)}
+          disabled={isExecuting}
+          className="text-xs"
+        >
+          <XCircle className="w-3.5 h-3.5 mr-1" />
+          Reject
+        </Button>
+      </div>
+
+      {/* TerraTrace notice */}
+      <p className="text-[10px] text-muted-foreground mt-2 flex items-center gap-1">
+        <AlertTriangle className="w-2.5 h-2.5" />
+        This action will be recorded in TerraTrace and cannot be undone.
+      </p>
+    </motion.div>
   );
 }
