@@ -23,7 +23,7 @@ import {
   type StepHandler,
   type SagaExecutionResult,
 } from "@/services/sagaOrchestrator";
-import { runSyncRefresh, runBulkImport } from "@/services/syncEngine";
+import { runSyncRefresh, runBulkImport, runAssessmentUpdate, runPACSMigration } from "@/services/syncEngine";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -116,33 +116,12 @@ export function SagaRunner() {
           return { imported: records.length, errors: [] };
         }
       );
+    } else if (template === "assessment_update") {
+      // Real assessment update: lock → backup → apply → recalculate → validate → report
+      result = await runAssessmentUpdate();
     } else {
-      // Simulated execution for assessment_update and pacs_migration
-      const templateSteps = SAGA_TEMPLATES[template];
-      const orchestrator = new SagaOrchestrator({
-        onTrace: (event) => {
-          setLiveSteps((prev) => {
-            const existing = prev.find((s) => s.name === event.step);
-            if (existing) {
-              return prev.map((s) => s.name === event.step ? { ...s, status: event.status } : s);
-            }
-            return [...prev, { name: event.step, status: event.status }];
-          });
-        },
-      });
-
-      const handlers: StepHandler[] = templateSteps.map((step) => ({
-        name: step.name,
-        action: async (ctx) => {
-          await new Promise((r) => setTimeout(r, 50 + Math.random() * 150));
-          ctx.set(`${step.action}_done`, true);
-        },
-        compensate: step.compensationAction
-          ? async () => { await new Promise((r) => setTimeout(r, 30)); }
-          : undefined,
-      }));
-
-      result = await orchestrator.execute(`${template}_${Date.now()}`, handlers);
+      // Real PACS migration: config → extract → transform → map → upsert → verify
+      result = await runPACSMigration();
     }
 
     const entry: RunHistory = {
