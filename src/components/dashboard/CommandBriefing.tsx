@@ -1,6 +1,4 @@
 import { motion } from "framer-motion";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import {
   Database,
   TrendingUp,
@@ -21,134 +19,33 @@ import { Progress } from "@/components/ui/progress";
 import { TerraTraceActivityFeed } from "@/components/proof/TerraTraceActivityFeed";
 import { SystemHealthPanel } from "./SystemHealthPanel";
 import { NeighborhoodLeaderboard } from "./NeighborhoodLeaderboard";
+import { useCountyVitals } from "@/hooks/useCountyVitals";
+import { ProvenanceBadge, ScopeHeader } from "@/components/trust";
 
 interface CommandBriefingProps {
   onNavigate: (module: string) => void;
 }
 
 export function CommandBriefing({ onNavigate }: CommandBriefingProps) {
-  const { data: parcelsCount } = useQuery({
-    queryKey: ["briefing-parcels"],
-    queryFn: async () => {
-      const { count } = await supabase.from("parcels").select("*", { count: "exact", head: true });
-      return count || 0;
-    },
-  });
+  const { data: vitals } = useCountyVitals();
 
-  const { data: salesCount } = useQuery({
-    queryKey: ["briefing-sales"],
-    queryFn: async () => {
-      const { count } = await supabase.from("sales").select("*", { count: "exact", head: true });
-      return count || 0;
-    },
-  });
-
-  const { data: assessmentsCount } = useQuery({
-    queryKey: ["briefing-assessments"],
-    queryFn: async () => {
-      const { count } = await supabase.from("assessments").select("*", { count: "exact", head: true });
-      return count || 0;
-    },
-  });
-
-  const { data: recentJobs } = useQuery({
-    queryKey: ["briefing-ingest-jobs"],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("ingest_jobs")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .limit(5);
-      return data || [];
-    },
-  });
-
-  // Health indicators
-  const { data: pendingAppeals } = useQuery({
-    queryKey: ["briefing-pending-appeals"],
-    queryFn: async () => {
-      const { count } = await supabase
-        .from("appeals")
-        .select("*", { count: "exact", head: true })
-        .in("status", ["filed", "pending", "scheduled"]);
-      return count || 0;
-    },
-  });
-
-  const { data: openPermits } = useQuery({
-    queryKey: ["briefing-open-permits"],
-    queryFn: async () => {
-      const { count } = await supabase
-        .from("permits")
-        .select("*", { count: "exact", head: true })
-        .in("status", ["applied", "pending", "issued"]);
-      return count || 0;
-    },
-  });
-
-  const { data: pendingExemptions } = useQuery({
-    queryKey: ["briefing-pending-exemptions"],
-    queryFn: async () => {
-      const { count } = await supabase
-        .from("exemptions")
-        .select("*", { count: "exact", head: true })
-        .eq("status", "pending");
-      return count || 0;
-    },
-  });
-
-  // Certification readiness
-  const { data: certStats } = useQuery({
-    queryKey: ["briefing-cert-readiness"],
-    queryFn: async () => {
-      const { count: totalAssessments } = await supabase
-        .from("assessments")
-        .select("*", { count: "exact", head: true });
-      const { count: certifiedCount } = await supabase
-        .from("assessments")
-        .select("*", { count: "exact", head: true })
-        .eq("certified", true);
-      const total = totalAssessments || 0;
-      const certified = certifiedCount || 0;
-      const rate = total > 0 ? Math.round((certified / total) * 100) : 0;
-      return { total, certified, rate };
-    },
-  });
-
-  const { data: dataQuality } = useQuery({
-    queryKey: ["briefing-data-quality"],
-    queryFn: async () => {
-      const total = parcelsCount || 1;
-      const { count: withCoords } = await supabase
-        .from("parcels")
-        .select("*", { count: "exact", head: true })
-        .not("latitude", "is", null);
-      const { count: withClass } = await supabase
-        .from("parcels")
-        .select("*", { count: "exact", head: true })
-        .not("property_class", "is", null);
-      const { count: withNbhd } = await supabase
-        .from("parcels")
-        .select("*", { count: "exact", head: true })
-        .not("neighborhood_code", "is", null);
-
-      const coordsPct = Math.round(((withCoords || 0) / total) * 100);
-      const classPct = Math.round(((withClass || 0) / total) * 100);
-      const nbhdPct = Math.round(((withNbhd || 0) / total) * 100);
-      const overall = Math.round((coordsPct + classPct + nbhdPct) / 3);
-
-      return { coordsPct, classPct, nbhdPct, overall };
-    },
-    enabled: (parcelsCount || 0) > 0,
-  });
+  const parcelsCount = vitals?.parcels.total ?? 0;
+  const salesCount = vitals?.sales.total ?? 0;
+  const assessmentsCount = vitals?.assessments.total ?? 0;
+  const pendingAppeals = vitals?.workflows.pendingAppeals ?? 0;
+  const openPermits = vitals?.workflows.openPermits ?? 0;
+  const pendingExemptions = vitals?.workflows.pendingExemptions ?? 0;
+  const certStats = vitals?.assessments;
+  const dataQuality = vitals?.quality;
+  const recentJobs = vitals?.ingest.recentJobs ?? [];
 
   const cards = [
-    { label: "Parcels", value: parcelsCount || 0, icon: Database, color: "text-tf-cyan" },
-    { label: "Sales", value: salesCount || 0, icon: TrendingUp, color: "text-tf-green" },
-    { label: "Assessments", value: assessmentsCount || 0, icon: CheckCircle2, color: "text-tf-gold" },
+    { label: "Parcels", value: parcelsCount, icon: Database, color: "text-tf-cyan" },
+    { label: "Sales", value: salesCount, icon: TrendingUp, color: "text-tf-green" },
+    { label: "Assessments", value: assessmentsCount, icon: CheckCircle2, color: "text-tf-gold" },
   ];
 
-  const needsData = (salesCount || 0) < 100;
+  const needsData = salesCount < 100;
 
   const quickActions = [
     {
@@ -192,10 +89,21 @@ export function CommandBriefing({ onNavigate }: CommandBriefingProps) {
   return (
     <div className="p-6 space-y-6 max-w-6xl mx-auto">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-        <h2 className="text-2xl font-light text-foreground">Valuation Command Briefing</h2>
-        <p className="text-sm text-muted-foreground mt-1">
-          System-wide data health and operational readiness
-        </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-light text-foreground">Valuation Command Briefing</h2>
+            <p className="text-sm text-muted-foreground mt-1">
+              System-wide data health and operational readiness
+            </p>
+          </div>
+          <ScopeHeader
+            scope="county"
+            label="Benton"
+            source="county-vitals"
+            fetchedAt={vitals?.fetchedAt}
+            status="published"
+          />
+        </div>
       </motion.div>
 
       {/* Key Metrics */}
@@ -223,7 +131,7 @@ export function CommandBriefing({ onNavigate }: CommandBriefingProps) {
         })}
       </div>
 
-      {/* Quick Action Cards — Jump into Workbench suites */}
+      {/* Quick Action Cards */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -298,9 +206,9 @@ export function CommandBriefing({ onNavigate }: CommandBriefingProps) {
               <ArrowRight className="w-3.5 h-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
             </div>
             <div className="space-y-2">
-              <QualityBar label="Coordinates" value={dataQuality?.coordsPct ?? 0} />
-              <QualityBar label="Property Class" value={dataQuality?.classPct ?? 0} />
-              <QualityBar label="Neighborhood" value={dataQuality?.nbhdPct ?? 0} />
+              <QualityBar label="Coordinates" value={dataQuality?.coords ?? 0} />
+              <QualityBar label="Property Class" value={dataQuality?.propertyClass ?? 0} />
+              <QualityBar label="Neighborhood" value={dataQuality?.neighborhood ?? 0} />
             </div>
           </CardContent>
         </Card>
@@ -322,21 +230,21 @@ export function CommandBriefing({ onNavigate }: CommandBriefingProps) {
                 onClick={() => onNavigate("workbench:dais:appeals")}
                 className="p-3 rounded-lg bg-tf-surface/50 hover:bg-tf-surface transition-colors text-center"
               >
-                <p className="text-2xl font-light text-suite-dais">{pendingAppeals ?? 0}</p>
+                <p className="text-2xl font-light text-suite-dais">{pendingAppeals}</p>
                 <p className="text-xs text-muted-foreground mt-1">Appeals</p>
               </button>
               <button
                 onClick={() => onNavigate("workbench:dais:permits")}
                 className="p-3 rounded-lg bg-tf-surface/50 hover:bg-tf-surface transition-colors text-center"
               >
-                <p className="text-2xl font-light text-tf-gold">{openPermits ?? 0}</p>
+                <p className="text-2xl font-light text-tf-gold">{openPermits}</p>
                 <p className="text-xs text-muted-foreground mt-1">Permits</p>
               </button>
               <button
                 onClick={() => onNavigate("workbench:dais:exemptions")}
                 className="p-3 rounded-lg bg-tf-surface/50 hover:bg-tf-surface transition-colors text-center"
               >
-                <p className="text-2xl font-light text-tf-green">{pendingExemptions ?? 0}</p>
+                <p className="text-2xl font-light text-tf-green">{pendingExemptions}</p>
                 <p className="text-xs text-muted-foreground mt-1">Exemptions</p>
               </button>
             </div>
@@ -395,11 +303,11 @@ export function CommandBriefing({ onNavigate }: CommandBriefingProps) {
                 <p className="text-xs text-muted-foreground">Assessment certification progress</p>
               </div>
               <Badge variant="outline" className={`${
-                (certStats?.rate ?? 0) >= 90 ? "bg-chart-5/10 text-chart-5 border-chart-5/30" :
-                (certStats?.rate ?? 0) >= 50 ? "bg-chart-4/10 text-chart-4 border-chart-4/30" :
+                (certStats?.certRate ?? 0) >= 90 ? "bg-chart-5/10 text-chart-5 border-chart-5/30" :
+                (certStats?.certRate ?? 0) >= 50 ? "bg-chart-4/10 text-chart-4 border-chart-4/30" :
                 "bg-destructive/10 text-destructive border-destructive/30"
               }`}>
-                {certStats?.rate ?? 0}%
+                {certStats?.certRate ?? 0}%
               </Badge>
               <ArrowRight className="w-3.5 h-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
             </div>
@@ -408,10 +316,10 @@ export function CommandBriefing({ onNavigate }: CommandBriefingProps) {
                 <span className="text-xs text-muted-foreground">Certified</span>
                 <span className="text-sm font-medium text-chart-5">{(certStats?.certified ?? 0).toLocaleString()}</span>
               </div>
-              <Progress value={certStats?.rate ?? 0} className="h-2" />
+              <Progress value={certStats?.certRate ?? 0} className="h-2" />
               <div className="flex items-center justify-between text-xs text-muted-foreground">
                 <span>{(certStats?.certified ?? 0).toLocaleString()} of {(certStats?.total ?? 0).toLocaleString()} assessments</span>
-                <span className="text-foreground font-medium">{certStats?.rate ?? 0}% complete</span>
+                <span className="text-foreground font-medium">{certStats?.certRate ?? 0}% complete</span>
               </div>
             </div>
           </CardContent>
@@ -427,9 +335,9 @@ export function CommandBriefing({ onNavigate }: CommandBriefingProps) {
             <CardTitle className="text-base font-medium">Recent Ingest Activity</CardTitle>
           </CardHeader>
           <CardContent>
-            {recentJobs && recentJobs.length > 0 ? (
+            {recentJobs.length > 0 ? (
               <div className="space-y-3">
-                {recentJobs.map((job: any) => (
+                {recentJobs.map((job) => (
                   <button
                     key={job.id}
                     onClick={() => onNavigate(`ids:versions:${job.id}`)}
@@ -438,7 +346,7 @@ export function CommandBriefing({ onNavigate }: CommandBriefingProps) {
                     <div>
                       <p className="text-sm font-medium">{job.file_name}</p>
                       <p className="text-xs text-muted-foreground">
-                        {job.target_table} • {job.row_count?.toLocaleString() || 0} rows
+                        {job.target_table} • {(job.row_count ?? 0).toLocaleString()} rows
                       </p>
                     </div>
                     <div className="flex items-center gap-2">

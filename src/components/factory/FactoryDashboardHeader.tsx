@@ -1,87 +1,44 @@
 // TerraFusion OS — Factory Dashboard Header
-// Aggregate stats across all neighborhoods for the Mass Appraisal Factory
-// Agent Factory built this while Agent Sentinel counted the ceiling tiles (there are 47)
+// Uses useCountyVitals for baseline counts; only runs factory-specific queries locally.
 
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Factory, BarChart3, ShieldCheck, Layers, TrendingUp, AlertTriangle } from "lucide-react";
+import { useCountyVitals } from "@/hooks/useCountyVitals";
 
-interface FactoryStats {
-  totalParcels: number;
-  neighborhoods: number;
-  calibratedNeighborhoods: number;
-  calibrationRuns: number;
-  avgRSquared: number | null;
-  certificationRate: number;
-  recentAdjustments: number;
-  pendingBlockers: number;
-}
+export function FactoryDashboardHeader() {
+  const { data: vitals, isLoading: vitalsLoading } = useCountyVitals();
 
-function useFactoryStats() {
-  return useQuery<FactoryStats>({
-    queryKey: ["factory-stats"],
+  // Factory-specific: active adjustments count (not in vitals)
+  const { data: adjustmentsCount } = useQuery({
+    queryKey: ["factory", "active-adjustments"],
     queryFn: async () => {
-      const currentYear = new Date().getFullYear();
-
-      const [
-        parcelsRes,
-        nbhdRes,
-        calibRes,
-        calibDetailRes,
-        assessmentsRes,
-        adjustmentsRes,
-        appealsRes,
-        permitsRes,
-        exemptionsRes,
-      ] = await Promise.all([
-        supabase.from("parcels").select("*", { count: "exact", head: true }),
-        supabase.from("parcels").select("neighborhood_code").not("neighborhood_code", "is", null).limit(1000),
-        supabase.from("calibration_runs").select("*", { count: "exact", head: true }),
-        supabase.from("calibration_runs").select("neighborhood_code, r_squared, created_at").order("created_at", { ascending: false }),
-        supabase.from("assessments").select("parcel_id, certified").eq("tax_year", currentYear),
-        supabase.from("value_adjustments").select("*", { count: "exact", head: true }).is("rolled_back_at", null),
-        supabase.from("appeals").select("*", { count: "exact", head: true }).in("status", ["filed", "pending", "scheduled"]),
-        supabase.from("permits").select("*", { count: "exact", head: true }).in("status", ["applied", "pending"]),
-        supabase.from("exemptions").select("*", { count: "exact", head: true }).eq("status", "pending"),
-      ]);
-
-      const uniqueNbhds = new Set((nbhdRes.data || []).map(p => p.neighborhood_code));
-      
-      // Compute calibrated neighborhoods and avg R²
-      const latestCalib = new Map<string, number>();
-      for (const run of calibDetailRes.data || []) {
-        if (!latestCalib.has(run.neighborhood_code)) {
-          latestCalib.set(run.neighborhood_code, run.r_squared ?? 0);
-        }
-      }
-      const calibratedNeighborhoods = latestCalib.size;
-      const rSquaredValues = Array.from(latestCalib.values()).filter(v => v > 0);
-      const avgRSquared = rSquaredValues.length > 0 ? rSquaredValues.reduce((a, b) => a + b, 0) / rSquaredValues.length : null;
-
-      const certifiedCount = (assessmentsRes.data || []).filter(a => a.certified).length;
-      const totalParcels = parcelsRes.count || 0;
-
-      return {
-        totalParcels,
-        neighborhoods: uniqueNbhds.size,
-        calibratedNeighborhoods,
-        calibrationRuns: calibRes.count || 0,
-        avgRSquared,
-        certificationRate: totalParcels > 0 ? Math.round((certifiedCount / totalParcels) * 100) : 0,
-        recentAdjustments: adjustmentsRes.count || 0,
-        pendingBlockers: (appealsRes.count || 0) + (permitsRes.count || 0) + (exemptionsRes.count || 0),
-      };
+      const { count } = await supabase
+        .from("value_adjustments")
+        .select("*", { count: "exact", head: true })
+        .is("rolled_back_at", null);
+      return count || 0;
     },
     staleTime: 120_000,
   });
-}
 
-export function FactoryDashboardHeader() {
-  const { data: stats, isLoading } = useFactoryStats();
+  // Factory-specific: neighborhood count from parcels
+  const { data: neighborhoodCount } = useQuery({
+    queryKey: ["factory", "neighborhoods"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("parcels")
+        .select("neighborhood_code")
+        .not("neighborhood_code", "is", null)
+        .limit(1000);
+      return new Set((data || []).map(p => p.neighborhood_code)).size;
+    },
+    staleTime: 120_000,
+  });
 
-  if (isLoading) {
+  if (vitalsLoading) {
     return (
       <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
         {Array.from({ length: 7 }).map((_, i) => (
@@ -91,69 +48,71 @@ export function FactoryDashboardHeader() {
     );
   }
 
-  if (!stats) return null;
+  if (!vitals) return null;
+
+  const nbhds = neighborhoodCount ?? 0;
 
   const metrics = [
     {
       label: "Total Parcels",
-      value: stats.totalParcels.toLocaleString(),
+      value: vitals.parcels.total.toLocaleString(),
       icon: Factory,
       color: "text-[hsl(var(--suite-forge))]",
       bgColor: "bg-[hsl(var(--suite-forge)/0.1)]",
     },
     {
       label: "Neighborhoods",
-      value: stats.neighborhoods.toString(),
+      value: nbhds.toString(),
       icon: Layers,
       color: "text-[hsl(var(--tf-bright-cyan))]",
       bgColor: "bg-[hsl(var(--tf-bright-cyan)/0.1)]",
     },
     {
       label: "Calibrated",
-      value: `${stats.calibratedNeighborhoods}/${stats.neighborhoods}`,
+      value: `${vitals.calibration.calibratedNeighborhoods}/${nbhds}`,
       icon: BarChart3,
-      color: stats.calibratedNeighborhoods === stats.neighborhoods
+      color: vitals.calibration.calibratedNeighborhoods === nbhds
         ? "text-[hsl(var(--tf-optimized-green))]"
         : "text-[hsl(var(--tf-transcend-cyan))]",
       bgColor: "bg-[hsl(var(--tf-transcend-cyan)/0.1)]",
     },
     {
       label: "Avg R²",
-      value: stats.avgRSquared ? `${(stats.avgRSquared * 100).toFixed(1)}%` : "—",
+      value: vitals.calibration.avgRSquared ? `${(vitals.calibration.avgRSquared * 100).toFixed(1)}%` : "—",
       icon: TrendingUp,
-      color: stats.avgRSquared && stats.avgRSquared > 0.7
+      color: vitals.calibration.avgRSquared && vitals.calibration.avgRSquared > 0.7
         ? "text-[hsl(var(--tf-optimized-green))]"
         : "text-[hsl(var(--tf-amber))]",
-      bgColor: stats.avgRSquared && stats.avgRSquared > 0.7
+      bgColor: vitals.calibration.avgRSquared && vitals.calibration.avgRSquared > 0.7
         ? "bg-[hsl(var(--tf-optimized-green)/0.1)]"
         : "bg-[hsl(var(--tf-amber)/0.1)]",
     },
     {
       label: "Certified",
-      value: `${stats.certificationRate}%`,
+      value: `${vitals.assessments.certRate}%`,
       icon: ShieldCheck,
-      color: stats.certificationRate === 100
+      color: vitals.assessments.certRate === 100
         ? "text-[hsl(var(--tf-optimized-green))]"
         : "text-[hsl(var(--tf-amber))]",
-      bgColor: stats.certificationRate === 100
+      bgColor: vitals.assessments.certRate === 100
         ? "bg-[hsl(var(--tf-optimized-green)/0.1)]"
         : "bg-[hsl(var(--tf-amber)/0.1)]",
     },
     {
       label: "Active Adjustments",
-      value: stats.recentAdjustments.toLocaleString(),
+      value: (adjustmentsCount ?? 0).toLocaleString(),
       icon: TrendingUp,
       color: "text-[hsl(var(--tf-sacred-gold))]",
       bgColor: "bg-[hsl(var(--tf-sacred-gold)/0.1)]",
     },
     {
       label: "Open Blockers",
-      value: stats.pendingBlockers.toString(),
+      value: vitals.workflows.total.toString(),
       icon: AlertTriangle,
-      color: stats.pendingBlockers > 0
+      color: vitals.workflows.total > 0
         ? "text-destructive"
         : "text-[hsl(var(--tf-optimized-green))]",
-      bgColor: stats.pendingBlockers > 0
+      bgColor: vitals.workflows.total > 0
         ? "bg-destructive/10"
         : "bg-[hsl(var(--tf-optimized-green)/0.1)]",
     },

@@ -28,110 +28,12 @@ import { AuditTimelineSparkline } from "./AuditTimelineSparkline";
 import { SmartQuickActions } from "./SmartQuickActions";
 import { useState, useRef, useEffect } from "react";
 import { useDebounce } from "@/hooks/useDebounce";
+import { useCountyVitals } from "@/hooks/useCountyVitals";
+import { ProvenanceBadge, ScopeHeader } from "@/components/trust";
 
 interface SuiteHubProps {
   onNavigate: (target: string) => void;
   onParcelNavigate?: (parcel: { id: string; parcelNumber: string; address: string; assessedValue: number }) => void;
-}
-
-// ─── Data hooks ───────────────────────────────────────────────
-
-function useSystemVitals() {
-  const parcels = useQuery({
-    queryKey: ["hub-parcels"],
-    queryFn: async () => {
-      const { count } = await supabase.from("parcels").select("*", { count: "exact", head: true });
-      return count || 0;
-    },
-    staleTime: 60_000,
-  });
-
-  const sales = useQuery({
-    queryKey: ["hub-sales"],
-    queryFn: async () => {
-      const { count } = await supabase.from("sales").select("*", { count: "exact", head: true });
-      return count || 0;
-    },
-    staleTime: 60_000,
-  });
-
-  const assessments = useQuery({
-    queryKey: ["hub-assessments"],
-    queryFn: async () => {
-      const { count } = await supabase.from("assessments").select("*", { count: "exact", head: true });
-      return count || 0;
-    },
-    staleTime: 60_000,
-  });
-
-  const permits = useQuery({
-    queryKey: ["hub-permits-total"],
-    queryFn: async () => {
-      const { count } = await supabase.from("permits").select("*", { count: "exact", head: true });
-      return count || 0;
-    },
-    staleTime: 60_000,
-  });
-
-  const exemptions = useQuery({
-    queryKey: ["hub-exemptions-total"],
-    queryFn: async () => {
-      const { count } = await supabase.from("exemptions").select("*", { count: "exact", head: true });
-      return count || 0;
-    },
-    staleTime: 60_000,
-  });
-
-  const dataQuality = useQuery({
-    queryKey: ["hub-data-quality"],
-    queryFn: async () => {
-      const total = parcels.data || 1;
-      const [coords, cls, nbhd] = await Promise.all([
-        supabase.from("parcels").select("*", { count: "exact", head: true }).not("latitude", "is", null),
-        supabase.from("parcels").select("*", { count: "exact", head: true }).not("property_class", "is", null),
-        supabase.from("parcels").select("*", { count: "exact", head: true }).not("neighborhood_code", "is", null),
-      ]);
-      const pcts = [coords.count || 0, cls.count || 0, nbhd.count || 0].map(c => Math.round((c / total) * 100));
-      return { coords: pcts[0], propertyClass: pcts[1], neighborhood: pcts[2], overall: Math.round((pcts[0] + pcts[1] + pcts[2]) / 3) };
-    },
-    enabled: (parcels.data || 0) > 0,
-  });
-
-  const workflows = useQuery({
-    queryKey: ["hub-workflows"],
-    queryFn: async () => {
-      const [appeals, pendingPermits, pendingExemptions] = await Promise.all([
-        supabase.from("appeals").select("*", { count: "exact", head: true }).in("status", ["filed", "pending", "scheduled"]),
-        supabase.from("permits").select("*", { count: "exact", head: true }).in("status", ["applied", "pending", "issued"]),
-        supabase.from("exemptions").select("*", { count: "exact", head: true }).eq("status", "pending"),
-      ]);
-      return { appeals: appeals.count || 0, permits: pendingPermits.count || 0, exemptions: pendingExemptions.count || 0 };
-    },
-  });
-
-  const recentJobs = useQuery({
-    queryKey: ["hub-recent-jobs"],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("ingest_jobs")
-        .select("id, file_name, target_table, status, row_count, rows_imported, created_at")
-        .order("created_at", { ascending: false })
-        .limit(3);
-      return data || [];
-    },
-    staleTime: 30_000,
-  });
-
-  return {
-    parcels: parcels.data || 0,
-    sales: sales.data || 0,
-    assessments: assessments.data || 0,
-    permits: permits.data || 0,
-    exemptions: exemptions.data || 0,
-    dataQuality: dataQuality.data,
-    workflows: workflows.data,
-    recentJobs: recentJobs.data || [],
-  };
 }
 
 // ─── Suite Registry ───────────────────────────────────────────
@@ -167,13 +69,13 @@ const SUITE_REGISTRY: SuiteEntry[] = [
 // ─── Component ────────────────────────────────────────────────
 
 export function SuiteHub({ onNavigate, onParcelNavigate }: SuiteHubProps) {
-  const vitals = useSystemVitals();
+  const { data: vitals, isLoading: vitalsLoading } = useCountyVitals();
   const [searchValue, setSearchValue] = useState("");
   const [searchFocused, setSearchFocused] = useState(false);
   const debouncedSearch = useDebounce(searchValue, 250);
   const searchRef = useRef<HTMLDivElement>(null);
 
-  // Live parcel search
+  // Live parcel search — ephemeral, stays local
   const { data: searchResults } = useQuery({
     queryKey: ["hub-parcel-search", debouncedSearch],
     queryFn: async () => {
@@ -216,7 +118,11 @@ export function SuiteHub({ onNavigate, onParcelNavigate }: SuiteHubProps) {
     }
   };
 
-  const totalWorkflows = (vitals.workflows?.appeals || 0) + (vitals.workflows?.permits || 0) + (vitals.workflows?.exemptions || 0);
+  const parcelsTotal = vitals?.parcels.total ?? 0;
+  const salesTotal = vitals?.sales.total ?? 0;
+  const assessmentsTotal = vitals?.assessments.total ?? 0;
+  const qualityOverall = vitals?.quality.overall ?? 0;
+  const totalWorkflows = vitals?.workflows.total ?? 0;
 
   const showDropdown = searchFocused && searchValue.trim().length >= 2 && searchResults && searchResults.length > 0;
 
@@ -230,13 +136,22 @@ export function SuiteHub({ onNavigate, onParcelNavigate }: SuiteHubProps) {
         transition={{ duration: 0.4 }}
         className="space-y-5"
       >
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-light tracking-tight text-foreground">
-            TerraFusion <span className="text-gradient-sovereign font-medium">OS</span>
-          </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Valuation Operating Environment
-          </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-light tracking-tight text-foreground">
+              TerraFusion <span className="text-gradient-sovereign font-medium">OS</span>
+            </h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              Valuation Operating Environment
+            </p>
+          </div>
+          <ScopeHeader
+            scope="county"
+            label="Benton"
+            source="county-vitals"
+            fetchedAt={vitals?.fetchedAt}
+            status="published"
+          />
         </div>
 
         {/* Workbench Hero Card */}
@@ -304,17 +219,16 @@ export function SuiteHub({ onNavigate, onParcelNavigate }: SuiteHubProps) {
             </AnimatePresence>
           </div>
 
-          {/* Inline vitals */}
+          {/* Inline vitals — single source */}
           <div className="flex items-center gap-3 sm:gap-6 mt-4 flex-wrap">
-            <Vital label="Parcels" value={vitals.parcels.toLocaleString()} />
-            <Vital label="Sales" value={vitals.sales.toLocaleString()} />
-            <Vital label="Assessments" value={vitals.assessments.toLocaleString()} />
-            <Vital label="Permits" value={vitals.permits.toLocaleString()} />
-            <Vital label="Exemptions" value={vitals.exemptions.toLocaleString()} />
-            <Vital label="Data Quality" value={`${vitals.dataQuality?.overall ?? 0}%`} />
+            <Vital label="Parcels" value={parcelsTotal.toLocaleString()} />
+            <Vital label="Sales" value={salesTotal.toLocaleString()} />
+            <Vital label="Assessments" value={assessmentsTotal.toLocaleString()} />
+            <Vital label="Data Quality" value={`${qualityOverall}%`} />
             {totalWorkflows > 0 && (
               <Vital label="Pending" value={totalWorkflows.toString()} highlight />
             )}
+            <ProvenanceBadge source="county-vitals" fetchedAt={vitals?.fetchedAt} />
           </div>
         </div>
       </motion.section>
@@ -339,15 +253,15 @@ export function SuiteHub({ onNavigate, onParcelNavigate }: SuiteHubProps) {
               <h3 className="text-sm font-medium text-foreground">Data Quality</h3>
               <p className="text-xs text-muted-foreground">Parcel completeness</p>
             </div>
-            <Badge variant="outline" className={qualityBadgeClass(vitals.dataQuality?.overall ?? 0)}>
-              {vitals.dataQuality?.overall ?? 0}%
+            <Badge variant="outline" className={qualityBadgeClass(qualityOverall)}>
+              {qualityOverall}%
             </Badge>
             <ArrowRight className="w-3.5 h-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
           </div>
           <div className="space-y-2">
-            <QualityRow label="Coordinates" value={vitals.dataQuality?.coords ?? 0} />
-            <QualityRow label="Property Class" value={vitals.dataQuality?.propertyClass ?? 0} />
-            <QualityRow label="Neighborhood" value={vitals.dataQuality?.neighborhood ?? 0} />
+            <QualityRow label="Coordinates" value={vitals?.quality.coords ?? 0} />
+            <QualityRow label="Property Class" value={vitals?.quality.propertyClass ?? 0} />
+            <QualityRow label="Neighborhood" value={vitals?.quality.neighborhood ?? 0} />
           </div>
         </button>
 
@@ -365,19 +279,19 @@ export function SuiteHub({ onNavigate, onParcelNavigate }: SuiteHubProps) {
           <div className="grid grid-cols-3 gap-3">
             <WorkflowButton
               label="Appeals"
-              count={vitals.workflows?.appeals ?? 0}
+              count={vitals?.workflows.pendingAppeals ?? 0}
               colorClass="text-suite-dais"
               onClick={() => onNavigate("workbench:dais:appeals")}
             />
             <WorkflowButton
               label="Permits"
-              count={vitals.workflows?.permits ?? 0}
+              count={vitals?.workflows.openPermits ?? 0}
               colorClass="text-tf-gold"
               onClick={() => onNavigate("workbench:dais:permits")}
             />
             <WorkflowButton
               label="Exemptions"
-              count={vitals.workflows?.exemptions ?? 0}
+              count={vitals?.workflows.pendingExemptions ?? 0}
               colorClass="text-tf-green"
               onClick={() => onNavigate("workbench:dais:exemptions")}
             />
@@ -447,7 +361,7 @@ export function SuiteHub({ onNavigate, onParcelNavigate }: SuiteHubProps) {
       </motion.section>
 
       {/* ── Recent Ingest Activity ── */}
-      {vitals.recentJobs.length > 0 && (
+      {(vitals?.ingest.recentJobs.length ?? 0) > 0 && (
         <motion.section
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
@@ -466,7 +380,7 @@ export function SuiteHub({ onNavigate, onParcelNavigate }: SuiteHubProps) {
             </button>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            {vitals.recentJobs.map((job: any) => (
+            {vitals!.ingest.recentJobs.map((job) => (
               <button
                 key={job.id}
                 onClick={() => onNavigate(`ids:versions:${job.id}`)}
