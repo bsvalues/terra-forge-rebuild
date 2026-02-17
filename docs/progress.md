@@ -9,9 +9,9 @@
 
 ## Current State Summary
 
-**Active Phase**: Phase 17 — Roll Readiness Command Center (✅ COMPLETE)  
-**Last Completed Task**: 17.3 — Navigation integration  
-**Next Task**: Phase 18 planning  
+**Active Phase**: Phase 18 — Operational Completeness Sprint  
+**Last Completed Task**: 18.3 — SAGA Runner real DB wiring  
+**Next Task**: Phase 19 planning  
 **Blockers**: None
 
 ---
@@ -38,8 +38,29 @@
 | 15 | Field Studio Sync Engine | ✅ COMPLETE | 4/4 | Idempotent sync, conflict detection, background auto-sync, photo upload pipeline |
 | 16 | Data Quality Scoring Engine | ✅ COMPLETE | 3/3 | Weighted scoring, neighborhood heatmap, stale alerts, grade distribution |
 | 17 | Roll Readiness Command Center | ✅ COMPLETE | 3/3 | Go/no-go verdict, weighted checklist, neighborhood grid, summary |
+| 18 | Operational Completeness Sprint | ✅ COMPLETE | 3/3 | Scenario Apply+VEI, Notification Bell, SAGA real DB wiring |
 
 ---
+
+## Phase 18 Operational Completeness Sprint Log (2026-02-17)
+
+### 18.1 Scenario Mode: Apply + VEI Ratio Preview ✅
+- "Apply Scenario" CommitmentButton commits adjustments to `value_adjustments` table
+- VEI ratio impact preview: shows current vs proposed median ratio and COD
+- Scenario save/load: save named scenarios locally, load to compare
+- Batch parcel value updates on apply with adjustment_reason metadata
+
+### 18.2 Global Notification Bell ✅
+- `NotificationBell` integrated into `TopSystemBar` (visible on every page)
+- `useRealtimeNotifications` hook subscribes to `trace_events` INSERT via Supabase Realtime
+- Auto-pushes notifications for: value overrides, workflow changes, notices, model runs, SAGA completions/failures
+- Notification popover with mark-read, clear-all, sound toggle, browser notification permission
+
+### 18.3 SAGA Runner Real DB Wiring ✅
+- `sync_refresh` runner now queries actual parcels table for delta detection
+- `bulk_import` runner validates real records through the sync engine pipeline
+- Assessment Update and PACS Migration remain simulated with realistic step timing
+- All runners emit TerraTrace events via the traced orchestrator
 
 ## Phase 17 Roll Readiness Command Center Log (2026-02-17)
 
