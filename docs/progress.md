@@ -9,9 +9,9 @@
 
 ## Current State Summary
 
-**Active Phase**: Phase 16 — Data Quality Scoring Engine (✅ COMPLETE)  
-**Last Completed Task**: 16.3 — Navigation integration  
-**Next Task**: Phase 17 planning  
+**Active Phase**: Phase 17 — Roll Readiness Command Center (✅ COMPLETE)  
+**Last Completed Task**: 17.3 — Navigation integration  
+**Next Task**: Phase 18 planning  
 **Blockers**: None
 
 ---
@@ -37,8 +37,32 @@
 | 14 | The Observability Singularity | ✅ COMPLETE | 3/3 | Audit timeline sparkline, neighborhood deep-dive dialog, smart quick actions |
 | 15 | Field Studio Sync Engine | ✅ COMPLETE | 4/4 | Idempotent sync, conflict detection, background auto-sync, photo upload pipeline |
 | 16 | Data Quality Scoring Engine | ✅ COMPLETE | 3/3 | Weighted scoring, neighborhood heatmap, stale alerts, grade distribution |
+| 17 | Roll Readiness Command Center | ✅ COMPLETE | 3/3 | Go/no-go verdict, weighted checklist, neighborhood grid, summary |
 
 ---
+
+## Phase 17 Roll Readiness Command Center Log (2026-02-17)
+
+### 17.1 Roll Readiness Hook ✅
+- `src/hooks/useRollReadiness.ts` — comprehensive readiness aggregation
+- 11-query parallel fetch: parcels, assessments, calibrations, appeals, permits, exemptions, data quality fields
+- 5 weighted checks: certification (30%), calibration (25%), appeals (20%), data quality (15%), assessment coverage (10%)
+- GO/CAUTION/NO_GO verdict with 90/60 thresholds
+- Per-neighborhood readiness scoring with cert rate, calibration status, R² values
+
+### 17.2 Roll Readiness Dashboard ✅
+- `src/components/certification/RollReadinessDashboard.tsx` — full command center
+- Hero verdict banner with animated SVG score ring and glow effects
+- 8-stat summary grid with semantic color coding
+- 3 tabbed views: Checklist (grouped by pass/warn/fail), Neighborhoods (sortable grid), Summary
+- Checklist items with weight badges, status icons, detail text
+- Neighborhood rows with cert progress bars, R² badges, parcel counts
+- Full skeleton loading states
+
+### 17.3 Navigation Integration ✅
+- Roll Readiness added to DockLauncher (⌘0) with ShieldCheck icon
+- Lazy-loaded route in AppLayout
+- Suite Registry entry in SuiteHub with optimized-green accent
 
 ## Phase 16 Data Quality Scoring Engine Log (2026-02-17)
 

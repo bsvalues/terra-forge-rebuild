@@ -160,6 +160,7 @@ const SUITE_REGISTRY: SuiteEntry[] = [
   { id: "pilot", name: "TerraPilot", mission: "AI copilot — guidance, drafting, synthesis", icon: Sparkles, status: "native", target: "workbench:pilot", accentVar: "--tf-transcend-cyan" },
   { id: "ids", name: "IDS", mission: "Intelligent Data Suite — ingest, quality, routing", icon: Database, status: "native", target: "ids", accentVar: "--tf-transcend-cyan" },
   { id: "quality", name: "Quality Engine", mission: "Scoring, stale detection, neighborhood heatmap", icon: Shield, status: "native", target: "quality", accentVar: "--tf-transcend-cyan" },
+  { id: "readiness", name: "Roll Readiness", mission: "Pre-certification checklist, go/no-go verdict", icon: CheckCircle2, status: "native", target: "readiness", accentVar: "--tf-optimized-green" },
 ];
 
 // ─── Component ────────────────────────────────────────────────

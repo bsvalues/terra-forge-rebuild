@@ -16,6 +16,7 @@ const SyncDashboard = lazy(() => import("@/components/sync/SyncDashboard").then(
 const VEIDashboard = lazy(() => import("@/components/vei/VEIDashboard").then(m => ({ default: m.VEIDashboard })));
 const GeoEquityDashboard = lazy(() => import("@/components/geoequity/GeoEquityDashboard").then(m => ({ default: m.GeoEquityDashboard })));
 const DataQualityScoringEngine = lazy(() => import("@/components/quality/DataQualityScoringEngine").then(m => ({ default: m.DataQualityScoringEngine })));
+const RollReadinessDashboard = lazy(() => import("@/components/certification").then(m => ({ default: m.RollReadinessDashboard })));
 
 // ── Loading fallback ───────────────────────────────────────────────
 function StageFallback() {
@@ -135,6 +136,12 @@ export function AppLayout({ initialParcel: routeParcel, initialModule, initialFa
         return (
           <div className="p-6 max-w-7xl mx-auto">
             <DataQualityScoringEngine />
+          </div>
+        );
+      case "readiness":
+        return (
+          <div className="p-6 max-w-5xl mx-auto">
+            <RollReadinessDashboard />
           </div>
         );
       default:
