@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   ArrowLeft, Camera, Ruler, ClipboardCheck, MessageSquare,
-  AlertTriangle, CheckCircle2, MapPin, Save
+  AlertTriangle, CheckCircle2, MapPin, Save, ImagePlus
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -62,6 +62,9 @@ export function InspectionPanel({ assignment, onBack }: InspectionPanelProps) {
   // Anomaly state
   const [anomalyType, setAnomalyType] = useState("boundary_mismatch");
   const [anomalyDesc, setAnomalyDesc] = useState("");
+
+  // Photo state
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
 
   // Load observations on mount
   useEffect(() => {
@@ -148,6 +151,23 @@ export function InspectionPanel({ assignment, onBack }: InspectionPanelProps) {
     setAnomalyDesc("");
   };
 
+  const handlePhotoCapture = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const base64 = ev.target?.result as string;
+      setPhotoPreview(base64);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleSavePhoto = () => {
+    if (!photoPreview) return;
+    saveObservation("photo", { blob: photoPreview, photoCount: 1 });
+    setPhotoPreview(null);
+  };
+
   const handleComplete = async () => {
     await updateAssignmentStatus(assignment.id, "completed");
     toast.success("Inspection marked complete");
@@ -175,7 +195,7 @@ export function InspectionPanel({ assignment, onBack }: InspectionPanelProps) {
 
       {/* Inspection Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="bg-muted/50 w-full grid grid-cols-5 h-auto">
+        <TabsList className="bg-muted/50 w-full grid grid-cols-6 h-auto">
           <TabsTrigger value="condition" className="text-[10px] sm:text-xs py-2 flex flex-col gap-0.5">
             <ClipboardCheck className="w-4 h-4" />
             <span className="hidden sm:inline">Condition</span>
@@ -187,6 +207,10 @@ export function InspectionPanel({ assignment, onBack }: InspectionPanelProps) {
           <TabsTrigger value="measure" className="text-[10px] sm:text-xs py-2 flex flex-col gap-0.5">
             <Ruler className="w-4 h-4" />
             <span className="hidden sm:inline">Measure</span>
+          </TabsTrigger>
+          <TabsTrigger value="photo" className="text-[10px] sm:text-xs py-2 flex flex-col gap-0.5">
+            <Camera className="w-4 h-4" />
+            <span className="hidden sm:inline">Photo</span>
           </TabsTrigger>
           <TabsTrigger value="notes" className="text-[10px] sm:text-xs py-2 flex flex-col gap-0.5">
             <MessageSquare className="w-4 h-4" />
@@ -280,6 +304,52 @@ export function InspectionPanel({ assignment, onBack }: InspectionPanelProps) {
                 <Save className="w-4 h-4 mr-2" />
                 Save Measurements
               </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Photo Tab */}
+        <TabsContent value="photo" className="mt-4 space-y-4">
+          <Card className="border-border/50">
+            <CardContent className="p-4 space-y-4">
+              <div className="text-center">
+                {photoPreview ? (
+                  <div className="relative">
+                    <img
+                      src={photoPreview}
+                      alt="Captured photo"
+                      className="w-full max-h-64 object-cover rounded-lg border border-border/50"
+                    />
+                    <button
+                      onClick={() => setPhotoPreview(null)}
+                      className="absolute top-2 right-2 w-6 h-6 rounded-full bg-destructive/80 text-destructive-foreground flex items-center justify-center text-xs"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ) : (
+                  <label className="cursor-pointer block">
+                    <div className="border-2 border-dashed border-border/50 rounded-xl p-8 hover:border-primary/30 transition-colors">
+                      <ImagePlus className="w-10 h-10 text-muted-foreground/40 mx-auto mb-2" />
+                      <p className="text-sm text-muted-foreground">Tap to capture or select a photo</p>
+                      <p className="text-[10px] text-muted-foreground mt-1">Camera or gallery</p>
+                    </div>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      capture="environment"
+                      className="hidden"
+                      onChange={handlePhotoCapture}
+                    />
+                  </label>
+                )}
+              </div>
+              {photoPreview && (
+                <Button onClick={handleSavePhoto} disabled={saving} className="w-full">
+                  <Camera className="w-4 h-4 mr-2" />
+                  Save Photo Evidence
+                </Button>
+              )}
             </CardContent>
           </Card>
         </TabsContent>

@@ -1,10 +1,10 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   MapPin, ClipboardCheck, Camera, Wifi, WifiOff, Upload, ChevronRight,
-  AlertTriangle, CheckCircle2, Clock, Plus
+  AlertTriangle, CheckCircle2, Clock, Plus, RefreshCw, Zap
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -12,50 +12,32 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import {
   getAssignments,
-  getQueueStats,
   saveAssignments,
   type FieldAssignment,
   type InspectionStatus,
 } from "@/services/fieldStore";
-import { syncPendingObservations } from "@/services/fieldSync";
+import { useFieldSync } from "@/hooks/useFieldSync";
 import { supabase } from "@/integrations/supabase/client";
 import { InspectionPanel } from "./InspectionPanel";
 
 export function FieldStudioDashboard() {
   const [assignments, setAssignments] = useState<FieldAssignment[]>([]);
   const [activeInspection, setActiveInspection] = useState<FieldAssignment | null>(null);
-  const [queueStats, setQueueStats] = useState({ pending: 0, synced: 0, error: 0, total: 0 });
-  const [isOnline, setIsOnline] = useState(navigator.onLine);
-  const [isSyncing, setIsSyncing] = useState(false);
   const [activeTab, setActiveTab] = useState("assigned");
-
-  // Online/offline detection
-  useEffect(() => {
-    const handleOnline = () => setIsOnline(true);
-    const handleOffline = () => setIsOnline(false);
-    window.addEventListener("online", handleOnline);
-    window.addEventListener("offline", handleOffline);
-    return () => {
-      window.removeEventListener("online", handleOnline);
-      window.removeEventListener("offline", handleOffline);
-    };
-  }, []);
+  const sync = useFieldSync();
 
   // Load assignments from IndexedDB
   const loadData = useCallback(async () => {
-    const [allAssignments, stats] = await Promise.all([
-      getAssignments(),
-      getQueueStats(),
-    ]);
+    const allAssignments = await getAssignments();
     setAssignments(allAssignments);
-    setQueueStats(stats);
-  }, []);
+    await sync.refresh();
+  }, [sync]);
 
   useEffect(() => { loadData(); }, [loadData]);
 
   // Pull assignments from server
   const pullAssignments = async () => {
-    if (!isOnline) {
+    if (!sync.isOnline) {
       toast.error("Cannot pull assignments while offline");
       return;
     }
@@ -97,21 +79,18 @@ export function FieldStudioDashboard() {
     }
   };
 
-  // Sync pending observations
+  // Manual sync
   const handleSync = async () => {
-    if (!isOnline) {
+    if (!sync.isOnline) {
       toast.error("Cannot sync while offline");
       return;
     }
-    setIsSyncing(true);
-    try {
-      const result = await syncPendingObservations();
-      await loadData();
-      if (result.synced > 0) toast.success(`${result.synced} observations synced`);
-      if (result.errors > 0) toast.error(`${result.errors} failed to sync`);
-    } finally {
-      setIsSyncing(false);
-    }
+    const result = await sync.syncNow();
+    await loadData();
+    if (result.synced > 0) toast.success(`${result.synced} observations synced`);
+    if (result.conflicts > 0) toast.warning(`${result.conflicts} conflicts detected — review in queue`);
+    if (result.errors > 0) toast.error(`${result.errors} failed (will retry automatically)`);
+    if (result.retried > 0) toast.info(`${result.retried} retried from previous failures`);
   };
 
   const filterByStatus = (status: InspectionStatus) =>
@@ -129,6 +108,8 @@ export function FieldStudioDashboard() {
     );
   }
 
+  const hasPending = sync.queueStats.pending > 0 || sync.queueStats.error > 0;
+
   return (
     <div className="p-4 sm:p-6 max-w-5xl mx-auto space-y-6">
       {/* Header */}
@@ -140,21 +121,26 @@ export function FieldStudioDashboard() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          {/* Online indicator */}
           <Badge
             variant="outline"
-            className={isOnline
+            className={sync.isOnline
               ? "border-primary/40 text-primary bg-primary/10"
               : "border-destructive/40 text-destructive bg-destructive/10"
             }
           >
-            {isOnline ? <Wifi className="w-3 h-3 mr-1" /> : <WifiOff className="w-3 h-3 mr-1" />}
-            {isOnline ? "Online" : "Offline"}
+            {sync.isOnline ? <Wifi className="w-3 h-3 mr-1" /> : <WifiOff className="w-3 h-3 mr-1" />}
+            {sync.isOnline ? "Online" : "Offline"}
           </Badge>
+          {sync.isOnline && (
+            <Badge variant="outline" className="text-[10px] border-primary/20 text-muted-foreground">
+              <Zap className="w-2.5 h-2.5 mr-0.5 text-primary" />
+              Auto-sync
+            </Badge>
+          )}
         </div>
       </div>
 
-      {/* Sync Bar */}
+      {/* Enhanced Sync Bar */}
       <Card className="border-border/50 bg-card/80">
         <CardContent className="p-4">
           <div className="flex items-center justify-between gap-4">
@@ -162,44 +148,77 @@ export function FieldStudioDashboard() {
               <div className="flex items-center gap-4 text-sm">
                 <span className="text-muted-foreground">
                   <Clock className="w-3.5 h-3.5 inline mr-1" />
-                  {queueStats.pending} pending
+                  {sync.queueStats.pending} pending
                 </span>
-                <span className="text-emerald-400">
+                <span className="text-chart-5">
                   <CheckCircle2 className="w-3.5 h-3.5 inline mr-1" />
-                  {queueStats.synced} synced
+                  {sync.queueStats.synced} synced
                 </span>
-                {queueStats.error > 0 && (
+                {sync.queueStats.error > 0 && (
                   <span className="text-destructive">
                     <AlertTriangle className="w-3.5 h-3.5 inline mr-1" />
-                    {queueStats.error} errors
+                    {sync.queueStats.error} errors
+                  </span>
+                )}
+                {sync.lastSyncAt && (
+                  <span className="text-xs text-muted-foreground">
+                    Last: {new Date(sync.lastSyncAt).toLocaleTimeString()}
                   </span>
                 )}
               </div>
-              {queueStats.total > 0 && (
+
+              {/* Sync progress bar */}
+              {sync.isSyncing && sync.progress ? (
+                <div className="mt-2">
+                  <div className="flex items-center justify-between text-[10px] text-muted-foreground mb-1">
+                    <span>Syncing {sync.progress.completed}/{sync.progress.total}...</span>
+                    <span>{Math.round((sync.progress.completed / Math.max(sync.progress.total, 1)) * 100)}%</span>
+                  </div>
+                  <Progress
+                    value={(sync.progress.completed / Math.max(sync.progress.total, 1)) * 100}
+                    className="h-1.5"
+                  />
+                </div>
+              ) : sync.queueStats.total > 0 ? (
                 <Progress
-                  value={(queueStats.synced / queueStats.total) * 100}
+                  value={(sync.queueStats.synced / sync.queueStats.total) * 100}
                   className="mt-2 h-1.5"
                 />
+              ) : null}
+
+              {/* Last sync result */}
+              {sync.lastSyncResult && !sync.isSyncing && (
+                <div className="flex items-center gap-2 mt-1.5 text-[10px]">
+                  {sync.lastSyncResult.conflicts > 0 && (
+                    <Badge variant="outline" className="text-[9px] px-1.5 py-0 bg-chart-4/10 text-chart-4 border-chart-4/30">
+                      {sync.lastSyncResult.conflicts} conflicts
+                    </Badge>
+                  )}
+                  {sync.lastSyncResult.retried > 0 && (
+                    <Badge variant="outline" className="text-[9px] px-1.5 py-0 bg-primary/10 text-primary border-primary/30">
+                      {sync.lastSyncResult.retried} retried
+                    </Badge>
+                  )}
+                </div>
               )}
             </div>
             <div className="flex gap-2">
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={pullAssignments}
-                disabled={!isOnline}
-              >
+              <Button size="sm" variant="outline" onClick={pullAssignments} disabled={!sync.isOnline}>
                 <Plus className="w-4 h-4 mr-1" />
                 Pull
               </Button>
               <Button
                 size="sm"
                 onClick={handleSync}
-                disabled={!isOnline || isSyncing || queueStats.pending === 0}
+                disabled={!sync.isOnline || sync.isSyncing || !hasPending}
                 className="bg-primary text-primary-foreground"
               >
-                <Upload className="w-4 h-4 mr-1" />
-                {isSyncing ? "Syncing..." : "Sync"}
+                {sync.isSyncing ? (
+                  <RefreshCw className="w-4 h-4 mr-1 animate-spin" />
+                ) : (
+                  <Upload className="w-4 h-4 mr-1" />
+                )}
+                {sync.isSyncing ? "Syncing..." : "Sync"}
               </Button>
             </div>
           </div>
@@ -224,25 +243,13 @@ export function FieldStudioDashboard() {
         </TabsList>
 
         <TabsContent value="assigned" className="mt-4 space-y-2">
-          <AssignmentList
-            items={filterByStatus("assigned")}
-            onSelect={setActiveInspection}
-            emptyMessage="No assignments. Tap 'Pull' to fetch parcels."
-          />
+          <AssignmentList items={filterByStatus("assigned")} onSelect={setActiveInspection} emptyMessage="No assignments. Tap 'Pull' to fetch parcels." />
         </TabsContent>
         <TabsContent value="in_progress" className="mt-4 space-y-2">
-          <AssignmentList
-            items={filterByStatus("in_progress")}
-            onSelect={setActiveInspection}
-            emptyMessage="No inspections in progress."
-          />
+          <AssignmentList items={filterByStatus("in_progress")} onSelect={setActiveInspection} emptyMessage="No inspections in progress." />
         </TabsContent>
         <TabsContent value="completed" className="mt-4 space-y-2">
-          <AssignmentList
-            items={[...filterByStatus("completed"), ...filterByStatus("synced")]}
-            onSelect={setActiveInspection}
-            emptyMessage="No completed inspections."
-          />
+          <AssignmentList items={[...filterByStatus("completed"), ...filterByStatus("synced")]} onSelect={setActiveInspection} emptyMessage="No completed inspections." />
         </TabsContent>
       </Tabs>
     </div>
@@ -251,9 +258,7 @@ export function FieldStudioDashboard() {
 
 // ── Assignment Card List ───────────────────────────────────────────
 function AssignmentList({
-  items,
-  onSelect,
-  emptyMessage,
+  items, onSelect, emptyMessage,
 }: {
   items: FieldAssignment[];
   onSelect: (a: FieldAssignment) => void;
@@ -271,16 +276,8 @@ function AssignmentList({
   return (
     <AnimatePresence>
       {items.map((a) => (
-        <motion.div
-          key={a.id}
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, x: -20 }}
-        >
-          <Card
-            className="cursor-pointer hover:border-primary/30 transition-colors border-border/50 bg-card/80"
-            onClick={() => onSelect(a)}
-          >
+        <motion.div key={a.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, x: -20 }}>
+          <Card className="cursor-pointer hover:border-primary/30 transition-colors border-border/50 bg-card/80" onClick={() => onSelect(a)}>
             <CardContent className="p-4 flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
                 <MapPin className="w-5 h-5 text-primary" />
@@ -291,9 +288,7 @@ function AssignmentList({
                   {a.parcelNumber} · {a.propertyClass || "—"} · ${a.currentValue?.toLocaleString()}
                 </p>
               </div>
-              <Badge variant="outline" className="text-[10px] shrink-0">
-                {a.priority}
-              </Badge>
+              <Badge variant="outline" className="text-[10px] shrink-0">{a.priority}</Badge>
               <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />
             </CardContent>
           </Card>
