@@ -2,8 +2,9 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { Shield, Eye, Layers, Clock } from "lucide-react";
+import { Shield, Eye, Layers, Clock, Fingerprint } from "lucide-react";
 import { useState } from "react";
+import { useTrustMode } from "@/contexts/TrustModeContext";
 
 interface ControlCenterProps {
   open: boolean;
@@ -11,6 +12,7 @@ interface ControlCenterProps {
 }
 
 export function ControlCenter({ open, onOpenChange }: ControlCenterProps) {
+  const { trustMode, setTrustMode } = useTrustMode();
   const [auditMode, setAuditMode] = useState(false);
   const [showLayers, setShowLayers] = useState(true);
   const [reducedMotion, setReducedMotion] = useState(false);
@@ -23,11 +25,29 @@ export function ControlCenter({ open, onOpenChange }: ControlCenterProps) {
         </SheetHeader>
 
         <div className="mt-6 space-y-6">
+          {/* Trust Mode */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-[hsl(var(--tf-transcend-cyan)/0.1)] flex items-center justify-center">
+                <Fingerprint className="w-4 h-4 text-[hsl(var(--tf-transcend-cyan))]" />
+              </div>
+              <div>
+                <Label htmlFor="trust-mode" className="text-sm font-medium">
+                  Trust Mode
+                </Label>
+                <p className="text-[10px] text-muted-foreground">Show provenance on all metrics</p>
+              </div>
+            </div>
+            <Switch id="trust-mode" checked={trustMode} onCheckedChange={setTrustMode} />
+          </div>
+
+          <Separator className="bg-border/30" />
+
           {/* Audit Mode */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-tf-cyan/10 flex items-center justify-center">
-                <Shield className="w-4 h-4 text-tf-cyan" />
+              <div className="w-8 h-8 rounded-lg bg-[hsl(var(--tf-sacred-gold)/0.1)] flex items-center justify-center">
+                <Shield className="w-4 h-4 text-[hsl(var(--tf-sacred-gold))]" />
               </div>
               <Label htmlFor="audit-mode" className="text-sm font-medium">
                 Audit Mode

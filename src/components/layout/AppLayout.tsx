@@ -4,6 +4,7 @@ import { TopSystemBar } from "@/components/navigation/TopSystemBar";
 import { DockLauncher } from "@/components/navigation/DockLauncher";
 import { GlobalCommandPalette } from "@/components/navigation/GlobalCommandPalette";
 import { ControlCenter } from "@/components/navigation/ControlCenter";
+import { TrustModeProvider } from "@/contexts/TrustModeContext";
 import { useContextMode } from "@/hooks/useContextMode";
 import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
 
@@ -162,39 +163,41 @@ export function AppLayout({ initialParcel: routeParcel, initialModule, initialFa
   };
 
   return (
-    <div className="flex flex-col h-screen bg-background overflow-hidden">
-      <TopSystemBar
-        onOpenCommandPalette={() => setCommandPaletteOpen(true)}
-        onOpenControlCenter={() => setControlCenterOpen(true)}
-      />
+    <TrustModeProvider>
+      <div className="flex flex-col h-screen bg-background overflow-hidden">
+        <TopSystemBar
+          onOpenCommandPalette={() => setCommandPaletteOpen(true)}
+          onOpenControlCenter={() => setControlCenterOpen(true)}
+        />
 
-      <main className="flex-1 overflow-auto pb-20 sm:pb-16">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={activeModule}
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.2 }}
-          >
-            <Suspense fallback={<StageFallback />}>
-              {renderStage()}
-            </Suspense>
-          </motion.div>
-        </AnimatePresence>
-      </main>
+        <main className="flex-1 overflow-auto pb-20 sm:pb-16">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeModule}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.2 }}
+            >
+              <Suspense fallback={<StageFallback />}>
+                {renderStage()}
+              </Suspense>
+            </motion.div>
+          </AnimatePresence>
+        </main>
 
-      <DockLauncher activeModule={activeModule} onModuleChange={handleNavigate} />
+        <DockLauncher activeModule={activeModule} onModuleChange={handleNavigate} />
 
-      <GlobalCommandPalette
-        open={commandPaletteOpen}
-        onOpenChange={setCommandPaletteOpen}
-        activeModule={activeModule}
-        onModuleChange={setActiveModule}
-        onNavigateToParcel={handleParcelNavigate}
-      />
+        <GlobalCommandPalette
+          open={commandPaletteOpen}
+          onOpenChange={setCommandPaletteOpen}
+          activeModule={activeModule}
+          onModuleChange={setActiveModule}
+          onNavigateToParcel={handleParcelNavigate}
+        />
 
-      <ControlCenter open={controlCenterOpen} onOpenChange={setControlCenterOpen} />
-    </div>
+        <ControlCenter open={controlCenterOpen} onOpenChange={setControlCenterOpen} />
+      </div>
+    </TrustModeProvider>
   );
 }

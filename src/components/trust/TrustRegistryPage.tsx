@@ -2,9 +2,9 @@
 // Tabs: Changes • Runs • Models • Data Catalog
 // All data access via hooks — no supabase.from() in this component.
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Shield, BookOpen, History, Search, FlaskConical, Cpu } from "lucide-react";
+import { Shield, BookOpen, History, Search, FlaskConical, Cpu, Filter, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ScopeHeader } from "./ScopeHeader";
 import { ProvenanceNumber } from "./ProvenanceNumber";
@@ -39,23 +39,99 @@ const DATA_CATALOG = [
 
 type TabId = "changes" | "runs" | "models" | "catalog";
 
+type TimeRange = "1h" | "24h" | "7d" | "30d" | "all";
+
+const TIME_RANGES: { id: TimeRange; label: string }[] = [
+  { id: "1h", label: "1 hour" },
+  { id: "24h", label: "24 hours" },
+  { id: "7d", label: "7 days" },
+  { id: "30d", label: "30 days" },
+  { id: "all", label: "All time" },
+];
+
+function getTimeRangeCutoff(range: TimeRange): Date | null {
+  if (range === "all") return null;
+  const now = new Date();
+  switch (range) {
+    case "1h": return new Date(now.getTime() - 60 * 60 * 1000);
+    case "24h": return new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    case "7d": return new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    case "30d": return new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+  }
+}
+
 export function TrustRegistryPage({ onNavigate }: TrustRegistryPageProps) {
   const [activeTab, setActiveTab] = useState<TabId>("changes");
   const [searchTerm, setSearchTerm] = useState("");
+  const [timeRange, setTimeRange] = useState<TimeRange>("7d");
+  const [moduleFilter, setModuleFilter] = useState("");
   const { data: vitals } = useCountyVitals();
   const { data: recentEvents, isLoading: eventsLoading } = useTrustEvents();
   const { data: runs, isLoading: runsLoading } = useTrustRuns();
   const { data: models, isLoading: modelsLoading } = useTrustModels();
+
+  const cutoff = getTimeRangeCutoff(timeRange);
+
+  // Filter changes
+  const filteredEvents = useMemo(() => {
+    if (!recentEvents) return [];
+    return recentEvents.filter(evt => {
+      if (cutoff && new Date(evt.created_at) < cutoff) return false;
+      if (moduleFilter && evt.source_module !== moduleFilter) return false;
+      if (searchTerm) {
+        const term = searchTerm.toLowerCase();
+        return evt.event_type.toLowerCase().includes(term) ||
+          evt.source_module.toLowerCase().includes(term) ||
+          (evt.artifact_type || "").toLowerCase().includes(term);
+      }
+      return true;
+    });
+  }, [recentEvents, cutoff, moduleFilter, searchTerm]);
+
+  // Filter runs
+  const filteredRuns = useMemo(() => {
+    if (!runs) return [];
+    return runs.filter(run => {
+      if (cutoff && new Date(run.created_at) < cutoff) return false;
+      if (searchTerm) {
+        const term = searchTerm.toLowerCase();
+        return run.neighborhood_code.toLowerCase().includes(term) ||
+          run.model_type.toLowerCase().includes(term) ||
+          run.status.toLowerCase().includes(term);
+      }
+      return true;
+    });
+  }, [runs, cutoff, searchTerm]);
+
+  // Filter models
+  const filteredModels = useMemo(() => {
+    if (!models) return [];
+    return models.filter(m => {
+      if (cutoff && new Date(m.created_at) < cutoff) return false;
+      if (searchTerm) {
+        const term = searchTerm.toLowerCase();
+        return m.model_type.toLowerCase().includes(term) ||
+          m.model_version.toLowerCase().includes(term);
+      }
+      return true;
+    });
+  }, [models, cutoff, searchTerm]);
 
   const filteredCatalog = DATA_CATALOG.filter(
     d => d.field.toLowerCase().includes(searchTerm.toLowerCase()) ||
          d.definition.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const tabs: { id: TabId; label: string; icon: typeof History }[] = [
-    { id: "changes", label: "Changes", icon: History },
-    { id: "runs", label: "Runs", icon: FlaskConical },
-    { id: "models", label: "Models", icon: Cpu },
+  // Unique modules for filter
+  const uniqueModules = useMemo(() => {
+    if (!recentEvents) return [];
+    return [...new Set(recentEvents.map(e => e.source_module))].sort();
+  }, [recentEvents]);
+
+  const tabs: { id: TabId; label: string; icon: typeof History; count?: number }[] = [
+    { id: "changes", label: "Changes", icon: History, count: filteredEvents.length },
+    { id: "runs", label: "Runs", icon: FlaskConical, count: filteredRuns.length },
+    { id: "models", label: "Models", icon: Cpu, count: filteredModels.length },
     { id: "catalog", label: "Data Catalog", icon: BookOpen },
   ];
 
@@ -90,15 +166,75 @@ export function TrustRegistryPage({ onNavigate }: TrustRegistryPageProps) {
           >
             <t.icon className="w-3.5 h-3.5" />
             {t.label}
+            {t.count !== undefined && (
+              <span className="text-[10px] text-muted-foreground ml-1">({t.count})</span>
+            )}
           </button>
         ))}
       </div>
+
+      {/* ── Filter Bar (for Changes / Runs / Models) ── */}
+      {activeTab !== "catalog" && (
+        <div className="flex items-center gap-3 flex-wrap">
+          <div className="relative flex-1 max-w-xs">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              placeholder="Filter by keyword…"
+              className="w-full h-8 pl-9 pr-3 rounded-lg bg-muted/30 border border-border/50 text-xs placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/50"
+            />
+          </div>
+
+          {/* Time range pills */}
+          <div className="flex items-center gap-1">
+            <Filter className="w-3 h-3 text-muted-foreground mr-1" />
+            {TIME_RANGES.map(tr => (
+              <button
+                key={tr.id}
+                onClick={() => setTimeRange(tr.id)}
+                className={`px-2.5 py-1 rounded-md text-[10px] transition-all ${
+                  timeRange === tr.id
+                    ? "bg-primary text-primary-foreground font-medium"
+                    : "bg-muted/40 text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {tr.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Module filter (Changes only) */}
+          {activeTab === "changes" && uniqueModules.length > 0 && (
+            <div className="flex items-center gap-1">
+              {moduleFilter && (
+                <button
+                  onClick={() => setModuleFilter("")}
+                  className="flex items-center gap-1 px-2 py-1 rounded-md bg-primary/10 text-primary text-[10px]"
+                >
+                  {moduleFilter} <X className="w-2.5 h-2.5" />
+                </button>
+              )}
+              {!moduleFilter && uniqueModules.slice(0, 5).map(mod => (
+                <button
+                  key={mod}
+                  onClick={() => setModuleFilter(mod)}
+                  className="px-2 py-1 rounded-md bg-muted/40 text-muted-foreground text-[10px] hover:text-foreground transition-colors"
+                >
+                  {mod}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* ── Changes Tab ── */}
       {activeTab === "changes" && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-3">
           <p className="text-xs text-muted-foreground">
-            Showing the 50 most recent trace events across all suites.
+            {filteredEvents.length} trace events matching filters.
           </p>
           {eventsLoading ? (
             <div className="text-sm text-muted-foreground py-8 text-center">Loading audit trail…</div>
@@ -115,7 +251,7 @@ export function TrustRegistryPage({ onNavigate }: TrustRegistryPageProps) {
                   </tr>
                 </thead>
                 <tbody>
-                  {(recentEvents || []).map(evt => (
+                  {filteredEvents.map(evt => (
                     <tr key={evt.id} className="border-b border-border/50 hover:bg-muted/20 transition-colors">
                       <td className="px-3 py-2 font-mono text-muted-foreground whitespace-nowrap">
                         {new Date(evt.created_at).toLocaleString([], {
@@ -133,6 +269,9 @@ export function TrustRegistryPage({ onNavigate }: TrustRegistryPageProps) {
                       </td>
                     </tr>
                   ))}
+                  {filteredEvents.length === 0 && (
+                    <tr><td colSpan={5} className="px-3 py-8 text-center text-muted-foreground">No events match the current filters.</td></tr>
+                  )}
                 </tbody>
               </table>
             </div>
@@ -144,12 +283,10 @@ export function TrustRegistryPage({ onNavigate }: TrustRegistryPageProps) {
       {activeTab === "runs" && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-3">
           <p className="text-xs text-muted-foreground">
-            Recent calibration runs across all neighborhoods.
+            {filteredRuns.length} calibration runs matching filters.
           </p>
           {runsLoading ? (
             <div className="text-sm text-muted-foreground py-8 text-center">Loading runs…</div>
-          ) : !runs?.length ? (
-            <div className="text-sm text-muted-foreground py-8 text-center">No calibration runs recorded yet.</div>
           ) : (
             <div className="border border-border rounded-lg overflow-hidden">
               <table className="w-full text-xs">
@@ -166,7 +303,7 @@ export function TrustRegistryPage({ onNavigate }: TrustRegistryPageProps) {
                   </tr>
                 </thead>
                 <tbody>
-                  {runs.map(run => (
+                  {filteredRuns.map(run => (
                     <tr key={run.id} className="border-b border-border/50 hover:bg-muted/20 transition-colors">
                       <td className="px-3 py-2 font-mono text-muted-foreground whitespace-nowrap">
                         {new Date(run.created_at).toLocaleString([], {
@@ -204,6 +341,9 @@ export function TrustRegistryPage({ onNavigate }: TrustRegistryPageProps) {
                       </td>
                     </tr>
                   ))}
+                  {filteredRuns.length === 0 && (
+                    <tr><td colSpan={8} className="px-3 py-8 text-center text-muted-foreground">No runs match the current filters.</td></tr>
+                  )}
                 </tbody>
               </table>
             </div>
@@ -215,12 +355,10 @@ export function TrustRegistryPage({ onNavigate }: TrustRegistryPageProps) {
       {activeTab === "models" && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-3">
           <p className="text-xs text-muted-foreground">
-            Model receipts — versioned snapshots of every model execution.
+            {filteredModels.length} model receipts matching filters.
           </p>
           {modelsLoading ? (
             <div className="text-sm text-muted-foreground py-8 text-center">Loading models…</div>
-          ) : !models?.length ? (
-            <div className="text-sm text-muted-foreground py-8 text-center">No model receipts recorded yet.</div>
           ) : (
             <div className="border border-border rounded-lg overflow-hidden">
               <table className="w-full text-xs">
@@ -235,7 +373,7 @@ export function TrustRegistryPage({ onNavigate }: TrustRegistryPageProps) {
                   </tr>
                 </thead>
                 <tbody>
-                  {models.map(m => (
+                  {filteredModels.map(m => (
                     <tr key={m.id} className="border-b border-border/50 hover:bg-muted/20 transition-colors">
                       <td className="px-3 py-2 font-mono text-muted-foreground whitespace-nowrap">
                         {new Date(m.created_at).toLocaleString([], {
@@ -258,6 +396,9 @@ export function TrustRegistryPage({ onNavigate }: TrustRegistryPageProps) {
                       </td>
                     </tr>
                   ))}
+                  {filteredModels.length === 0 && (
+                    <tr><td colSpan={6} className="px-3 py-8 text-center text-muted-foreground">No models match the current filters.</td></tr>
+                  )}
                 </tbody>
               </table>
             </div>

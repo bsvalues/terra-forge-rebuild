@@ -27,7 +27,8 @@ export default tseslint.config(
     },
   },
   // ── TerraFusion Constitution Guardrails ──────────────────────────
-  // Ban supabase.from() in components — all data access must go through hooks/data layer
+  // Ban supabase.from()/rpc() in components — all data access must go through hooks/data layer
+  // Ban re-deriving canonical metrics outside useCountyVitals
   {
     files: ["src/components/**/*.{ts,tsx}"],
     rules: {
