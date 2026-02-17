@@ -36,10 +36,16 @@ interface RequestBody {
       name: string;
     };
   };
+  // HitL confirmation payload
+  confirm_action?: {
+    tool_name: string;
+    args: Record<string, unknown>;
+    confirmation_id: string;
+  };
 }
 
 // ============================================================
-// Tool Definitions — the TerraPilot toolkit
+// Tool Definitions — Read-only Pilot tools
 // ============================================================
 const PILOT_TOOLS = [
   {
@@ -145,6 +151,76 @@ const PILOT_TOOLS = [
   },
 ];
 
+// ============================================================
+// Write-capable Pilot tools (Human-in-the-Loop gated)
+// ============================================================
+const WRITE_TOOLS = [
+  {
+    type: "function" as const,
+    function: {
+      name: "create_exemption",
+      description: "Create a new exemption application for a parcel. REQUIRES USER CONFIRMATION before execution. Returns a confirmation card.",
+      parameters: {
+        type: "object",
+        properties: {
+          parcel_id: { type: "string", description: "UUID of the parcel" },
+          exemption_type: { type: "string", enum: ["homestead", "senior", "veteran", "disability", "agricultural", "charitable"], description: "Type of exemption" },
+          applicant_name: { type: "string", description: "Name of the applicant" },
+          tax_year: { type: "number", description: "Tax year for the exemption" },
+        },
+        required: ["parcel_id", "exemption_type"],
+      },
+    },
+  },
+  {
+    type: "function" as const,
+    function: {
+      name: "create_appeal",
+      description: "File a new property value appeal for a parcel. REQUIRES USER CONFIRMATION before execution.",
+      parameters: {
+        type: "object",
+        properties: {
+          parcel_id: { type: "string", description: "UUID of the parcel" },
+          requested_value: { type: "number", description: "The value requested by the appellant" },
+          notes: { type: "string", description: "Reason for the appeal" },
+        },
+        required: ["parcel_id"],
+      },
+    },
+  },
+  {
+    type: "function" as const,
+    function: {
+      name: "certify_assessment",
+      description: "Certify an assessment record for a parcel and tax year. REQUIRES USER CONFIRMATION. This is a high-impact action.",
+      parameters: {
+        type: "object",
+        properties: {
+          parcel_id: { type: "string", description: "UUID of the parcel" },
+          tax_year: { type: "number", description: "Tax year to certify" },
+        },
+        required: ["parcel_id", "tax_year"],
+      },
+    },
+  },
+  {
+    type: "function" as const,
+    function: {
+      name: "update_parcel_class",
+      description: "Update a parcel's property class or neighborhood code. REQUIRES USER CONFIRMATION.",
+      parameters: {
+        type: "object",
+        properties: {
+          parcel_id: { type: "string", description: "UUID of the parcel" },
+          property_class: { type: "string", description: "New property class (e.g. 'residential', 'commercial')" },
+          neighborhood_code: { type: "string", description: "New neighborhood code" },
+        },
+        required: ["parcel_id"],
+      },
+    },
+  },
+];
+
 // Muse-specific drafting tools
 const MUSE_TOOLS = [
   {
@@ -209,6 +285,16 @@ const MUSE_TOOLS = [
   },
 ];
 
+// Risk levels for write tools
+const WRITE_TOOL_RISK: Record<string, "medium" | "high"> = {
+  create_exemption: "medium",
+  create_appeal: "medium",
+  certify_assessment: "high",
+  update_parcel_class: "medium",
+};
+
+const WRITE_TOOL_NAMES = new Set(Object.keys(WRITE_TOOL_RISK));
+
 // ============================================================
 // Tool Execution Handlers
 // ============================================================
@@ -235,19 +321,14 @@ async function executeTool(
         const parcelId = String(args.parcel_id);
         const radiusPct = Number(args.radius_pct) || 20;
         const limit = Number(args.limit) || 10;
-
-        // Get subject parcel
         const { data: subject } = await serviceClient
           .from("parcels")
           .select("id, assessed_value, neighborhood_code, property_class, building_area")
           .eq("id", parcelId)
           .single();
         if (!subject) return JSON.stringify({ error: "Subject parcel not found" });
-
         const valueLow = subject.assessed_value * (1 - radiusPct / 100);
         const valueHigh = subject.assessed_value * (1 + radiusPct / 100);
-
-        // Find recent sales in same neighborhood within value range
         const { data: comps } = await serviceClient
           .from("sales")
           .select("id, parcel_id, sale_date, sale_price, is_qualified, parcels!inner(parcel_number, address, assessed_value, neighborhood_code, building_area)")
@@ -257,7 +338,6 @@ async function executeTool(
           .neq("parcel_id", parcelId)
           .order("sale_date", { ascending: false })
           .limit(limit);
-
         return JSON.stringify({
           subject: { id: subject.id, value: subject.assessed_value, neighborhood: subject.neighborhood_code },
           comparables: comps || [],
@@ -292,13 +372,11 @@ async function executeTool(
           .select("assessed_value, building_area, year_built")
           .eq("neighborhood_code", code);
         if (!parcels || parcels.length === 0) return JSON.stringify({ error: "No parcels in neighborhood" });
-
         const values = parcels.map(p => p.assessed_value).filter(Boolean).sort((a, b) => a - b);
         const median = values[Math.floor(values.length / 2)] || 0;
         const avg = values.reduce((s, v) => s + v, 0) / values.length;
         const areas = parcels.map(p => p.building_area).filter(Boolean) as number[];
         const avgArea = areas.length > 0 ? areas.reduce((s, v) => s + v, 0) / areas.length : null;
-
         return JSON.stringify({
           neighborhood_code: code,
           parcel_count: parcels.length,
@@ -323,7 +401,6 @@ async function executeTool(
       }
 
       case "navigate_to_parcel": {
-        // This is a client-side action — we return a navigation intent
         return JSON.stringify({
           action: "navigate",
           parcel_id: String(args.parcel_id),
@@ -348,8 +425,33 @@ async function executeTool(
         });
       }
 
+      // ── Write tools return HitL confirmation cards ──
+      case "create_exemption":
+      case "create_appeal":
+      case "certify_assessment":
+      case "update_parcel_class": {
+        // Fetch parcel context for the confirmation card
+        const pid = String(args.parcel_id);
+        const { data: parcel } = await serviceClient
+          .from("parcels")
+          .select("parcel_number, address, assessed_value")
+          .eq("id", pid)
+          .single();
+        
+        const confirmationId = crypto.randomUUID();
+        return JSON.stringify({
+          requires_confirmation: true,
+          confirmation_id: confirmationId,
+          tool_name: toolName,
+          risk_level: WRITE_TOOL_RISK[toolName] || "medium",
+          args,
+          parcel_context: parcel || { parcel_number: "Unknown", address: "Unknown" },
+          description: getWriteDescription(toolName, args, parcel),
+        });
+      }
+
       default: {
-        // Muse drafting tools — these gather context and return it as structured data for AI synthesis
+        // Muse drafting tools
         if (toolName === "draft_notice") {
           const parcelId = String(args.parcel_id);
           const noticeType = String(args.notice_type || "assessment_change");
@@ -357,10 +459,7 @@ async function executeTool(
           const { data: assessments } = await serviceClient.from("assessments").select("*").eq("parcel_id", parcelId).order("tax_year", { ascending: false }).limit(2);
           const { data: sales } = await serviceClient.from("sales").select("*").eq("parcel_id", parcelId).order("sale_date", { ascending: false }).limit(3);
           return JSON.stringify({
-            notice_type: noticeType,
-            parcel,
-            recent_assessments: assessments || [],
-            recent_sales: sales || [],
+            notice_type: noticeType, parcel, recent_assessments: assessments || [], recent_sales: sales || [],
             instruction: `Draft a ${noticeType.replace(/_/g, " ")} notice for this parcel. Include property details, current and prior values, and relevant market context.`,
           });
         }
@@ -370,9 +469,7 @@ async function executeTool(
           const parcelId = appeal?.parcel_id;
           const { data: comps } = parcelId ? await serviceClient.from("sales").select("*, parcels!inner(address, assessed_value, neighborhood_code)").eq("parcels.neighborhood_code", (appeal as any)?.parcels?.neighborhood_code || "").order("sale_date", { ascending: false }).limit(5) : { data: [] };
           return JSON.stringify({
-            appeal,
-            comparable_sales: comps || [],
-            tone: String(args.tone || "formal"),
+            appeal, comparable_sales: comps || [], tone: String(args.tone || "formal"),
             instruction: "Draft a response to this appeal citing the comparable sales data and current market conditions.",
           });
         }
@@ -383,10 +480,7 @@ async function executeTool(
           const { data: sales } = await serviceClient.from("sales").select("*").eq("parcel_id", parcelId).order("sale_date", { ascending: false }).limit(5);
           const { data: permits } = await serviceClient.from("permits").select("*").eq("parcel_id", parcelId).limit(5);
           return JSON.stringify({
-            parcel,
-            assessment_history: assessments || [],
-            sales_history: sales || [],
-            permits: permits || [],
+            parcel, assessment_history: assessments || [], sales_history: sales || [], permits: permits || [],
             instruction: "Explain the value change for this parcel, citing improvements, market trends, and comparable sales activity.",
           });
         }
@@ -402,12 +496,8 @@ async function executeTool(
             serviceClient.from("trace_events").select("*").eq("parcel_id", parcelId).order("created_at", { ascending: false }).limit(20),
           ]);
           return JSON.stringify({
-            parcel: parcelRes.data,
-            assessments: assessRes.data || [],
-            sales: salesRes.data || [],
-            permits: permitsRes.data || [],
-            appeals: appealsRes.data || [],
-            exemptions: exemptionsRes.data || [],
+            parcel: parcelRes.data, assessments: assessRes.data || [], sales: salesRes.data || [],
+            permits: permitsRes.data || [], appeals: appealsRes.data || [], exemptions: exemptionsRes.data || [],
             trace_events: traceRes.data || [],
             instruction: "Create a comprehensive timeline summary covering all assessment, sales, workflow, and audit events for this parcel.",
           });
@@ -418,6 +508,129 @@ async function executeTool(
   } catch (err) {
     console.error(`Tool execution error [${toolName}]:`, err);
     return JSON.stringify({ error: `Tool failed: ${err instanceof Error ? err.message : "unknown"}` });
+  }
+}
+
+function getWriteDescription(
+  toolName: string,
+  args: Record<string, unknown>,
+  parcel: { parcel_number: string; address: string; assessed_value?: number } | null
+): string {
+  const addr = parcel ? `${parcel.parcel_number} (${parcel.address})` : String(args.parcel_id);
+  switch (toolName) {
+    case "create_exemption":
+      return `Create ${args.exemption_type || "homestead"} exemption for ${addr}`;
+    case "create_appeal":
+      return `File appeal for ${addr}${args.requested_value ? ` requesting $${Number(args.requested_value).toLocaleString()}` : ""}`;
+    case "certify_assessment":
+      return `Certify TY${args.tax_year} assessment for ${addr} — HIGH IMPACT`;
+    case "update_parcel_class":
+      return `Update ${addr}: ${args.property_class ? `class → ${args.property_class}` : ""}${args.neighborhood_code ? ` nbhd → ${args.neighborhood_code}` : ""}`;
+    default:
+      return `Execute ${toolName} on ${addr}`;
+  }
+}
+
+// ============================================================
+// Execute confirmed write action
+// ============================================================
+async function executeConfirmedWrite(
+  toolName: string,
+  args: Record<string, unknown>,
+  serviceClient: ReturnType<typeof createServiceClient>,
+  userId: string
+): Promise<string> {
+  try {
+    switch (toolName) {
+      case "create_exemption": {
+        const { data, error } = await serviceClient.from("exemptions").insert({
+          parcel_id: String(args.parcel_id),
+          exemption_type: String(args.exemption_type || "homestead"),
+          applicant_name: args.applicant_name ? String(args.applicant_name) : null,
+          tax_year: Number(args.tax_year) || new Date().getFullYear(),
+          status: "pending",
+        }).select().single();
+        if (error) return JSON.stringify({ success: false, error: error.message });
+        // Emit trace event
+        await serviceClient.from("trace_events").insert({
+          county_id: "00000000-0000-0000-0000-000000000001",
+          parcel_id: String(args.parcel_id),
+          actor_id: userId,
+          source_module: "terrapilot",
+          event_type: "exemption_created",
+          event_data: { exemption_id: data.id, type: args.exemption_type, via: "pilot_hitl" },
+        });
+        return JSON.stringify({ success: true, exemption_id: data.id, message: "Exemption created successfully." });
+      }
+
+      case "create_appeal": {
+        // Get parcel for current value
+        const { data: parcel } = await serviceClient.from("parcels").select("assessed_value").eq("id", String(args.parcel_id)).single();
+        const { data, error } = await serviceClient.from("appeals").insert({
+          parcel_id: String(args.parcel_id),
+          county_id: "00000000-0000-0000-0000-000000000001",
+          appeal_date: new Date().toISOString().split("T")[0],
+          original_value: parcel?.assessed_value || 0,
+          requested_value: args.requested_value ? Number(args.requested_value) : null,
+          notes: args.notes ? String(args.notes) : null,
+          status: "pending",
+        }).select().single();
+        if (error) return JSON.stringify({ success: false, error: error.message });
+        await serviceClient.from("trace_events").insert({
+          county_id: "00000000-0000-0000-0000-000000000001",
+          parcel_id: String(args.parcel_id),
+          actor_id: userId,
+          source_module: "terrapilot",
+          event_type: "appeal_created",
+          event_data: { appeal_id: data.id, via: "pilot_hitl" },
+        });
+        return JSON.stringify({ success: true, appeal_id: data.id, message: "Appeal filed successfully." });
+      }
+
+      case "certify_assessment": {
+        const { data, error } = await serviceClient.from("assessments")
+          .update({ certified: true, certified_at: new Date().toISOString() })
+          .eq("parcel_id", String(args.parcel_id))
+          .eq("tax_year", Number(args.tax_year))
+          .select().single();
+        if (error) return JSON.stringify({ success: false, error: error.message });
+        await serviceClient.from("trace_events").insert({
+          county_id: "00000000-0000-0000-0000-000000000001",
+          parcel_id: String(args.parcel_id),
+          actor_id: userId,
+          source_module: "terrapilot",
+          event_type: "assessment_certified",
+          event_data: { assessment_id: data?.id, tax_year: args.tax_year, via: "pilot_hitl" },
+        });
+        return JSON.stringify({ success: true, message: `Assessment certified for TY${args.tax_year}.` });
+      }
+
+      case "update_parcel_class": {
+        const updates: Record<string, string> = {};
+        if (args.property_class) updates.property_class = String(args.property_class);
+        if (args.neighborhood_code) updates.neighborhood_code = String(args.neighborhood_code);
+        if (Object.keys(updates).length === 0) return JSON.stringify({ success: false, error: "No fields to update" });
+        const { error } = await serviceClient.from("parcels")
+          .update(updates)
+          .eq("id", String(args.parcel_id));
+        if (error) return JSON.stringify({ success: false, error: error.message });
+        await serviceClient.from("trace_events").insert({
+          county_id: "00000000-0000-0000-0000-000000000001",
+          parcel_id: String(args.parcel_id),
+          actor_id: userId,
+          source_module: "terrapilot",
+          event_type: "parcel_updated",
+          event_data: { updates, via: "pilot_hitl" },
+        });
+        return JSON.stringify({ success: true, message: "Parcel updated." });
+      }
+
+      default:
+        return JSON.stringify({ success: false, error: `Unknown write tool: ${toolName}` });
+    }
+  } catch (err) {
+    console.error(`Write execution error [${toolName}]:`, err);
+    return JSON.stringify({ success: false, error: err instanceof Error ? err.message : "unknown" });
   }
 }
 
@@ -438,7 +651,25 @@ serve(async (req) => {
       throw res;
     }
 
-    const { messages, context }: RequestBody = await req.json();
+    const body: RequestBody = await req.json();
+
+    // ── Handle HitL confirmation ──
+    if (body.confirm_action) {
+      const { tool_name, args, confirmation_id } = body.confirm_action;
+      if (!WRITE_TOOL_NAMES.has(tool_name)) {
+        return new Response(JSON.stringify({ error: "Invalid tool for confirmation" }), {
+          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const serviceClient = createServiceClient();
+      const result = await executeConfirmedWrite(tool_name, args, serviceClient, auth.user.id);
+      return new Response(result, {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // ── Standard chat flow ──
+    const { messages, context } = body;
 
     if (!Array.isArray(messages) || messages.length === 0) {
       return new Response(JSON.stringify({ error: "messages array is required" }), {
@@ -456,6 +687,19 @@ serve(async (req) => {
 
     const serviceClient = createServiceClient();
     const systemPrompt = buildSystemPrompt(context);
+
+    // Build tool set based on mode
+    let tools;
+    if (context?.mode === "pilot") {
+      tools = [...PILOT_TOOLS, ...WRITE_TOOLS];
+    } else {
+      tools = [
+        ...PILOT_TOOLS.filter(t =>
+          ["search_parcels", "get_parcel_details", "get_neighborhood_stats", "get_recent_activity"].includes(t.function.name)
+        ),
+        ...MUSE_TOOLS,
+      ];
+    }
 
     // Agentic loop: allow up to 3 tool rounds
     let conversationMessages: ChatMessage[] = [
@@ -477,12 +721,8 @@ serve(async (req) => {
         body: JSON.stringify({
           model: "google/gemini-3-flash-preview",
           messages: conversationMessages,
-          tools: context?.mode === "pilot" 
-            ? PILOT_TOOLS 
-            : [...PILOT_TOOLS.filter(t => 
-                ["search_parcels", "get_parcel_details", "get_neighborhood_stats", "get_recent_activity"].includes(t.function.name)
-              ), ...MUSE_TOOLS],
-          stream: round === maxRounds - 1, // Only stream the final response
+          tools,
+          stream: false,
         }),
       });
 
@@ -504,14 +744,12 @@ serve(async (req) => {
 
       const data = await aiResp.json();
       const choice = data.choices?.[0];
-
       if (!choice) throw new Error("No choices in response");
 
       const assistantMsg = choice.message;
 
-      // If no tool calls, we have our final answer — stream it
       if (!assistantMsg.tool_calls || assistantMsg.tool_calls.length === 0) {
-        // Re-request with streaming for final answer
+        // Final answer — re-request with streaming
         const streamResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
           method: "POST",
           headers: {
@@ -525,7 +763,6 @@ serve(async (req) => {
           }),
         });
 
-        // Prepend tool call metadata as a special SSE event
         const encoder = new TextEncoder();
         const metaEvent = toolCallResults.length > 0
           ? `data: ${JSON.stringify({ tool_calls: toolCallResults })}\n\n`
@@ -533,9 +770,7 @@ serve(async (req) => {
 
         const transformedStream = new ReadableStream({
           async start(controller) {
-            if (metaEvent) {
-              controller.enqueue(encoder.encode(metaEvent));
-            }
+            if (metaEvent) controller.enqueue(encoder.encode(metaEvent));
             const reader = streamResp.body!.getReader();
             while (true) {
               const { done, value } = await reader.read();
@@ -579,7 +814,6 @@ serve(async (req) => {
     }
 
     if (!finalResponse) {
-      // Fallback: if we exhausted rounds, return last assistant message
       return new Response(JSON.stringify({ error: "Too many tool rounds" }), {
         status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -618,6 +852,13 @@ You speak with confidence and precision, using terminology familiar to assessmen
 - Compute assessment ratios (assessed_value / sale_price) when both are available.
 - Flag anomalies: ratios outside 0.80–1.20, large YoY changes, stale data.
 
+## Write Tool Protocol (CRITICAL)
+When using write tools (create_exemption, create_appeal, certify_assessment, update_parcel_class):
+- These tools return a CONFIRMATION CARD that the user must approve before execution.
+- ALWAYS explain what you're about to do BEFORE calling the write tool.
+- After the tool returns the confirmation card, tell the user to review and approve the action.
+- NEVER try to bypass the confirmation flow.
+
 ## Response Format
 - Use markdown tables for structured data
 - Bold key values and metrics
@@ -632,7 +873,8 @@ You speak with confidence and precision, using terminology familiar to assessmen
 
 ## Mode: PILOT (Operator)
 Focus: Execute, navigate, query, act. "Do the work."
-You have full tool access. Use them aggressively to answer questions with real data.`;
+You have full tool access including WRITE tools (create_exemption, create_appeal, certify_assessment, update_parcel_class).
+Write tools require user confirmation before execution.`;
   } else {
     modePrompt = `
 
