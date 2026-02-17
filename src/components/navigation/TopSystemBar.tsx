@@ -10,6 +10,7 @@ import {
   SlidersHorizontal,
 } from "lucide-react";
 import { NotificationBell } from "@/components/geoequity/NotificationBell";
+import { CountySwitcher } from "@/components/admin/CountySwitcher";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -45,7 +46,7 @@ export function TopSystemBar({ onOpenCommandPalette, onOpenControlCenter }: TopS
 
   return (
     <header className="sticky top-0 z-50 h-12 flex items-center justify-between px-4 material-shell border-b border-border/30">
-      {/* Left: County + Year */}
+      {/* Left: County Switcher + Year */}
       <div className="flex items-center gap-3">
         <motion.div
           className="w-7 h-7 rounded-lg bg-gradient-to-br from-tf-cyan to-tf-green flex items-center justify-center"
@@ -55,13 +56,10 @@ export function TopSystemBar({ onOpenCommandPalette, onOpenControlCenter }: TopS
           <span className="text-tf-substrate font-bold text-xs">TF</span>
         </motion.div>
 
-        <div className="flex items-center gap-2 text-sm">
-          <span className="font-medium text-foreground">
-            {county ? `${county.name}, ${county.state}` : "TerraFusion OS"}
-          </span>
-          <span className="text-muted-foreground">•</span>
-          <span className="text-muted-foreground">TY {currentYear}</span>
-        </div>
+        <CountySwitcher />
+
+        <span className="text-muted-foreground hidden sm:inline">•</span>
+        <span className="text-muted-foreground text-sm hidden sm:inline">TY {currentYear}</span>
       </div>
 
       {/* Center: Cmd+K hint — hidden on mobile */}
