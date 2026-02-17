@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { invalidateCertification } from "@/lib/queryInvalidation";
 
 export interface Assessment {
   id: string;
@@ -164,8 +165,7 @@ export function useUpsertAssessment() {
       return data;
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["assessments"] });
-      queryClient.invalidateQueries({ queryKey: ["parcel-assessments", variables.parcel_id] });
+      invalidateCertification(queryClient);
     },
   });
 }
@@ -193,7 +193,7 @@ export function useCertifyAssessments() {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["assessments"] });
+      invalidateCertification(queryClient);
     },
   });
 }

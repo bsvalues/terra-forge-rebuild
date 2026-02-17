@@ -32,6 +32,7 @@ import { FileCheck, Loader2, Search } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { createPermitRecord } from "@/services/suites/daisService";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { invalidateWorkflows } from "@/lib/queryInvalidation";
 import { toast } from "@/hooks/use-toast";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
@@ -92,8 +93,7 @@ export function NewPermitDialog({ open, onOpenChange }: NewPermitDialogProps) {
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["permits-workflow"] });
-      queryClient.invalidateQueries({ queryKey: ["permits-stats"] });
+      invalidateWorkflows(queryClient);
       toast({
         title: "Permit Created",
         description: "The new permit application has been submitted.",

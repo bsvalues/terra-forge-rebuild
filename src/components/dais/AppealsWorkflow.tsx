@@ -46,6 +46,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useWorkbench } from "@/components/workbench/WorkbenchContext";
 import { cn } from "@/lib/utils";
 import { updateAppealStatus } from "@/services/suites/daisService";
+import { invalidateWorkflows } from "@/lib/queryInvalidation";
 import { toast } from "@/hooks/use-toast";
 
 interface Appeal {
@@ -117,9 +118,7 @@ export function AppealsWorkflow() {
       return updateAppealStatus(appeal.id, appeal.parcel?.id, newStatus, appeal.status, reason);
     },
     onSuccess: (_, { newStatus }) => {
-      queryClient.invalidateQueries({ queryKey: ["appeals-workflow"] });
-      queryClient.invalidateQueries({ queryKey: ["p360-appeals"] });
-      queryClient.invalidateQueries({ queryKey: ["p360-trace"] });
+      invalidateWorkflows(queryClient);
       toast({ title: "Appeal Updated", description: `Status changed to ${newStatus}` });
       setSelectedAppeal(null);
     },

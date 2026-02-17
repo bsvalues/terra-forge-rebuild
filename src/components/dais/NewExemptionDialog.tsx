@@ -32,6 +32,7 @@ import { ClipboardCheck, Loader2, Search } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { createExemptionRecord } from "@/services/suites/daisService";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { invalidateWorkflows } from "@/lib/queryInvalidation";
 import { toast } from "@/hooks/use-toast";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
@@ -95,8 +96,7 @@ export function NewExemptionDialog({ open, onOpenChange }: NewExemptionDialogPro
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["exemptions-workflow"] });
-      queryClient.invalidateQueries({ queryKey: ["exemptions-stats"] });
+      invalidateWorkflows(queryClient);
       toast({
         title: "Exemption Application Submitted",
         description: "The exemption application is now pending review.",

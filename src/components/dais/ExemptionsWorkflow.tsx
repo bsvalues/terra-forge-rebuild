@@ -46,6 +46,7 @@ import { cn } from "@/lib/utils";
 import { NewExemptionDialog } from "./NewExemptionDialog";
 import { StatusTransitionDropdown, EXEMPTION_TRANSITIONS } from "./StatusTransitionDropdown";
 import { decideExemption, updateExemptionStatus } from "@/services/suites/daisService";
+import { invalidateWorkflows } from "@/lib/queryInvalidation";
 import { toast } from "@/hooks/use-toast";
 
 interface Exemption {
@@ -122,9 +123,7 @@ export function ExemptionsWorkflow() {
       return updateExemptionStatus(exemption.id, exemption.parcel?.id, newStatus, exemption.status, reason);
     },
     onSuccess: (_, { newStatus }) => {
-      queryClient.invalidateQueries({ queryKey: ["exemptions-workflow"] });
-      queryClient.invalidateQueries({ queryKey: ["p360-exemptions"] });
-      queryClient.invalidateQueries({ queryKey: ["p360-trace"] });
+      invalidateWorkflows(queryClient);
       toast({ title: "Exemption Updated", description: `Status changed to ${newStatus}` });
       setSelectedExemption(null);
     },
