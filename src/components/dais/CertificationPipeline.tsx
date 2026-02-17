@@ -5,6 +5,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { emitTraceEvent } from "@/services/terraTrace";
+import { invalidateCertification } from "@/lib/queryInvalidation";
 import { motion } from "framer-motion";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -346,9 +347,7 @@ export function CertificationPipeline() {
       toast.success("County roll certified", {
         description: `${result.certified} assessments certified for TY ${new Date().getFullYear()}`,
       });
-      queryClient.invalidateQueries({ queryKey: ["certification-pipeline"] });
-      queryClient.invalidateQueries({ queryKey: ["certification-stats"] });
-      queryClient.invalidateQueries({ queryKey: ["roll-readiness"] });
+      invalidateCertification(queryClient);
     },
     onError: (err: Error) => {
       toast.error("Certification failed", { description: err.message });

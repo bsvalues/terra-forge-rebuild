@@ -5,6 +5,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { emitTraceEventAsync } from "@/services/terraTrace";
+import { invalidateDossier } from "@/lib/queryInvalidation";
 
 // ---- Documents ----
 
@@ -73,7 +74,7 @@ export function useUploadDocument(parcelId: string | null) {
       return data;
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["dossier-documents", parcelId] });
+      invalidateDossier(qc, parcelId!);
       toast.success("Document uploaded");
     },
     onError: (err: any) => toast.error(err.message || "Upload failed"),
@@ -92,7 +93,7 @@ export function useDeleteDocument(parcelId: string | null) {
       if (error) throw error;
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["dossier-documents", parcelId] });
+      invalidateDossier(qc, parcelId!);
       toast.success("Document deleted");
     },
     onError: (err: any) => toast.error(err.message || "Delete failed"),
@@ -154,7 +155,7 @@ export function useSaveNarrative(parcelId: string | null) {
       return data;
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["dossier-narratives", parcelId] });
+      invalidateDossier(qc, parcelId!);
       toast.success("Narrative saved");
     },
     onError: (err: any) => toast.error(err.message || "Failed to save narrative"),
@@ -172,7 +173,7 @@ export function useDeleteNarrative(parcelId: string | null) {
       if (error) throw error;
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["dossier-narratives", parcelId] });
+      invalidateDossier(qc, parcelId!);
       toast.success("Narrative deleted");
     },
     onError: (err: any) => toast.error(err.message || "Delete failed"),
@@ -237,7 +238,7 @@ export function useAssemblePacket(parcelId: string | null) {
       return data;
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["dossier-packets", parcelId] });
+      invalidateDossier(qc, parcelId!);
       toast.success("Packet assembled");
     },
     onError: (err: any) => toast.error(err.message || "Failed to assemble packet"),

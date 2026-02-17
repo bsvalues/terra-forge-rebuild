@@ -6,6 +6,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { emitTraceEvent } from "@/services/terraTrace";
+import { invalidateCertification } from "@/lib/queryInvalidation";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
 import { CommitmentButton } from "@/components/ui/commitment-button";
@@ -192,8 +193,7 @@ export function RollReadinessPanel({ neighborhoodCode }: RollReadinessPanelProps
       toast.success(`Neighborhood ${neighborhoodCode} certified`, {
         description: `${result.certified} updated, ${result.created} created — ${result.total} total parcels`,
       });
-      queryClient.invalidateQueries({ queryKey: ["roll-readiness"] });
-      queryClient.invalidateQueries({ queryKey: ["certification-stats"] });
+      invalidateCertification(queryClient);
     },
     onError: (err: Error) => {
       toast.error("Certification failed", { description: err.message });
