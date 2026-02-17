@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { invalidateFactory } from "@/lib/queryInvalidation";
+import { showChangeReceipt } from "@/lib/changeReceipt";
 
 export interface CoefficientResult {
   variable: string;
@@ -101,7 +102,12 @@ export function useCalibration(neighborhoodCode: string | null) {
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success("Calibration run saved");
+      showChangeReceipt({
+        entity: `Neighborhood ${neighborhoodCode}`,
+        action: "Calibration run saved",
+        impact: "neighborhood",
+        reason: `R² = ${((result?.r_squared ?? 0) * 100).toFixed(1)}%, n = ${result?.sample_size ?? 0}`,
+      });
       invalidateFactory(queryClient);
     },
     onError: (err: Error) => {

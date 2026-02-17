@@ -16,6 +16,7 @@ import {
   MoreHorizontal,
   ShieldCheck,
   TrendingUp,
+  BookOpen,
 } from "lucide-react";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -41,6 +42,7 @@ const dockItems = [
   { id: "readiness", label: "Readiness", icon: ShieldCheck, shortcut: "⌘0", group: "operations" },
   { id: "field", label: "Field", icon: Compass, shortcut: "⌘7", group: "operations" },
   { id: "sync", label: "Sync", icon: Shield, shortcut: "⌘8", group: "operations" },
+  { id: "trust", label: "Trust", icon: BookOpen, shortcut: "", group: "operations" },
 ];
 
 // Contextual dock sets — when deep in a module, show only relevant companions

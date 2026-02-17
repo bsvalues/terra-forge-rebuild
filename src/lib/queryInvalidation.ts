@@ -1,17 +1,24 @@
-// TerraFusion OS — Cache Invalidation Registry
+// TerraFusion OS — Cache Invalidation Registry (Constitutional Primitive)
 // These are the ONLY functions that should invalidate cached data.
 // Domain services call these after writes; UI components never call them directly.
 // See docs/DATA_CONSTITUTION.md for governance rules.
+//
+// Rule: NO queryClient.invalidateQueries([...]) outside this file.
 
 import type { QueryClient } from "@tanstack/react-query";
 
-/** Invalidate the global county-vitals snapshot (parcels, workflows, quality, etc.) */
-export function invalidateCountyVitals(qc: QueryClient) {
+// ── Canonical Domain Invalidators ─────────────────────────────────
+
+/** Invalidate county-level vitals (the global pulse) */
+export function invalidateCounty(qc: QueryClient) {
   qc.invalidateQueries({ queryKey: ["county-vitals"] });
 }
 
-/** Invalidate all cached data for a specific parcel (p360 snapshot + county vitals) */
-export function invalidateParcelData(qc: QueryClient, parcelId: string) {
+/** @deprecated Use invalidateCounty() — alias kept for migration */
+export const invalidateCountyVitals = invalidateCounty;
+
+/** Invalidate all cached data for a specific parcel + county vitals */
+export function invalidateParcel(qc: QueryClient, parcelId: string) {
   qc.invalidateQueries({ queryKey: ["p360-identity", parcelId] });
   qc.invalidateQueries({ queryKey: ["p360-valuation", parcelId] });
   qc.invalidateQueries({ queryKey: ["p360-workflows", parcelId] });
@@ -21,24 +28,30 @@ export function invalidateParcelData(qc: QueryClient, parcelId: string) {
   qc.invalidateQueries({ queryKey: ["p360-exemptions", parcelId] });
   qc.invalidateQueries({ queryKey: ["parcel-details", parcelId] });
   qc.invalidateQueries({ queryKey: ["parcel-search"] });
-  invalidateCountyVitals(qc);
+  invalidateCounty(qc);
 }
 
+/** @deprecated Use invalidateParcel() — alias kept for migration */
+export const invalidateParcelData = invalidateParcel;
+
 /** Invalidate workflow-related caches (vitals + workflow list screens) */
-export function invalidateWorkflows(qc: QueryClient) {
+export function invalidateWorkflows(qc: QueryClient, parcelId?: string) {
   qc.invalidateQueries({ queryKey: ["appeals-workflow"] });
   qc.invalidateQueries({ queryKey: ["permits-workflow"] });
   qc.invalidateQueries({ queryKey: ["permits-stats"] });
   qc.invalidateQueries({ queryKey: ["exemptions-workflow"] });
   qc.invalidateQueries({ queryKey: ["exemptions-stats"] });
-  invalidateCountyVitals(qc);
+  if (parcelId) {
+    qc.invalidateQueries({ queryKey: ["p360-workflows", parcelId] });
+  }
+  invalidateCounty(qc);
 }
 
-/** Invalidate factory/calibration caches + vitals */
+/** Invalidate factory/calibration caches + vitals (calibration affects county metrics) */
 export function invalidateFactory(qc: QueryClient) {
   qc.invalidateQueries({ queryKey: ["factory"] });
   qc.invalidateQueries({ queryKey: ["calibration-history"] });
-  invalidateCountyVitals(qc);
+  invalidateCounty(qc);
 }
 
 /** Invalidate certification-related caches */
@@ -47,7 +60,7 @@ export function invalidateCertification(qc: QueryClient) {
   qc.invalidateQueries({ queryKey: ["certification-stats"] });
   qc.invalidateQueries({ queryKey: ["roll-readiness"] });
   qc.invalidateQueries({ queryKey: ["assessments"] });
-  invalidateCountyVitals(qc);
+  invalidateCounty(qc);
 }
 
 /** Invalidate dossier (evidence) caches for a parcel */

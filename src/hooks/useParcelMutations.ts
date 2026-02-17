@@ -2,7 +2,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { updateParcelCharacteristics } from "@/services/suites/forgeService";
-import { invalidateParcelData } from "@/lib/queryInvalidation";
+import { invalidateParcel } from "@/lib/queryInvalidation";
+import { showChangeReceipt } from "@/lib/changeReceipt";
 
 export interface ParcelUpdatePayload {
   address?: string;
@@ -59,9 +60,16 @@ export function useUpdateParcel(parcelId: string | null) {
         current ? (current as Record<string, unknown>) : undefined
       );
     },
-    onSuccess: () => {
-      toast.success("Parcel updated successfully");
-      invalidateParcelData(queryClient, parcelId!);
+    onSuccess: (_, variables) => {
+      showChangeReceipt({
+        entity: `Parcel ${parcelId}`,
+        action: "Parcel characteristics updated",
+        impact: "parcel",
+        changes: Object.entries(variables).map(([k, v]) => ({
+          field: k, before: "—", after: String(v ?? "null"),
+        })),
+      });
+      invalidateParcel(queryClient, parcelId!);
     },
     onError: (error: any) => {
       toast.error("Failed to update parcel", {

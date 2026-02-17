@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { invalidateCertification } from "@/lib/queryInvalidation";
+import { showChangeReceipt } from "@/lib/changeReceipt";
 
 export interface Assessment {
   id: string;
@@ -165,6 +166,11 @@ export function useUpsertAssessment() {
       return data;
     },
     onSuccess: (_, variables) => {
+      showChangeReceipt({
+        entity: `Assessment TY${variables.tax_year}`,
+        action: "Assessment upserted",
+        impact: "parcel",
+      });
       invalidateCertification(queryClient);
     },
   });
@@ -192,7 +198,13 @@ export function useCertifyAssessments() {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (data, variables) => {
+      showChangeReceipt({
+        entity: `TY${variables.taxYear} Assessments`,
+        action: `${(data as any[])?.length ?? 0} assessments certified`,
+        impact: "county",
+        changes: [{ field: "certified", before: "false", after: "true" }],
+      });
       invalidateCertification(queryClient);
     },
   });

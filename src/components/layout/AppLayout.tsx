@@ -19,6 +19,7 @@ const GeoEquityDashboard = lazy(() => import("@/components/geoequity/GeoEquityDa
 const DataQualityScoringEngine = lazy(() => import("@/components/quality/DataQualityScoringEngine").then(m => ({ default: m.DataQualityScoringEngine })));
 const RollReadinessDashboard = lazy(() => import("@/components/certification").then(m => ({ default: m.RollReadinessDashboard })));
 const AnalyticsDashboard = lazy(() => import("@/components/analytics/AnalyticsDashboard").then(m => ({ default: m.AnalyticsDashboard })));
+const TrustRegistryPage = lazy(() => import("@/components/trust").then(m => ({ default: m.TrustRegistryPage })));
 
 // ── Loading fallback ───────────────────────────────────────────────
 function StageFallback() {
@@ -149,6 +150,12 @@ export function AppLayout({ initialParcel: routeParcel, initialModule, initialFa
         );
       case "analytics":
         return <AnalyticsDashboard />;
+      case "trust":
+        return (
+          <div className="p-0">
+            <TrustRegistryPage onNavigate={handleNavigate} />
+          </div>
+        );
       default:
         return <SuiteHub onNavigate={handleNavigate} />;
     }
