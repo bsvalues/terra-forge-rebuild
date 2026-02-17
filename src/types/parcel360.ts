@@ -33,6 +33,9 @@ export type TraceEventType =
   | "field_note_added"
   | "spatial_anomaly_flagged"
   | "field_inspection_completed"
+  | "sketch_completed"
+  | "plan_trace_completed"
+  | "measurement_plan_completed"
   | "neighborhood_certified"
   | "batch_adjustment_applied"
   | "county_roll_certified";

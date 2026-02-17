@@ -2,8 +2,9 @@ import { useState, useCallback, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   ArrowLeft, Camera, Ruler, ClipboardCheck, MessageSquare,
-  AlertTriangle, CheckCircle2, MapPin, Save, ImagePlus
+  AlertTriangle, CheckCircle2, MapPin, Save, ImagePlus, PenTool
 } from "lucide-react";
+import { SketchModule } from "@/components/sketch";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -34,6 +35,7 @@ export function InspectionPanel({ assignment, onBack }: InspectionPanelProps) {
   const [activeTab, setActiveTab] = useState("condition");
   const [observations, setObservations] = useState<FieldObservation[]>([]);
   const [saving, setSaving] = useState(false);
+  const [showSketch, setShowSketch] = useState(false);
 
   // Condition rubric state
   const [condOverall, setCondOverall] = useState(4);
@@ -174,6 +176,22 @@ export function InspectionPanel({ assignment, onBack }: InspectionPanelProps) {
     onBack();
   };
 
+  if (showSketch) {
+    return (
+      <SketchModule
+        assignmentId={assignment.id}
+        parcelId={assignment.parcelId}
+        currentGLA={undefined}
+        onBack={() => setShowSketch(false)}
+        onSaved={async () => {
+          const updated = await getObservations(assignment.id);
+          setObservations(updated);
+          setShowSketch(false);
+        }}
+      />
+    );
+  }
+
   return (
     <div className="p-4 sm:p-6 max-w-3xl mx-auto space-y-4">
       {/* Header */}
@@ -195,7 +213,7 @@ export function InspectionPanel({ assignment, onBack }: InspectionPanelProps) {
 
       {/* Inspection Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="bg-muted/50 w-full grid grid-cols-6 h-auto">
+        <TabsList className="bg-muted/50 w-full grid grid-cols-7 h-auto">
           <TabsTrigger value="condition" className="text-[10px] sm:text-xs py-2 flex flex-col gap-0.5">
             <ClipboardCheck className="w-4 h-4" />
             <span className="hidden sm:inline">Condition</span>
@@ -207,6 +225,10 @@ export function InspectionPanel({ assignment, onBack }: InspectionPanelProps) {
           <TabsTrigger value="measure" className="text-[10px] sm:text-xs py-2 flex flex-col gap-0.5">
             <Ruler className="w-4 h-4" />
             <span className="hidden sm:inline">Measure</span>
+          </TabsTrigger>
+          <TabsTrigger value="sketch" className="text-[10px] sm:text-xs py-2 flex flex-col gap-0.5" onClick={() => setShowSketch(true)}>
+            <PenTool className="w-4 h-4" />
+            <span className="hidden sm:inline">Sketch</span>
           </TabsTrigger>
           <TabsTrigger value="photo" className="text-[10px] sm:text-xs py-2 flex flex-col gap-0.5">
             <Camera className="w-4 h-4" />
