@@ -7,6 +7,7 @@ import { motion } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Factory, BarChart3, ShieldCheck, Layers, TrendingUp, AlertTriangle } from "lucide-react";
 import { useCountyVitals } from "@/hooks/useCountyVitals";
+import { ProvenanceNumber } from "@/components/trust";
 
 export function FactoryDashboardHeader() {
   const { data: vitals, isLoading: vitalsLoading } = useCountyVitals();
@@ -138,7 +139,13 @@ export function FactoryDashboardHeader() {
             <div className={`w-8 h-8 rounded-lg ${m.bgColor} flex items-center justify-center`}>
               <Icon className={`w-4 h-4 ${m.color}`} />
             </div>
-            <span className="text-lg font-medium text-foreground leading-tight">{m.value}</span>
+            <ProvenanceNumber
+              source={m.label === "Active Adjustments" ? "factory/active-adjustments" : m.label === "Neighborhoods" ? "factory/neighborhoods" : "county-vitals"}
+              fetchedAt={vitals?.fetchedAt}
+              cachePolicy={m.label === "Active Adjustments" || m.label === "Neighborhoods" ? "cached 120s" : "cached 60s"}
+            >
+              <span className="text-lg font-medium text-foreground leading-tight">{m.value}</span>
+            </ProvenanceNumber>
             <span className="text-[10px] text-muted-foreground uppercase tracking-wider leading-tight">{m.label}</span>
           </motion.div>
         );

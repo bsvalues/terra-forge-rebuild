@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useCountyVitals } from "@/hooks/useCountyVitals";
+import { ProvenanceNumber } from "@/components/trust";
 
 interface TopSystemBarProps {
   onOpenCommandPalette: () => void;
@@ -95,7 +96,9 @@ export function TopSystemBar({ onOpenCommandPalette, onOpenControlCenter }: TopS
                 <WifiOff className="w-3.5 h-3.5 text-tf-red" />
               )}
               <span className="text-[10px] text-muted-foreground hidden sm:inline">
-                {parcelsCount?.toLocaleString() || "—"}
+                <ProvenanceNumber source="county-vitals" fetchedAt={vitals?.fetchedAt} cachePolicy="cached 60s">
+                  {parcelsCount?.toLocaleString() || "—"}
+                </ProvenanceNumber>
               </span>
             </div>
           </TooltipTrigger>
