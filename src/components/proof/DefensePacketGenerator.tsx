@@ -53,6 +53,40 @@ export function DefensePacketGenerator() {
     enabled: !!parcel.id,
   });
 
+  // Fetch trace events for audit trail appendix
+  const { data: traceEvents } = useQuery({
+    queryKey: ["defense-trace-events", parcel.id],
+    queryFn: async () => {
+      if (!parcel.id) return [];
+      const { data, error } = await supabase
+        .from("trace_events")
+        .select("*")
+        .eq("parcel_id", parcel.id)
+        .order("created_at", { ascending: false })
+        .limit(25);
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!parcel.id,
+  });
+
+  // Fetch appeals for this parcel
+  const { data: appeals } = useQuery({
+    queryKey: ["defense-appeals", parcel.id],
+    queryFn: async () => {
+      if (!parcel.id) return [];
+      const { data, error } = await supabase
+        .from("appeals")
+        .select("*")
+        .eq("parcel_id", parcel.id)
+        .order("appeal_date", { ascending: false })
+        .limit(10);
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!parcel.id,
+  });
+
   const handleGenerate = async () => {
     if (!hasParcel) return;
     setStatus("generating");
@@ -93,13 +127,33 @@ export function DefensePacketGenerator() {
   };
 
   const handleDownload = () => {
-    // Generate a comprehensive text/markdown download with trace events
-    const traceSection = `## Appendix D: TerraTrace Audit Trail\n(${new Date().toISOString()} — exported at point of packet generation)\n\nFull audit trail available in TerraFusion OS.`;
+    // Build comprehensive appendices
+    const appendixA = assessments?.map(a =>
+      `| ${a.tax_year} | $${a.land_value?.toLocaleString()} | $${a.improvement_value?.toLocaleString()} | $${a.total_value?.toLocaleString()} | ${a.certified ? "✅" : "⏳"} |`
+    ).join("\n") || "No records";
 
-    const content = `# Defense Packet — ${parcel.parcelNumber}
-## ${parcel.address}
-### Generated: ${new Date().toLocaleDateString()}
-### Parcel ID: ${parcel.id}
+    const appendixB = comps?.slice(0, 10)?.map((c: any) => {
+      const ratio = c.parcels?.assessed_value && c.sale_price ? (c.parcels.assessed_value / c.sale_price).toFixed(3) : "N/A";
+      return `| ${c.parcels?.parcel_number || "—"} | ${c.parcels?.address || "—"} | $${c.sale_price?.toLocaleString()} | ${new Date(c.sale_date).toLocaleDateString()} | ${ratio} |`;
+    }).join("\n") || "No comps";
+
+    const appendixC = receipts?.map(r =>
+      `| ${r.model_type} | v${r.model_version} | ${new Date(r.created_at).toLocaleDateString()} | ${r.operator_id?.slice(0, 8)}… |`
+    ).join("\n") || "No receipts";
+
+    const appendixD = (traceEvents || []).map(e =>
+      `| ${new Date(e.created_at).toLocaleString()} | ${e.source_module} | ${e.event_type} | ${e.artifact_type || "—"} |`
+    ).join("\n") || "No trace events";
+
+    const appendixE = (appeals || []).map(a =>
+      `| ${new Date(a.appeal_date).toLocaleDateString()} | ${a.status} | $${a.original_value?.toLocaleString()} | $${a.requested_value?.toLocaleString() || "—"} | $${a.final_value?.toLocaleString() || "—"} | ${a.resolution_type || "—"} |`
+    ).join("\n") || "No appeals";
+
+    const content = `# Board of Equalization Defense Packet
+## Parcel ${parcel.parcelNumber}
+### ${parcel.address}
+### Generated: ${format(new Date(), "MMMM d, yyyy 'at' HH:mm")}
+### Study Period: ${studyPeriod.name || "N/A"}
 
 ---
 
@@ -108,28 +162,50 @@ ${narrative}
 ---
 
 ## Appendix A: Assessment History
-${assessments?.map(a => `- Tax Year ${a.tax_year}: Total $${a.total_value?.toLocaleString()} (Land: $${a.land_value?.toLocaleString()}, Improvement: $${a.improvement_value?.toLocaleString()})`).join("\n") || "No records"}
 
-## Appendix B: Comparable Sales
-${comps?.slice(0, 10)?.map((c: any) => {
-  const ratio = c.parcels?.assessed_value && c.sale_price ? (c.parcels.assessed_value / c.sale_price).toFixed(3) : "N/A";
-  return `- ${c.parcels?.parcel_number} (${c.parcels?.address}): Sale $${c.sale_price?.toLocaleString()} on ${new Date(c.sale_date).toLocaleDateString()} — Ratio: ${ratio}`;
-}).join("\n") || "No comps"}
+| Tax Year | Land Value | Improvement Value | Total Value | Certified |
+|----------|-----------|-------------------|-------------|-----------|
+${appendixA}
 
-## Appendix C: Model Receipts
-${receipts?.map(r => `- ${r.model_type} v${r.model_version} (${new Date(r.created_at).toLocaleDateString()}) — Operator: ${r.operator_id?.slice(0, 8)}…`).join("\n") || "No receipts"}
+## Appendix B: Comparable Sales Analysis
 
-${traceSection}
+| Parcel # | Address | Sale Price | Sale Date | ASR Ratio |
+|----------|---------|-----------|-----------|-----------|
+${appendixB}
+
+## Appendix C: Valuation Model Receipts
+
+| Model Type | Version | Date | Operator |
+|-----------|---------|------|----------|
+${appendixC}
+
+## Appendix D: TerraTrace Audit Trail
+
+| Timestamp | Module | Event | Artifact |
+|-----------|--------|-------|----------|
+${appendixD}
+
+## Appendix E: Appeal History
+
+| Appeal Date | Status | Original Value | Requested | Final | Resolution |
+|------------|--------|----------------|-----------|-------|------------|
+${appendixE}
+
+---
+
+*This defense packet was assembled by TerraFusion OS. All data is sourced from the county's official records and valuation models. The TerraTrace audit trail provides a tamper-evident record of all actions taken on this parcel.*
+
+*Exported: ${new Date().toISOString()}*
 `;
 
     const blob = new Blob([content], { type: "text/markdown" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `defense-packet-${parcel.parcelNumber || "unknown"}-${format(new Date(), "yyyy-MM-dd")}.md`;
+    a.download = `boe-defense-${parcel.parcelNumber || "unknown"}-${format(new Date(), "yyyy-MM-dd")}.md`;
     a.click();
     URL.revokeObjectURL(url);
-    toast.success("Defense packet downloaded with full appendices");
+    toast.success("BOE defense packet downloaded with 5 appendices");
   };
 
   if (!hasParcel) {
@@ -165,12 +241,14 @@ ${traceSection}
       </div>
 
       {/* Components Checklist */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
         {[
           { label: "Assessments", count: assessments?.length ?? 0, icon: FileText },
           { label: "Sales History", count: sales?.length ?? 0, icon: TrendingUp },
           { label: "Comparables", count: comps?.length ?? 0, icon: TrendingUp },
           { label: "Model Receipts", count: receipts?.length ?? 0, icon: Receipt },
+          { label: "Trace Events", count: traceEvents?.length ?? 0, icon: Shield },
+          { label: "Appeals", count: appeals?.length ?? 0, icon: FileText },
         ].map((item) => (
           <Card key={item.label} className="material-bento border-border/50">
             <CardContent className="p-3">
