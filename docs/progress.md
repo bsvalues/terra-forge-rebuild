@@ -9,9 +9,9 @@
 
 ## Current State Summary
 
-**Active Phase**: Phase 12 — Production Hardening (✅ COMPLETE)  
-**Last Completed Task**: 12.5 — Performance pagination gates  
-**Next Task**: Phase 13 planning  
+**Active Phase**: Phase 13 — Operational Intelligence Uplift (✅ COMPLETE)  
+**Last Completed Task**: 13.3 — TerraPilot Muse drafting tools  
+**Next Task**: Phase 14 planning  
 **Blockers**: None
 
 ---
@@ -33,8 +33,31 @@
 | 10 | Operational Completeness | ✅ COMPLETE | 3/3 | VEI + GeoEquity dock modules, enriched Suite Hub, expanded command palette |
 | 11 | Hub Intelligence & Certification | ✅ COMPLETE | 3/3 | Live parcel search, certification dashboard, scenario modeling |
 | 12 | Production Hardening | ✅ COMPLETE | 5/5 | Realtime trace feed, notice generation, defense packet export, keyboard review queue, pagination |
+| 13 | Operational Intelligence Uplift | ✅ COMPLETE | 3/3 | Neighborhood leaderboard, enhanced factory header, Muse drafting tools |
 
 ---
+
+## Phase 13 Operational Intelligence Uplift Log (2026-02-17)
+
+### 13.1 Neighborhood Leaderboard ✅
+- `src/components/dashboard/NeighborhoodLeaderboard.tsx` — Ranked readiness scoreboard
+- Weighted composite score: 40% certification, 25% calibration, 15% R² quality, penalties for appeals/permits
+- Per-neighborhood badges: R² percentage, pending appeal count
+- Trophy icons for top 3 neighborhoods
+- Integrated into Command Briefing as 3rd column in health grid
+
+### 13.2 Enhanced Factory Dashboard Header ✅
+- Added 2 new metrics: Calibrated neighborhoods ratio and Average R²
+- Factory header now shows 7 aggregate stats across all neighborhoods
+- Color-coded R² indicator (green >70%, amber otherwise)
+- Calibrated count vs total neighborhoods ratio display
+
+### 13.3 TerraPilot Muse Drafting Tools ✅
+- 4 new Muse-mode tools: `draft_notice`, `draft_appeal_response`, `explain_value_change`, `summarize_parcel_history`
+- Each tool gathers full parcel context (assessments, sales, permits, appeals) for AI synthesis
+- Muse tool selection in edge function: read-only Pilot tools + full Muse tools
+- Chat UI: Muse suggestion chips ("Draft assessment change notice", "Explain value change", etc.)
+- Tool icons and labels for all 4 drafting tools in chat badge display
 
 ## Phase 12 Production Hardening Log (2026-02-15)
 
