@@ -159,6 +159,7 @@ const SUITE_REGISTRY: SuiteEntry[] = [
   { id: "factory", name: "Factory", mission: "Mass appraisal — regression, cost, comp review", icon: Globe, status: "native", target: "factory", accentVar: "--suite-forge" },
   { id: "pilot", name: "TerraPilot", mission: "AI copilot — guidance, drafting, synthesis", icon: Sparkles, status: "native", target: "workbench:pilot", accentVar: "--tf-transcend-cyan" },
   { id: "ids", name: "IDS", mission: "Intelligent Data Suite — ingest, quality, routing", icon: Database, status: "native", target: "ids", accentVar: "--tf-transcend-cyan" },
+  { id: "quality", name: "Quality Engine", mission: "Scoring, stale detection, neighborhood heatmap", icon: Shield, status: "native", target: "quality", accentVar: "--tf-transcend-cyan" },
 ];
 
 // ─── Component ────────────────────────────────────────────────
