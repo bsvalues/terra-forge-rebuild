@@ -38,7 +38,13 @@ export type TraceEventType =
   | "measurement_plan_completed"
   | "neighborhood_certified"
   | "batch_adjustment_applied"
-  | "county_roll_certified";
+  | "county_roll_certified"
+  | "saga_running"
+  | "saga_completed"
+  | "saga_failed"
+  | "saga_compensating"
+  | "saga_compensated"
+  | "saga_compensation_failed";
 
 export type ArtifactType =
   | "assessment"
