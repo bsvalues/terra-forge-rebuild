@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Globe, 
@@ -17,7 +18,8 @@ import {
   Maximize2,
   Settings,
   Database,
-  Loader2
+  Loader2,
+  ExternalLink,
 } from "lucide-react";
 import { useWorkbench } from "../WorkbenchContext";
 import { Button } from "@/components/ui/button";
@@ -59,6 +61,7 @@ const itemVariants = {
 
 export function AtlasTab() {
   const { studyPeriod, parcel } = useWorkbench();
+  const navigate = useNavigate();
   const [activeView, setActiveView] = useState<AtlasView>("map");
   const [layerPanelOpen, setLayerPanelOpen] = useState(true);
   const [showNeighborhoods, setShowNeighborhoods] = useState(true);
@@ -104,27 +107,38 @@ export function AtlasTab() {
             </div>
           </div>
 
-          {/* View Tabs */}
-          <Tabs value={activeView} onValueChange={(v) => setActiveView(v as AtlasView)}>
-            <TabsList className="bg-tf-surface/50">
-              <TabsTrigger value="map" className="text-xs gap-1.5">
-                <Map className="w-3.5 h-3.5" />
-                Equity Map
-              </TabsTrigger>
-              <TabsTrigger value="heatmap" className="text-xs gap-1.5">
-                <Globe className="w-3.5 h-3.5" />
-                Heatmap
-              </TabsTrigger>
-              <TabsTrigger value="layers" className="text-xs gap-1.5">
-                <Layers className="w-3.5 h-3.5" />
-                Layers
-              </TabsTrigger>
-              <TabsTrigger value="search" className="text-xs gap-1.5">
-                <Search className="w-3.5 h-3.5" />
-                Search
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => navigate("/geoequity")}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+            >
+              <Globe className="w-3.5 h-3.5" />
+              Open GeoEquity
+              <ExternalLink className="w-3 h-3" />
+            </button>
+
+            {/* View Tabs */}
+            <Tabs value={activeView} onValueChange={(v) => setActiveView(v as AtlasView)}>
+              <TabsList className="bg-tf-surface/50">
+                <TabsTrigger value="map" className="text-xs gap-1.5">
+                  <Map className="w-3.5 h-3.5" />
+                  Equity Map
+                </TabsTrigger>
+                <TabsTrigger value="heatmap" className="text-xs gap-1.5">
+                  <Globe className="w-3.5 h-3.5" />
+                  Heatmap
+                </TabsTrigger>
+                <TabsTrigger value="layers" className="text-xs gap-1.5">
+                  <Layers className="w-3.5 h-3.5" />
+                  Layers
+                </TabsTrigger>
+                <TabsTrigger value="search" className="text-xs gap-1.5">
+                  <Search className="w-3.5 h-3.5" />
+                  Search
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
         </div>
       </motion.div>
 
