@@ -1867,6 +1867,7 @@ export type Database = {
               tier_slope: number
             }[]
           }
+      get_county_vitals: { Args: never; Returns: Json }
       get_user_county_id: { Args: never; Returns: string }
       has_role: {
         Args: {

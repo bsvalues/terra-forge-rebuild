@@ -1,6 +1,6 @@
 // TerraFusion OS — County Vitals Hook (Layer 1: Single Source of Truth)
 // Query Key: ["county-vitals"] • Stale: 60s
-// This is the ONLY hook that provides county-wide counts and health metrics.
+// Uses get_county_vitals() RPC — ONE database call instead of 13 parallel queries.
 // No component may duplicate these queries. See docs/DATA_CONSTITUTION.md.
 
 import { useQuery } from "@tanstack/react-query";
@@ -52,74 +52,37 @@ export interface CountyVitals {
 }
 
 async function fetchCountyVitals(): Promise<CountyVitals> {
-  const currentYear = new Date().getFullYear();
+  const { data, error } = await supabase.rpc("get_county_vitals");
+  if (error) throw error;
 
-  const [
-    parcelsTotal,
-    parcelsCoords,
-    parcelsClass,
-    parcelsNbhd,
-    salesTotal,
-    assessmentsTotal,
-    assessmentsCertified,
-    appealsCount,
-    permitsCount,
-    exemptionsCount,
-    calibRunsCount,
-    calibDetail,
-    recentJobs,
-  ] = await Promise.all([
-    supabase.from("parcels").select("*", { count: "exact", head: true }),
-    supabase.from("parcels").select("*", { count: "exact", head: true }).not("latitude", "is", null),
-    supabase.from("parcels").select("*", { count: "exact", head: true }).not("property_class", "is", null),
-    supabase.from("parcels").select("*", { count: "exact", head: true }).not("neighborhood_code", "is", null),
-    supabase.from("sales").select("*", { count: "exact", head: true }),
-    supabase.from("assessments").select("*", { count: "exact", head: true }),
-    supabase.from("assessments").select("*", { count: "exact", head: true }).eq("certified", true),
-    supabase.from("appeals").select("*", { count: "exact", head: true }).in("status", ["filed", "pending", "scheduled"]),
-    supabase.from("permits").select("*", { count: "exact", head: true }).in("status", ["applied", "pending", "issued"]),
-    supabase.from("exemptions").select("*", { count: "exact", head: true }).eq("status", "pending"),
-    supabase.from("calibration_runs").select("*", { count: "exact", head: true }),
-    supabase.from("calibration_runs").select("neighborhood_code, r_squared, created_at").order("created_at", { ascending: false }),
-    supabase.from("ingest_jobs")
-      .select("id, file_name, target_table, status, row_count, rows_imported, created_at")
-      .order("created_at", { ascending: false })
-      .limit(3),
-  ]);
+  const raw = data as Record<string, any>;
 
-  const total = parcelsTotal.count || 0;
-  const coordsCount = parcelsCoords.count || 0;
-  const classCount = parcelsClass.count || 0;
-  const nbhdCount = parcelsNbhd.count || 0;
+  const total = raw.parcels.total ?? 0;
+  const coordsCount = raw.parcels.withCoords ?? 0;
+  const classCount = raw.parcels.withClass ?? 0;
+  const nbhdCount = raw.parcels.withNeighborhood ?? 0;
 
   const coordsPct = total > 0 ? Math.round((coordsCount / total) * 100) : 0;
   const classPct = total > 0 ? Math.round((classCount / total) * 100) : 0;
   const nbhdPct = total > 0 ? Math.round((nbhdCount / total) * 100) : 0;
 
-  const assessTotal = assessmentsTotal.count || 0;
-  const certCount = assessmentsCertified.count || 0;
+  const assessTotal = raw.assessments.total ?? 0;
+  const certCount = raw.assessments.certified ?? 0;
 
-  // Compute calibrated neighborhoods + avg R²
-  const latestCalib = new Map<string, number>();
-  for (const run of calibDetail.data || []) {
-    if (!latestCalib.has(run.neighborhood_code)) {
-      latestCalib.set(run.neighborhood_code, run.r_squared ?? 0);
-    }
-  }
-  const rSquaredValues = Array.from(latestCalib.values()).filter(v => v > 0);
+  // Compute calibrated neighborhoods + avg R² from RPC detail
+  const calibDetail: Array<{ neighborhood_code: string; r_squared: number | null }> =
+    raw.calibration.detail ?? [];
+  const rSquaredValues = calibDetail
+    .map((d) => d.r_squared ?? 0)
+    .filter((v) => v > 0);
 
-  const pendingAppeals = appealsCount.count || 0;
-  const openPermits = permitsCount.count || 0;
-  const pendingExemptions = exemptionsCount.count || 0;
+  const pendingAppeals = raw.workflows.pendingAppeals ?? 0;
+  const openPermits = raw.workflows.openPermits ?? 0;
+  const pendingExemptions = raw.workflows.pendingExemptions ?? 0;
 
   return {
-    parcels: {
-      total,
-      withCoords: coordsCount,
-      withClass: classCount,
-      withNeighborhood: nbhdCount,
-    },
-    sales: { total: salesTotal.count || 0 },
+    parcels: { total, withCoords: coordsCount, withClass: classCount, withNeighborhood: nbhdCount },
+    sales: { total: raw.sales.total ?? 0 },
     assessments: {
       total: assessTotal,
       certified: certCount,
@@ -138,14 +101,15 @@ async function fetchCountyVitals(): Promise<CountyVitals> {
       overall: Math.round((coordsPct + classPct + nbhdPct) / 3),
     },
     calibration: {
-      runCount: calibRunsCount.count || 0,
-      calibratedNeighborhoods: latestCalib.size,
-      avgRSquared: rSquaredValues.length > 0
-        ? rSquaredValues.reduce((a, b) => a + b, 0) / rSquaredValues.length
-        : null,
+      runCount: raw.calibration.runCount ?? 0,
+      calibratedNeighborhoods: calibDetail.length,
+      avgRSquared:
+        rSquaredValues.length > 0
+          ? rSquaredValues.reduce((a, b) => a + b, 0) / rSquaredValues.length
+          : null,
     },
     ingest: {
-      recentJobs: (recentJobs.data || []) as CountyVitals["ingest"]["recentJobs"],
+      recentJobs: (raw.ingest.recentJobs ?? []) as CountyVitals["ingest"]["recentJobs"],
     },
     fetchedAt: new Date().toISOString(),
   };
