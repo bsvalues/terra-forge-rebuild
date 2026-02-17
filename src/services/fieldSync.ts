@@ -195,7 +195,25 @@ async function routeObservation(obs: FieldObservation): Promise<RouteResult> {
       const updates: Record<string, unknown> = {};
       const obsData = obs.data as Record<string, unknown>;
 
-      if (obs.type === "condition") {
+      // Handle sketch observations (they carry _sketchObservation flag)
+      if (obsData._sketchObservation) {
+        // Sketch data routes as measurement with sketch metadata
+        if (obsData.derivedGLA) updates.building_area = obsData.derivedGLA;
+        // Emit trace event for sketch provenance
+        await emitTraceEvent({
+          parcelId: obs.parcelId,
+          sourceModule: "field",
+          eventType: obsData._sketchMode === "plan_trace" ? "plan_trace_completed" : obsData._sketchMode === "sketch" ? "sketch_completed" : "measurement_plan_completed",
+          eventData: {
+            mode: obsData._sketchMode,
+            derivedGLA: obsData.derivedGLA,
+            method: obsData.method,
+            confidence: obsData.confidence,
+            flaggedForReview: obsData.flaggedForReview,
+            glaDeltaPct: obsData.glaDeltaPct,
+          },
+        });
+      } else if (obs.type === "condition") {
         updates.condition_rating = obsData.overall;
       } else if (obs.type === "quality") {
         updates.quality_rating = obsData.overall;
