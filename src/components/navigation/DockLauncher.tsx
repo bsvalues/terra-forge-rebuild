@@ -12,6 +12,7 @@ import {
   BarChart3,
   Map,
   Compass,
+  Target,
   MoreHorizontal,
 } from "lucide-react";
 import { useAuthContext } from "@/contexts/AuthContext";
@@ -32,6 +33,7 @@ const dockItems = [
   { id: "geoequity", label: "GeoEquity", icon: Map, shortcut: "⌘6" },
   { id: "field", label: "Field", icon: Compass, shortcut: "⌘7" },
   { id: "sync", label: "Sync", icon: Shield, shortcut: "⌘8" },
+  { id: "quality", label: "Quality", icon: Target, shortcut: "⌘9" },
 ];
 
 // Contextual dock sets — when deep in a module, show only relevant companions

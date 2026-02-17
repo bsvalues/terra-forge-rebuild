@@ -15,6 +15,7 @@ const FactoryLayout = lazy(() => import("@/components/factory/FactoryLayout").th
 const SyncDashboard = lazy(() => import("@/components/sync/SyncDashboard").then(m => ({ default: m.SyncDashboard })));
 const VEIDashboard = lazy(() => import("@/components/vei/VEIDashboard").then(m => ({ default: m.VEIDashboard })));
 const GeoEquityDashboard = lazy(() => import("@/components/geoequity/GeoEquityDashboard").then(m => ({ default: m.GeoEquityDashboard })));
+const DataQualityScoringEngine = lazy(() => import("@/components/quality/DataQualityScoringEngine").then(m => ({ default: m.DataQualityScoringEngine })));
 
 // ── Loading fallback ───────────────────────────────────────────────
 function StageFallback() {
@@ -130,6 +131,12 @@ export function AppLayout({ initialParcel: routeParcel, initialModule, initialFa
         );
       case "field":
         return <FieldStudioDashboard />;
+      case "quality":
+        return (
+          <div className="p-6 max-w-7xl mx-auto">
+            <DataQualityScoringEngine />
+          </div>
+        );
       default:
         return <SuiteHub onNavigate={handleNavigate} />;
     }

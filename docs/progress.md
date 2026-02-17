@@ -2,16 +2,16 @@
 > **Purpose**: Track implementation progress against plan.md.
 
 **Created**: 2026-02-07  
-**Last Updated**: 2026-02-15  
+**Last Updated**: 2026-02-17  
 **Agent**: Cloud Coach
 
 ---
 
 ## Current State Summary
 
-**Active Phase**: Phase 15 — Field Studio Sync Engine Hardening (✅ COMPLETE)  
-**Last Completed Task**: 15.4 — Photo upload pipeline  
-**Next Task**: Phase 16 planning  
+**Active Phase**: Phase 16 — Data Quality Scoring Engine (✅ COMPLETE)  
+**Last Completed Task**: 16.3 — Navigation integration  
+**Next Task**: Phase 17 planning  
 **Blockers**: None
 
 ---
@@ -36,8 +36,33 @@
 | 13 | Operational Intelligence Uplift | ✅ COMPLETE | 3/3 | Neighborhood leaderboard, enhanced factory header, Muse drafting tools |
 | 14 | The Observability Singularity | ✅ COMPLETE | 3/3 | Audit timeline sparkline, neighborhood deep-dive dialog, smart quick actions |
 | 15 | Field Studio Sync Engine | ✅ COMPLETE | 4/4 | Idempotent sync, conflict detection, background auto-sync, photo upload pipeline |
+| 16 | Data Quality Scoring Engine | ✅ COMPLETE | 3/3 | Weighted scoring, neighborhood heatmap, stale alerts, grade distribution |
 
 ---
+
+## Phase 16 Data Quality Scoring Engine Log (2026-02-17)
+
+### 16.1 Weighted Scoring Hook ✅
+- `src/hooks/useDataQualityScoring.ts` — per-parcel completeness scoring
+- 9 fields with defensibility-weighted scoring (neighborhood 15%, assessed_value 15%, coords 12%, etc.)
+- Letter grades A-F with configurable thresholds (90/75/60/40)
+- Staleness detection: warning at 90 days, critical at 180 days
+- Neighborhood aggregation with worst-field gap analysis
+
+### 16.2 Scoring Engine Dashboard ✅
+- `src/components/quality/DataQualityScoringEngine.tsx` — full quality dashboard
+- Overall grade banner with weighted average score
+- 5 tabbed views: Neighborhood Heatmap, Grade Distribution, Field Coverage, Stale Alerts, Worst Parcels
+- Visual heatmap grid with color-coded neighborhood tiles
+- Stale data alerts with critical/warning severity levels
+- Lowest-scoring parcels table with missing field badges
+- Grade distribution bar chart (A through F)
+- Weighted field coverage table sorted by weakest fields
+
+### 16.3 Navigation Integration ✅
+- Quality Engine added to DockLauncher (⌘9)
+- Lazy-loaded route in AppLayout
+- Suite Registry entry in SuiteHub
 
 ## Phase 14 The Observability Singularity Log (2026-02-17)
 
