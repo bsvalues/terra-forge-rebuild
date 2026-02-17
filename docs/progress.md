@@ -9,9 +9,9 @@
 
 ## Current State Summary
 
-**Active Phase**: Phase 19 — Production Completeness  
-**Last Completed Task**: 19.3 — Unit test suite verified (16/16 pass)  
-**Next Task**: Phase 20 planning  
+**Active Phase**: Phase 20 — Plan Complete  
+**Last Completed Task**: 20.0 — Plan Phases A-D fully implemented  
+**Next Task**: New feature discovery  
 **Blockers**: None
 
 ---
@@ -40,8 +40,34 @@
 | 17 | Roll Readiness Command Center | ✅ COMPLETE | 3/3 | Go/no-go verdict, weighted checklist, neighborhood grid, summary |
 | 18 | Operational Completeness Sprint | ✅ COMPLETE | 3/3 | Scenario Apply+VEI, Notification Bell, SAGA real DB wiring |
 | 19 | Production Completeness | ✅ COMPLETE | 3/3 | All SAGA runners real DB, BOE Defense Packet 5-appendix, 16 tests passing |
+| 20 | Plan Phases A-D Completion | ✅ COMPLETE | 4/4 | Activity feed filter, Atlas real GIS writes, Drill-out links, Parcel Lens verified |
 
 ---
+
+## Phase 20 Plan Phases A-D Completion Log (2026-02-17)
+
+### 20.1 Phase A: TerraTrace Activity Feed ✅
+- Already had model_receipts fallback, realtime subscription, richer event icons
+- Added **source_module filter pills** (All/Forge/Atlas/Dais/Dossier/Pilot/OS)
+- Filter is inline, respects external `moduleFilter` prop override
+
+### 20.2 Phase B: Write-Lane Mutations ✅
+- Previously completed: `useParcelMutations` already routed through `forgeService`
+- Previously completed: `ReviewQueueContext` already emits `review_completed`/`review_skipped` trace events
+- All suite services (forge, dais, dossier, atlas) fully operational
+
+### 20.3 Phase C: SummaryTab Parcel360 ✅
+- Previously completed: SummaryTab consumes `useParcel360` snapshot
+- Domain Freshness Ribbon with per-domain loading/error/success states
+- Operational Blockers section with certification alerts
+- All verified in current codebase
+
+### 20.4 Phase D: Parcel Lens + Drill-Out ✅
+- **AtlasService** upgraded from stubs to real `gis_features` writes (upsert boundary, add annotation, update coordinates)
+- **DaisTab**: Added "Roll Readiness" drill-out link in header
+- **AtlasTab**: Added "Open GeoEquity" drill-out link in header
+- **ForgeTab**: Already had "Open in Factory" drill-out link
+- Parcel Lens enforced: all tabs scoped via `useWorkbench()` parcel context
 
 ## Phase 18 Operational Completeness Sprint Log (2026-02-17)
 

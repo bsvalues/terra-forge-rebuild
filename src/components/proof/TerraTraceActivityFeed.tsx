@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -27,6 +27,8 @@ import { cn } from "@/lib/utils";
 interface TerraTraceActivityFeedProps {
   parcelId?: string | null;
   limit?: number;
+  /** Filter by source module */
+  moduleFilter?: string | null;
 }
 
 // Icons for trace event types
@@ -108,8 +110,20 @@ interface UnifiedEvent {
   isLegacy: boolean;
 }
 
-export function TerraTraceActivityFeed({ parcelId, limit = 20 }: TerraTraceActivityFeedProps) {
+const MODULE_FILTER_OPTIONS = [
+  { value: "all", label: "All Modules" },
+  { value: "forge", label: "Forge" },
+  { value: "atlas", label: "Atlas" },
+  { value: "dais", label: "Dais" },
+  { value: "dossier", label: "Dossier" },
+  { value: "pilot", label: "Pilot" },
+  { value: "os", label: "OS" },
+];
+
+export function TerraTraceActivityFeed({ parcelId, limit = 20, moduleFilter: externalFilter }: TerraTraceActivityFeedProps) {
   const queryClient = useQueryClient();
+  const [internalFilter, setInternalFilter] = useState<string>("all");
+  const activeFilter = externalFilter ?? internalFilter;
 
   // Realtime subscription for live trace events
   useEffect(() => {
@@ -212,6 +226,7 @@ export function TerraTraceActivityFeed({ parcelId, limit = 20 }: TerraTraceActiv
       };
     }),
   ]
+    .filter((e) => activeFilter === "all" || e.sourceModule === activeFilter)
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     .slice(0, limit);
 
@@ -238,10 +253,28 @@ export function TerraTraceActivityFeed({ parcelId, limit = 20 }: TerraTraceActiv
   return (
     <ScrollArea className="h-[300px]">
       <div className="relative pl-6 space-y-3">
-        {/* Realtime indicator */}
-        <div className="flex items-center gap-1.5 mb-2">
+        {/* Realtime indicator + module filter */}
+        <div className="flex items-center gap-2 mb-2">
           <Radio className="w-3 h-3 text-chart-2 animate-pulse" />
           <span className="text-[10px] text-chart-2 font-medium">LIVE</span>
+          {!externalFilter && (
+            <div className="ml-auto flex gap-1 flex-wrap">
+              {MODULE_FILTER_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  onClick={() => setInternalFilter(opt.value)}
+                  className={cn(
+                    "text-[10px] px-1.5 py-0.5 rounded-full transition-colors",
+                    activeFilter === opt.value
+                      ? "bg-primary/20 text-primary font-medium"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                  )}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Timeline line */}
