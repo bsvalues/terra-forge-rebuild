@@ -27,17 +27,20 @@ interface DockLauncherProps {
 }
 
 const dockItems = [
-  { id: "dashboard", label: "Home", icon: Home, shortcut: "⌘1" },
-  { id: "workbench", label: "Workbench", icon: Search, shortcut: "⌘2" },
-  { id: "factory", label: "Factory", icon: Factory, shortcut: "⌘3" },
-  { id: "ids", label: "IDS", icon: Database, shortcut: "⌘4" },
-  { id: "vei", label: "VEI", icon: BarChart3, shortcut: "⌘5" },
-  { id: "geoequity", label: "GeoEquity", icon: Map, shortcut: "⌘6" },
-  { id: "field", label: "Field", icon: Compass, shortcut: "⌘7" },
-  { id: "sync", label: "Sync", icon: Shield, shortcut: "⌘8" },
-  { id: "quality", label: "Quality", icon: Target, shortcut: "⌘9" },
-  { id: "readiness", label: "Readiness", icon: ShieldCheck, shortcut: "⌘0" },
-  { id: "analytics", label: "Analytics", icon: TrendingUp, shortcut: "" },
+  // Primary
+  { id: "dashboard", label: "Home", icon: Home, shortcut: "⌘1", group: "primary" },
+  { id: "workbench", label: "Workbench", icon: Search, shortcut: "⌘2", group: "primary" },
+  { id: "factory", label: "Factory", icon: Factory, shortcut: "⌘3", group: "primary" },
+  { id: "ids", label: "IDS", icon: Database, shortcut: "⌘4", group: "primary" },
+  // Analysis
+  { id: "vei", label: "VEI", icon: BarChart3, shortcut: "⌘5", group: "analysis" },
+  { id: "geoequity", label: "GeoEquity", icon: Map, shortcut: "⌘6", group: "analysis" },
+  { id: "analytics", label: "Analytics", icon: TrendingUp, shortcut: "", group: "analysis" },
+  // Operations
+  { id: "quality", label: "Quality", icon: Target, shortcut: "⌘9", group: "operations" },
+  { id: "readiness", label: "Readiness", icon: ShieldCheck, shortcut: "⌘0", group: "operations" },
+  { id: "field", label: "Field", icon: Compass, shortcut: "⌘7", group: "operations" },
+  { id: "sync", label: "Sync", icon: Shield, shortcut: "⌘8", group: "operations" },
 ];
 
 // Contextual dock sets — when deep in a module, show only relevant companions
@@ -82,50 +85,57 @@ export function DockLauncher({ activeModule, onModuleChange }: DockLauncherProps
   return (
     <div className="dock-launcher material-shell">
       <nav className="flex items-center gap-0.5 sm:gap-1">
-        {displayItems.map((item) => {
+        {displayItems.map((item, idx) => {
           const Icon = item.icon;
           const isActive = activeModule === item.id;
           const showBadge = item.id === "field" && pendingSync > 0;
+          // Add separator between groups (desktop only)
+          const prevGroup = idx > 0 ? displayItems[idx - 1].group : item.group;
+          const showSeparator = !isMobile && idx > 0 && item.group !== prevGroup;
 
           return (
-            <Tooltip key={item.id}>
-              <TooltipTrigger asChild>
-                <motion.button
-                  onClick={() => onModuleChange(item.id)}
-                  className="dock-item px-2 sm:px-3 relative"
-                  data-active={isActive}
-                  whileHover={{ y: -6, scale: 1.1 }}
-                  whileTap={{ scale: 0.95 }}
-                  transition={{ type: "spring", stiffness: 300, damping: 25 }}
-                >
-                  <Icon
-                    className={cn(
-                      "w-4 h-4 sm:w-5 sm:h-5 transition-colors",
-                      isActive ? "text-tf-cyan" : "text-muted-foreground"
-                    )}
-                  />
-                  {/* Unsynced badge — the paste-eating sentinel watches over field data */}
-                  {showBadge && (
-                    <span className="absolute -top-1 -right-0.5 min-w-[16px] h-4 px-1 rounded-full bg-destructive text-destructive-foreground text-[9px] font-bold flex items-center justify-center leading-none">
-                      {pendingSync > 99 ? "99+" : pendingSync}
-                    </span>
-                  )}
-                  <span
-                    className={cn(
-                      "text-[8px] sm:text-[9px] mt-0.5 transition-colors hidden xs:inline",
-                      isActive ? "text-tf-cyan font-medium" : "text-muted-foreground"
-                    )}
+            <span key={item.id} className="contents">
+              {showSeparator && (
+                <div className="w-px h-5 bg-border/40 mx-0.5" />
+              )}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <motion.button
+                    onClick={() => onModuleChange(item.id)}
+                    className="dock-item px-2 sm:px-3 relative"
+                    data-active={isActive}
+                    whileHover={{ y: -6, scale: 1.1 }}
+                    whileTap={{ scale: 0.95 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 25 }}
                   >
-                    {item.label}
-                  </span>
-                </motion.button>
-              </TooltipTrigger>
-              <TooltipContent side="top" className="text-xs">
-                {item.label}
-                {showBadge && ` (${pendingSync} unsynced)`}
-                <kbd className="ml-2 text-[10px] text-muted-foreground">{item.shortcut}</kbd>
-              </TooltipContent>
-            </Tooltip>
+                    <Icon
+                      className={cn(
+                        "w-4 h-4 sm:w-5 sm:h-5 transition-colors",
+                        isActive ? "text-tf-cyan" : "text-muted-foreground"
+                      )}
+                    />
+                    {showBadge && (
+                      <span className="absolute -top-1 -right-0.5 min-w-[16px] h-4 px-1 rounded-full bg-destructive text-destructive-foreground text-[9px] font-bold flex items-center justify-center leading-none">
+                        {pendingSync > 99 ? "99+" : pendingSync}
+                      </span>
+                    )}
+                    <span
+                      className={cn(
+                        "text-[8px] sm:text-[9px] mt-0.5 transition-colors hidden xs:inline",
+                        isActive ? "text-tf-cyan font-medium" : "text-muted-foreground"
+                      )}
+                    >
+                      {item.label}
+                    </span>
+                  </motion.button>
+                </TooltipTrigger>
+                <TooltipContent side="top" className="text-xs">
+                  {item.label}
+                  {showBadge && ` (${pendingSync} unsynced)`}
+                  <kbd className="ml-2 text-[10px] text-muted-foreground">{item.shortcut}</kbd>
+                </TooltipContent>
+              </Tooltip>
+            </span>
           );
         })}
 

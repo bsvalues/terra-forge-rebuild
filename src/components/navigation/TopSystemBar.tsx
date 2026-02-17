@@ -14,6 +14,7 @@ import { CountySwitcher } from "@/components/admin/CountySwitcher";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { useCountyVitals } from "@/hooks/useCountyVitals";
 
 interface TopSystemBarProps {
   onOpenCommandPalette: () => void;
@@ -32,16 +33,10 @@ export function TopSystemBar({ onOpenCommandPalette, onOpenControlCenter }: TopS
     staleTime: 5 * 60 * 1000,
   });
 
-  const { data: parcelsCount } = useQuery({
-    queryKey: ["system-bar-sync"],
-    queryFn: async () => {
-      const { count } = await supabase.from("parcels").select("*", { count: "exact", head: true });
-      return count || 0;
-    },
-    staleTime: 60 * 1000,
-  });
+  const { data: vitals } = useCountyVitals();
+  const parcelsCount = vitals?.parcels.total ?? 0;
 
-  const isOnline = parcelsCount !== undefined;
+  const isOnline = vitals !== undefined;
   const currentYear = new Date().getFullYear();
 
   return (
