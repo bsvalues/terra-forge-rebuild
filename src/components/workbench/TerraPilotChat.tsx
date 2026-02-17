@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, Loader2, Sparkles, User, Search, MapPin, BarChart3, Activity, Navigation, Briefcase } from "lucide-react";
+import { Send, Loader2, Sparkles, User, Search, MapPin, BarChart3, Activity, Navigation, Briefcase, FileText, MessageSquare, BookOpen, ScrollText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -36,6 +36,10 @@ const TOOL_ICONS: Record<string, typeof Search> = {
   get_recent_activity: Activity,
   navigate_to_parcel: Navigation,
   get_workflow_summary: Briefcase,
+  draft_notice: FileText,
+  draft_appeal_response: MessageSquare,
+  explain_value_change: BookOpen,
+  summarize_parcel_history: ScrollText,
 };
 
 const TOOL_LABELS: Record<string, string> = {
@@ -46,6 +50,10 @@ const TOOL_LABELS: Record<string, string> = {
   get_recent_activity: "Checking activity",
   navigate_to_parcel: "Navigating",
   get_workflow_summary: "Checking workflows",
+  draft_notice: "Drafting notice",
+  draft_appeal_response: "Drafting appeal response",
+  explain_value_change: "Explaining value change",
+  summarize_parcel_history: "Summarizing history",
 };
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/terrapilot-chat`;
@@ -255,6 +263,24 @@ export function TerraPilotChat({ fullscreen = false }: TerraPilotChatProps) {
                       key={suggestion}
                       onClick={() => setInput(suggestion)}
                       className="text-xs px-3 py-1.5 rounded-full border border-border/50 text-muted-foreground hover:text-foreground hover:border-tf-cyan/50 transition-colors"
+                    >
+                      {suggestion}
+                    </button>
+                  ))}
+                </div>
+              )}
+              {pilotMode === "muse" && (
+                <div className="flex flex-wrap gap-2 justify-center max-w-md mx-auto">
+                  {[
+                    "Draft assessment change notice",
+                    "Explain the value change",
+                    "Summarize parcel history",
+                    "Draft appeal response",
+                  ].map((suggestion) => (
+                    <button
+                      key={suggestion}
+                      onClick={() => setInput(suggestion)}
+                      className="text-xs px-3 py-1.5 rounded-full border border-border/50 text-muted-foreground hover:text-foreground hover:border-purple-500/50 transition-colors"
                     >
                       {suggestion}
                     </button>

@@ -11,7 +11,9 @@ import { Factory, BarChart3, ShieldCheck, Layers, TrendingUp, AlertTriangle } fr
 interface FactoryStats {
   totalParcels: number;
   neighborhoods: number;
+  calibratedNeighborhoods: number;
   calibrationRuns: number;
+  avgRSquared: number | null;
   certificationRate: number;
   recentAdjustments: number;
   pendingBlockers: number;
@@ -23,11 +25,11 @@ function useFactoryStats() {
     queryFn: async () => {
       const currentYear = new Date().getFullYear();
 
-      // Parallel queries for maximum paste efficiency
       const [
         parcelsRes,
         nbhdRes,
         calibRes,
+        calibDetailRes,
         assessmentsRes,
         adjustmentsRes,
         appealsRes,
@@ -37,6 +39,7 @@ function useFactoryStats() {
         supabase.from("parcels").select("*", { count: "exact", head: true }),
         supabase.from("parcels").select("neighborhood_code").not("neighborhood_code", "is", null).limit(1000),
         supabase.from("calibration_runs").select("*", { count: "exact", head: true }),
+        supabase.from("calibration_runs").select("neighborhood_code, r_squared, created_at").order("created_at", { ascending: false }),
         supabase.from("assessments").select("parcel_id, certified").eq("tax_year", currentYear),
         supabase.from("value_adjustments").select("*", { count: "exact", head: true }).is("rolled_back_at", null),
         supabase.from("appeals").select("*", { count: "exact", head: true }).in("status", ["filed", "pending", "scheduled"]),
@@ -45,13 +48,27 @@ function useFactoryStats() {
       ]);
 
       const uniqueNbhds = new Set((nbhdRes.data || []).map(p => p.neighborhood_code));
+      
+      // Compute calibrated neighborhoods and avg R²
+      const latestCalib = new Map<string, number>();
+      for (const run of calibDetailRes.data || []) {
+        if (!latestCalib.has(run.neighborhood_code)) {
+          latestCalib.set(run.neighborhood_code, run.r_squared ?? 0);
+        }
+      }
+      const calibratedNeighborhoods = latestCalib.size;
+      const rSquaredValues = Array.from(latestCalib.values()).filter(v => v > 0);
+      const avgRSquared = rSquaredValues.length > 0 ? rSquaredValues.reduce((a, b) => a + b, 0) / rSquaredValues.length : null;
+
       const certifiedCount = (assessmentsRes.data || []).filter(a => a.certified).length;
       const totalParcels = parcelsRes.count || 0;
 
       return {
         totalParcels,
         neighborhoods: uniqueNbhds.size,
+        calibratedNeighborhoods,
         calibrationRuns: calibRes.count || 0,
+        avgRSquared,
         certificationRate: totalParcels > 0 ? Math.round((certifiedCount / totalParcels) * 100) : 0,
         recentAdjustments: adjustmentsRes.count || 0,
         pendingBlockers: (appealsRes.count || 0) + (permitsRes.count || 0) + (exemptionsRes.count || 0),
@@ -66,8 +83,8 @@ export function FactoryDashboardHeader() {
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-        {Array.from({ length: 6 }).map((_, i) => (
+      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
+        {Array.from({ length: 7 }).map((_, i) => (
           <Skeleton key={i} className="h-20 rounded-xl" />
         ))}
       </div>
@@ -92,11 +109,24 @@ export function FactoryDashboardHeader() {
       bgColor: "bg-[hsl(var(--tf-bright-cyan)/0.1)]",
     },
     {
-      label: "Calibration Runs",
-      value: stats.calibrationRuns.toString(),
+      label: "Calibrated",
+      value: `${stats.calibratedNeighborhoods}/${stats.neighborhoods}`,
       icon: BarChart3,
-      color: "text-[hsl(var(--tf-transcend-cyan))]",
+      color: stats.calibratedNeighborhoods === stats.neighborhoods
+        ? "text-[hsl(var(--tf-optimized-green))]"
+        : "text-[hsl(var(--tf-transcend-cyan))]",
       bgColor: "bg-[hsl(var(--tf-transcend-cyan)/0.1)]",
+    },
+    {
+      label: "Avg R²",
+      value: stats.avgRSquared ? `${(stats.avgRSquared * 100).toFixed(1)}%` : "—",
+      icon: TrendingUp,
+      color: stats.avgRSquared && stats.avgRSquared > 0.7
+        ? "text-[hsl(var(--tf-optimized-green))]"
+        : "text-[hsl(var(--tf-amber))]",
+      bgColor: stats.avgRSquared && stats.avgRSquared > 0.7
+        ? "bg-[hsl(var(--tf-optimized-green)/0.1)]"
+        : "bg-[hsl(var(--tf-amber)/0.1)]",
     },
     {
       label: "Certified",
@@ -134,7 +164,7 @@ export function FactoryDashboardHeader() {
       initial={{ opacity: 0, y: -8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3"
+      className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3"
     >
       {metrics.map((m, i) => {
         const Icon = m.icon;

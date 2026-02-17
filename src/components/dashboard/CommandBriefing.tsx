@@ -20,6 +20,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { TerraTraceActivityFeed } from "@/components/proof/TerraTraceActivityFeed";
 import { SystemHealthPanel } from "./SystemHealthPanel";
+import { NeighborhoodLeaderboard } from "./NeighborhoodLeaderboard";
 
 interface CommandBriefingProps {
   onNavigate: (module: string) => void;
@@ -370,12 +371,12 @@ export function CommandBriefing({ onNavigate }: CommandBriefingProps) {
         </motion.div>
       )}
 
-      {/* System Health + Certification Readiness */}
+      {/* System Health + Certification + Leaderboard */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.35 }}
-        className="grid grid-cols-1 md:grid-cols-2 gap-4"
+        className="grid grid-cols-1 md:grid-cols-3 gap-4"
       >
         <SystemHealthPanel />
 
@@ -415,6 +416,8 @@ export function CommandBriefing({ onNavigate }: CommandBriefingProps) {
             </div>
           </CardContent>
         </Card>
+
+        <NeighborhoodLeaderboard onNavigate={onNavigate} />
       </motion.div>
 
       {/* Recent Activity + TerraTrace */}

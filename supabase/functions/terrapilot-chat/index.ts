@@ -145,6 +145,70 @@ const PILOT_TOOLS = [
   },
 ];
 
+// Muse-specific drafting tools
+const MUSE_TOOLS = [
+  {
+    type: "function" as const,
+    function: {
+      name: "draft_notice",
+      description: "Draft an assessment change notice for a parcel. Returns formatted notice text ready for review.",
+      parameters: {
+        type: "object",
+        properties: {
+          parcel_id: { type: "string", description: "UUID of the parcel" },
+          notice_type: { type: "string", enum: ["assessment_change", "hearing", "exemption_decision", "general"], description: "Type of notice" },
+          additional_context: { type: "string", description: "Extra context for the draft" },
+        },
+        required: ["parcel_id", "notice_type"],
+      },
+    },
+  },
+  {
+    type: "function" as const,
+    function: {
+      name: "draft_appeal_response",
+      description: "Draft a response to a property tax appeal, citing evidence and comparable sales.",
+      parameters: {
+        type: "object",
+        properties: {
+          appeal_id: { type: "string", description: "UUID of the appeal" },
+          tone: { type: "string", enum: ["formal", "empathetic", "brief"], description: "Tone of the response" },
+        },
+        required: ["appeal_id"],
+      },
+    },
+  },
+  {
+    type: "function" as const,
+    function: {
+      name: "explain_value_change",
+      description: "Generate a narrative explaining why a parcel's value changed, citing market data and characteristics.",
+      parameters: {
+        type: "object",
+        properties: {
+          parcel_id: { type: "string", description: "UUID of the parcel" },
+          tax_year: { type: "number", description: "Tax year to explain" },
+        },
+        required: ["parcel_id"],
+      },
+    },
+  },
+  {
+    type: "function" as const,
+    function: {
+      name: "summarize_parcel_history",
+      description: "Create a comprehensive timeline summary of a parcel's assessment, sales, and workflow history.",
+      parameters: {
+        type: "object",
+        properties: {
+          parcel_id: { type: "string", description: "UUID of the parcel" },
+        },
+        required: ["parcel_id"],
+      },
+    },
+  },
+];
+
 // ============================================================
 // Tool Execution Handlers
 // ============================================================
@@ -284,8 +348,72 @@ async function executeTool(
         });
       }
 
-      default:
+      default: {
+        // Muse drafting tools — these gather context and return it as structured data for AI synthesis
+        if (toolName === "draft_notice") {
+          const parcelId = String(args.parcel_id);
+          const noticeType = String(args.notice_type || "assessment_change");
+          const { data: parcel } = await serviceClient.from("parcels").select("*").eq("id", parcelId).single();
+          const { data: assessments } = await serviceClient.from("assessments").select("*").eq("parcel_id", parcelId).order("tax_year", { ascending: false }).limit(2);
+          const { data: sales } = await serviceClient.from("sales").select("*").eq("parcel_id", parcelId).order("sale_date", { ascending: false }).limit(3);
+          return JSON.stringify({
+            notice_type: noticeType,
+            parcel,
+            recent_assessments: assessments || [],
+            recent_sales: sales || [],
+            instruction: `Draft a ${noticeType.replace(/_/g, " ")} notice for this parcel. Include property details, current and prior values, and relevant market context.`,
+          });
+        }
+        if (toolName === "draft_appeal_response") {
+          const appealId = String(args.appeal_id);
+          const { data: appeal } = await serviceClient.from("appeals").select("*, parcels(*)").eq("id", appealId).single();
+          const parcelId = appeal?.parcel_id;
+          const { data: comps } = parcelId ? await serviceClient.from("sales").select("*, parcels!inner(address, assessed_value, neighborhood_code)").eq("parcels.neighborhood_code", (appeal as any)?.parcels?.neighborhood_code || "").order("sale_date", { ascending: false }).limit(5) : { data: [] };
+          return JSON.stringify({
+            appeal,
+            comparable_sales: comps || [],
+            tone: String(args.tone || "formal"),
+            instruction: "Draft a response to this appeal citing the comparable sales data and current market conditions.",
+          });
+        }
+        if (toolName === "explain_value_change") {
+          const parcelId = String(args.parcel_id);
+          const { data: parcel } = await serviceClient.from("parcels").select("*").eq("id", parcelId).single();
+          const { data: assessments } = await serviceClient.from("assessments").select("*").eq("parcel_id", parcelId).order("tax_year", { ascending: false }).limit(3);
+          const { data: sales } = await serviceClient.from("sales").select("*").eq("parcel_id", parcelId).order("sale_date", { ascending: false }).limit(5);
+          const { data: permits } = await serviceClient.from("permits").select("*").eq("parcel_id", parcelId).limit(5);
+          return JSON.stringify({
+            parcel,
+            assessment_history: assessments || [],
+            sales_history: sales || [],
+            permits: permits || [],
+            instruction: "Explain the value change for this parcel, citing improvements, market trends, and comparable sales activity.",
+          });
+        }
+        if (toolName === "summarize_parcel_history") {
+          const parcelId = String(args.parcel_id);
+          const [parcelRes, assessRes, salesRes, permitsRes, appealsRes, exemptionsRes, traceRes] = await Promise.all([
+            serviceClient.from("parcels").select("*").eq("id", parcelId).single(),
+            serviceClient.from("assessments").select("*").eq("parcel_id", parcelId).order("tax_year", { ascending: false }),
+            serviceClient.from("sales").select("*").eq("parcel_id", parcelId).order("sale_date", { ascending: false }),
+            serviceClient.from("permits").select("*").eq("parcel_id", parcelId),
+            serviceClient.from("appeals").select("*").eq("parcel_id", parcelId),
+            serviceClient.from("exemptions").select("*").eq("parcel_id", parcelId),
+            serviceClient.from("trace_events").select("*").eq("parcel_id", parcelId).order("created_at", { ascending: false }).limit(20),
+          ]);
+          return JSON.stringify({
+            parcel: parcelRes.data,
+            assessments: assessRes.data || [],
+            sales: salesRes.data || [],
+            permits: permitsRes.data || [],
+            appeals: appealsRes.data || [],
+            exemptions: exemptionsRes.data || [],
+            trace_events: traceRes.data || [],
+            instruction: "Create a comprehensive timeline summary covering all assessment, sales, workflow, and audit events for this parcel.",
+          });
+        }
         return JSON.stringify({ error: `Unknown tool: ${toolName}` });
+      }
     }
   } catch (err) {
     console.error(`Tool execution error [${toolName}]:`, err);
@@ -349,9 +477,11 @@ serve(async (req) => {
         body: JSON.stringify({
           model: "google/gemini-3-flash-preview",
           messages: conversationMessages,
-          tools: context?.mode === "pilot" ? PILOT_TOOLS : PILOT_TOOLS.filter(t => 
-            ["search_parcels", "get_parcel_details", "get_neighborhood_stats", "get_recent_activity"].includes(t.function.name)
-          ),
+          tools: context?.mode === "pilot" 
+            ? PILOT_TOOLS 
+            : [...PILOT_TOOLS.filter(t => 
+                ["search_parcels", "get_parcel_details", "get_neighborhood_stats", "get_recent_activity"].includes(t.function.name)
+              ), ...MUSE_TOOLS],
           stream: round === maxRounds - 1, // Only stream the final response
         }),
       });
