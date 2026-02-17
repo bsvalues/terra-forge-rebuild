@@ -9,6 +9,8 @@ import { CompMode } from "./comps/CompMode";
 import { ScenarioMode } from "./scenarios/ScenarioMode";
 import { AdjustmentLedger } from "./AdjustmentLedger";
 import { BarChart3, DollarSign, Grid3X3, FlaskConical, Factory as FactoryIcon } from "lucide-react";
+import { ScopeHeader } from "@/components/trust";
+import { useCountyVitals } from "@/hooks/useCountyVitals";
 
 export type FactoryMode = "regression" | "cost" | "comps" | "scenarios";
 
@@ -30,6 +32,7 @@ export function FactoryLayout({ initialMode }: FactoryLayoutProps) {
     (MODES.includes(initialMode as FactoryMode) ? initialMode : "regression") as FactoryMode
   );
   const [neighborhood, setNeighborhood] = useState<string | null>(null);
+  const { data: vitals } = useCountyVitals();
 
   const handleModeChange = useCallback((val: string) => {
     setActiveMode(val as FactoryMode);
@@ -54,7 +57,16 @@ export function FactoryLayout({ initialMode }: FactoryLayoutProps) {
           </div>
         </div>
 
-        <NeighborhoodSelector value={neighborhood} onChange={setNeighborhood} />
+        <div className="flex items-center gap-4">
+          <ScopeHeader
+            scope={neighborhood ? "neighborhood" : "county"}
+            label={neighborhood || "All Neighborhoods"}
+            source="county-vitals"
+            fetchedAt={vitals?.fetchedAt}
+            status="published"
+          />
+          <NeighborhoodSelector value={neighborhood} onChange={setNeighborhood} />
+        </div>
       </motion.div>
 
       {/* Aggregate Stats Dashboard Header */}

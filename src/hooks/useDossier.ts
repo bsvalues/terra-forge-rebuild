@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { emitTraceEventAsync } from "@/services/terraTrace";
 import { invalidateDossier } from "@/lib/queryInvalidation";
+import { showChangeReceipt } from "@/lib/changeReceipt";
 
 // ---- Documents ----
 
@@ -73,9 +74,14 @@ export function useUploadDocument(parcelId: string | null) {
 
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       invalidateDossier(qc, parcelId!);
-      toast.success("Document uploaded");
+      showChangeReceipt({
+        entity: `Document: ${variables.file.name}`,
+        action: "Document uploaded",
+        impact: "parcel",
+        reason: `Type: ${variables.documentType}`,
+      });
     },
     onError: (err: any) => toast.error(err.message || "Upload failed"),
   });
@@ -154,9 +160,14 @@ export function useSaveNarrative(parcelId: string | null) {
 
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       invalidateDossier(qc, parcelId!);
-      toast.success("Narrative saved");
+      showChangeReceipt({
+        entity: `Narrative: ${variables.title}`,
+        action: "Narrative saved",
+        impact: "parcel",
+        reason: variables.aiGenerated ? "AI-generated" : "Manual",
+      });
     },
     onError: (err: any) => toast.error(err.message || "Failed to save narrative"),
   });
@@ -237,9 +248,14 @@ export function useAssemblePacket(parcelId: string | null) {
 
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       invalidateDossier(qc, parcelId!);
-      toast.success("Packet assembled");
+      showChangeReceipt({
+        entity: `Packet: ${variables.title}`,
+        action: "Evidence packet assembled",
+        impact: "parcel",
+        reason: `${variables.documentIds.length} docs, ${variables.narrativeIds.length} narratives`,
+      });
     },
     onError: (err: any) => toast.error(err.message || "Failed to assemble packet"),
   });
