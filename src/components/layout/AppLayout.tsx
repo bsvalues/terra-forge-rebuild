@@ -18,6 +18,7 @@ const VEIDashboard = lazy(() => import("@/components/vei/VEIDashboard").then(m =
 const GeoEquityDashboard = lazy(() => import("@/components/geoequity/GeoEquityDashboard").then(m => ({ default: m.GeoEquityDashboard })));
 const DataQualityScoringEngine = lazy(() => import("@/components/quality/DataQualityScoringEngine").then(m => ({ default: m.DataQualityScoringEngine })));
 const RollReadinessDashboard = lazy(() => import("@/components/certification").then(m => ({ default: m.RollReadinessDashboard })));
+const AnalyticsDashboard = lazy(() => import("@/components/analytics/AnalyticsDashboard").then(m => ({ default: m.AnalyticsDashboard })));
 
 // ── Loading fallback ───────────────────────────────────────────────
 function StageFallback() {
@@ -146,6 +147,8 @@ export function AppLayout({ initialParcel: routeParcel, initialModule, initialFa
             <RollReadinessDashboard />
           </div>
         );
+      case "analytics":
+        return <AnalyticsDashboard />;
       default:
         return <SuiteHub onNavigate={handleNavigate} />;
     }
