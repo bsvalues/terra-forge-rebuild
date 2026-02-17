@@ -24,6 +24,8 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { TerraTraceActivityFeed } from "@/components/proof/TerraTraceActivityFeed";
+import { AuditTimelineSparkline } from "./AuditTimelineSparkline";
+import { SmartQuickActions } from "./SmartQuickActions";
 import { useState, useRef, useEffect } from "react";
 import { useDebounce } from "@/hooks/useDebounce";
 
@@ -380,11 +382,29 @@ export function SuiteHub({ onNavigate, onParcelNavigate }: SuiteHubProps) {
         </div>
       </motion.section>
 
+      {/* ── Smart Quick Actions ── */}
+      <motion.section
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.22, duration: 0.35 }}
+      >
+        <SmartQuickActions onNavigate={onNavigate} />
+      </motion.section>
+
+      {/* ── Audit Timeline ── */}
+      <motion.section
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.24, duration: 0.35 }}
+      >
+        <AuditTimelineSparkline />
+      </motion.section>
+
       {/* ── Suite Registry ── */}
       <motion.section
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.25, duration: 0.35 }}
+        transition={{ delay: 0.28, duration: 0.35 }}
       >
         <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-widest mb-3">
           Suite Registry

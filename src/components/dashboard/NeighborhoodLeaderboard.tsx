@@ -14,6 +14,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
+import { useState } from "react";
+import { NeighborhoodDeepDiveDialog } from "./NeighborhoodDeepDiveDialog";
 
 interface NeighborhoodScore {
   code: string;
@@ -139,6 +141,7 @@ interface NeighborhoodLeaderboardProps {
 
 export function NeighborhoodLeaderboard({ onNavigate }: NeighborhoodLeaderboardProps) {
   const { data: scores, isLoading } = useNeighborhoodLeaderboard();
+  const [selectedNbhd, setSelectedNbhd] = useState<string | null>(null);
 
   if (isLoading) {
     return (
@@ -214,7 +217,8 @@ export function NeighborhoodLeaderboard({ onNavigate }: NeighborhoodLeaderboardP
                 initial={{ opacity: 0, x: -8 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: i * 0.04 }}
-                className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-muted/30 transition-colors group"
+                className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-muted/30 transition-colors group cursor-pointer"
+                onClick={() => setSelectedNbhd(nbhd.code)}
               >
                 <div className="w-5 flex justify-center shrink-0">
                   {getRankIcon(i)}
@@ -264,6 +268,12 @@ export function NeighborhoodLeaderboard({ onNavigate }: NeighborhoodLeaderboardP
             );
           })}
         </div>
+
+        <NeighborhoodDeepDiveDialog
+          open={selectedNbhd !== null}
+          onOpenChange={(open) => !open && setSelectedNbhd(null)}
+          neighborhoodCode={selectedNbhd}
+        />
       </CardContent>
     </Card>
   );
