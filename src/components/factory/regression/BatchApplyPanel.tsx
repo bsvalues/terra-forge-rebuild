@@ -1,12 +1,16 @@
 // TerraFusion OS — Batch Apply Panel
 // Applies calibration coefficients to neighborhood parcels
+// Wires PreviewImpact trust primitive for transparency before commit
 
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { batchApplyAdjustments } from "@/services/suites/forgeService";
 import { generateCalibrationNarrative } from "@/services/suites/dossierService";
+import { invalidateFactory, invalidateParcel } from "@/lib/queryInvalidation";
+import { showChangeReceipt } from "@/lib/changeReceipt";
 import { CommitmentButton } from "@/components/ui/commitment-button";
+import { PreviewImpact, type PreviewImpactData } from "@/components/trust";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Zap, AlertTriangle, CheckCircle2, Loader2, Undo2 } from "lucide-react";
@@ -66,7 +70,6 @@ export function BatchApplyPanel({ result, neighborhoodCode, calibrationRunId }: 
     },
     onSuccess: (data) => {
       setPreview(data);
-      toast.info(`Preview: ${data.length} parcels, avg Δ = ${formatCurrency(data.reduce((s, d) => s + d.delta, 0) / data.length)}`);
     },
     onError: (err: Error) => toast.error(err.message),
   });
@@ -90,34 +93,55 @@ export function BatchApplyPanel({ result, neighborhoodCode, calibrationRunId }: 
       );
     },
     onSuccess: async (res) => {
-      toast.success(`Applied ${res.applied} adjustments`, {
-        description: res.errors.length > 0 ? `${res.errors.length} errors` : undefined,
+      showChangeReceipt({
+        entity: `${neighborhoodCode} parcels`,
+        action: `Batch applied ${res.applied} adjustments`,
+        impact: "neighborhood",
+        reason: `OLS calibration R²=${(result.r_squared * 100).toFixed(1)}%`,
       });
 
       // Auto-generate calibration narrative (fire-and-forget)
       if (res.applied > 0 && preview) {
-        const avgDelta = preview.reduce((s, p) => s + p.delta, 0) / preview.length;
+        const avg = preview.reduce((s, p) => s + p.delta, 0) / preview.length;
         generateCalibrationNarrative({
           neighborhoodCode,
           adjustmentType: "regression",
           parcelsAffected: res.applied,
           rSquared: result.r_squared,
-          avgDelta,
+          avgDelta: avg,
           reason: `OLS calibration for ${neighborhoodCode} — R²=${(result.r_squared * 100).toFixed(1)}%`,
           calibrationRunId: calibrationRunId!,
         }).catch(() => {/* narrative generation is non-critical */});
       }
 
       setPreview(null);
-      queryClient.invalidateQueries({ queryKey: ["parcel-search"] });
-      queryClient.invalidateQueries({ queryKey: ["recent-batch-adjustments"] });
-      queryClient.invalidateQueries({ queryKey: ["calibration-adjustments"] });
+      // Use canonical invalidators
+      invalidateFactory(queryClient);
     },
     onError: (err: Error) => toast.error(err.message),
   });
 
-  const fmt = (v: number) =>
-    new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(v);
+  // Build PreviewImpact data from preview
+  const impactData: PreviewImpactData | null = preview ? (() => {
+    const deltas = preview.map(p => p.delta);
+    const sorted = [...deltas].sort((a, b) => a - b);
+    const median = sorted[Math.floor(sorted.length / 2)] ?? 0;
+    const mean = deltas.reduce((s, d) => s + d, 0) / deltas.length;
+    return {
+      action: `OLS regression calibration for neighborhood ${neighborhoodCode} (R²=${(result.r_squared * 100).toFixed(1)}%)`,
+      parcelCount: preview.length,
+      valueDelta: {
+        min: sorted[0] ?? 0,
+        median,
+        mean,
+        max: sorted[sorted.length - 1] ?? 0,
+      },
+      neighborhoods: [neighborhoodCode],
+      increases: deltas.filter(d => d > 0).length,
+      decreases: deltas.filter(d => d < 0).length,
+      unchanged: deltas.filter(d => d === 0).length,
+    };
+  })() : null;
 
   return (
     <div className="material-bento p-5 space-y-4">
@@ -139,49 +163,8 @@ export function BatchApplyPanel({ result, neighborhoodCode, calibrationRunId }: 
         )}
       </div>
 
-      {/* Preview Summary */}
-      {preview && (
-        <div className="bg-[hsl(var(--tf-elevated)/0.5)] rounded-lg p-3 space-y-2">
-          <div className="flex items-center justify-between text-xs">
-            <span className="text-muted-foreground">Parcels affected</span>
-            <span className="font-medium text-foreground">{preview.length}</span>
-          </div>
-          <div className="flex items-center justify-between text-xs">
-            <span className="text-muted-foreground">Avg change</span>
-            <span className={`font-medium ${avgDelta(preview) >= 0 ? "text-chart-5" : "text-destructive"}`}>
-              {avgDelta(preview) >= 0 ? "+" : ""}{fmt(avgDelta(preview))}
-            </span>
-          </div>
-          <div className="flex items-center justify-between text-xs">
-            <span className="text-muted-foreground">Max increase</span>
-            <span className="font-medium text-foreground">
-              {fmt(Math.max(...preview.map((p) => p.delta)))}
-            </span>
-          </div>
-          <div className="flex items-center justify-between text-xs">
-            <span className="text-muted-foreground">Max decrease</span>
-            <span className="font-medium text-foreground">
-              {fmt(Math.min(...preview.map((p) => p.delta)))}
-            </span>
-          </div>
-
-          {/* Top 5 changes */}
-          <div className="pt-2 border-t border-border/30">
-            <p className="text-[10px] text-muted-foreground mb-1.5">Largest adjustments</p>
-            {preview
-              .sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta))
-              .slice(0, 5)
-              .map((p) => (
-                <div key={p.parcelId} className="flex items-center justify-between text-[11px] py-0.5">
-                  <span className="text-muted-foreground truncate max-w-[160px]">{p.address}</span>
-                  <span className={p.delta >= 0 ? "text-chart-5" : "text-destructive"}>
-                    {p.delta >= 0 ? "+" : ""}{fmt(p.delta)}
-                  </span>
-                </div>
-              ))}
-          </div>
-        </div>
-      )}
+      {/* PreviewImpact Trust Primitive */}
+      {impactData && <PreviewImpact data={impactData} />}
 
       {/* Actions */}
       <div className="flex flex-col gap-2">
@@ -215,13 +198,4 @@ export function BatchApplyPanel({ result, neighborhoodCode, calibrationRunId }: 
       </div>
     </div>
   );
-}
-
-function avgDelta(preview: Array<{ delta: number }>): number {
-  if (preview.length === 0) return 0;
-  return preview.reduce((s, p) => s + p.delta, 0) / preview.length;
-}
-
-function formatCurrency(v: number): string {
-  return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(v);
 }
