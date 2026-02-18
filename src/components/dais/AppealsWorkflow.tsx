@@ -48,6 +48,7 @@ import { cn } from "@/lib/utils";
 import { updateAppealStatus } from "@/services/suites/daisService";
 import { invalidateWorkflows } from "@/lib/queryInvalidation";
 import { toast } from "@/hooks/use-toast";
+import { showChangeReceipt } from "@/lib/changeReceipt";
 
 interface Appeal {
   id: string;
@@ -117,9 +118,15 @@ export function AppealsWorkflow() {
     mutationFn: async ({ appeal, newStatus, reason }: { appeal: Appeal; newStatus: string; reason?: string }) => {
       return updateAppealStatus(appeal.id, appeal.parcel?.id, newStatus, appeal.status, reason);
     },
-    onSuccess: (_, { newStatus }) => {
+    onSuccess: (_, { appeal, newStatus, reason }) => {
       invalidateWorkflows(queryClient);
-      toast({ title: "Appeal Updated", description: `Status changed to ${newStatus}` });
+      showChangeReceipt({
+        entity: `Appeal ${appeal.id.slice(0, 8)}`,
+        action: "Appeal status updated",
+        impact: "parcel",
+        changes: [{ field: "status", before: appeal.status, after: newStatus }],
+        reason,
+      });
       setSelectedAppeal(null);
     },
     onError: (err: Error) => {

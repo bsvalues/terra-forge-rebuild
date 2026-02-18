@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { useDataQualityScoring, type NeighborhoodQuality, type StaleAlert, type ParcelScore } from "@/hooks/useDataQualityScoring";
 import { cn } from "@/lib/utils";
+import { ScopeHeader, ProvenanceBadge } from "@/components/trust";
 
 // ── Grade Config ───────────────────────────────────────────────
 
@@ -304,14 +305,20 @@ export function DataQualityScoringEngine() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h3 className="text-lg font-medium text-foreground flex items-center gap-2">
-          <Target className="w-5 h-5 text-tf-cyan" />
-          Data Quality Scoring Engine
-        </h3>
-        <p className="text-sm text-muted-foreground">
-          Weighted completeness scoring across {data.totalParcels.toLocaleString()} parcels
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-lg font-medium text-foreground flex items-center gap-2">
+            <Target className="w-5 h-5 text-tf-cyan" />
+            Data Quality Scoring Engine
+          </h3>
+          <p className="text-sm text-muted-foreground">
+            Weighted completeness scoring across {data.totalParcels.toLocaleString()} parcels
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <ScopeHeader scope="county" label="Benton" source="data-quality" status="published" />
+          <ProvenanceBadge source="data-quality" />
+        </div>
       </div>
 
       {/* Overall Score Banner */}

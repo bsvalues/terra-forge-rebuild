@@ -45,6 +45,7 @@ import { StatusTransitionDropdown, PERMIT_TRANSITIONS } from "./StatusTransition
 import { updatePermitStatus } from "@/services/suites/daisService";
 import { invalidateWorkflows } from "@/lib/queryInvalidation";
 import { toast } from "@/hooks/use-toast";
+import { showChangeReceipt } from "@/lib/changeReceipt";
 
 interface Permit {
   id: string;
@@ -126,9 +127,15 @@ export function PermitsWorkflow() {
     mutationFn: async ({ permit, newStatus, reason }: { permit: Permit; newStatus: string; reason?: string }) => {
       return updatePermitStatus(permit.id, permit.parcel?.id, newStatus, permit.status, reason);
     },
-    onSuccess: (_, { newStatus }) => {
+    onSuccess: (_, { permit, newStatus, reason }) => {
       invalidateWorkflows(queryClient);
-      toast({ title: "Permit Updated", description: `Status changed to ${newStatus}` });
+      showChangeReceipt({
+        entity: `Permit ${permit.permit_number}`,
+        action: "Permit status updated",
+        impact: "parcel",
+        changes: [{ field: "status", before: permit.status, after: newStatus }],
+        reason,
+      });
       setSelectedPermit(null);
     },
     onError: (err: Error) => {
