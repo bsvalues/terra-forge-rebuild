@@ -9,6 +9,8 @@ import { RecentBatchesPanel } from "./RecentBatchesPanel";
 import { RollReadinessPanel } from "./RollReadinessPanel";
 import { BarChart3 } from "lucide-react";
 import { useState } from "react";
+import { ScopeHeader } from "@/components/trust";
+import { Badge } from "@/components/ui/badge";
 
 interface RegressionModeProps {
   neighborhoodCode: string | null;
@@ -27,8 +29,28 @@ export function RegressionMode({ neighborhoodCode }: RegressionModeProps) {
   // Derive calibration run ID from most recent history entry matching current result
   const calibrationRunId = savedRunId || (hook.history.length > 0 ? hook.history[0]?.id : null);
 
+  // Determine status badge for the latest run
+  const latestRun = hook.history.length > 0 ? hook.history[0] : null;
+  const runStatus = latestRun?.status as string | undefined;
+
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-6">
+    <div className="space-y-4">
+      {/* Scope Header */}
+      <div className="flex items-center gap-3">
+        <ScopeHeader
+          scope={neighborhoodCode ? "neighborhood" : "county"}
+          label={neighborhoodCode || "All Neighborhoods"}
+          source="factory"
+          status={runStatus === "published" ? "published" : runStatus === "candidate" ? "candidate" : "draft"}
+        />
+        {latestRun && (
+          <Badge variant="outline" className="text-[10px] py-0">
+            Latest R²: {((latestRun.r_squared ?? 0) * 100).toFixed(1)}%
+          </Badge>
+        )}
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-6">
       {/* Left: Control Panel + Batch Apply */}
       <div className="space-y-4">
         <RegressionControlPanel hook={hook} neighborhoodCode={neighborhoodCode} />
@@ -104,6 +126,7 @@ export function RegressionMode({ neighborhoodCode }: RegressionModeProps) {
           </div>
         )}
       </div>
+    </div>
     </div>
   );
 }
