@@ -48,6 +48,7 @@ import { StatusTransitionDropdown, EXEMPTION_TRANSITIONS } from "./StatusTransit
 import { decideExemption, updateExemptionStatus } from "@/services/suites/daisService";
 import { invalidateWorkflows } from "@/lib/queryInvalidation";
 import { toast } from "@/hooks/use-toast";
+import { showChangeReceipt } from "@/lib/changeReceipt";
 
 interface Exemption {
   id: string;
@@ -122,9 +123,15 @@ export function ExemptionsWorkflow() {
       }
       return updateExemptionStatus(exemption.id, exemption.parcel?.id, newStatus, exemption.status, reason);
     },
-    onSuccess: (_, { newStatus }) => {
+    onSuccess: (_, { exemption, newStatus, reason }) => {
       invalidateWorkflows(queryClient);
-      toast({ title: "Exemption Updated", description: `Status changed to ${newStatus}` });
+      showChangeReceipt({
+        entity: `Exemption ${exemption.exemption_type}`,
+        action: "Exemption status updated",
+        impact: "parcel",
+        changes: [{ field: "status", before: exemption.status, after: newStatus }],
+        reason,
+      });
       setSelectedExemption(null);
     },
     onError: (err: Error) => {

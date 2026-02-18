@@ -1,6 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { useParcelSearch } from "@/hooks/useParcelSearch";
 import {
   Search,
   ArrowRight,
@@ -75,22 +74,8 @@ export function SuiteHub({ onNavigate, onParcelNavigate }: SuiteHubProps) {
   const debouncedSearch = useDebounce(searchValue, 250);
   const searchRef = useRef<HTMLDivElement>(null);
 
-  // Live parcel search — ephemeral, stays local
-  const { data: searchResults } = useQuery({
-    queryKey: ["hub-parcel-search", debouncedSearch],
-    queryFn: async () => {
-      const term = debouncedSearch.trim();
-      if (term.length < 2) return [];
-      const { data } = await supabase
-        .from("parcels")
-        .select("id, parcel_number, address, city, assessed_value, neighborhood_code")
-        .or(`parcel_number.ilike.%${term}%,address.ilike.%${term}%`)
-        .limit(8);
-      return data || [];
-    },
-    enabled: debouncedSearch.trim().length >= 2,
-    staleTime: 10_000,
-  });
+  // Live parcel search — constitutional: data access via hook
+  const { data: searchResults } = useParcelSearch(debouncedSearch);
 
   // Close dropdown on outside click
   useEffect(() => {

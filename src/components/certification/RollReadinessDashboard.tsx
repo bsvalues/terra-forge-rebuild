@@ -9,6 +9,7 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
+import { ScopeHeader, ProvenanceBadge } from "@/components/trust";
 import {
   ShieldCheck,
   ShieldAlert,
@@ -275,6 +276,12 @@ export function RollReadinessDashboard() {
 
   return (
     <div className="space-y-6">
+      {/* Scope + Provenance */}
+      <div className="flex items-center justify-end gap-2">
+        <ScopeHeader scope="county" label="Benton" source="roll-readiness" status="draft" />
+        <ProvenanceBadge source="roll-readiness" />
+      </div>
+
       {/* Hero Verdict */}
       <VerdictBanner score={data.overallScore} verdict={data.verdict} />
 

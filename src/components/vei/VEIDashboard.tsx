@@ -18,6 +18,7 @@ import {
   AppealsDrilldownDialog 
 } from "./drilldown";
 import { Activity, TrendingUp, BarChart3, AlertTriangle, Percent, Target, Filter, Info, Compass } from "lucide-react";
+import { ScopeHeader, ProvenanceBadge } from "@/components/trust";
 import { useRatioAnalysis, useTaxYears, type OutlierMethod } from "@/hooks/useRatioAnalysis";
 import { useHistoricalRatioTrend, useAppealsByValueTier } from "@/hooks/useHistoricalRatioTrend";
 import { useFieldCohort } from "@/hooks/useFieldCohort";
@@ -207,6 +208,8 @@ export function VEIDashboard() {
             </p>
           </div>
           <div className="flex items-center gap-3 flex-wrap">
+            <ScopeHeader scope="county" label="Benton" source="ratio-analysis" status="published" />
+            <ProvenanceBadge source="ratio-analysis" />
             <TaxYearSelector
               years={taxYears}
               selectedYear={selectedYear}
