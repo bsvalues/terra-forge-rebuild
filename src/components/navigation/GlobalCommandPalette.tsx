@@ -8,21 +8,10 @@ import {
   CommandList,
   CommandSeparator,
 } from "@/components/ui/command";
-import {
-  Home,
-  Database,
-  TrendingUp,
-  Search,
-  Globe,
-  Keyboard,
-  BarChart3,
-  Map,
-  Factory,
-  Shield,
-  Compass,
-} from "lucide-react";
+import { Search } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
+import { IA_MODULES, type PrimaryModuleId } from "@/config/IA_MAP";
 
 interface GlobalCommandPaletteProps {
   open: boolean;
@@ -31,17 +20,6 @@ interface GlobalCommandPaletteProps {
   onModuleChange: (module: string) => void;
   onNavigateToParcel?: (parcel: { id: string; parcelNumber: string; address: string; assessedValue: number }) => void;
 }
-
-const MODULE_ITEMS = [
-  { id: "dashboard", label: "Suite Hub (Home)", icon: Home, shortcut: "1" },
-  { id: "workbench", label: "Property Workbench", icon: Search, shortcut: "2" },
-  { id: "factory", label: "Mass Appraisal Factory", icon: Factory, shortcut: "3" },
-  { id: "ids", label: "Intelligent Data Suite", icon: Database, shortcut: "4" },
-  { id: "vei", label: "VEI Equity Analysis", icon: BarChart3, shortcut: "5" },
-  { id: "geoequity", label: "GeoEquity Map", icon: Map, shortcut: "6" },
-  { id: "field", label: "Field Studio", icon: Compass, shortcut: "7" },
-  { id: "sync", label: "TerraFusionSync", icon: Shield, shortcut: "8" },
-];
 
 export function GlobalCommandPalette({
   open,
@@ -72,7 +50,7 @@ export function GlobalCommandPalette({
     return () => clearTimeout(timer);
   }, [searchValue]);
 
-  // Keyboard shortcuts for module switching
+  // Keyboard shortcuts for module switching (⌘1–4)
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
       if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
@@ -80,11 +58,11 @@ export function GlobalCommandPalette({
         onOpenChange(!open);
       }
 
-      if ((e.metaKey || e.ctrlKey) && !e.shiftKey && ["1", "2", "3", "4", "5", "6", "7", "8"].includes(e.key)) {
+      if ((e.metaKey || e.ctrlKey) && !e.shiftKey && ["1", "2", "3", "4"].includes(e.key)) {
         e.preventDefault();
         const idx = parseInt(e.key) - 1;
-        if (MODULE_ITEMS[idx]) {
-          onModuleChange(MODULE_ITEMS[idx].id);
+        if (IA_MODULES[idx]) {
+          onModuleChange(IA_MODULES[idx].id);
         }
       }
     };
@@ -117,7 +95,7 @@ export function GlobalCommandPalette({
   return (
     <CommandDialog open={open} onOpenChange={onOpenChange}>
       <CommandInput
-        placeholder="Search parcels by PIN or address, jump to suites..."
+        placeholder="Search parcels by PIN or address, jump to modules..."
         value={searchValue}
         onValueChange={setSearchValue}
       />
@@ -150,22 +128,22 @@ export function GlobalCommandPalette({
           </>
         )}
 
-        {/* Suites */}
-        <CommandGroup heading="Suites">
-          {MODULE_ITEMS.map((item) => {
-            const Icon = item.icon;
-            const isActive = activeModule === item.id;
+        {/* Primary Modules */}
+        <CommandGroup heading="Modules">
+          {IA_MODULES.map((mod) => {
+            const Icon = mod.icon;
+            const isActive = activeModule === mod.id;
             return (
               <CommandItem
-                key={item.id}
-                value={`suite ${item.label}`}
-                onSelect={() => handleSelectModule(item.id)}
+                key={mod.id}
+                value={`module ${mod.label}`}
+                onSelect={() => handleSelectModule(mod.id)}
                 className="flex items-center gap-3"
               >
                 <Icon className="w-4 h-4 text-tf-cyan" />
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
-                    <span className={isActive ? "font-medium text-tf-cyan" : ""}>{item.label}</span>
+                    <span className={isActive ? "font-medium text-tf-cyan" : ""}>{mod.label}</span>
                     {isActive && (
                       <Badge variant="outline" className="text-[10px] px-1.5 py-0">
                         Active
@@ -174,12 +152,41 @@ export function GlobalCommandPalette({
                   </div>
                 </div>
                 <kbd className="pointer-events-none inline-flex h-5 items-center gap-0.5 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
-                  ⌘{item.shortcut}
+                  {mod.shortcut}
                 </kbd>
               </CommandItem>
             );
           })}
         </CommandGroup>
+
+        {/* Sub-views within current module */}
+        {IA_MODULES.find((m) => m.id === activeModule)?.views && (
+          <>
+            <CommandSeparator />
+            <CommandGroup heading={`${IA_MODULES.find((m) => m.id === activeModule)?.label} Views`}>
+              {IA_MODULES.find((m) => m.id === activeModule)!.views.map((view) => {
+                const Icon = view.icon;
+                return (
+                  <CommandItem
+                    key={view.id}
+                    value={`view ${view.label}`}
+                    onSelect={() => {
+                      // Navigate to module:view
+                      handleSelectModule(`${activeModule}:${view.id}`);
+                    }}
+                    className="flex items-center gap-3"
+                  >
+                    <Icon className="w-4 h-4 text-muted-foreground" />
+                    <span>{view.label}</span>
+                    <Badge variant="outline" className="text-[10px] px-1.5 py-0 ml-auto">
+                      {view.scope}
+                    </Badge>
+                  </CommandItem>
+                );
+              })}
+            </CommandGroup>
+          </>
+        )}
       </CommandList>
     </CommandDialog>
   );
