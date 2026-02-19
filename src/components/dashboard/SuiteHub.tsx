@@ -50,19 +50,21 @@ interface SuiteEntry {
 }
 
 const SUITE_REGISTRY: SuiteEntry[] = [
+  // Workbench suite tabs — open the workbench with the correct tab active
   { id: "forge", name: "TerraForge", mission: "Build value — models, calibration, comps", icon: Hammer, status: "native", target: "workbench:forge", accentVar: "--suite-forge" },
   { id: "atlas", name: "TerraAtlas", mission: "See the county — maps, layers, spatial tools", icon: Map, status: "native", target: "workbench:atlas", accentVar: "--suite-atlas" },
   { id: "dais", name: "TerraDais", mission: "Operate value — permits, exemptions, appeals", icon: Building2, status: "native", target: "workbench:dais", accentVar: "--suite-dais" },
   { id: "dossier", name: "TerraDossier", mission: "Prove decisions — evidence, narratives, packets", icon: FolderOpen, status: "native", target: "workbench:dossier", accentVar: "--suite-dossier" },
-  { id: "field", name: "Field Studio", mission: "Truth capture — inspections, condition, evidence", icon: Compass, status: "native", target: "field", accentVar: "--tf-transcend-cyan" },
-  { id: "vei", name: "VEI Suite", mission: "Equity analysis — IAAO ratio studies, COD, PRD", icon: BarChart3, status: "native", target: "vei", accentVar: "--suite-forge" },
-  { id: "geoequity", name: "GeoEquity", mission: "Spatial equity — heatmaps, neighborhood analysis", icon: Globe, status: "native", target: "geoequity", accentVar: "--suite-atlas" },
-  { id: "factory", name: "Factory", mission: "Mass appraisal — regression, cost, comp review", icon: Globe, status: "native", target: "factory", accentVar: "--suite-forge" },
   { id: "pilot", name: "TerraPilot", mission: "AI copilot — guidance, drafting, synthesis", icon: Sparkles, status: "native", target: "workbench:pilot", accentVar: "--tf-transcend-cyan" },
-  { id: "ids", name: "IDS", mission: "Intelligent Data Suite — ingest, quality, routing", icon: Database, status: "native", target: "ids", accentVar: "--tf-transcend-cyan" },
-  { id: "quality", name: "Quality Engine", mission: "Scoring, stale detection, neighborhood heatmap", icon: Shield, status: "native", target: "quality", accentVar: "--tf-transcend-cyan" },
-  { id: "readiness", name: "Roll Readiness", mission: "Pre-certification checklist, go/no-go verdict", icon: CheckCircle2, status: "native", target: "readiness", accentVar: "--tf-optimized-green" },
-  { id: "analytics", name: "Analytics Engine", mission: "Trends, clustering, predictive equity scoring", icon: Activity, status: "native", target: "analytics", accentVar: "--tf-bright-cyan" },
+  // Module-level views — use new module:view format
+  { id: "field", name: "Field Studio", mission: "Truth capture — inspections, condition, evidence", icon: Compass, status: "native", target: "workbench:field", accentVar: "--tf-transcend-cyan" },
+  { id: "factory", name: "Factory", mission: "Mass appraisal — regression, cost, comp review", icon: Globe, status: "native", target: "factory:calibration", accentVar: "--suite-forge" },
+  { id: "vei", name: "Ratio Studies", mission: "Equity analysis — IAAO ratio studies, COD, PRD", icon: BarChart3, status: "native", target: "factory:vei", accentVar: "--suite-forge" },
+  { id: "geoequity", name: "Spatial Analysis", mission: "Spatial equity — heatmaps, neighborhood analysis", icon: Globe, status: "native", target: "factory:geoequity", accentVar: "--suite-atlas" },
+  { id: "ids", name: "Data Ingestion", mission: "Intelligent Data Suite — ingest, quality, routing", icon: Database, status: "native", target: "home:ids", accentVar: "--tf-transcend-cyan" },
+  { id: "quality", name: "Data Quality", mission: "Scoring, stale detection, neighborhood heatmap", icon: Shield, status: "native", target: "home:quality", accentVar: "--tf-transcend-cyan" },
+  { id: "readiness", name: "Roll Readiness", mission: "Pre-certification checklist, go/no-go verdict", icon: CheckCircle2, status: "native", target: "home:readiness", accentVar: "--tf-optimized-green" },
+  { id: "registry", name: "Audit Registry", mission: "Truth ledger — changes, catalog, runs, models", icon: FileText, status: "native", target: "registry:trust", accentVar: "--tf-transcend-cyan" },
 ];
 
 // ─── Component ────────────────────────────────────────────────
