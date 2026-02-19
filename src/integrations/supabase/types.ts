@@ -1820,6 +1820,77 @@ export type Database = {
           },
         ]
       }
+      workflow_tasks: {
+        Row: {
+          assigned_by: string
+          assigned_to: string | null
+          county_id: string
+          created_at: string
+          description: string | null
+          due_date: string | null
+          escalated_at: string | null
+          escalated_to: string | null
+          escalation_reason: string | null
+          id: string
+          metadata: Json | null
+          parcel_id: string | null
+          priority: string
+          status: string
+          task_type: string
+          title: string
+          updated_at: string
+          workflow_type: string | null
+        }
+        Insert: {
+          assigned_by?: string
+          assigned_to?: string | null
+          county_id?: string
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          escalated_at?: string | null
+          escalated_to?: string | null
+          escalation_reason?: string | null
+          id?: string
+          metadata?: Json | null
+          parcel_id?: string | null
+          priority?: string
+          status?: string
+          task_type?: string
+          title: string
+          updated_at?: string
+          workflow_type?: string | null
+        }
+        Update: {
+          assigned_by?: string
+          assigned_to?: string | null
+          county_id?: string
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          escalated_at?: string | null
+          escalated_to?: string | null
+          escalation_reason?: string | null
+          id?: string
+          metadata?: Json | null
+          parcel_id?: string | null
+          priority?: string
+          status?: string
+          task_type?: string
+          title?: string
+          updated_at?: string
+          workflow_type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workflow_tasks_parcel_id_fkey"
+            columns: ["parcel_id"]
+            isOneToOne: false
+            referencedRelation: "parcels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
