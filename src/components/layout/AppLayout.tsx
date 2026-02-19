@@ -2,6 +2,7 @@ import { useState, useCallback, lazy, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { TopSystemBar } from "@/components/navigation/TopSystemBar";
 import { DockLauncher } from "@/components/navigation/DockLauncher";
+import { ModuleViewBar } from "@/components/navigation/ModuleViewBar";
 import { GlobalCommandPalette } from "@/components/navigation/GlobalCommandPalette";
 import { ControlCenter } from "@/components/navigation/ControlCenter";
 import { TrustModeProvider } from "@/contexts/TrustModeContext";
@@ -125,6 +126,20 @@ export function AppLayout({ initialParcel: routeParcel, initialModule, initialFa
     }
   }, []);
 
+  // Dock click: just switch module, reset view
+  const handleModuleChange = useCallback((moduleId: string) => {
+    if (moduleId.includes(":")) {
+      handleNavigate(moduleId);
+      return;
+    }
+    setActiveModule(moduleId as PrimaryModuleId);
+    setActiveView(null);
+  }, [handleNavigate]);
+
+  const handleViewChange = useCallback((viewId: string) => {
+    setActiveView(viewId);
+  }, []);
+
   const handleParcelNavigate = useCallback(
     (parcel: { id: string; parcelNumber: string; address: string; assessedValue: number }) => {
       setPendingParcel(parcel);
@@ -197,7 +212,7 @@ export function AppLayout({ initialParcel: routeParcel, initialModule, initialFa
           case "geoequity":
             return (
               <div className="p-6 max-w-7xl mx-auto">
-                <GeoEquityDashboard />
+                <GeoEquityDashboard onNavigateToWorkbench={handleParcelNavigate} />
               </div>
             );
           case "analytics":
@@ -226,6 +241,12 @@ export function AppLayout({ initialParcel: routeParcel, initialModule, initialFa
           onOpenControlCenter={() => setControlCenterOpen(true)}
         />
 
+        <ModuleViewBar
+          moduleId={activeModule}
+          activeView={activeView}
+          onViewChange={handleViewChange}
+        />
+
         <main className="flex-1 overflow-auto pb-20 sm:pb-16">
           <AnimatePresence mode="wait">
             <motion.div
@@ -242,7 +263,7 @@ export function AppLayout({ initialParcel: routeParcel, initialModule, initialFa
           </AnimatePresence>
         </main>
 
-        <DockLauncher activeModule={activeModule} onModuleChange={handleNavigate} />
+        <DockLauncher activeModule={activeModule} onModuleChange={handleModuleChange} />
 
         <GlobalCommandPalette
           open={commandPaletteOpen}
