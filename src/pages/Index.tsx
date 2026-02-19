@@ -1,5 +1,6 @@
 import { useLocation } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
+import { resolveLegacyId } from "@/config/IA_MAP";
 
 const Index = () => {
   const location = useLocation();
@@ -13,10 +14,14 @@ const Index = () => {
     activeModule?: string;
   } | null;
 
+  // Resolve legacy module IDs passed via navigation state
+  const legacyModule = state?.activeModule;
+  const resolved = legacyModule ? resolveLegacyId(legacyModule) : null;
+
   return (
     <AppLayout
       initialParcel={state?.initialParcel ?? null}
-      initialModule={state?.activeModule ?? undefined}
+      initialModule={resolved ? resolved.module : (legacyModule ?? undefined)}
     />
   );
 };

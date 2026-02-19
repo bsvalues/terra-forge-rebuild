@@ -5,21 +5,28 @@ import { DockLauncher } from "@/components/navigation/DockLauncher";
 import { GlobalCommandPalette } from "@/components/navigation/GlobalCommandPalette";
 import { ControlCenter } from "@/components/navigation/ControlCenter";
 import { TrustModeProvider } from "@/contexts/TrustModeContext";
-import { useContextMode } from "@/hooks/useContextMode";
 import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
+import { resolveLegacyId, type PrimaryModuleId } from "@/config/IA_MAP";
 
 // ── Code-split: every route-level module is lazy-loaded ────────────
+// Home views
 const SuiteHub = lazy(() => import("@/components/dashboard/SuiteHub").then(m => ({ default: m.SuiteHub })));
 const IDSCommandCenter = lazy(() => import("@/components/ids/IDSCommandCenter").then(m => ({ default: m.IDSCommandCenter })));
-const PropertyWorkbench = lazy(() => import("@/components/workbench").then(m => ({ default: m.PropertyWorkbench })));
-const FieldStudioDashboard = lazy(() => import("@/components/field").then(m => ({ default: m.FieldStudioDashboard })));
-const FactoryLayout = lazy(() => import("@/components/factory/FactoryLayout").then(m => ({ default: m.FactoryLayout })));
-const SyncDashboard = lazy(() => import("@/components/sync/SyncDashboard").then(m => ({ default: m.SyncDashboard })));
-const VEIDashboard = lazy(() => import("@/components/vei/VEIDashboard").then(m => ({ default: m.VEIDashboard })));
-const GeoEquityDashboard = lazy(() => import("@/components/geoequity/GeoEquityDashboard").then(m => ({ default: m.GeoEquityDashboard })));
 const DataQualityScoringEngine = lazy(() => import("@/components/quality/DataQualityScoringEngine").then(m => ({ default: m.DataQualityScoringEngine })));
 const RollReadinessDashboard = lazy(() => import("@/components/certification").then(m => ({ default: m.RollReadinessDashboard })));
+const SyncDashboard = lazy(() => import("@/components/sync/SyncDashboard").then(m => ({ default: m.SyncDashboard })));
+
+// Workbench views
+const PropertyWorkbench = lazy(() => import("@/components/workbench").then(m => ({ default: m.PropertyWorkbench })));
+const FieldStudioDashboard = lazy(() => import("@/components/field").then(m => ({ default: m.FieldStudioDashboard })));
+
+// Factory views
+const FactoryLayout = lazy(() => import("@/components/factory/FactoryLayout").then(m => ({ default: m.FactoryLayout })));
+const VEIDashboard = lazy(() => import("@/components/vei/VEIDashboard").then(m => ({ default: m.VEIDashboard })));
+const GeoEquityDashboard = lazy(() => import("@/components/geoequity/GeoEquityDashboard").then(m => ({ default: m.GeoEquityDashboard })));
 const AnalyticsDashboard = lazy(() => import("@/components/analytics/AnalyticsDashboard").then(m => ({ default: m.AnalyticsDashboard })));
+
+// Registry views
 const TrustRegistryPage = lazy(() => import("@/components/trust").then(m => ({ default: m.TrustRegistryPage })));
 
 // ── Loading fallback ───────────────────────────────────────────────
@@ -46,8 +53,18 @@ interface AppLayoutProps {
 }
 
 export function AppLayout({ initialParcel: routeParcel, initialModule, initialFactoryMode }: AppLayoutProps) {
-  const [activeModule, setActiveModule] = useState(initialModule || "dashboard");
-  useRealtimeNotifications(); // Subscribe to live trace_events for notification bell
+  // Resolve legacy module IDs to the new 4-module structure
+  const resolvedInitial = initialModule ? resolveLegacyId(initialModule) : null;
+
+  const [activeModule, setActiveModule] = useState<PrimaryModuleId>(
+    (resolvedInitial?.module as PrimaryModuleId) || "home"
+  );
+  const [activeView, setActiveView] = useState<string | null>(
+    resolvedInitial?.view || null
+  );
+
+  useRealtimeNotifications();
+
   const [pendingParcel, setPendingParcel] = useState<{
     id: string;
     parcelNumber: string;
@@ -62,49 +79,102 @@ export function AppLayout({ initialParcel: routeParcel, initialModule, initialFa
   const [controlCenterOpen, setControlCenterOpen] = useState(false);
 
   const handleNavigate = useCallback((target: string) => {
-    if (target.startsWith("workbench:")) {
+    // Handle "module:view" format
+    if (target.includes(":")) {
       const parts = target.split(":");
-      setPendingTab(parts[1]);
-      setPendingSubTab(parts[2] ?? null);
-      setActiveModule("workbench");
-    } else if (target.startsWith("ids:")) {
-      const parts = target.split(":");
-      setPendingIdsPillar(parts[1]);
-      setPendingIdsJobId(parts[2] ?? null);
-      setActiveModule("ids");
+      const firstPart = parts[0];
+
+      // Legacy deep-link: "workbench:tab:subtab"
+      if (firstPart === "workbench") {
+        setPendingTab(parts[1]);
+        setPendingSubTab(parts[2] ?? null);
+        setActiveModule("workbench");
+        setActiveView("property");
+        return;
+      }
+
+      // Legacy deep-link: "ids:pillar:jobId"
+      if (firstPart === "ids") {
+        setPendingIdsPillar(parts[1]);
+        setPendingIdsJobId(parts[2] ?? null);
+        setActiveModule("home");
+        setActiveView("ids");
+        return;
+      }
+
+      // New format: "module:view"
+      const resolved = resolveLegacyId(firstPart);
+      if (resolved) {
+        setActiveModule(resolved.module);
+        setActiveView(parts[1] || resolved.view || null);
+      } else {
+        setActiveModule(firstPart as PrimaryModuleId);
+        setActiveView(parts[1] || null);
+      }
+      return;
+    }
+
+    // Legacy module IDs → resolve through IA_MAP
+    const resolved = resolveLegacyId(target);
+    if (resolved) {
+      setActiveModule(resolved.module);
+      setActiveView(resolved.view || null);
     } else {
-      setActiveModule(target);
+      setActiveModule(target as PrimaryModuleId);
+      setActiveView(null);
     }
   }, []);
-
-  const currentScene = useContextMode({
-    activeModule,
-    workMode: "overview",
-    hasParcel: !!pendingParcel,
-  });
 
   const handleParcelNavigate = useCallback(
     (parcel: { id: string; parcelNumber: string; address: string; assessedValue: number }) => {
       setPendingParcel(parcel);
       setActiveModule("workbench");
+      setActiveView("property");
     },
     []
   );
 
   const renderStage = () => {
+    const view = activeView;
+
     switch (activeModule) {
-      case "dashboard":
-        return <SuiteHub onNavigate={handleNavigate} onParcelNavigate={handleParcelNavigate} />;
-      case "ids":
-        return (
-          <IDSCommandCenter
-            initialPillar={pendingIdsPillar}
-            onPillarConsumed={() => setPendingIdsPillar(null)}
-            highlightJobId={pendingIdsJobId}
-            onJobIdConsumed={() => setPendingIdsJobId(null)}
-          />
-        );
+      case "home":
+        switch (view) {
+          case "ids":
+            return (
+              <IDSCommandCenter
+                initialPillar={pendingIdsPillar}
+                onPillarConsumed={() => setPendingIdsPillar(null)}
+                highlightJobId={pendingIdsJobId}
+                onJobIdConsumed={() => setPendingIdsJobId(null)}
+              />
+            );
+          case "quality":
+            return (
+              <div className="p-6 max-w-7xl mx-auto">
+                <DataQualityScoringEngine />
+              </div>
+            );
+          case "readiness":
+            return (
+              <div className="p-6 max-w-5xl mx-auto">
+                <RollReadinessDashboard />
+              </div>
+            );
+          case "sync":
+            return (
+              <div className="p-6 max-w-7xl mx-auto">
+                <SyncDashboard />
+              </div>
+            );
+          default:
+            return <SuiteHub onNavigate={handleNavigate} onParcelNavigate={handleParcelNavigate} />;
+        }
+
       case "workbench":
+        if (view === "field") {
+          return <FieldStudioDashboard />;
+        }
         return (
           <PropertyWorkbench
             initialParcel={pendingParcel}
@@ -115,50 +185,36 @@ export function AppLayout({ initialParcel: routeParcel, initialModule, initialFa
             onSubTabConsumed={() => setPendingSubTab(null)}
           />
         );
+
       case "factory":
-        return <FactoryLayout initialMode={initialFactoryMode} />;
-      case "vei":
-        return (
-          <div className="p-6 max-w-7xl mx-auto">
-            <VEIDashboard />
-          </div>
-        );
-      case "geoequity":
-        return (
-          <div className="p-6 max-w-7xl mx-auto">
-            <GeoEquityDashboard />
-          </div>
-        );
-      case "sync":
-        return (
-          <div className="p-6 max-w-7xl mx-auto">
-            <SyncDashboard />
-          </div>
-        );
-      case "field":
-        return <FieldStudioDashboard />;
-      case "quality":
-        return (
-          <div className="p-6 max-w-7xl mx-auto">
-            <DataQualityScoringEngine />
-          </div>
-        );
-      case "readiness":
-        return (
-          <div className="p-6 max-w-5xl mx-auto">
-            <RollReadinessDashboard />
-          </div>
-        );
-      case "analytics":
-        return <AnalyticsDashboard />;
-      case "trust":
+        switch (view) {
+          case "vei":
+            return (
+              <div className="p-6 max-w-7xl mx-auto">
+                <VEIDashboard />
+              </div>
+            );
+          case "geoequity":
+            return (
+              <div className="p-6 max-w-7xl mx-auto">
+                <GeoEquityDashboard />
+              </div>
+            );
+          case "analytics":
+            return <AnalyticsDashboard />;
+          default:
+            return <FactoryLayout initialMode={initialFactoryMode} />;
+        }
+
+      case "registry":
         return (
           <div className="p-0">
             <TrustRegistryPage onNavigate={handleNavigate} />
           </div>
         );
+
       default:
-        return <SuiteHub onNavigate={handleNavigate} />;
+        return <SuiteHub onNavigate={handleNavigate} onParcelNavigate={handleParcelNavigate} />;
     }
   };
 
@@ -173,7 +229,7 @@ export function AppLayout({ initialParcel: routeParcel, initialModule, initialFa
         <main className="flex-1 overflow-auto pb-20 sm:pb-16">
           <AnimatePresence mode="wait">
             <motion.div
-              key={activeModule}
+              key={`${activeModule}-${activeView}`}
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
@@ -192,7 +248,7 @@ export function AppLayout({ initialParcel: routeParcel, initialModule, initialFa
           open={commandPaletteOpen}
           onOpenChange={setCommandPaletteOpen}
           activeModule={activeModule}
-          onModuleChange={setActiveModule}
+          onModuleChange={handleNavigate}
           onNavigateToParcel={handleParcelNavigate}
         />
 

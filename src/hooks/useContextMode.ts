@@ -1,24 +1,24 @@
 import { useMemo } from "react";
 import type { WorkMode, SuiteTab } from "@/components/workbench/types";
+import type { PrimaryModuleId } from "@/config/IA_MAP";
 
 /**
  * Canonical Scene identifiers for the TerraFusion OS Stage.
- * Each scene represents a known component arrangement — the system
- * selects scenes based on context, never generating new UI.
+ * Aligned with the 4-module IA: Home / Workbench / Factory / Registry
  */
 export type CanonicalScene =
+  | "command-briefing"
   | "ingestion-gate"
   | "ratio-study-cockpit"
   | "neighborhood-review"
   | "property-workbench"
   | "calibration-run"
   | "appeal-defense-pack"
-  | "command-briefing";
+  | "trust-registry";
 
 export interface SceneDescriptor {
   scene: CanonicalScene;
-  /** The OS module key that maps to this scene in AppLayout */
-  module: string;
+  module: PrimaryModuleId;
   label: string;
   description: string;
   defaultTab: SuiteTab;
@@ -27,28 +27,28 @@ export interface SceneDescriptor {
 const SCENE_LIBRARY: Record<CanonicalScene, SceneDescriptor> = {
   "command-briefing": {
     scene: "command-briefing",
-    module: "dashboard",
+    module: "home",
     label: "Command Briefing",
     description: "System-wide data health and operational readiness",
     defaultTab: "summary",
   },
   "ingestion-gate": {
     scene: "ingestion-gate",
-    module: "ids",
+    module: "home",
     label: "Ingestion Gate",
     description: "QA checklists, data health, ingest wizard",
     defaultTab: "summary",
   },
   "ratio-study-cockpit": {
     scene: "ratio-study-cockpit",
-    module: "vei",
+    module: "factory",
     label: "Ratio Study Cockpit",
     description: "COD/PRD metrics, tier plots, drift warnings",
     defaultTab: "forge",
   },
   "neighborhood-review": {
     scene: "neighborhood-review",
-    module: "geoequity",
+    module: "factory",
     label: "Neighborhood Review",
     description: "Map, parcel details, sales data",
     defaultTab: "atlas",
@@ -62,7 +62,7 @@ const SCENE_LIBRARY: Record<CanonicalScene, SceneDescriptor> = {
   },
   "calibration-run": {
     scene: "calibration-run",
-    module: "vei",
+    module: "factory",
     label: "Calibration Run",
     description: "Parameters, distributions, impact analysis",
     defaultTab: "forge",
@@ -74,53 +74,50 @@ const SCENE_LIBRARY: Record<CanonicalScene, SceneDescriptor> = {
     description: "Comps, narrative builder, audit trail",
     defaultTab: "dossier",
   },
+  "trust-registry": {
+    scene: "trust-registry",
+    module: "registry",
+    label: "Trust Registry",
+    description: "Audit log, data catalog, model versions",
+    defaultTab: "summary",
+  },
 };
 
 interface ContextModeInput {
-  /** Current active module in AppLayout */
   activeModule: string;
-  /** Current work mode (from WorkbenchContext or top-level) */
   workMode: WorkMode;
-  /** Whether a parcel is currently selected */
   hasParcel: boolean;
 }
 
 /**
  * Resolves the active Canonical Scene based on current context.
- *
- * This is "Agentic UX" — the system selects known component
- * arrangements, never generating new UI.
+ * Updated for the 4-module IA (Home / Workbench / Factory / Registry).
  */
 export function useContextMode({ activeModule, workMode, hasParcel }: ContextModeInput): SceneDescriptor {
   return useMemo(() => {
-    // 1. Module-based resolution (primary)
     switch (activeModule) {
-      case "ids":
-        return SCENE_LIBRARY["ingestion-gate"];
+      case "home":
+        return SCENE_LIBRARY["command-briefing"];
 
-      case "vei":
-        // If in valuation mode, surface calibration; otherwise ratio cockpit
+      case "factory":
         if (workMode === "valuation") {
           return SCENE_LIBRARY["calibration-run"];
         }
         return SCENE_LIBRARY["ratio-study-cockpit"];
 
-      case "geoequity":
-        return SCENE_LIBRARY["neighborhood-review"];
-
       case "workbench":
-        // If in case mode with a parcel, show appeal defense
         if (workMode === "case" && hasParcel) {
           return SCENE_LIBRARY["appeal-defense-pack"];
         }
         return SCENE_LIBRARY["property-workbench"];
 
-      case "dashboard":
+      case "registry":
+        return SCENE_LIBRARY["trust-registry"];
+
       default:
         return SCENE_LIBRARY["command-briefing"];
     }
   }, [activeModule, workMode, hasParcel]);
 }
 
-/** Export the full library for command palette / scene switching */
 export const CANONICAL_SCENES = SCENE_LIBRARY;
