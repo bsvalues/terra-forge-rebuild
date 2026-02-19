@@ -66,6 +66,9 @@ const TOOL_ICONS: Record<string, typeof Search> = {
   create_appeal: Gavel,
   certify_assessment: Award,
   update_parcel_class: Pencil,
+  assign_task: Briefcase,
+  create_workflow: Activity,
+  escalate_task: AlertTriangle,
 };
 
 const TOOL_LABELS: Record<string, string> = {
@@ -84,6 +87,9 @@ const TOOL_LABELS: Record<string, string> = {
   create_appeal: "Filing appeal",
   certify_assessment: "Certifying assessment",
   update_parcel_class: "Updating parcel",
+  assign_task: "Assigning task",
+  create_workflow: "Creating workflow",
+  escalate_task: "Escalating task",
 };
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/terrapilot-chat`;

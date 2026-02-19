@@ -219,6 +219,59 @@ const WRITE_TOOLS = [
       },
     },
   },
+  {
+    type: "function" as const,
+    function: {
+      name: "assign_task",
+      description: "Create and assign a workflow task to a team member. Optionally link to a parcel.",
+      parameters: {
+        type: "object",
+        properties: {
+          title: { type: "string", description: "Task title" },
+          description: { type: "string", description: "Task details" },
+          task_type: { type: "string", enum: ["review", "inspection", "data_entry", "appeal_prep", "general"], description: "Type of task" },
+          priority: { type: "string", enum: ["low", "normal", "high", "urgent"], description: "Priority level" },
+          parcel_id: { type: "string", description: "Optional parcel UUID to link" },
+          due_date: { type: "string", description: "Due date in YYYY-MM-DD format" },
+        },
+        required: ["title"],
+      },
+    },
+  },
+  {
+    type: "function" as const,
+    function: {
+      name: "create_workflow",
+      description: "Create a new workflow (permit review, exemption processing, appeal hearing, etc.) and assign it.",
+      parameters: {
+        type: "object",
+        properties: {
+          workflow_type: { type: "string", enum: ["permit_review", "exemption_processing", "appeal_hearing", "valuation_review", "data_correction"], description: "Workflow type" },
+          title: { type: "string", description: "Workflow title" },
+          description: { type: "string", description: "Workflow details" },
+          parcel_id: { type: "string", description: "Parcel UUID to link" },
+          priority: { type: "string", enum: ["low", "normal", "high", "urgent"], description: "Priority" },
+        },
+        required: ["workflow_type", "title"],
+      },
+    },
+  },
+  {
+    type: "function" as const,
+    function: {
+      name: "escalate_task",
+      description: "Escalate an existing workflow task to a higher priority or supervisor.",
+      parameters: {
+        type: "object",
+        properties: {
+          task_id: { type: "string", description: "UUID of the task to escalate" },
+          reason: { type: "string", description: "Reason for escalation" },
+          new_priority: { type: "string", enum: ["high", "urgent"], description: "New priority level" },
+        },
+        required: ["task_id", "reason"],
+      },
+    },
+  },
 ];
 
 // Muse-specific drafting tools
@@ -291,6 +344,9 @@ const WRITE_TOOL_RISK: Record<string, "medium" | "high"> = {
   create_appeal: "medium",
   certify_assessment: "high",
   update_parcel_class: "medium",
+  assign_task: "medium",
+  create_workflow: "medium",
+  escalate_task: "medium",
 };
 
 const WRITE_TOOL_NAMES = new Set(Object.keys(WRITE_TOOL_RISK));
@@ -429,14 +485,21 @@ async function executeTool(
       case "create_exemption":
       case "create_appeal":
       case "certify_assessment":
-      case "update_parcel_class": {
-        // Fetch parcel context for the confirmation card
-        const pid = String(args.parcel_id);
-        const { data: parcel } = await serviceClient
-          .from("parcels")
-          .select("parcel_number, address, assessed_value")
-          .eq("id", pid)
-          .single();
+      case "update_parcel_class":
+      case "assign_task":
+      case "create_workflow":
+      case "escalate_task": {
+        // Fetch parcel context for the confirmation card (if parcel_id provided)
+        const pid = args.parcel_id ? String(args.parcel_id) : null;
+        let parcel = null;
+        if (pid) {
+          const { data } = await serviceClient
+            .from("parcels")
+            .select("parcel_number, address, assessed_value")
+            .eq("id", pid)
+            .single();
+          parcel = data;
+        }
         
         const confirmationId = crypto.randomUUID();
         return JSON.stringify({
@@ -445,7 +508,7 @@ async function executeTool(
           tool_name: toolName,
           risk_level: WRITE_TOOL_RISK[toolName] || "medium",
           args,
-          parcel_context: parcel || { parcel_number: "Unknown", address: "Unknown" },
+          parcel_context: parcel || { parcel_number: args.title || "N/A", address: args.description || "No parcel linked" },
           description: getWriteDescription(toolName, args, parcel),
         });
       }
@@ -526,6 +589,12 @@ function getWriteDescription(
       return `Certify TY${args.tax_year} assessment for ${addr} — HIGH IMPACT`;
     case "update_parcel_class":
       return `Update ${addr}: ${args.property_class ? `class → ${args.property_class}` : ""}${args.neighborhood_code ? ` nbhd → ${args.neighborhood_code}` : ""}`;
+    case "assign_task":
+      return `Assign task "${args.title}"${args.parcel_id ? ` linked to ${addr}` : ""} [${args.priority || "normal"}]`;
+    case "create_workflow":
+      return `Create ${args.workflow_type} workflow: "${args.title}"${args.parcel_id ? ` for ${addr}` : ""}`;
+    case "escalate_task":
+      return `Escalate task ${String(args.task_id).slice(0, 8)}… to ${args.new_priority || "urgent"}: ${args.reason}`;
     default:
       return `Execute ${toolName} on ${addr}`;
   }
@@ -610,10 +679,10 @@ async function executeConfirmedWrite(
         if (args.property_class) updates.property_class = String(args.property_class);
         if (args.neighborhood_code) updates.neighborhood_code = String(args.neighborhood_code);
         if (Object.keys(updates).length === 0) return JSON.stringify({ success: false, error: "No fields to update" });
-        const { error } = await serviceClient.from("parcels")
+        const { error: upErr } = await serviceClient.from("parcels")
           .update(updates)
           .eq("id", String(args.parcel_id));
-        if (error) return JSON.stringify({ success: false, error: error.message });
+        if (upErr) return JSON.stringify({ success: false, error: upErr.message });
         await serviceClient.from("trace_events").insert({
           county_id: "00000000-0000-0000-0000-000000000001",
           parcel_id: String(args.parcel_id),
@@ -623,6 +692,81 @@ async function executeConfirmedWrite(
           event_data: { updates, via: "pilot_hitl" },
         });
         return JSON.stringify({ success: true, message: "Parcel updated." });
+      }
+
+      case "assign_task": {
+        const { data, error: taskErr } = await serviceClient.from("workflow_tasks").insert({
+          county_id: "00000000-0000-0000-0000-000000000001",
+          parcel_id: args.parcel_id ? String(args.parcel_id) : null,
+          assigned_by: userId,
+          title: String(args.title),
+          description: args.description ? String(args.description) : null,
+          task_type: String(args.task_type || "general"),
+          priority: String(args.priority || "normal"),
+          due_date: args.due_date ? String(args.due_date) : null,
+          status: "open",
+        }).select().single();
+        if (taskErr) return JSON.stringify({ success: false, error: taskErr.message });
+        await serviceClient.from("trace_events").insert({
+          county_id: "00000000-0000-0000-0000-000000000001",
+          parcel_id: args.parcel_id ? String(args.parcel_id) : null,
+          actor_id: userId,
+          source_module: "terrapilot",
+          event_type: "task_assigned",
+          event_data: { task_id: data.id, title: args.title, priority: args.priority, via: "pilot_hitl" },
+        });
+        return JSON.stringify({ success: true, task_id: data.id, message: `Task "${args.title}" created successfully.` });
+      }
+
+      case "create_workflow": {
+        const { data, error: wfErr } = await serviceClient.from("workflow_tasks").insert({
+          county_id: "00000000-0000-0000-0000-000000000001",
+          parcel_id: args.parcel_id ? String(args.parcel_id) : null,
+          assigned_by: userId,
+          title: String(args.title),
+          description: args.description ? String(args.description) : null,
+          task_type: "workflow",
+          workflow_type: String(args.workflow_type),
+          priority: String(args.priority || "normal"),
+          status: "open",
+        }).select().single();
+        if (wfErr) return JSON.stringify({ success: false, error: wfErr.message });
+        await serviceClient.from("trace_events").insert({
+          county_id: "00000000-0000-0000-0000-000000000001",
+          parcel_id: args.parcel_id ? String(args.parcel_id) : null,
+          actor_id: userId,
+          source_module: "terrapilot",
+          event_type: "workflow_created",
+          event_data: { task_id: data.id, workflow_type: args.workflow_type, title: args.title, via: "pilot_hitl" },
+        });
+        return JSON.stringify({ success: true, task_id: data.id, message: `Workflow "${args.title}" (${args.workflow_type}) created.` });
+      }
+
+      case "escalate_task": {
+        const taskId = String(args.task_id);
+        const { data: existing, error: fetchErr } = await serviceClient.from("workflow_tasks")
+          .select("id, title, priority, status")
+          .eq("id", taskId)
+          .single();
+        if (fetchErr || !existing) return JSON.stringify({ success: false, error: "Task not found" });
+        const newPriority = String(args.new_priority || "urgent");
+        const { error: escErr } = await serviceClient.from("workflow_tasks")
+          .update({
+            priority: newPriority,
+            escalated_at: new Date().toISOString(),
+            escalation_reason: String(args.reason),
+            status: existing.status === "open" ? "escalated" : existing.status,
+          })
+          .eq("id", taskId);
+        if (escErr) return JSON.stringify({ success: false, error: escErr.message });
+        await serviceClient.from("trace_events").insert({
+          county_id: "00000000-0000-0000-0000-000000000001",
+          actor_id: userId,
+          source_module: "terrapilot",
+          event_type: "task_escalated",
+          event_data: { task_id: taskId, old_priority: existing.priority, new_priority: newPriority, reason: args.reason, via: "pilot_hitl" },
+        });
+        return JSON.stringify({ success: true, message: `Task "${existing.title}" escalated to ${newPriority}.` });
       }
 
       default:
@@ -853,7 +997,7 @@ You speak with confidence and precision, using terminology familiar to assessmen
 - Flag anomalies: ratios outside 0.80–1.20, large YoY changes, stale data.
 
 ## Write Tool Protocol (CRITICAL)
-When using write tools (create_exemption, create_appeal, certify_assessment, update_parcel_class):
+When using write tools (create_exemption, create_appeal, certify_assessment, update_parcel_class, assign_task, create_workflow, escalate_task):
 - These tools return a CONFIRMATION CARD that the user must approve before execution.
 - ALWAYS explain what you're about to do BEFORE calling the write tool.
 - After the tool returns the confirmation card, tell the user to review and approve the action.
@@ -873,7 +1017,7 @@ When using write tools (create_exemption, create_appeal, certify_assessment, upd
 
 ## Mode: PILOT (Operator)
 Focus: Execute, navigate, query, act. "Do the work."
-You have full tool access including WRITE tools (create_exemption, create_appeal, certify_assessment, update_parcel_class).
+You have full tool access including WRITE tools (create_exemption, create_appeal, certify_assessment, update_parcel_class, assign_task, create_workflow, escalate_task).
 Write tools require user confirmation before execution.`;
   } else {
     modePrompt = `
