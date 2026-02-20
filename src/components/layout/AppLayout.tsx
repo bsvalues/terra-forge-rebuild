@@ -8,6 +8,7 @@ import { ControlCenter } from "@/components/navigation/ControlCenter";
 import { TrustModeProvider } from "@/contexts/TrustModeContext";
 import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
 import { resolveLegacyId, type PrimaryModuleId } from "@/config/IA_MAP";
+import { logNavAttempt } from "@/lib/constitutionGuards";
 
 // ── Code-split: every route-level module is lazy-loaded ────────────
 // Home views
@@ -80,6 +81,9 @@ export function AppLayout({ initialParcel: routeParcel, initialModule, initialFa
   const [controlCenterOpen, setControlCenterOpen] = useState(false);
 
   const handleNavigate = useCallback((target: string) => {
+    // Log every navigation attempt for Constitution Gate #3 Health Panel
+    logNavAttempt(target);
+
     if (target.includes(":")) {
       const parts = target.split(":");
       const firstPart = parts[0];
