@@ -32,6 +32,7 @@ import { useCountyVitals } from "@/hooks/useCountyVitals";
 import { ProvenanceBadge, ProvenanceNumber, ScopeHeader } from "@/components/trust";
 import { DataStatusRibbon } from "./DataStatusRibbon";
 import { NextBestAction } from "./NextBestAction";
+import { ExplainThisPanel } from "./ExplainThisPanel";
 import { usePipelineStatus } from "@/hooks/usePipelineStatus";
 
 interface SuiteHubProps {
@@ -224,12 +225,12 @@ export function SuiteHub({ onNavigate, onParcelNavigate }: SuiteHubProps) {
 
           {/* Inline vitals — single source */}
           <div className="flex items-center gap-3 sm:gap-6 mt-4 flex-wrap">
-            <Vital label="Parcels" value={parcelsTotal.toLocaleString()} source="county-vitals" fetchedAt={vitals?.fetchedAt} />
-            <Vital label="Sales" value={salesTotal.toLocaleString()} source="county-vitals" fetchedAt={vitals?.fetchedAt} />
-            <Vital label="Assessments" value={assessmentsTotal.toLocaleString()} source="county-vitals" fetchedAt={vitals?.fetchedAt} />
-            <Vital label="Data Quality" value={`${qualityOverall}%`} source="county-vitals" fetchedAt={vitals?.fetchedAt} />
+            <Vital label="Parcels" value={parcelsTotal.toLocaleString()} metricKey="parcels.total" fetchedAt={vitals?.fetchedAt} onNavigate={onNavigate} />
+            <Vital label="Sales" value={salesTotal.toLocaleString()} metricKey="sales.total" fetchedAt={vitals?.fetchedAt} onNavigate={onNavigate} />
+            <Vital label="Assessments" value={assessmentsTotal.toLocaleString()} metricKey="assessments.total" fetchedAt={vitals?.fetchedAt} onNavigate={onNavigate} />
+            <Vital label="Data Quality" value={`${qualityOverall}%`} metricKey="quality.overall" fetchedAt={vitals?.fetchedAt} onNavigate={onNavigate} />
             {totalWorkflows > 0 && (
-              <Vital label="Pending" value={totalWorkflows.toString()} highlight source="county-vitals" fetchedAt={vitals?.fetchedAt} />
+              <Vital label="Pending" value={totalWorkflows.toString()} highlight metricKey="workflows.pendingAppeals" fetchedAt={vitals?.fetchedAt} onNavigate={onNavigate} />
             )}
             <ProvenanceBadge source="county-vitals" fetchedAt={vitals?.fetchedAt} />
           </div>
@@ -262,9 +263,9 @@ export function SuiteHub({ onNavigate, onParcelNavigate }: SuiteHubProps) {
             <ArrowRight className="w-3.5 h-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
           </div>
           <div className="space-y-2">
-            <QualityRow label="Coordinates" value={vitals?.quality.coords ?? 0} />
-            <QualityRow label="Property Class" value={vitals?.quality.propertyClass ?? 0} />
-            <QualityRow label="Neighborhood" value={vitals?.quality.neighborhood ?? 0} />
+            <QualityRow label="Coordinates" value={vitals?.quality.coords ?? 0} metricKey="quality.coords" fetchedAt={vitals?.fetchedAt} onNavigate={onNavigate} />
+            <QualityRow label="Property Class" value={vitals?.quality.propertyClass ?? 0} metricKey="quality.propertyClass" fetchedAt={vitals?.fetchedAt} onNavigate={onNavigate} />
+            <QualityRow label="Neighborhood" value={vitals?.quality.neighborhood ?? 0} metricKey="quality.neighborhood" fetchedAt={vitals?.fetchedAt} onNavigate={onNavigate} />
           </div>
         </button>
 
@@ -284,25 +285,28 @@ export function SuiteHub({ onNavigate, onParcelNavigate }: SuiteHubProps) {
               label="Appeals"
               count={vitals?.workflows.pendingAppeals ?? 0}
               colorClass="text-suite-dais"
+              metricKey="workflows.pendingAppeals"
               onClick={() => onNavigate("workbench:dais:appeals")}
-              source="county-vitals"
               fetchedAt={vitals?.fetchedAt}
+              onNavigate={onNavigate}
             />
             <WorkflowButton
               label="Permits"
               count={vitals?.workflows.openPermits ?? 0}
               colorClass="text-tf-gold"
+              metricKey="workflows.openPermits"
               onClick={() => onNavigate("workbench:dais:permits")}
-              source="county-vitals"
               fetchedAt={vitals?.fetchedAt}
+              onNavigate={onNavigate}
             />
             <WorkflowButton
               label="Exemptions"
               count={vitals?.workflows.pendingExemptions ?? 0}
               colorClass="text-tf-green"
+              metricKey="workflows.pendingExemptions"
               onClick={() => onNavigate("workbench:dais:exemptions")}
-              source="county-vitals"
               fetchedAt={vitals?.fetchedAt}
+              onNavigate={onNavigate}
             />
           </div>
         </div>
@@ -450,7 +454,14 @@ export function SuiteHub({ onNavigate, onParcelNavigate }: SuiteHubProps) {
 
 // ─── Sub-components ───────────────────────────────────────────
 
-function Vital({ label, value, highlight, source, fetchedAt }: { label: string; value: string; highlight?: boolean; source?: string; fetchedAt?: string | null }) {
+function Vital({ label, value, highlight, metricKey, fetchedAt, onNavigate }: {
+  label: string;
+  value: string;
+  highlight?: boolean;
+  metricKey?: string;
+  fetchedAt?: string | null;
+  onNavigate?: (t: string) => void;
+}) {
   const inner = (
     <span className={`text-sm font-medium ${highlight ? "text-suite-dais" : "text-foreground"}`}>
       {value}
@@ -459,19 +470,32 @@ function Vital({ label, value, highlight, source, fetchedAt }: { label: string; 
   return (
     <div className="flex items-center gap-2">
       <span className="text-xs text-muted-foreground">{label}</span>
-      {source ? (
-        <ProvenanceNumber source={source} fetchedAt={fetchedAt}>{inner}</ProvenanceNumber>
+      {metricKey ? (
+        <ExplainThisPanel metricKey={metricKey} fetchedAt={fetchedAt} onNavigate={onNavigate}>
+          {inner}
+        </ExplainThisPanel>
       ) : inner}
     </div>
   );
 }
 
-function QualityRow({ label, value }: { label: string; value: number }) {
+function QualityRow({ label, value, metricKey, fetchedAt, onNavigate }: {
+  label: string;
+  value: number;
+  metricKey?: string;
+  fetchedAt?: string | null;
+  onNavigate?: (t: string) => void;
+}) {
+  const pct = <span className="text-xs font-mono w-10 text-right text-muted-foreground">{value}%</span>;
   return (
     <div className="flex items-center gap-3">
       <span className="text-xs text-muted-foreground w-24 shrink-0">{label}</span>
       <Progress value={value} className="h-1.5 flex-1" />
-      <span className="text-xs font-mono w-10 text-right text-muted-foreground">{value}%</span>
+      {metricKey ? (
+        <ExplainThisPanel metricKey={metricKey} fetchedAt={fetchedAt} onNavigate={onNavigate}>
+          {pct}
+        </ExplainThisPanel>
+      ) : pct}
     </div>
   );
 }
@@ -494,14 +518,26 @@ function StatusBadge({ status }: { status: SuiteStatus }) {
   );
 }
 
-function WorkflowButton({ label, count, colorClass, onClick, source, fetchedAt }: { label: string; count: number; colorClass: string; onClick: () => void; source?: string; fetchedAt?: string | null }) {
+function WorkflowButton({ label, count, colorClass, onClick, metricKey, fetchedAt, onNavigate }: {
+  label: string;
+  count: number;
+  colorClass: string;
+  onClick: () => void;
+  metricKey?: string;
+  fetchedAt?: string | null;
+  onNavigate?: (t: string) => void;
+}) {
   const num = <p className={`text-2xl font-light ${colorClass}`}>{count}</p>;
   return (
     <button
       onClick={onClick}
       className="p-3 rounded-lg bg-[hsl(var(--tf-surface)/0.5)] hover:bg-[hsl(var(--tf-surface))] transition-colors text-center"
     >
-      {source ? <ProvenanceNumber source={source} fetchedAt={fetchedAt}>{num}</ProvenanceNumber> : num}
+      {metricKey ? (
+        <ExplainThisPanel metricKey={metricKey} fetchedAt={fetchedAt} onNavigate={onNavigate}>
+          {num}
+        </ExplainThisPanel>
+      ) : num}
       <p className="text-xs text-muted-foreground mt-1">{label}</p>
     </button>
   );
