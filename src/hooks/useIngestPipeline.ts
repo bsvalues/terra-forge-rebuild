@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import Papa from "papaparse";
 import ExcelJS from "exceljs";
 import { getPACSEnhancedAliases } from "@/config/pacsFieldMappings";
+import { emitPipelineEvent } from "@/hooks/usePipelineStatus";
 
 export type IngestStep = "select" | "upload" | "mapping" | "validate" | "preview" | "publish" | "complete";
 export type TargetTable = "parcels" | "sales" | "assessments" | "combined";
@@ -284,6 +285,7 @@ export function useIngestPipeline() {
   }, [schema, holyTrinity, effectiveAliases]);
 
   const handleFileUpload = useCallback(async (file: File) => {
+    const uploadStart = new Date().toISOString();
     try {
       const parsed = await parseFile(file);
       setParsedFile(parsed);
@@ -315,15 +317,42 @@ export function useIngestPipeline() {
         .select()
         .single();
 
-      if (!jobError && job) {
-        setJobId(job.id);
+      const newJobId = (!jobError && job) ? job.id : null;
+      if (newJobId) setJobId(newJobId);
+
+      // ── Pipeline: ingest_received ──────────────────────────
+      if (profile?.county_id) {
+        await emitPipelineEvent({
+          countyId: profile.county_id,
+          stage: "ingest_received",
+          status: "success",
+          ingestJobId: newJobId,
+          rowsAffected: parsed.rowCount,
+          artifactRef: file.name,
+          details: { fileSize: file.size, targetTable },
+          startedAt: uploadStart,
+        });
       }
 
       // Auto-map fields
       const autoMappings = autoMapFields(parsed.headers);
       setMappings(autoMappings);
 
-      // Auto-detect combined mode: check if mapped fields span both parcel and sales domains
+      // ── Pipeline: ingest_parsed ────────────────────────────
+      if (profile?.county_id) {
+        const mappedCount = autoMappings.filter(m => m.targetColumn).length;
+        await emitPipelineEvent({
+          countyId: profile.county_id,
+          stage: "ingest_parsed",
+          status: mappedCount > 0 ? "success" : "warning",
+          ingestJobId: newJobId,
+          rowsAffected: parsed.rowCount,
+          artifactRef: file.name,
+          details: { mappedFields: mappedCount, totalFields: parsed.headers.length },
+        });
+      }
+
+      // Auto-detect combined mode
       if (targetTable === "combined") {
         const mappedTargets = new Set(autoMappings.filter(m => m.targetColumn).map(m => m.targetColumn));
         const hasParcelFields = mappedTargets.has("parcel_number") && (mappedTargets.has("assessed_value") || mappedTargets.has("address"));
@@ -337,10 +366,20 @@ export function useIngestPipeline() {
       }
       
       setStep("mapping");
-      
       toast.success(`Parsed ${parsed.rowCount.toLocaleString()} rows from ${file.name}`);
     } catch (err: any) {
       toast.error(err.message || "Failed to parse file");
+      // ── Pipeline: ingest_received failed ──────────────────
+      if (profile?.county_id) {
+        await emitPipelineEvent({
+          countyId: profile.county_id,
+          stage: "ingest_received",
+          status: "failed",
+          artifactRef: file.name,
+          details: { error: "parse_failed" },
+          startedAt: uploadStart,
+        });
+      }
     }
   }, [parseFile, autoMapFields, profile, targetTable]);
 
@@ -668,6 +707,19 @@ export function useIngestPipeline() {
         rows_failed: failed,
         errors: errors.slice(0, 50),
       }).eq("id", jobId);
+    }
+
+    // ── Pipeline: ingest_loaded ──────────────────────────────
+    if (profile?.county_id) {
+      await emitPipelineEvent({
+        countyId: profile.county_id,
+        stage: "ingest_loaded",
+        status: failed > 0 && imported === 0 ? "failed" : failed > 0 ? "warning" : "success",
+        ingestJobId: jobId,
+        rowsAffected: imported,
+        artifactRef: parsedFile?.fileName,
+        details: { imported, failed, targetTable },
+      });
     }
 
     setPublishProgress(100);

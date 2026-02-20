@@ -25,6 +25,7 @@ import { Progress } from "@/components/ui/progress";
 import { TerraTraceActivityFeed } from "@/components/proof/TerraTraceActivityFeed";
 import { AuditTimelineSparkline } from "./AuditTimelineSparkline";
 import { SmartQuickActions } from "./SmartQuickActions";
+import { DataPipelineLedger } from "./DataPipelineLedger";
 import { useState, useRef, useEffect } from "react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useCountyVitals } from "@/hooks/useCountyVitals";
@@ -301,11 +302,23 @@ export function SuiteHub({ onNavigate, onParcelNavigate }: SuiteHubProps) {
         <SmartQuickActions onNavigate={onNavigate} />
       </motion.section>
 
+      {/* ── Data Pipeline Ledger ── */}
+      <motion.section
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.25, duration: 0.35 }}
+      >
+        <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-widest mb-3 flex items-center gap-2">
+          <span>Data Pipeline</span>
+        </h3>
+        <DataPipelineLedger onNavigate={onNavigate} />
+      </motion.section>
+
       {/* ── Audit Timeline ── */}
       <motion.section
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.24, duration: 0.35 }}
+        transition={{ delay: 0.28, duration: 0.35 }}
       >
         <AuditTimelineSparkline />
       </motion.section>

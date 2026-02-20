@@ -1240,6 +1240,59 @@ export type Database = {
           },
         ]
       }
+      pipeline_events: {
+        Row: {
+          artifact_ref: string | null
+          county_id: string
+          created_at: string
+          details: Json
+          error_id: string | null
+          finished_at: string | null
+          id: string
+          ingest_job_id: string | null
+          rows_affected: number | null
+          stage: string
+          started_at: string
+          status: string
+        }
+        Insert: {
+          artifact_ref?: string | null
+          county_id?: string
+          created_at?: string
+          details?: Json
+          error_id?: string | null
+          finished_at?: string | null
+          id?: string
+          ingest_job_id?: string | null
+          rows_affected?: number | null
+          stage: string
+          started_at?: string
+          status?: string
+        }
+        Update: {
+          artifact_ref?: string | null
+          county_id?: string
+          created_at?: string
+          details?: Json
+          error_id?: string | null
+          finished_at?: string | null
+          id?: string
+          ingest_job_id?: string | null
+          rows_affected?: number | null
+          stage?: string
+          started_at?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pipeline_events_ingest_job_id_fkey"
+            columns: ["ingest_job_id"]
+            isOneToOne: false
+            referencedRelation: "ingest_jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -2021,6 +2074,7 @@ export type Database = {
             }[]
           }
       get_county_vitals: { Args: never; Returns: Json }
+      get_pipeline_status: { Args: { p_county_id?: string }; Returns: Json }
       get_user_county_id: { Args: never; Returns: string }
       has_role: {
         Args: {
