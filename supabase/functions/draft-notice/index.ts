@@ -4,6 +4,7 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { requireAuth } from "../_shared/auth.ts";
+import { safeErrorResponse, aiGatewayErrorResponse } from "../_shared/errors.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -93,19 +94,8 @@ Generate the full notice text ready for printing and mailing.`;
     });
 
     if (!aiResp.ok) {
-      if (aiResp.status === 429) {
-        return new Response(JSON.stringify({ error: "Rate limit exceeded. Please try again later." }), {
-          status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      if (aiResp.status === 402) {
-        return new Response(JSON.stringify({ error: "AI usage limit reached. Please add credits." }), {
-          status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
       const errText = await aiResp.text();
-      console.error("AI gateway error:", aiResp.status, errText);
-      throw new Error(`AI gateway error: ${aiResp.status}`);
+      return aiGatewayErrorResponse(aiResp.status, "draft-notice", errText, corsHeaders);
     }
 
     const data = await aiResp.json();
@@ -115,10 +105,6 @@ Generate the full notice text ready for printing and mailing.`;
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
-    console.error("draft-notice error:", error);
-    return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return safeErrorResponse(error, "draft-notice", corsHeaders);
   }
 });

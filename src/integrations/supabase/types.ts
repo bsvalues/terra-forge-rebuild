@@ -817,7 +817,6 @@ export type Database = {
         Row: {
           connection_url: string | null
           created_at: string
-          credentials_encrypted: string | null
           id: string
           last_sync_at: string | null
           metadata: Json | null
@@ -830,7 +829,6 @@ export type Database = {
         Insert: {
           connection_url?: string | null
           created_at?: string
-          credentials_encrypted?: string | null
           id?: string
           last_sync_at?: string | null
           metadata?: Json | null
@@ -843,7 +841,6 @@ export type Database = {
         Update: {
           connection_url?: string | null
           created_at?: string
-          credentials_encrypted?: string | null
           id?: string
           last_sync_at?: string | null
           metadata?: Json | null

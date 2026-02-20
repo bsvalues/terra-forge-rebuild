@@ -54,6 +54,7 @@
     "cmdk": "^1.0.0",
     "date-fns": "^3.6.0",
     "embla-carousel-react": "^8.3.0",
+    "exceljs": "^4.4.0",
     "framer-motion": "^12.29.0",
     "idb": "^8.0.3",
     "input-otp": "^1.2.4",
@@ -78,7 +79,6 @@
     "vaul": "^0.9.3",
     "vite-plugin-pwa": "^1.2.0",
     "vitest": "^3.2.4",
-    "xlsx": "^0.18.5",
     "zod": "^3.23.8"
   },
   "devDependencies": {
