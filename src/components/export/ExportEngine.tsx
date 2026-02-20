@@ -2,7 +2,7 @@
 // Generates CSV/Excel exports from ratio study, roll readiness, and BOE packet data
 
 import { toast } from "sonner";
-import * as XLSX from "xlsx";
+import ExcelJS from "exceljs";
 
 export interface ExportableDataset {
   title: string;
@@ -38,32 +38,38 @@ export function exportCSV(dataset: ExportableDataset) {
 /**
  * Export dataset as XLSX (multi-sheet).
  */
-export function exportXLSX(dataset: ExportableDataset) {
-  const wb = XLSX.utils.book_new();
+export async function exportXLSX(dataset: ExportableDataset) {
+  const wb = new ExcelJS.Workbook();
+  wb.creator = "TerraFusion OS";
+  wb.created = new Date();
 
   // Add metadata sheet if present
   if (dataset.metadata) {
-    const metaRows = Object.entries(dataset.metadata).map(([k, v]) => [k, v]);
-    const metaWs = XLSX.utils.aoa_to_sheet([["Property", "Value"], ...metaRows]);
-    XLSX.utils.book_append_sheet(wb, metaWs, "Info");
+    const metaWs = wb.addWorksheet("Info");
+    metaWs.addRow(["Property", "Value"]);
+    for (const [k, v] of Object.entries(dataset.metadata)) {
+      metaWs.addRow([k, v]);
+    }
   }
 
   for (const sheet of dataset.sheets) {
-    const wsData = [sheet.headers, ...sheet.rows];
-    const ws = XLSX.utils.aoa_to_sheet(wsData);
-
+    const ws = wb.addWorksheet(sheet.name.slice(0, 31));
+    ws.addRow(sheet.headers);
+    for (const row of sheet.rows) {
+      ws.addRow(row);
+    }
     // Auto-width columns
-    ws["!cols"] = sheet.headers.map((h, i) => ({
-      wch: Math.max(
-        h.length,
+    ws.columns.forEach((col, i) => {
+      const header = sheet.headers[i] ?? "";
+      const maxLen = Math.max(
+        header.length,
         ...sheet.rows.map(r => String(r[i] ?? "").length)
-      ) + 2,
-    }));
-
-    XLSX.utils.book_append_sheet(wb, ws, sheet.name.slice(0, 31));
+      ) + 2;
+      col.width = maxLen;
+    });
   }
 
-  const buf = XLSX.write(wb, { type: "array", bookType: "xlsx" });
+  const buf = await wb.xlsx.writeBuffer();
   const blob = new Blob([buf], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
   downloadBlob(blob, `${sanitizeFilename(dataset.title)}.xlsx`);
   toast.success("Excel exported", { description: `${dataset.sheets.length} sheet(s)` });

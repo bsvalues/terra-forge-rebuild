@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import Papa from "papaparse";
-import * as XLSX from "xlsx";
+import ExcelJS from "exceljs";
 import { getPACSEnhancedAliases } from "@/config/pacsFieldMappings";
 
 export type IngestStep = "select" | "upload" | "mapping" | "validate" | "preview" | "publish" | "complete";
@@ -170,37 +170,36 @@ export function useIngestPipeline() {
     return new Promise<ParsedFile>((resolve, reject) => {
       if (file.name.endsWith(".xlsx") || file.name.endsWith(".xls")) {
         const reader = new FileReader();
-        reader.onload = (e) => {
+        reader.onload = async (e) => {
           try {
-            const data = new Uint8Array(e.target?.result as ArrayBuffer);
-            const workbook = XLSX.read(data, { type: "array" });
-            const sheetName = workbook.SheetNames[0];
-            if (!sheetName) {
+            const wb = new ExcelJS.Workbook();
+            await wb.xlsx.load(e.target?.result as ArrayBuffer);
+            const sheet = wb.worksheets[0];
+            if (!sheet) {
               reject(new Error("No sheets found in workbook"));
               return;
             }
-            const sheet = workbook.Sheets[sheetName];
-            const jsonData = XLSX.utils.sheet_to_json<Record<string, string>>(sheet, { defval: "" });
-            if (jsonData.length === 0) {
+            const headers: string[] = [];
+            const rows: Record<string, string>[] = [];
+
+            sheet.eachRow((row, rowNumber) => {
+              if (rowNumber === 1) {
+                row.eachCell((cell) => headers.push(String(cell.value ?? "")));
+              } else {
+                const record: Record<string, string> = {};
+                row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
+                  const key = headers[colNumber - 1];
+                  if (key) record[key] = cell.value != null ? String(cell.value) : "";
+                });
+                rows.push(record);
+              }
+            });
+
+            if (rows.length === 0) {
               reject(new Error("No data found in spreadsheet"));
               return;
             }
-            const headers = Object.keys(jsonData[0]);
-            // Convert all values to strings for consistent mapping
-            const rows = jsonData.map(row => {
-              const stringRow: Record<string, string> = {};
-              for (const key of headers) {
-                stringRow[key] = row[key] != null ? String(row[key]) : "";
-              }
-              return stringRow;
-            });
-            resolve({
-              headers,
-              rows,
-              fileName: file.name,
-              fileSize: file.size,
-              rowCount: rows.length,
-            });
+            resolve({ headers, rows, fileName: file.name, fileSize: file.size, rowCount: rows.length });
           } catch (err: any) {
             reject(new Error(`Failed to parse Excel file: ${err.message}`));
           }

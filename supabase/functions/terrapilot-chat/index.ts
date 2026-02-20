@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { requireAuth, createServiceClient } from "../_shared/auth.ts";
+import { safeErrorResponse, aiGatewayErrorResponse } from "../_shared/errors.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -871,19 +872,8 @@ serve(async (req) => {
       });
 
       if (!aiResp.ok) {
-        if (aiResp.status === 429) {
-          return new Response(JSON.stringify({ error: "Rate limit exceeded." }), {
-            status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
-          });
-        }
-        if (aiResp.status === 402) {
-          return new Response(JSON.stringify({ error: "Usage limit reached." }), {
-            status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
-          });
-        }
         const t = await aiResp.text();
-        console.error("AI gateway error:", aiResp.status, t);
-        throw new Error(`AI gateway error: ${aiResp.status}`);
+        return aiGatewayErrorResponse(aiResp.status, "terrapilot-chat", t, corsHeaders);
       }
 
       const data = await aiResp.json();
@@ -965,11 +955,7 @@ serve(async (req) => {
 
     return finalResponse;
   } catch (error) {
-    console.error("TerraPilot error:", error);
-    return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return safeErrorResponse(error, "terrapilot-chat", corsHeaders);
   }
 });
 
