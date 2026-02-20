@@ -30,6 +30,9 @@ import { useState, useRef, useEffect } from "react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useCountyVitals } from "@/hooks/useCountyVitals";
 import { ProvenanceBadge, ProvenanceNumber, ScopeHeader } from "@/components/trust";
+import { DataStatusRibbon } from "./DataStatusRibbon";
+import { NextBestAction } from "./NextBestAction";
+import { usePipelineStatus } from "@/hooks/usePipelineStatus";
 
 interface SuiteHubProps {
   onNavigate: (target: string) => void;
@@ -72,6 +75,7 @@ const SUITE_REGISTRY: SuiteEntry[] = [
 
 export function SuiteHub({ onNavigate, onParcelNavigate }: SuiteHubProps) {
   const { data: vitals, isLoading: vitalsLoading } = useCountyVitals();
+  const { data: pipeline } = usePipelineStatus();
   const [searchValue, setSearchValue] = useState("");
   const [searchFocused, setSearchFocused] = useState(false);
   const debouncedSearch = useDebounce(searchValue, 250);
@@ -116,6 +120,17 @@ export function SuiteHub({ onNavigate, onParcelNavigate }: SuiteHubProps) {
 
   return (
     <div className="p-4 sm:p-6 pb-24 space-y-6 sm:space-y-8 max-w-5xl mx-auto">
+
+      {/* ── Data Status Ribbon ── */}
+      <motion.section
+        initial={{ opacity: 0, y: -8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+        className="space-y-2"
+      >
+        <DataStatusRibbon vitals={vitals} pipeline={pipeline} vitalsLoading={vitalsLoading} />
+        <NextBestAction vitals={vitals} pipeline={pipeline} vitalsLoading={vitalsLoading} onNavigate={onNavigate} />
+      </motion.section>
 
       {/* ── Hero: Workbench Entry ── */}
       <motion.section
