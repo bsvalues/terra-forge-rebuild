@@ -1028,6 +1028,80 @@ export type Database = {
           },
         ]
       }
+      ingest_mapping_profiles: {
+        Row: {
+          county_id: string
+          created_at: string
+          created_by: string
+          dataset_type: string
+          description: string | null
+          id: string
+          is_default: boolean
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          county_id?: string
+          created_at?: string
+          created_by?: string
+          dataset_type: string
+          description?: string | null
+          id?: string
+          is_default?: boolean
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          county_id?: string
+          created_at?: string
+          created_by?: string
+          dataset_type?: string
+          description?: string | null
+          id?: string
+          is_default?: boolean
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      ingest_mapping_rules: {
+        Row: {
+          confidence_override: string | null
+          created_at: string
+          id: string
+          profile_id: string
+          source_header: string
+          target_field: string
+          transform: string | null
+        }
+        Insert: {
+          confidence_override?: string | null
+          created_at?: string
+          id?: string
+          profile_id: string
+          source_header: string
+          target_field: string
+          transform?: string | null
+        }
+        Update: {
+          confidence_override?: string | null
+          created_at?: string
+          id?: string
+          profile_id?: string
+          source_header?: string
+          target_field?: string
+          transform?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ingest_mapping_rules_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "ingest_mapping_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       model_receipts: {
         Row: {
           created_at: string

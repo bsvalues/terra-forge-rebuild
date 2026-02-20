@@ -1,5 +1,6 @@
 import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { autoDetectMapping } from "@/hooks/useMappingProfiles";
 import {
   Dialog,
   DialogContent,
@@ -70,8 +71,12 @@ export function DataImportDialog({
           rowCount: parsed.rows.length,
         });
 
-        // Auto-detect column mappings
-        const autoMapping = autoDetectMappings(parsed.headers, targetSchema);
+        // Auto-detect column mappings using canonical synonym engine
+        const detected = autoDetectMapping(parsed.headers, targetSchema.fields.map(f => f.name));
+        const autoMapping: Record<string, string> = {};
+        for (const [col, entry] of Object.entries(detected)) {
+          autoMapping[col] = entry.target;
+        }
         setColumnMapping(autoMapping);
         setStep("mapping");
       } catch (error) {
@@ -302,6 +307,12 @@ export function DataImportDialog({
                   targetSchema={targetSchema}
                   mapping={columnMapping}
                   onMappingChange={setColumnMapping}
+                  datasetType={targetTable}
+                  onProfileLoaded={(name) => {
+                    import("sonner").then(({ toast }) =>
+                      toast.success(`✅ Mapping applied: ${name}`)
+                    );
+                  }}
                 />
               </motion.div>
             )}
@@ -522,53 +533,4 @@ function parseCSV(text: string): { headers: string[]; rows: Record<string, strin
   return { headers, rows };
 }
 
-function autoDetectMappings(
-  sourceColumns: string[],
-  targetSchema: TargetSchema
-): Record<string, string> {
-  const mapping: Record<string, string> = {};
-  
-  const commonMappings: Record<string, string[]> = {
-    parcel_number: ["parcel_number", "parcel", "parcel_id", "account", "account_number", "prop_id"],
-    address: ["address", "street_address", "situs", "situs_address", "property_address"],
-    city: ["city", "situs_city"],
-    state: ["state", "situs_state"],
-    zip_code: ["zip", "zip_code", "zipcode", "situs_zip", "postal_code"],
-    property_class: ["property_class", "prop_class", "class", "property_type", "use_code"],
-    assessed_value: ["assessed_value", "total_value", "appraised_value", "market_value", "value"],
-    land_value: ["land_value", "land_val", "land"],
-    improvement_value: ["improvement_value", "impr_value", "improvements", "building_value"],
-    land_area: ["land_area", "lot_size", "land_sqft", "acres", "acreage"],
-    building_area: ["building_area", "sqft", "living_area", "gross_area", "building_sqft"],
-    year_built: ["year_built", "yr_built", "built_year", "age"],
-    bedrooms: ["bedrooms", "beds", "bed"],
-    bathrooms: ["bathrooms", "baths", "bath"],
-    sale_date: ["sale_date", "date", "close_date", "recording_date"],
-    sale_price: ["sale_price", "price", "amount", "consideration"],
-    grantor: ["grantor", "seller", "seller_name"],
-    grantee: ["grantee", "buyer", "buyer_name"],
-  };
-
-  sourceColumns.forEach((sourceCol) => {
-    const normalizedSource = sourceCol.toLowerCase().replace(/[^a-z0-9]/g, "_");
-    
-    for (const [targetField, aliases] of Object.entries(commonMappings)) {
-      if (
-        aliases.some(
-          (alias) =>
-            normalizedSource === alias ||
-            normalizedSource.includes(alias) ||
-            alias.includes(normalizedSource)
-        )
-      ) {
-        const targetExists = targetSchema.fields.some((f) => f.name === targetField);
-        if (targetExists) {
-          mapping[sourceCol] = targetField;
-          break;
-        }
-      }
-    }
-  });
-
-  return mapping;
-}
+// autoDetectMappings removed — canonical engine lives in src/hooks/useMappingProfiles.ts
