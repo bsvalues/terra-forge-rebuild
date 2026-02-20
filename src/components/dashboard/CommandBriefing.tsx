@@ -49,22 +49,22 @@ export function CommandBriefing({ onNavigate }: CommandBriefingProps) {
 
   const quickActions = [
     {
-      title: "Equity Analysis",
+      title: "Ratio Studies",
       description: "IAAO ratio studies, COD, PRD & tier analysis",
       icon: Activity,
       color: "from-suite-forge/20 to-suite-forge/5",
       borderColor: "border-suite-forge/30",
       iconColor: "text-suite-forge",
-      target: "workbench:forge",
+      target: "factory:vei",
     },
     {
-      title: "GeoEquity Map",
+      title: "Spatial Analysis",
       description: "Spatial equity heatmaps & neighborhood analysis",
       icon: Globe,
       color: "from-suite-atlas/20 to-suite-atlas/5",
       borderColor: "border-suite-atlas/30",
       iconColor: "text-suite-atlas",
-      target: "workbench:atlas",
+      target: "factory:geoequity",
     },
     {
       title: "Workflows",
@@ -73,7 +73,7 @@ export function CommandBriefing({ onNavigate }: CommandBriefingProps) {
       color: "from-suite-dais/20 to-suite-dais/5",
       borderColor: "border-suite-dais/30",
       iconColor: "text-suite-dais",
-      target: "workbench:dais",
+      target: "workbench:dais:appeals",
     },
     {
       title: "Data Ingest",
@@ -82,7 +82,7 @@ export function CommandBriefing({ onNavigate }: CommandBriefingProps) {
       color: "from-tf-cyan/20 to-tf-bright-cyan/5",
       borderColor: "border-tf-cyan/30",
       iconColor: "text-tf-cyan",
-      target: "ids",
+      target: "home:ids",
     },
   ];
 
@@ -277,7 +277,7 @@ export function CommandBriefing({ onNavigate }: CommandBriefingProps) {
                     </p>
                   </div>
                 </div>
-                <Button onClick={() => onNavigate("ids")} className="bg-tf-cyan hover:bg-tf-cyan/80">
+                <Button onClick={() => onNavigate("home:ids")} className="bg-tf-cyan hover:bg-tf-cyan/80">
                   Open IDS
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
@@ -299,7 +299,7 @@ export function CommandBriefing({ onNavigate }: CommandBriefingProps) {
         {/* Certification Readiness */}
         <Card
           className="bg-card/50 border-border cursor-pointer hover:border-primary/40 transition-colors group"
-          onClick={() => onNavigate("workbench:dais:certification")}
+          onClick={() => onNavigate("home:readiness")}
         >
           <CardContent className="p-5">
             <div className="flex items-center gap-3 mb-4">
@@ -352,7 +352,7 @@ export function CommandBriefing({ onNavigate }: CommandBriefingProps) {
                 {recentJobs.map((job) => (
                   <button
                     key={job.id}
-                    onClick={() => onNavigate(`ids:versions:${job.id}`)}
+                    onClick={() => onNavigate(`home:ids`)}
                     className="w-full flex items-center justify-between p-3 rounded-lg bg-tf-surface/50 hover:bg-tf-surface hover:border-purple-500/30 border border-transparent transition-colors text-left group"
                   >
                     <div>

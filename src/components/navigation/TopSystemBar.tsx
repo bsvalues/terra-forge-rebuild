@@ -1,7 +1,8 @@
+// TerraFusion OS — Top System Bar
+// Constitutional: county meta fetched via useCountyMeta hook only
+
 import { motion } from "framer-motion";
 import { useAuthContext } from "@/contexts/AuthContext";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import {
   User,
   Wifi,
@@ -24,19 +25,8 @@ interface TopSystemBarProps {
 
 export function TopSystemBar({ onOpenCommandPalette, onOpenControlCenter }: TopSystemBarProps) {
   const { profile } = useAuthContext();
-
-  const { data: county } = useQuery({
-    queryKey: ["system-bar-county"],
-    queryFn: async () => {
-      const { data } = await supabase.from("counties").select("name, state").limit(1).maybeSingle();
-      return data;
-    },
-    staleTime: 5 * 60 * 1000,
-  });
-
   const { data: vitals } = useCountyVitals();
   const parcelsCount = vitals?.parcels.total ?? 0;
-
   const isOnline = vitals !== undefined;
   const currentYear = new Date().getFullYear();
 
@@ -58,7 +48,7 @@ export function TopSystemBar({ onOpenCommandPalette, onOpenControlCenter }: TopS
         <span className="text-muted-foreground text-sm hidden sm:inline">TY {currentYear}</span>
       </div>
 
-      {/* Center: Cmd+K hint — hidden on mobile */}
+      {/* Center: Cmd+K hint */}
       <button
         onClick={onOpenCommandPalette}
         className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted/40 hover:bg-muted/60 transition-colors text-muted-foreground hover:text-foreground text-sm"
@@ -71,7 +61,7 @@ export function TopSystemBar({ onOpenCommandPalette, onOpenControlCenter }: TopS
         </kbd>
       </button>
 
-      {/* Mobile: search icon only */}
+      {/* Mobile: search icon */}
       <button
         onClick={onOpenCommandPalette}
         className="sm:hidden p-2 rounded-lg hover:bg-muted/40 transition-colors"
@@ -79,14 +69,12 @@ export function TopSystemBar({ onOpenCommandPalette, onOpenControlCenter }: TopS
         <Command className="w-4 h-4 text-muted-foreground" />
       </button>
 
-      {/* Right: Role + Sync + Control Center + User */}
+      {/* Right */}
       <div className="flex items-center gap-1 sm:gap-2">
-        {/* Role Badge — hidden on mobile */}
         <Badge variant="outline" className="hidden md:inline-flex text-[10px] px-2 py-0.5 border-tf-cyan/30 text-tf-cyan">
           {profile?.display_name || "Analyst"}
         </Badge>
 
-        {/* Sync Status — compact on mobile */}
         <Tooltip>
           <TooltipTrigger asChild>
             <div className="flex items-center gap-1 px-1.5 sm:px-2 py-1 rounded-md">
@@ -107,10 +95,8 @@ export function TopSystemBar({ onOpenCommandPalette, onOpenControlCenter }: TopS
           </TooltipContent>
         </Tooltip>
 
-        {/* Notifications */}
         <NotificationBell />
 
-        {/* Control Center */}
         <Tooltip>
           <TooltipTrigger asChild>
             <Button variant="ghost" size="icon" className="h-7 w-7 sm:h-8 sm:w-8" onClick={onOpenControlCenter}>
@@ -120,7 +106,6 @@ export function TopSystemBar({ onOpenCommandPalette, onOpenControlCenter }: TopS
           <TooltipContent>Control Center</TooltipContent>
         </Tooltip>
 
-        {/* User Avatar */}
         <div className="w-7 h-7 rounded-full bg-gradient-to-br from-tf-cyan to-tf-green flex items-center justify-center">
           <User className="w-3.5 h-3.5 text-tf-substrate" />
         </div>
