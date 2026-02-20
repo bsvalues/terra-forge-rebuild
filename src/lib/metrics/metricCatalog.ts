@@ -27,6 +27,18 @@ export interface MetricExplanation {
   calculation?: string;
   /** Optional: technical term for Trust Mode */
   technicalTerm?: string;
+  /**
+   * Contextual confidence statement (shown when Trust Mode is OFF).
+   * One sentence that tells a beginner how much to trust this number.
+   * E.g. "Confidence: High (based on full parcel coverage and recent refresh)"
+   */
+  confidence?: string;
+  /**
+   * Comma-separated component keys that render this metric.
+   * Used by the Catalog QA tab to show coverage.
+   * E.g. "SuiteHub,FactoryDashboard"
+   */
+  usedIn?: string[];
 }
 
 // ─── Canonical Targets ───────────────────────────────────────────
@@ -60,6 +72,8 @@ export const METRIC_CATALOG: Record<string, MetricExplanation> = {
     soWhat: "This affects readiness because every parcel needs a certified value before the roll closes — if this number is off, your coverage count may be wrong.",
     whereItCameFrom: "Counted directly from your parcels table. Updated every time you import or sync parcel records.",
     whatChangesIt: "Parcel imports, CAMA syncs, new subdivisions, or merges. A sudden drop usually means an import overwrite issue.",
+    confidence: "Confidence: High — this is a direct database count, updated on every import.",
+    usedIn: ["SuiteHub"],
     ifItLooksWrong: [
       { label: "Review last import", target: TARGET.IDS, safe: true },
       { label: "View data quality report", target: TARGET.QUALITY, safe: true },
@@ -78,6 +92,8 @@ export const METRIC_CATALOG: Record<string, MetricExplanation> = {
     soWhat: "This affects model reliability because calibration needs at least 30–50 qualified sales per neighborhood to produce defensible values.",
     whereItCameFrom: "Counted from your sales table. Updated when you import a sales file or sync from your CAMA system.",
     whatChangesIt: "Sales CSV imports, CAMA syncs, or manual entries. Adding a new sales file will increase this count.",
+    confidence: "Confidence: High — direct count from the sales table, refreshed on every sync.",
+    usedIn: ["SuiteHub"],
     ifItLooksWrong: [
       { label: "Import a sales file", target: TARGET.IDS, safe: true },
       { label: "Review data quality", target: TARGET.QUALITY, safe: true },
@@ -95,6 +111,8 @@ export const METRIC_CATALOG: Record<string, MetricExplanation> = {
     soWhat: "This affects your certification rate — every parcel needs an assessment for the current tax year before the roll can close.",
     whereItCameFrom: "Counted from your assessments table. Added when assessments are imported or created during calibration.",
     whatChangesIt: "Assessment imports, valuation model runs that write new values, or direct edits in the workbench.",
+    confidence: "Confidence: High — direct count from assessments table across all years.",
+    usedIn: ["SuiteHub"],
     ifItLooksWrong: [
       { label: "Import assessment data", target: TARGET.IDS, safe: true },
       { label: "Review model runs", target: TARGET.PROOF_VAULT, safe: true },
@@ -111,6 +129,8 @@ export const METRIC_CATALOG: Record<string, MetricExplanation> = {
     soWhat: "This is your go/no-go number — counties cannot close the roll until this reaches 100%, and every day it stays low is a compliance risk.",
     whereItCameFrom: "Calculated from assessments where certified = true, divided by total assessments for the current tax year.",
     whatChangesIt: "Certifying neighborhoods through the Dais workflow. Each certification action updates this number.",
+    confidence: "Confidence: Medium — derived from certified/total ratio; accuracy depends on current-year assessment data being imported.",
+    usedIn: ["SuiteHub"],
     ifItLooksWrong: [
       { label: "Check certification status", target: TARGET.READINESS, safe: true },
       { label: "Review pending certifications", target: TARGET.DAIS, safe: true },
@@ -130,6 +150,8 @@ export const METRIC_CATALOG: Record<string, MetricExplanation> = {
     soWhat: "This affects model reliability and map accuracy — below 80%, valuation results may be unreliable and maps will have visible gaps.",
     whereItCameFrom: "Average of three coverage checks: parcels with coordinates, parcels with a property class, and parcels with a neighborhood code.",
     whatChangesIt: "Importing GIS data, classifying unclassified parcels, or assigning neighborhood codes. Each fix moves this number up.",
+    confidence: "Confidence: High — averaged from three direct coverage checks on the parcels table.",
+    usedIn: ["SuiteHub"],
     ifItLooksWrong: [
       { label: "Fix missing coordinates", target: TARGET.GEOEQUITY, safe: true },
       { label: "Classify unclassified parcels", target: TARGET.QUALITY, safe: true },
@@ -148,6 +170,8 @@ export const METRIC_CATALOG: Record<string, MetricExplanation> = {
     soWhat: "This affects appeals posture — a parcel without coordinates can't be shown on a map, which weakens your defense in any hearing.",
     whereItCameFrom: "Parcels where latitude AND longitude are both filled in, as a percentage of total parcels.",
     whatChangesIt: "Importing a GIS shapefile, running address geocoding, or manually entering coordinates.",
+    confidence: "Confidence: High — calculated directly from the parcels table.",
+    usedIn: ["SuiteHub"],
     ifItLooksWrong: [
       { label: "Import GIS data", target: TARGET.IDS, safe: true },
       { label: "Run spatial analysis", target: TARGET.GEOEQUITY, safe: true },
@@ -165,6 +189,8 @@ export const METRIC_CATALOG: Record<string, MetricExplanation> = {
     soWhat: "This affects valuation accuracy — unclassified parcels use the wrong cost schedule, which directly causes valuation errors and appeal exposure.",
     whereItCameFrom: "Parcels where property_class is filled in, as a percentage of total parcels.",
     whatChangesIt: "Bulk classification from a CAMA export, or manual assignment in the workbench.",
+    confidence: "Confidence: High — direct count from the parcels table.",
+    usedIn: ["SuiteHub"],
     ifItLooksWrong: [
       { label: "Bulk assign from CAMA", target: TARGET.IDS, safe: true },
       { label: "Review unclassified parcels", target: TARGET.QUALITY, safe: true },

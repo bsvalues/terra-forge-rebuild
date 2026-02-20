@@ -4,11 +4,12 @@
 
 import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Shield, BookOpen, History, Search, FlaskConical, Cpu, Filter, X, ShieldCheck } from "lucide-react";
+import { Shield, BookOpen, History, Search, FlaskConical, Cpu, Filter, X, ShieldCheck, CheckCircle2, AlertCircle, Zap } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ScopeHeader } from "./ScopeHeader";
 import { ProvenanceNumber } from "./ProvenanceNumber";
 import { TrustOSHealthPanel } from "./TrustOSHealthPanel";
+import { METRIC_CATALOG, TARGET, getAllMetricKeys } from "@/lib/metrics/metricCatalog";
 import { useCountyVitals } from "@/hooks/useCountyVitals";
 import { useTrustEvents } from "@/hooks/useTrustEvents";
 import { useTrustRuns, useTrustModels } from "@/hooks/useTrustModels";
@@ -17,26 +18,12 @@ interface TrustRegistryPageProps {
   onNavigate?: (target: string) => void;
 }
 
-// ── Data Catalog ─────────────────────────────────────────────────
-const DATA_CATALOG = [
-  { field: "parcels.total", definition: "count(*) from parcels table", source: "get_county_vitals() RPC", updateTrigger: "Any parcel insert/delete" },
-  { field: "parcels.withCoords", definition: "Parcels where latitude IS NOT NULL", source: "get_county_vitals() RPC", updateTrigger: "Parcel geocoding / import" },
-  { field: "parcels.withClass", definition: "Parcels where property_class IS NOT NULL", source: "get_county_vitals() RPC", updateTrigger: "Parcel classification / import" },
-  { field: "parcels.withNeighborhood", definition: "Parcels where neighborhood_code IS NOT NULL", source: "get_county_vitals() RPC", updateTrigger: "Neighborhood assignment" },
-  { field: "sales.total", definition: "count(*) from sales table", source: "get_county_vitals() RPC", updateTrigger: "Sale record insert" },
-  { field: "assessments.total", definition: "count(*) from assessments table (all years)", source: "get_county_vitals() RPC", updateTrigger: "Assessment upsert" },
-  { field: "assessments.certified", definition: "Assessments where certified = true", source: "get_county_vitals() RPC", updateTrigger: "Certification action" },
-  { field: "assessments.certRate", definition: "certified / total × 100 (client-derived in useCountyVitals only)", source: "useCountyVitals hook", updateTrigger: "Derived from certified + total" },
-  { field: "workflows.pendingAppeals", definition: "Appeals where status IN ('filed','pending','scheduled')", source: "get_county_vitals() RPC", updateTrigger: "Appeal status change" },
-  { field: "workflows.openPermits", definition: "Permits where status IN ('applied','pending','issued')", source: "get_county_vitals() RPC", updateTrigger: "Permit status change" },
-  { field: "workflows.pendingExemptions", definition: "Exemptions where status = 'pending'", source: "get_county_vitals() RPC", updateTrigger: "Exemption decision" },
-  { field: "quality.coords", definition: "Round(withCoords / total × 100) — computed only in useCountyVitals", source: "useCountyVitals hook", updateTrigger: "Derived from parcel counts" },
-  { field: "quality.propertyClass", definition: "Round(withClass / total × 100) — computed only in useCountyVitals", source: "useCountyVitals hook", updateTrigger: "Derived from parcel counts" },
-  { field: "quality.neighborhood", definition: "Round(withNeighborhood / total × 100) — computed only in useCountyVitals", source: "useCountyVitals hook", updateTrigger: "Derived from parcel counts" },
-  { field: "quality.overall", definition: "Average of coords%, class%, neighborhood% — computed only in useCountyVitals", source: "useCountyVitals hook", updateTrigger: "Derived from quality fields" },
-  { field: "calibration.runCount", definition: "count(*) from calibration_runs", source: "get_county_vitals() RPC", updateTrigger: "Calibration save" },
-  { field: "calibration.avgRSquared", definition: "Mean R² across most-recent run per neighborhood — computed only in useCountyVitals", source: "useCountyVitals hook", updateTrigger: "Derived from calibration detail" },
-];
+// ── Canonical IA targets for target validation ────────────────────
+const VALID_TARGETS = new Set(Object.values(TARGET));
+
+function isValidTarget(t: string) {
+  return VALID_TARGETS.has(t as typeof TARGET[keyof typeof TARGET]) || t.startsWith("workbench") || t.startsWith("factory") || t.startsWith("home") || t.startsWith("registry");
+}
 
 type TabId = "changes" | "runs" | "models" | "catalog" | "health";
 
@@ -118,10 +105,14 @@ export function TrustRegistryPage({ onNavigate }: TrustRegistryPageProps) {
     });
   }, [models, cutoff, searchTerm]);
 
-  const filteredCatalog = DATA_CATALOG.filter(
-    d => d.field.toLowerCase().includes(searchTerm.toLowerCase()) ||
-         d.definition.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const allMetricKeys = getAllMetricKeys();
+  const filteredCatalog = allMetricKeys
+    .map(key => ({ key, entry: METRIC_CATALOG[key] }))
+    .filter(({ key, entry }) => {
+      const term = searchTerm.toLowerCase();
+      return !term || key.toLowerCase().includes(term) || entry.label.toLowerCase().includes(term) || entry.whatItMeans.toLowerCase().includes(term);
+    });
+  const catalogCoverage = { total: allMetricKeys.length, withConfidence: allMetricKeys.filter(k => !!METRIC_CATALOG[k].confidence).length, withUsedIn: allMetricKeys.filter(k => !!(METRIC_CATALOG[k].usedIn?.length)).length };
 
   // Unique modules for filter
   const uniqueModules = useMemo(() => {
@@ -408,9 +399,29 @@ export function TrustRegistryPage({ onNavigate }: TrustRegistryPageProps) {
         </motion.div>
       )}
 
-      {/* ── Data Catalog Tab ── */}
+
+
+      {/* ── Data Catalog QA Tab ── */}
       {activeTab === "catalog" && (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-3">
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
+          {/* Coverage summary */}
+          <div className="grid grid-cols-3 gap-3">
+            {[
+              { label: "Catalog entries", value: catalogCoverage.total, icon: BookOpen, ok: true },
+              { label: "With confidence", value: catalogCoverage.withConfidence, icon: CheckCircle2, ok: catalogCoverage.withConfidence === catalogCoverage.total },
+              { label: "With component map", value: catalogCoverage.withUsedIn, icon: Zap, ok: catalogCoverage.withUsedIn === catalogCoverage.total },
+            ].map(stat => (
+              <div key={stat.label} className={`flex items-center gap-3 px-4 py-3 rounded-lg border ${stat.ok ? "border-border/40 bg-muted/20" : "border-[hsl(var(--tf-sacred-gold)/0.3)] bg-[hsl(var(--tf-sacred-gold)/0.05)]"}`}>
+                <stat.icon className={`w-4 h-4 shrink-0 ${stat.ok ? "text-[hsl(var(--tf-optimized-green))]" : "text-[hsl(var(--tf-sacred-gold))]"}`} />
+                <div>
+                  <p className="text-lg font-semibold text-foreground leading-none">{stat.value}</p>
+                  <p className="text-[10px] text-muted-foreground mt-0.5">{stat.label}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Search */}
           <div className="flex items-center gap-3">
             <div className="relative flex-1 max-w-sm">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
@@ -418,38 +429,72 @@ export function TrustRegistryPage({ onNavigate }: TrustRegistryPageProps) {
                 type="text"
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
-                placeholder="Filter definitions…"
+                placeholder="Search metric keys, labels, or definitions…"
                 className="w-full h-9 pl-9 pr-3 rounded-lg bg-muted/30 border border-border/50 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/50"
               />
             </div>
             <span className="text-xs text-muted-foreground">
-              <ProvenanceNumber source="county-vitals" fetchedAt={vitals?.fetchedAt}>
-                {filteredCatalog.length} definitions
+              <ProvenanceNumber source="metric-catalog" fetchedAt={vitals?.fetchedAt}>
+                {filteredCatalog.length} of {catalogCoverage.total} entries
               </ProvenanceNumber>
             </span>
           </div>
 
+          {/* Table */}
           <div className="border border-border rounded-lg overflow-hidden">
             <table className="w-full text-xs">
               <thead>
                 <tr className="border-b border-border bg-muted/30">
-                  <th className="text-left px-3 py-2 font-medium text-muted-foreground">Field</th>
-                  <th className="text-left px-3 py-2 font-medium text-muted-foreground">Definition</th>
+                  <th className="text-left px-3 py-2 font-medium text-muted-foreground">Metric Key</th>
+                  <th className="text-left px-3 py-2 font-medium text-muted-foreground">Label</th>
                   <th className="text-left px-3 py-2 font-medium text-muted-foreground">Source</th>
-                  <th className="text-left px-3 py-2 font-medium text-muted-foreground">Triggers Update</th>
+                  <th className="text-left px-3 py-2 font-medium text-muted-foreground">Confidence</th>
+                  <th className="text-left px-3 py-2 font-medium text-muted-foreground">Used In</th>
+                  <th className="text-left px-3 py-2 font-medium text-muted-foreground">Targets OK</th>
                 </tr>
               </thead>
               <tbody>
-                {filteredCatalog.map(d => (
-                  <tr key={d.field} className="border-b border-border/50 hover:bg-muted/20 transition-colors">
-                    <td className="px-3 py-2 font-mono font-medium text-foreground whitespace-nowrap">{d.field}</td>
-                    <td className="px-3 py-2 text-muted-foreground">{d.definition}</td>
-                    <td className="px-3 py-2">
-                      <Badge variant="outline" className="text-[9px] py-0">{d.source}</Badge>
-                    </td>
-                    <td className="px-3 py-2 text-muted-foreground">{d.updateTrigger}</td>
-                  </tr>
-                ))}
+                {filteredCatalog.map(({ key, entry }) => {
+                  const allTargets = [
+                    ...entry.ifItLooksWrong.map(a => a.target),
+                    ...(entry.proofLinks?.map(p => p.target) ?? []),
+                  ];
+                  const badTargets = allTargets.filter(t => !isValidTarget(t));
+                  return (
+                    <tr key={key} className="border-b border-border/50 hover:bg-muted/20 transition-colors">
+                      <td className="px-3 py-2 font-mono font-medium text-foreground whitespace-nowrap">{key}</td>
+                      <td className="px-3 py-2 text-muted-foreground">{entry.label}</td>
+                      <td className="px-3 py-2 text-muted-foreground text-[10px] max-w-32 truncate">{entry.whereItCameFrom.slice(0, 60)}</td>
+                      <td className="px-3 py-2">
+                        {entry.confidence ? (
+                          <span title={entry.confidence}><CheckCircle2 className="w-3.5 h-3.5 text-[hsl(var(--tf-optimized-green))]" /></span>
+                        ) : (
+                          <span title="No confidence statement"><AlertCircle className="w-3.5 h-3.5 text-[hsl(var(--tf-sacred-gold))]" /></span>
+                        )}
+                      </td>
+                      <td className="px-3 py-2">
+                        {entry.usedIn?.length ? (
+                          <div className="flex flex-wrap gap-0.5">
+                            {entry.usedIn.map(c => (
+                              <Badge key={c} variant="outline" className="text-[9px] py-0">{c}</Badge>
+                            ))}
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground/40 text-[10px]">—</span>
+                        )}
+                      </td>
+                      <td className="px-3 py-2">
+                        {badTargets.length === 0 ? (
+                          <CheckCircle2 className="w-3.5 h-3.5 text-[hsl(var(--tf-optimized-green))]" />
+                        ) : (
+                          <span className="text-[10px] text-[hsl(var(--tf-alert-red))]" title={`Bad targets: ${badTargets.join(", ")}`}>
+                            {badTargets.length} bad
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
