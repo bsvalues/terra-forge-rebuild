@@ -229,7 +229,7 @@ export function SuiteHub({ onNavigate, onParcelNavigate }: SuiteHubProps) {
       >
         {/* Data Quality */}
         <button
-          onClick={() => onNavigate("ids:quality")}
+          onClick={() => onNavigate("home:quality")}
           className="material-bento p-5 text-left group"
         >
           <div className="flex items-center gap-3 mb-3">
@@ -366,7 +366,7 @@ export function SuiteHub({ onNavigate, onParcelNavigate }: SuiteHubProps) {
               Recent Ingests
             </h3>
             <button
-              onClick={() => onNavigate("ids:versions")}
+              onClick={() => onNavigate("home:ids")}
               className="text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
             >
               View all <ArrowRight className="w-3 h-3" />

@@ -1,3 +1,6 @@
+// TerraFusion OS — Global Command Palette
+// Constitutional: parcel search via useParcelLookup hook only (no direct supabase calls)
+
 import { useEffect, useState, useCallback } from "react";
 import {
   CommandDialog,
@@ -10,8 +13,8 @@ import {
 } from "@/components/ui/command";
 import { Search } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { supabase } from "@/integrations/supabase/client";
 import { IA_MODULES, type PrimaryModuleId } from "@/config/IA_MAP";
+import { useParcelLookup } from "@/hooks/useParcelLookup";
 
 interface GlobalCommandPaletteProps {
   open: boolean;
@@ -28,27 +31,8 @@ export function GlobalCommandPalette({
   onModuleChange,
   onNavigateToParcel,
 }: GlobalCommandPaletteProps) {
-  const [parcelResults, setParcelResults] = useState<any[]>([]);
   const [searchValue, setSearchValue] = useState("");
-
-  // Parcel search
-  useEffect(() => {
-    if (searchValue.length < 2) {
-      setParcelResults([]);
-      return;
-    }
-
-    const timer = setTimeout(async () => {
-      const { data } = await supabase
-        .from("parcels")
-        .select("id, parcel_number, address, assessed_value")
-        .or(`parcel_number.ilike.%${searchValue}%,address.ilike.%${searchValue}%`)
-        .limit(8);
-      setParcelResults(data || []);
-    }, 300);
-
-    return () => clearTimeout(timer);
-  }, [searchValue]);
+  const parcelResults = useParcelLookup(open ? searchValue : "");
 
   // Keyboard shortcuts for module switching (⌘1–4)
   useEffect(() => {
@@ -71,6 +55,11 @@ export function GlobalCommandPalette({
     return () => document.removeEventListener("keydown", down);
   }, [open, onOpenChange, onModuleChange]);
 
+  // Reset search on close
+  useEffect(() => {
+    if (!open) setSearchValue("");
+  }, [open]);
+
   const handleSelectModule = useCallback(
     (id: string) => {
       onModuleChange(id);
@@ -80,7 +69,7 @@ export function GlobalCommandPalette({
   );
 
   const handleSelectParcel = useCallback(
-    (parcel: any) => {
+    (parcel: { id: string; parcel_number: string; address: string; assessed_value: number }) => {
       onNavigateToParcel?.({
         id: parcel.id,
         parcelNumber: parcel.parcel_number,
@@ -110,7 +99,7 @@ export function GlobalCommandPalette({
                 <CommandItem
                   key={p.id}
                   value={`parcel ${p.parcel_number} ${p.address}`}
-                  onSelect={() => handleSelectParcel(p)}
+                  onSelect={() => handleSelectParcel(p as any)}
                   className="flex items-center gap-3"
                 >
                   <Search className="w-4 h-4 text-tf-cyan" />
@@ -170,10 +159,7 @@ export function GlobalCommandPalette({
                   <CommandItem
                     key={view.id}
                     value={`view ${view.label}`}
-                    onSelect={() => {
-                      // Navigate to module:view
-                      handleSelectModule(`${activeModule}:${view.id}`);
-                    }}
+                    onSelect={() => handleSelectModule(`${activeModule}:${view.id}`)}
                     className="flex items-center gap-3"
                   >
                     <Icon className="w-4 h-4 text-muted-foreground" />

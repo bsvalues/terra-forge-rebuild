@@ -80,30 +80,65 @@ export function AppLayout({ initialParcel: routeParcel, initialModule, initialFa
   const [controlCenterOpen, setControlCenterOpen] = useState(false);
 
   const handleNavigate = useCallback((target: string) => {
-    // Handle "module:view" format
     if (target.includes(":")) {
       const parts = target.split(":");
       const firstPart = parts[0];
 
-      // Legacy deep-link: "workbench:tab:subtab"
+      // workbench:tab:subtab deep-link
       if (firstPart === "workbench") {
-        setPendingTab(parts[1]);
-        setPendingSubTab(parts[2] ?? null);
+        // If second part is a workbench suite tab (forge/atlas/dais/dossier/pilot)
+        // route to property view with pending tab
+        const suiteTab = parts[1];
+        if (["forge", "atlas", "dais", "dossier", "pilot"].includes(suiteTab)) {
+          setPendingTab(suiteTab);
+          setPendingSubTab(parts[2] ?? null);
+          setActiveModule("workbench");
+          setActiveView("property");
+          return;
+        }
+        // workbench:field
+        if (suiteTab === "field") {
+          setActiveModule("workbench");
+          setActiveView("field");
+          return;
+        }
+        // workbench:property
         setActiveModule("workbench");
         setActiveView("property");
         return;
       }
 
-      // Legacy deep-link: "ids:pillar:jobId"
+      // home:view deep-link
+      if (firstPart === "home") {
+        setActiveModule("home");
+        setActiveView(parts[1] || null);
+        return;
+      }
+
+      // ids:pillar:jobId (legacy — redirect to home:ids)
       if (firstPart === "ids") {
-        setPendingIdsPillar(parts[1]);
+        setPendingIdsPillar(parts[1] ?? null);
         setPendingIdsJobId(parts[2] ?? null);
         setActiveModule("home");
         setActiveView("ids");
         return;
       }
 
-      // New format: "module:view"
+      // factory:view
+      if (firstPart === "factory") {
+        setActiveModule("factory");
+        setActiveView(parts[1] || null);
+        return;
+      }
+
+      // registry:view
+      if (firstPart === "registry") {
+        setActiveModule("registry");
+        setActiveView(parts[1] || null);
+        return;
+      }
+
+      // Legacy compound format — resolve through IA_MAP
       const resolved = resolveLegacyId(firstPart);
       if (resolved) {
         setActiveModule(resolved.module);
@@ -115,7 +150,7 @@ export function AppLayout({ initialParcel: routeParcel, initialModule, initialFa
       return;
     }
 
-    // Legacy module IDs → resolve through IA_MAP
+    // Simple targets — resolve through IA_MAP
     const resolved = resolveLegacyId(target);
     if (resolved) {
       setActiveModule(resolved.module);
@@ -126,7 +161,6 @@ export function AppLayout({ initialParcel: routeParcel, initialModule, initialFa
     }
   }, []);
 
-  // Dock click: just switch module, reset view
   const handleModuleChange = useCallback((moduleId: string) => {
     if (moduleId.includes(":")) {
       handleNavigate(moduleId);
@@ -153,6 +187,7 @@ export function AppLayout({ initialParcel: routeParcel, initialModule, initialFa
     const view = activeView;
 
     switch (activeModule) {
+      // ── HOME: County Cockpit ──────────────────────────────────
       case "home":
         switch (view) {
           case "ids":
@@ -183,9 +218,11 @@ export function AppLayout({ initialParcel: routeParcel, initialModule, initialFa
               </div>
             );
           default:
+            // "dashboard" or null → SuiteHub (county cockpit)
             return <SuiteHub onNavigate={handleNavigate} onParcelNavigate={handleParcelNavigate} />;
         }
 
+      // ── WORKBENCH: Parcel 360 ────────────────────────────────
       case "workbench":
         if (view === "field") {
           return <FieldStudioDashboard />;
@@ -201,6 +238,7 @@ export function AppLayout({ initialParcel: routeParcel, initialModule, initialFa
           />
         );
 
+      // ── FACTORY: Mass Appraisal ──────────────────────────────
       case "factory":
         switch (view) {
           case "vei":
@@ -218,9 +256,11 @@ export function AppLayout({ initialParcel: routeParcel, initialModule, initialFa
           case "analytics":
             return <AnalyticsDashboard />;
           default:
+            // "calibration" or null → FactoryLayout
             return <FactoryLayout initialMode={initialFactoryMode} />;
         }
 
+      // ── REGISTRY: Governance Spine ───────────────────────────
       case "registry":
         return (
           <div className="p-0">
