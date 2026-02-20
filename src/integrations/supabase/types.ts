@@ -50,6 +50,13 @@ export type Database = {
             referencedRelation: "appeals"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "appeal_status_changes_appeal_id_fkey"
+            columns: ["appeal_id"]
+            isOneToOne: false
+            referencedRelation: "appeals_sanitized"
+            referencedColumns: ["id"]
+          },
         ]
       }
       appeals: {
@@ -1890,7 +1897,85 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      appeals_sanitized: {
+        Row: {
+          appeal_date: string | null
+          county_id: string | null
+          created_at: string | null
+          final_value: number | null
+          hearing_date: string | null
+          id: string | null
+          notes: string | null
+          original_value: number | null
+          parcel_id: string | null
+          requested_value: number | null
+          resolution_date: string | null
+          resolution_type: string | null
+          status: string | null
+          study_period_id: string | null
+          tax_year: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          appeal_date?: string | null
+          county_id?: string | null
+          created_at?: string | null
+          final_value?: number | null
+          hearing_date?: string | null
+          id?: string | null
+          notes?: string | null
+          original_value?: number | null
+          parcel_id?: string | null
+          requested_value?: number | null
+          resolution_date?: string | null
+          resolution_type?: string | null
+          status?: string | null
+          study_period_id?: string | null
+          tax_year?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          appeal_date?: string | null
+          county_id?: string | null
+          created_at?: string | null
+          final_value?: number | null
+          hearing_date?: string | null
+          id?: string | null
+          notes?: string | null
+          original_value?: number | null
+          parcel_id?: string | null
+          requested_value?: number | null
+          resolution_date?: string | null
+          resolution_type?: string | null
+          status?: string | null
+          study_period_id?: string | null
+          tax_year?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appeals_county_id_fkey"
+            columns: ["county_id"]
+            isOneToOne: false
+            referencedRelation: "counties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appeals_parcel_id_fkey"
+            columns: ["parcel_id"]
+            isOneToOne: false
+            referencedRelation: "parcels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appeals_study_period_id_fkey"
+            columns: ["study_period_id"]
+            isOneToOne: false
+            referencedRelation: "study_periods"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       compute_ratio_statistics:
