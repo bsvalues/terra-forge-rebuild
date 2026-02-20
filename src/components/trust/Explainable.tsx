@@ -28,6 +28,11 @@ interface ExplainableProps {
   override?: Partial<MetricExplanation>;
   /** Canonical navigate handler */
   onNavigate?: (target: string) => void;
+  /**
+   * Called when the user clicks "Ask Why" — receives a pre-filled prompt.
+   * Wire this to TerraPilot's input setter.
+   */
+  onAskWhy?: (prompt: string) => void;
   /** The metric display (number, badge, tile, etc.) */
   children: React.ReactNode;
   className?: string;
@@ -44,6 +49,7 @@ export function Explainable({
   lastChangeLabel,
   override,
   onNavigate,
+  onAskWhy,
   children,
   className,
 }: ExplainableProps) {
@@ -55,6 +61,7 @@ export function Explainable({
       lastChangeLabel={lastChangeLabel}
       override={override}
       onNavigate={onNavigate}
+      onAskWhy={onAskWhy}
       className={className}
     >
       {children}

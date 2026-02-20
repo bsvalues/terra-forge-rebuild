@@ -13,7 +13,7 @@ import {
   Info, X, Database, Clock, AlertTriangle, ArrowRight,
   CheckCircle2, TrendingUp, BookOpen, Zap, ChevronLeft,
   ChevronRight, Shield, ExternalLink, Eye, Activity,
-  ChevronDown, ChevronUp, FlaskConical,
+  ChevronDown, ChevronUp, FlaskConical, MessageSquare, BarChart2,
 } from "lucide-react";
 import { formatDistanceToNow, format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -35,6 +35,11 @@ interface ExplainThisPanelProps {
   lastChangeLabel?: string | null;
   override?: Partial<MetricExplanation>;
   onNavigate?: (target: string) => void;
+  /**
+   * Called when the user clicks "Ask Why" — receives a pre-filled prompt string
+   * that the caller should inject into TerraPilot.
+   */
+  onAskWhy?: (prompt: string) => void;
   className?: string;
   children?: React.ReactNode;
 }
@@ -48,6 +53,7 @@ export function ExplainThisPanel({
   lastChangeLabel,
   override,
   onNavigate,
+  onAskWhy,
   className,
   children,
 }: ExplainThisPanelProps) {
@@ -291,7 +297,41 @@ export function ExplainThisPanel({
                   </Section>
                 )}
 
+                {/* Confidence (only shown when Trust Mode is OFF) */}
+                {merged.confidence && !trustMode && (
+                  <div className="flex items-start gap-2 px-3 py-2 rounded-lg bg-[hsl(var(--tf-optimized-green)/0.06)] border border-[hsl(var(--tf-optimized-green)/0.2)]">
+                    <BarChart2 className="w-3.5 h-3.5 text-[hsl(var(--tf-optimized-green))] shrink-0 mt-0.5" />
+                    <p className="text-[11px] text-muted-foreground leading-relaxed">{merged.confidence}</p>
+                  </div>
+                )}
+
+                {/* Ask Why — pre-fills TerraPilot with metric context */}
+                {onAskWhy && (
+                  <div className="border-t border-border/30 pt-3">
+                    <button
+                      onClick={() => {
+                        const prompt = lastChangeLabel
+                          ? `Why did "${merged.label}" change? Last change: ${lastChangeLabel}. Metric key: ${activeKey}.`
+                          : `Explain why "${merged.label}" is at its current value and what I should do next. Metric key: ${activeKey}.`;
+                        onAskWhy(prompt);
+                        setOpen(false);
+                      }}
+                      className="w-full flex items-center gap-2 px-3 py-2 rounded-lg bg-[hsl(var(--tf-transcend-cyan)/0.06)] hover:bg-[hsl(var(--tf-transcend-cyan)/0.12)] border border-[hsl(var(--tf-transcend-cyan)/0.2)] hover:border-[hsl(var(--tf-transcend-cyan)/0.4)] transition-all text-left group"
+                    >
+                      <MessageSquare className="w-3.5 h-3.5 text-tf-cyan shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <span className="text-xs text-tf-cyan font-medium">Ask Why in TerraPilot</span>
+                        <p className="text-[10px] text-muted-foreground/60 mt-0.5">
+                          Opens a pre-filled conversation with full context attached
+                        </p>
+                      </div>
+                      <ArrowRight className="w-3 h-3 text-tf-cyan/50 group-hover:text-tf-cyan transition-colors shrink-0" />
+                    </button>
+                  </div>
+                )}
+
                 {/* Go deeper — collapsed by default */}
+
                 <div className="border-t border-border/30 pt-3">
                   <button
                     onClick={() => setDeeperOpen(v => !v)}
