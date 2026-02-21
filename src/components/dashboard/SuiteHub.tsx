@@ -27,6 +27,7 @@ import { AuditTimelineSparkline } from "./AuditTimelineSparkline";
 import { SmartQuickActions } from "./SmartQuickActions";
 import { LearningMilestones } from "./LearningMilestones";
 import { DataPipelineLedger } from "./DataPipelineLedger";
+import { CountyTimeline } from "./CountyTimeline";
 import { useState, useRef, useEffect } from "react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useCountyVitals } from "@/hooks/useCountyVitals";
@@ -343,11 +344,22 @@ export function SuiteHub({ onNavigate, onParcelNavigate }: SuiteHubProps) {
         <DataPipelineLedger onNavigate={onNavigate} />
       </motion.section>
 
+      {/* ── County Twin Timeline ── */}
+      <motion.section
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.27, duration: 0.35 }}
+      >
+        <div className="material-bento p-5">
+          <CountyTimeline onNavigate={onNavigate} maxHeight="400px" />
+        </div>
+      </motion.section>
+
       {/* ── Audit Timeline ── */}
       <motion.section
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.28, duration: 0.35 }}
+        transition={{ delay: 0.3, duration: 0.35 }}
       >
         <AuditTimelineSparkline />
       </motion.section>

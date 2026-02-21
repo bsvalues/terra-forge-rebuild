@@ -2203,6 +2203,17 @@ export type Database = {
               tier_slope: number
             }[]
           }
+      get_county_timeline: {
+        Args: {
+          p_from?: string
+          p_limit?: number
+          p_offset?: number
+          p_search?: string
+          p_to?: string
+          p_types?: string[]
+        }
+        Returns: Json
+      }
       get_county_vitals: { Args: never; Returns: Json }
       get_mission_counts: { Args: never; Returns: Json }
       get_mission_preview: {
