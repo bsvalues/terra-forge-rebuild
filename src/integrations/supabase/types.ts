@@ -2148,6 +2148,7 @@ export type Database = {
             }[]
           }
       get_county_vitals: { Args: never; Returns: Json }
+      get_mission_counts: { Args: never; Returns: Json }
       get_pipeline_status: { Args: { p_county_id?: string }; Returns: Json }
       get_user_county_id: { Args: never; Returns: string }
       has_role: {
