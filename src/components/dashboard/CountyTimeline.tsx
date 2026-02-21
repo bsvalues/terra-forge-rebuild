@@ -28,6 +28,7 @@ import { cn } from "@/lib/utils";
 import { useCountyTimeline, type TimelineEvent, type TimelineRange } from "@/hooks/useCountyTimeline";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useTodaySummary } from "@/hooks/useCountyVitalsToday";
+import { getMission } from "@/lib/missionConstitution";
 
 const RANGE_OPTIONS: { id: TimelineRange; label: string }[] = [
   { id: "1h", label: "1h" },
@@ -126,35 +127,36 @@ export function CountyTimeline({ onNavigate, maxHeight = "500px", compact = fals
     setRange("24h");
   };
 
-  // Deep navigation from timeline event links
+  // Deep navigation from timeline event links — kernel-legal targets only
   const handleEventNavigate = (key: string, value: string | null) => {
     if (!value || !onNavigate) return;
     switch (key) {
       case "mission_id":
-        // Mission preview — navigate to home missions area
         onNavigate("home:dashboard");
         break;
       case "parcel_id":
-        // Open parcel in workbench
         onNavigate("workbench:property");
         break;
       case "ingest_job_id":
-        // Open IDS with the specific job highlighted
-        onNavigate(`ids:ingest:${value}`);
+        onNavigate("home:ids");
         break;
       case "run_id":
       case "receipt_id":
       case "trace_id":
-        // Open registry changes view
         onNavigate("registry:trust");
         break;
       case "neighborhood":
-        // Open factory calibration for the neighborhood
         onNavigate("factory:calibration");
         break;
       default:
         break;
     }
+  };
+
+  // Causal chain: filter timeline by a related key
+  const handleCausalFilter = (key: string, value: string) => {
+    setSearchInput(value.slice(0, 12));
+    setRange("24h");
   };
 
   // Group events by date
@@ -367,7 +369,12 @@ export function CountyTimeline({ onNavigate, maxHeight = "500px", compact = fals
       <Sheet open={!!selectedEvent} onOpenChange={() => setSelectedEvent(null)}>
         <SheetContent className="w-[400px] sm:max-w-[400px]">
           {selectedEvent && (
-            <EventDetail event={selectedEvent} onNavigate={onNavigate} onClose={() => setSelectedEvent(null)} />
+            <EventDetail
+              event={selectedEvent}
+              onNavigate={onNavigate}
+              onClose={() => setSelectedEvent(null)}
+              onCausalFilter={handleCausalFilter}
+            />
           )}
         </SheetContent>
       </Sheet>
@@ -381,12 +388,24 @@ function EventDetail({
   event,
   onNavigate,
   onClose,
+  onCausalFilter,
 }: {
   event: TimelineEvent;
   onNavigate?: (target: string) => void;
   onClose: () => void;
+  onCausalFilter?: (key: string, value: string) => void;
 }) {
   const Icon = EVENT_ICONS[event.event_type] || Activity;
+
+  // Resolve human title from Mission Constitution when available
+  const missionId = event.links?.mission_id;
+  const missionDef = missionId ? getMission(missionId) : undefined;
+  const displayTitle = missionDef?.title ?? event.title;
+
+  // Collect causal chain keys (any non-null link values)
+  const causalKeys = event.links
+    ? Object.entries(event.links).filter(([, v]) => v)
+    : [];
 
   return (
     <>
@@ -396,7 +415,7 @@ function EventDetail({
             <Icon className={cn("w-5 h-5", EVENT_COLORS[event.event_type])} />
           </div>
           <div>
-            <SheetTitle className="text-base">{event.title}</SheetTitle>
+            <SheetTitle className="text-base">{displayTitle}</SheetTitle>
             <p className="text-xs text-muted-foreground mt-0.5">{event.summary}</p>
           </div>
         </div>
@@ -415,6 +434,38 @@ function EventDetail({
           />
         </div>
 
+        {/* Causal Chain */}
+        {causalKeys.length > 0 && onCausalFilter && (
+          <div>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Causal Chain</p>
+            <div className="flex gap-1 flex-wrap">
+              <button
+                onClick={() => {
+                  onCausalFilter("time", event.event_time);
+                  onClose();
+                }}
+                className="flex items-center gap-1 px-2 py-1 rounded text-[10px] bg-muted/40 hover:bg-primary/10 text-foreground hover:text-primary transition-all"
+              >
+                <Clock className="w-2.5 h-2.5" />
+                ±10 min window
+              </button>
+              {causalKeys.map(([key, val]) => (
+                <button
+                  key={key}
+                  onClick={() => {
+                    onCausalFilter(key, String(val));
+                    onClose();
+                  }}
+                  className="flex items-center gap-1 px-2 py-1 rounded text-[10px] bg-muted/40 hover:bg-primary/10 text-foreground hover:text-primary transition-all"
+                >
+                  <Filter className="w-2.5 h-2.5" />
+                  Related {LINK_LABELS[key] ?? key.replace(/_/g, " ")}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Sources */}
         {event.sources.length > 0 && (
           <div>
@@ -429,30 +480,19 @@ function EventDetail({
           </div>
         )}
 
-        {/* Links */}
-        {event.links && Object.values(event.links).some(Boolean) && (
+        {/* Links — kernel-legal navigation */}
+        {causalKeys.length > 0 && (
           <div>
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Links</p>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Navigate</p>
             <div className="space-y-1">
-              {Object.entries(event.links)
-                .filter(([, v]) => v)
-                .map(([key, val]) => (
+              {causalKeys.map(([key, val]) => {
+                const navTarget = LINK_NAV_TARGETS[key];
+                if (!navTarget || !onNavigate) return null;
+                return (
                   <button
                     key={key}
                     onClick={() => {
-                      onNavigate?.(""); // trigger close-on-navigate
-                      // Deep navigation based on link type
-                      if (key === "mission_id" && onNavigate) {
-                        onNavigate("home:dashboard");
-                      } else if (key === "parcel_id" && onNavigate) {
-                        onNavigate("workbench:property");
-                      } else if (key === "ingest_job_id" && onNavigate) {
-                        onNavigate(`ids:ingest:${val}`);
-                      } else if ((key === "receipt_id" || key === "trace_id" || key === "run_id") && onNavigate) {
-                        onNavigate("registry:trust");
-                      } else if (key === "neighborhood" && onNavigate) {
-                        onNavigate("factory:calibration");
-                      }
+                      onNavigate(navTarget);
                       onClose();
                     }}
                     className="flex items-center gap-2 text-xs text-primary hover:underline"
@@ -460,7 +500,8 @@ function EventDetail({
                     <ExternalLink className="w-3 h-3" />
                     <span>{LINK_LABELS[key] ?? key.replace(/_/g, " ")}: {typeof val === "string" ? val.slice(0, 16) + "…" : String(val)}</span>
                   </button>
-                ))}
+                );
+              })}
             </div>
           </div>
         )}
@@ -478,6 +519,18 @@ function EventDetail({
     </>
   );
 }
+
+// Kernel-legal navigation targets for link types
+const LINK_NAV_TARGETS: Record<string, string> = {
+  mission_id: "home:dashboard",
+  parcel_id: "workbench:property",
+  ingest_job_id: "home:ids",
+  receipt_id: "registry:trust",
+  trace_id: "registry:trust",
+  run_id: "registry:trust",
+  neighborhood: "factory:calibration",
+  artifact_ref: "registry:trust",
+};
 
 function MetaField({ label, value, className }: { label: string; value: string; className?: string }) {
   return (
