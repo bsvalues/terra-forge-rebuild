@@ -1102,6 +1102,53 @@ export type Database = {
           },
         ]
       }
+      mission_events: {
+        Row: {
+          actor_id: string
+          affected_count: number | null
+          county_id: string
+          created_at: string
+          event_type: string
+          id: string
+          mission_id: string
+          params: Json | null
+          receipt_id: string | null
+          strategy: string | null
+        }
+        Insert: {
+          actor_id?: string
+          affected_count?: number | null
+          county_id: string
+          created_at?: string
+          event_type?: string
+          id?: string
+          mission_id: string
+          params?: Json | null
+          receipt_id?: string | null
+          strategy?: string | null
+        }
+        Update: {
+          actor_id?: string
+          affected_count?: number | null
+          county_id?: string
+          created_at?: string
+          event_type?: string
+          id?: string
+          mission_id?: string
+          params?: Json | null
+          receipt_id?: string | null
+          strategy?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mission_events_county_id_fkey"
+            columns: ["county_id"]
+            isOneToOne: false
+            referencedRelation: "counties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       model_receipts: {
         Row: {
           created_at: string
@@ -2105,6 +2152,15 @@ export type Database = {
       }
     }
     Functions: {
+      apply_mission_fix: {
+        Args: {
+          p_dry_run?: boolean
+          p_mission_id: string
+          p_params?: Json
+          p_strategy: string
+        }
+        Returns: Json
+      }
       compute_ratio_statistics:
         | {
             Args: {
@@ -2149,6 +2205,10 @@ export type Database = {
           }
       get_county_vitals: { Args: never; Returns: Json }
       get_mission_counts: { Args: never; Returns: Json }
+      get_mission_preview: {
+        Args: { p_limit?: number; p_mission_id: string; p_offset?: number }
+        Returns: Json
+      }
       get_pipeline_status: { Args: { p_county_id?: string }; Returns: Json }
       get_user_county_id: { Args: never; Returns: string }
       has_role: {
