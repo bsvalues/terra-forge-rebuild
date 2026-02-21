@@ -1,5 +1,5 @@
 // TerraFusion OS — County Timeline Hook (Constitutional Data Layer)
-// Query Key: ["county-timeline", from, to, types, search]
+// Query Key: ["county-timeline", from, to, types, search, linkKey, linkValue, windowCenter, windowMinutes]
 // Per DATA_CONSTITUTION: no supabase.from() in components.
 
 import { useQuery } from "@tanstack/react-query";
@@ -45,12 +45,26 @@ function rangeToDate(range: TimelineRange): string {
   return new Date(Date.now() - ms[range]).toISOString();
 }
 
+export interface CausalFilter {
+  linkKey: string;
+  linkValue: string;
+}
+
+export interface WindowFilter {
+  center: string; // ISO timestamp
+  minutes: number;
+}
+
 interface UseCountyTimelineOptions {
   range?: TimelineRange;
   types?: string[] | null;
   search?: string;
   limit?: number;
   offset?: number;
+  /** Precise causal filter: match events by a specific link key/value */
+  causal?: CausalFilter | null;
+  /** Time window filter: show events within ±N minutes of a center point */
+  window?: WindowFilter | null;
 }
 
 export function useCountyTimeline({
@@ -59,9 +73,11 @@ export function useCountyTimeline({
   search = "",
   limit = 100,
   offset = 0,
+  causal = null,
+  window = null,
 }: UseCountyTimelineOptions = {}) {
   return useQuery<TimelineResult>({
-    queryKey: ["county-timeline", range, types, search, limit, offset],
+    queryKey: ["county-timeline", range, types, search, limit, offset, causal, window],
     queryFn: async () => {
       const from = rangeToDate(range);
       const to = new Date().toISOString();
@@ -73,6 +89,10 @@ export function useCountyTimeline({
         p_search: search || null,
         p_limit: limit,
         p_offset: offset,
+        p_link_key: causal?.linkKey ?? null,
+        p_link_value: causal?.linkValue ?? null,
+        p_window_center: window?.center ?? null,
+        p_window_minutes: window?.minutes ?? 10,
       });
 
       if (error) throw error;

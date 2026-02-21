@@ -28,6 +28,7 @@ import { SmartQuickActions } from "./SmartQuickActions";
 import { LearningMilestones } from "./LearningMilestones";
 import { DataPipelineLedger } from "./DataPipelineLedger";
 import { CountyTimeline } from "./CountyTimeline";
+import { MissionPreviewDrawer } from "./MissionPreviewDrawer";
 import { useState, useRef, useEffect } from "react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useCountyVitals } from "@/hooks/useCountyVitals";
@@ -80,6 +81,7 @@ export function SuiteHub({ onNavigate, onParcelNavigate }: SuiteHubProps) {
   const { data: vitals, isLoading: vitalsLoading } = useCountyVitals();
   const { data: pipeline } = usePipelineStatus();
   const [searchValue, setSearchValue] = useState("");
+  const [previewMissionId, setPreviewMissionId] = useState<string | null>(null);
   const [searchFocused, setSearchFocused] = useState(false);
   const debouncedSearch = useDebounce(searchValue, 250);
   const searchRef = useRef<HTMLDivElement>(null);
@@ -351,8 +353,13 @@ export function SuiteHub({ onNavigate, onParcelNavigate }: SuiteHubProps) {
         transition={{ delay: 0.27, duration: 0.35 }}
       >
         <div className="material-bento p-5">
-          <CountyTimeline onNavigate={onNavigate} maxHeight="400px" />
+          <CountyTimeline onNavigate={onNavigate} onMissionPreview={setPreviewMissionId} maxHeight="400px" />
         </div>
+        <MissionPreviewDrawer
+          missionId={previewMissionId}
+          open={!!previewMissionId}
+          onOpenChange={(open) => { if (!open) setPreviewMissionId(null); }}
+        />
       </motion.section>
 
       {/* ── Audit Timeline ── */}
