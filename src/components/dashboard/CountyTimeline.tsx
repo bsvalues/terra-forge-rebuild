@@ -21,10 +21,13 @@ import {
   Info,
   ExternalLink,
   Radio,
+  Upload,
+  Zap,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useCountyTimeline, type TimelineEvent, type TimelineRange } from "@/hooks/useCountyTimeline";
 import { useDebounce } from "@/hooks/useDebounce";
+import { useTodaySummary } from "@/hooks/useCountyVitalsToday";
 
 const RANGE_OPTIONS: { id: TimelineRange; label: string }[] = [
   { id: "1h", label: "1h" },
@@ -78,6 +81,17 @@ const SEVERITY_COLORS: Record<string, string> = {
   critical: "text-destructive",
 };
 
+const LINK_LABELS: Record<string, string> = {
+  mission_id: "Mission",
+  receipt_id: "Receipt",
+  trace_id: "Audit Event",
+  run_id: "Model Run",
+  ingest_job_id: "Ingest Job",
+  parcel_id: "Parcel",
+  artifact_ref: "Artifact",
+  neighborhood: "Neighborhood",
+};
+
 interface CountyTimelineProps {
   onNavigate?: (target: string) => void;
   maxHeight?: string;
@@ -97,6 +111,8 @@ export function CountyTimeline({ onNavigate, maxHeight = "500px", compact = fals
     search: debouncedSearch,
   });
 
+  const { data: today } = useTodaySummary();
+
   const events = data?.rows ?? [];
 
   const toggleType = (type: string) => {
@@ -105,11 +121,82 @@ export function CountyTimeline({ onNavigate, maxHeight = "500px", compact = fals
     );
   };
 
+  const handleFilterByType = (type: string) => {
+    setActiveTypes([type]);
+    setRange("24h");
+  };
+
+  // Deep navigation from timeline event links
+  const handleEventNavigate = (key: string, value: string | null) => {
+    if (!value || !onNavigate) return;
+    switch (key) {
+      case "mission_id":
+        // Mission preview — navigate to home missions area
+        onNavigate("home:dashboard");
+        break;
+      case "parcel_id":
+        // Open parcel in workbench
+        onNavigate("workbench:property");
+        break;
+      case "ingest_job_id":
+        // Open IDS with the specific job highlighted
+        onNavigate(`ids:ingest:${value}`);
+        break;
+      case "run_id":
+      case "receipt_id":
+      case "trace_id":
+        // Open registry changes view
+        onNavigate("registry:trust");
+        break;
+      case "neighborhood":
+        // Open factory calibration for the neighborhood
+        onNavigate("factory:calibration");
+        break;
+      default:
+        break;
+    }
+  };
+
   // Group events by date
   const grouped = groupByDate(events);
 
+  // Today summary pills
+  const SUMMARY_PILLS = [
+    { key: "imports", label: "Imports", count: today?.imports ?? 0, icon: Upload, type: "ingest" },
+    { key: "missions", label: "Missions", count: today?.missions ?? 0, icon: Target, type: "mission" },
+    { key: "fixes", label: "Fixes", count: today?.fixes ?? 0, icon: Wrench, type: "fix" },
+    { key: "models", label: "Models", count: today?.models ?? 0, icon: Cpu, type: "model" },
+    { key: "workflows", label: "Workflows", count: today?.workflows ?? 0, icon: Activity, type: "workflow" },
+  ];
+
   return (
     <div className="space-y-3">
+      {/* "What changed today?" Summary Strip */}
+      {!compact && today && today.total > 0 && (
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-[10px] text-muted-foreground font-medium">Today:</span>
+          {SUMMARY_PILLS.filter(p => p.count > 0).map(pill => (
+            <button
+              key={pill.key}
+              onClick={() => handleFilterByType(pill.type)}
+              className={cn(
+                "flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-medium transition-all",
+                "bg-muted/40 hover:bg-primary/10 text-foreground hover:text-primary"
+              )}
+            >
+              <pill.icon className="w-2.5 h-2.5" />
+              <span>{pill.count}</span>
+              <span className="text-muted-foreground">{pill.label}</span>
+            </button>
+          ))}
+          {today.total > 0 && (
+            <span className="text-[10px] text-muted-foreground ml-auto">
+              {today.total} total
+            </span>
+          )}
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -353,15 +440,25 @@ function EventDetail({
                   <button
                     key={key}
                     onClick={() => {
+                      onNavigate?.(""); // trigger close-on-navigate
+                      // Deep navigation based on link type
                       if (key === "mission_id" && onNavigate) {
-                        onNavigate("home:missions");
+                        onNavigate("home:dashboard");
+                      } else if (key === "parcel_id" && onNavigate) {
+                        onNavigate("workbench:property");
+                      } else if (key === "ingest_job_id" && onNavigate) {
+                        onNavigate(`ids:ingest:${val}`);
+                      } else if ((key === "receipt_id" || key === "trace_id" || key === "run_id") && onNavigate) {
+                        onNavigate("registry:trust");
+                      } else if (key === "neighborhood" && onNavigate) {
+                        onNavigate("factory:calibration");
                       }
-                      // Other link types can be routed here
+                      onClose();
                     }}
                     className="flex items-center gap-2 text-xs text-primary hover:underline"
                   >
                     <ExternalLink className="w-3 h-3" />
-                    <span>{key.replace(/_/g, " ")}: {typeof val === "string" ? val.slice(0, 16) + "…" : String(val)}</span>
+                    <span>{LINK_LABELS[key] ?? key.replace(/_/g, " ")}: {typeof val === "string" ? val.slice(0, 16) + "…" : String(val)}</span>
                   </button>
                 ))}
             </div>
