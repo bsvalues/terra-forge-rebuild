@@ -20,6 +20,92 @@ export function useSmartActions(): SmartAction[] {
     queryFn: async (): Promise<SmartAction[]> => {
       const result: SmartAction[] = [];
 
+      // ── Correction Mission 1: Improvement value = 0 but active permits ──
+      const { data: zeroImpParcels } = await supabase
+        .from("parcels")
+        .select("id, parcel_number")
+        .eq("improvement_value", 0)
+        .limit(500);
+
+      if (zeroImpParcels && zeroImpParcels.length > 0) {
+        // Check which have active permits
+        const parcelIds = zeroImpParcels.map(p => p.id);
+        const { count: withPermits } = await supabase
+          .from("permits")
+          .select("*", { count: "exact", head: true })
+          .in("parcel_id", parcelIds.slice(0, 100))
+          .in("status", ["applied", "pending", "issued"]);
+
+        if ((withPermits || 0) >= 5) {
+          result.push({
+            id: "zero-imp-permits",
+            title: "Improvement = $0 with Active Permits",
+            description: `${withPermits} parcels have $0 improvement value but active building permits — likely missing data`,
+            iconName: "AlertTriangle",
+            target: "home:quality",
+            priority: (withPermits || 0) > 20 ? "critical" : "high",
+            metric: `${withPermits}`,
+          });
+        }
+      }
+
+      // ── Correction Mission 2: Sale price outliers ──
+      const { data: recentSales } = await supabase
+        .from("sales")
+        .select("sale_price")
+        .eq("is_qualified", true)
+        .gt("sale_price", 0)
+        .order("sale_date", { ascending: false })
+        .limit(500);
+
+      if (recentSales && recentSales.length >= 10) {
+        const prices = recentSales.map(s => s.sale_price).sort((a, b) => a - b);
+        const q1 = prices[Math.floor(prices.length * 0.25)];
+        const q3 = prices[Math.floor(prices.length * 0.75)];
+        const iqr = q3 - q1;
+        const lowerFence = q1 - 1.5 * iqr;
+        const upperFence = q3 + 1.5 * iqr;
+        const outliers = prices.filter(p => p < lowerFence || p > upperFence);
+
+        if (outliers.length >= 3) {
+          result.push({
+            id: "sale-outliers",
+            title: "Sale Price Outliers Detected",
+            description: `${outliers.length} qualified sales fall outside IQR fences — review for disqualification`,
+            iconName: "AlertTriangle",
+            target: "factory:vei",
+            priority: outliers.length > 15 ? "high" : "medium",
+            metric: `${outliers.length}`,
+          });
+        }
+      }
+
+      // ── Correction Mission 3: Neighborhood code drift ──
+      const { data: nbhdParcels } = await supabase
+        .from("parcels")
+        .select("neighborhood_code")
+        .not("neighborhood_code", "is", null)
+        .limit(5000);
+
+      if (nbhdParcels && nbhdParcels.length > 0) {
+        const nbhdCounts = new Map<string, number>();
+        for (const p of nbhdParcels) {
+          nbhdCounts.set(p.neighborhood_code!, (nbhdCounts.get(p.neighborhood_code!) || 0) + 1);
+        }
+        const tinyNbhds = [...nbhdCounts.entries()].filter(([, count]) => count <= 2);
+        if (tinyNbhds.length >= 3) {
+          result.push({
+            id: "nbhd-drift",
+            title: "Neighborhood Code Drift",
+            description: `${tinyNbhds.length} neighborhood codes have ≤2 parcels — likely typos or legacy codes`,
+            iconName: "Shield",
+            target: "home:quality",
+            priority: tinyNbhds.length > 10 ? "high" : "medium",
+            metric: `${tinyNbhds.length}`,
+          });
+        }
+      }
+
       // Uncalibrated neighborhoods
       const { data: parcels } = await supabase
         .from("parcels")
@@ -129,15 +215,17 @@ export function useSmartActions(): SmartAction[] {
         });
       }
 
-      // Low-confidence mapping rules
+      // Low-confidence mapping rules — Learning SLA: only surface if ≥3 rules AND created in last 7 days
+      const sevenDaysAgo = new Date(Date.now() - 7 * 86400_000).toISOString();
       const { data: lowConfRules } = await supabase
         .from("ingest_mapping_rules" as any)
         .select("*")
         .eq("confidence_override", "low")
+        .gte("created_at", sevenDaysAgo)
         .limit(100);
 
       const lowConfCount = lowConfRules?.length ?? 0;
-      if (lowConfCount > 0) {
+      if (lowConfCount >= 3) {
         result.push({
           id: "mapping-review",
           title: "Low-Confidence Mappings",
@@ -149,7 +237,7 @@ export function useSmartActions(): SmartAction[] {
         });
       }
 
-      // Missing default mapping profiles
+      // Missing default mapping profiles — Learning SLA: only show if at least 1 profile exists
       const { data: allProfiles } = await supabase
         .from("ingest_mapping_profiles" as any)
         .select("dataset_type, is_default")
