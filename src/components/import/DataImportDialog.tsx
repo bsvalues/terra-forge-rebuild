@@ -24,6 +24,7 @@ import {
 import { cn } from "@/lib/utils";
 import { ColumnMapper } from "./ColumnMapper";
 import { ImportPreview } from "./ImportPreview";
+import { RowFixMissions } from "./RowFixMissions";
 import { toast } from "sonner";
 
 interface DataImportDialogProps {
@@ -315,6 +316,16 @@ export function DataImportDialog({
                     );
                   }}
                 />
+
+                {/* Row Fix Missions — post-mapping cleanup */}
+                {Object.keys(columnMapping).length > 0 && parsedData.rows.length > 0 && (
+                  <div className="mt-4">
+                    <RowFixMissions
+                      rows={parsedData.rows.slice(0, 100)}
+                      mapping={columnMapping}
+                    />
+                  </div>
+                )}
               </motion.div>
             )}
 
