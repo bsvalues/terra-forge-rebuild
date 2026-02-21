@@ -5,6 +5,7 @@
 
 import { Shield, Clock, Database, AlertTriangle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
 interface TrustBoundaryProps {
@@ -53,11 +54,20 @@ export function TrustBoundary({ sources, fetchedAt, confidence = "high", hasEsti
           <span>includes estimates</span>
         </div>
       )}
-      {scopeN != null && (
-        <div className="flex items-center gap-1">
-          <span>{scopeN.toLocaleString()} parcels</span>
-          {minClassN != null && <span>• min class {minClassN}</span>}
-        </div>
+      {scopeN != null && (confidence !== "high" || hasEstimates) && (
+        <TooltipProvider delayDuration={200}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="flex items-center gap-1 cursor-help">
+                <span>{scopeN.toLocaleString()} parcels</span>
+                {minClassN != null && <span>• min class {minClassN}</span>}
+              </div>
+            </TooltipTrigger>
+            <TooltipContent side="top" className="max-w-[240px] text-[10px]">
+              Outliers are computed within each property class. Small classes make outlier flags less reliable.
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       )}
     </div>
   );
