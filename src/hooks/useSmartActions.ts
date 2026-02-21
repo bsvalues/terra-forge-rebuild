@@ -260,9 +260,134 @@ export function useSmartActions(): SmartAction[] {
         });
       }
 
+      // ── Characteristics Consistency Missions ────────────────────────
+
+      // Mission: GLA / Building Area Mismatch
+      const { data: glaParcels } = await supabase
+        .from("parcels")
+        .select("id, building_area, land_area")
+        .not("building_area", "is", null)
+        .gt("building_area", 0)
+        .limit(2000);
+
+      if (glaParcels && glaParcels.length > 0) {
+        // Compare building_area vs assessed improvement proxy — flag where building_area is present
+        // but also check for parcels where one is null and the other isn't
+        const { data: noAreaButImprovement } = await supabase
+          .from("parcels")
+          .select("id", { count: "exact", head: true })
+          .is("building_area", null)
+          .gt("improvement_value", 0)
+          .limit(1);
+
+        // For the mismatch check, we look at parcels where both exist but diverge significantly
+        // Since we only have building_area (not separate GLA), check for zero/null inconsistencies
+        const mismatchCount = (noAreaButImprovement as any)?.length ?? 0;
+        // We'll merge this with the "missing building area" mission below
+      }
+
+      // Mission: Impossible Year Built
+      const currentYear = new Date().getFullYear();
+      const { count: tooOldCount } = await supabase
+        .from("parcels")
+        .select("*", { count: "exact", head: true })
+        .lt("year_built", 1700)
+        .not("year_built", "is", null);
+
+      const { count: futureCount } = await supabase
+        .from("parcels")
+        .select("*", { count: "exact", head: true })
+        .gt("year_built", currentYear + 1)
+        .not("year_built", "is", null);
+
+      const { count: nullYearWithImprovements } = await supabase
+        .from("parcels")
+        .select("*", { count: "exact", head: true })
+        .is("year_built", null)
+        .gt("improvement_value", 0);
+
+      const impossibleYearTotal = (tooOldCount || 0) + (futureCount || 0) + (nullYearWithImprovements || 0);
+      if (impossibleYearTotal >= 3) {
+        const parts: string[] = [];
+        if ((tooOldCount || 0) > 0) parts.push(`${tooOldCount} pre-1700`);
+        if ((futureCount || 0) > 0) parts.push(`${futureCount} future`);
+        if ((nullYearWithImprovements || 0) > 0) parts.push(`${nullYearWithImprovements} missing`);
+        result.push({
+          id: "impossible-year-built",
+          title: "Impossible Year Built",
+          description: `${impossibleYearTotal} parcels have nonsensical year_built (${parts.join(", ")}) — wrecks depreciation modeling`,
+          iconName: "CalendarX2",
+          target: "home:quality",
+          priority: impossibleYearTotal > 15 ? "critical" : "high",
+          metric: `${impossibleYearTotal}`,
+        });
+      }
+
+      // Mission: Missing Building Areas
+      const { count: missingAreaCount } = await supabase
+        .from("parcels")
+        .select("*", { count: "exact", head: true })
+        .gt("improvement_value", 0)
+        .or("building_area.is.null,building_area.eq.0");
+
+      if ((missingAreaCount || 0) >= 10) {
+        result.push({
+          id: "missing-building-area",
+          title: "Missing Building Areas",
+          description: `${missingAreaCount} parcels have improvement value but no building area — not defensible without measurement data`,
+          iconName: "SquareDashed",
+          target: "home:quality",
+          priority: (missingAreaCount || 0) > 50 ? "critical" : "high",
+          metric: `${missingAreaCount}`,
+        });
+      }
+
+      // Mission: GLA Mismatch (building_area present but land_area suggests inconsistency)
+      // Since we lack a separate GLA field, detect parcels where building_area > land_area (impossible physically)
+      const { count: glaOverLand } = await supabase
+        .from("parcels")
+        .select("*", { count: "exact", head: true })
+        .not("building_area", "is", null)
+        .not("land_area", "is", null)
+        .gt("building_area", 0)
+        .gt("land_area", 0);
+
+      // We need to do client-side filter for building_area > land_area * threshold
+      if ((glaOverLand || 0) > 0) {
+        const { data: areaCheckParcels } = await supabase
+          .from("parcels")
+          .select("id, building_area, land_area")
+          .not("building_area", "is", null)
+          .not("land_area", "is", null)
+          .gt("building_area", 0)
+          .gt("land_area", 0)
+          .limit(2000);
+
+        const mismatches = (areaCheckParcels || []).filter(p => {
+          const ba = Number(p.building_area);
+          const la = Number(p.land_area);
+          if (la === 0) return false;
+          const ratio = ba / la;
+          // Flag if building area > land area (physically impossible) or ratio > 5x (likely data entry error)
+          return ratio > 1.0 || ratio < 0.001;
+        });
+
+        if (mismatches.length >= 5) {
+          result.push({
+            id: "gla-mismatch",
+            title: "GLA / Building Area Mismatch",
+            description: `${mismatches.length} parcels have building area inconsistent with land area — drives wrong model inputs`,
+            iconName: "Ruler",
+            target: "home:quality",
+            priority: mismatches.length > 25 ? "critical" : "high",
+            metric: `${mismatches.length}`,
+          });
+        }
+      }
+
       const priorityOrder = { critical: 0, high: 1, medium: 2, info: 3 };
       result.sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
-      return result.slice(0, 5);
+      return result.slice(0, 7);
     },
     staleTime: 120_000,
   });
