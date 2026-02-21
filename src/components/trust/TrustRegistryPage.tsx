@@ -4,7 +4,7 @@
 
 import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Shield, BookOpen, History, Search, FlaskConical, Cpu, Filter, X, ShieldCheck, CheckCircle2, AlertCircle, Zap, Brain, Target } from "lucide-react";
+import { Shield, BookOpen, History, Search, FlaskConical, Cpu, Filter, X, ShieldCheck, CheckCircle2, AlertCircle, Zap, Brain, Target, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ScopeHeader } from "./ScopeHeader";
 import { ProvenanceNumber } from "./ProvenanceNumber";
@@ -15,6 +15,7 @@ import { useCountyVitals } from "@/hooks/useCountyVitals";
 import { useTrustEvents } from "@/hooks/useTrustEvents";
 import { DataLearningPanel } from "./DataLearningPanel";
 import { useTrustRuns, useTrustModels } from "@/hooks/useTrustModels";
+import { CountyTimeline } from "@/components/dashboard/CountyTimeline";
 
 interface TrustRegistryPageProps {
   onNavigate?: (target: string) => void;
@@ -27,7 +28,7 @@ function isValidTarget(t: string) {
   return VALID_TARGETS.has(t as typeof TARGET[keyof typeof TARGET]) || t.startsWith("workbench") || t.startsWith("factory") || t.startsWith("home") || t.startsWith("registry");
 }
 
-type TabId = "changes" | "runs" | "models" | "catalog" | "learning" | "missions" | "health";
+type TabId = "timeline" | "changes" | "runs" | "models" | "catalog" | "learning" | "missions" | "health";
 
 type TimeRange = "1h" | "24h" | "7d" | "30d" | "all";
 
@@ -51,7 +52,7 @@ function getTimeRangeCutoff(range: TimeRange): Date | null {
 }
 
 export function TrustRegistryPage({ onNavigate }: TrustRegistryPageProps) {
-  const [activeTab, setActiveTab] = useState<TabId>("changes");
+  const [activeTab, setActiveTab] = useState<TabId>("timeline");
   const [searchTerm, setSearchTerm] = useState("");
   const [timeRange, setTimeRange] = useState<TimeRange>("7d");
   const [moduleFilter, setModuleFilter] = useState("");
@@ -123,6 +124,7 @@ export function TrustRegistryPage({ onNavigate }: TrustRegistryPageProps) {
   }, [recentEvents]);
 
   const tabs: { id: TabId; label: string; icon: typeof History; count?: number }[] = [
+    { id: "timeline", label: "Timeline", icon: Clock },
     { id: "changes", label: "Changes", icon: History, count: filteredEvents.length },
     { id: "runs", label: "Runs", icon: FlaskConical, count: filteredRuns.length },
     { id: "models", label: "Models", icon: Cpu, count: filteredModels.length },
@@ -170,8 +172,15 @@ export function TrustRegistryPage({ onNavigate }: TrustRegistryPageProps) {
         ))}
       </div>
 
+      {/* ── Timeline Tab ── */}
+      {activeTab === "timeline" && (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+          <CountyTimeline onNavigate={onNavigate} maxHeight="600px" />
+        </motion.div>
+      )}
+
       {/* ── Filter Bar (for Changes / Runs / Models) ── */}
-      {activeTab !== "catalog" && activeTab !== "learning" && (
+      {activeTab !== "catalog" && activeTab !== "learning" && activeTab !== "timeline" && (
         <div className="flex items-center gap-3 flex-wrap">
           <div className="relative flex-1 max-w-xs">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
