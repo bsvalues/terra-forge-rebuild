@@ -13,6 +13,24 @@ export interface SmartAction {
   target: string;
   priority: "critical" | "high" | "medium" | "info";
   metric?: string;
+  /** Provenance from RPC — real as_of, sources, confidence */
+  provenance?: {
+    as_of: string;
+    sources: string[];
+    confidence: "high" | "medium" | "low";
+    confidence_reason?: string;
+  };
+}
+
+/** Extract provenance from RPC mission block */
+function extractProvenance(block: Record<string, any> | undefined): SmartAction["provenance"] {
+  if (!block?.as_of) return undefined;
+  return {
+    as_of: block.as_of,
+    sources: Array.isArray(block.sources) ? block.sources : [],
+    confidence: block.confidence ?? "medium",
+    confidence_reason: block.confidence_reason,
+  };
 }
 
 export function useSmartActions(): SmartAction[] {
@@ -36,6 +54,7 @@ export function useSmartActions(): SmartAction[] {
           target: "home:quality",
           priority: zeroImpCount > 20 ? "critical" : "high",
           metric: `${zeroImpCount}`,
+          provenance: extractProvenance(mc["zero-imp-permits"]),
         });
       }
 
@@ -136,6 +155,7 @@ export function useSmartActions(): SmartAction[] {
           target: "workbench:dais:appeals",
           priority: appealCount > 10 ? "critical" : "medium",
           metric: `${appealCount}`,
+          provenance: extractProvenance(mc["appeals"]),
         });
       }
 
@@ -151,6 +171,7 @@ export function useSmartActions(): SmartAction[] {
           target: "factory:geoequity",
           priority: missingPct > 50 ? "critical" : "high",
           metric: `${missingPct}%`,
+          provenance: extractProvenance(mc["geocoding"]),
         });
       }
 
@@ -165,6 +186,7 @@ export function useSmartActions(): SmartAction[] {
           target: "home:ids",
           priority: "medium",
           metric: `${salesTotal}`,
+          provenance: extractProvenance(mc["sales-data"]),
         });
       }
 
@@ -179,6 +201,7 @@ export function useSmartActions(): SmartAction[] {
           target: "home:readiness",
           priority: uncertifiedCount > 100 ? "high" : "medium",
           metric: `${uncertifiedCount}`,
+          provenance: extractProvenance(mc["uncertified"]),
         });
       }
 
@@ -243,6 +266,7 @@ export function useSmartActions(): SmartAction[] {
           target: "home:quality",
           priority: impossibleYearTotal > 15 ? "critical" : "high",
           metric: `${impossibleYearTotal}`,
+          provenance: extractProvenance(yearData),
         });
       }
 
@@ -257,6 +281,7 @@ export function useSmartActions(): SmartAction[] {
           target: "home:quality",
           priority: missingAreaCount > 50 ? "critical" : "high",
           metric: `${missingAreaCount}`,
+          provenance: extractProvenance(mc["missing-building-area"]),
         });
       }
 
@@ -271,6 +296,7 @@ export function useSmartActions(): SmartAction[] {
           target: "home:quality",
           priority: areaOutlierCount > 25 ? "critical" : "high",
           metric: `${areaOutlierCount}`,
+          provenance: extractProvenance(mc["building-area-outliers"]),
         });
       }
 

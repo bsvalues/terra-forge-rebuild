@@ -65,7 +65,6 @@ export default tseslint.config(
   },
   // ── TerraFusion Constitution Gate #3 ─────────────────────────────
   // Ban raw string navigation outside isLegalNavigation()-validated paths
-  // (catches accidental hardcoded stale module IDs)
   {
     files: ["src/components/**/*.{ts,tsx}"],
     rules: {
@@ -91,6 +90,22 @@ export default tseslint.config(
         {
           selector: "Literal[value='field']",
           message: "❌ CONSTITUTION GATE #3: Stale module ID 'field' detected. Use 'workbench:field' via handleNavigate().",
+        },
+      ],
+    },
+  },
+  // ── TerraFusion Constitution Gate #4 ─────────────────────────────
+  // Ban raw count queries (select with { count: "exact" }) outside RPC layer.
+  // All count aggregation must go through get_mission_counts() or get_county_vitals().
+  {
+    files: ["src/**/*.{ts,tsx}"],
+    ignores: ["src/hooks/useSmartActions.ts", "src/hooks/useReviewQueue.ts"],
+    rules: {
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector: "Property[key.value='count'][value.value='exact']",
+          message: "❌ CONSTITUTION GATE #4: { count: 'exact' } banned outside allowlist. Use get_mission_counts() or get_county_vitals() RPC.",
         },
       ],
     },

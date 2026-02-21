@@ -145,11 +145,12 @@ export function SmartQuickActions({ onNavigate }: SmartQuickActionsProps) {
                   </p>
                   {(() => {
                     const mission = getMission(action.id);
+                    const prov = action.provenance;
                     return mission ? (
                       <TrustBoundary
-                        sources={mission.dataSources}
-                        fetchedAt={new Date().toISOString()}
-                        confidence="high"
+                        sources={prov?.sources ?? mission.dataSources}
+                        fetchedAt={prov?.as_of ?? new Date().toISOString()}
+                        confidence={prov?.confidence ?? "high"}
                         className="mt-1.5"
                       />
                     ) : null;
