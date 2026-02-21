@@ -36,6 +36,7 @@ import { ProvenanceBadge, ProvenanceNumber, ScopeHeader } from "@/components/tru
 import { DataStatusRibbon } from "./DataStatusRibbon";
 import { NextBestAction } from "./NextBestAction";
 import { ExplainThisPanel } from "./ExplainThisPanel";
+import { DailyBriefing } from "./DailyBriefing";
 import { usePipelineStatus } from "@/hooks/usePipelineStatus";
 
 interface SuiteHubProps {
@@ -126,13 +127,14 @@ export function SuiteHub({ onNavigate, onParcelNavigate }: SuiteHubProps) {
   return (
     <div className="p-4 sm:p-6 pb-24 space-y-6 sm:space-y-8 max-w-5xl mx-auto">
 
-      {/* ── Data Status Ribbon ── */}
+      {/* ── Daily Briefing ── */}
       <motion.section
         initial={{ opacity: 0, y: -8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
-        className="space-y-2"
+        className="space-y-3"
       >
+        <DailyBriefing onNavigate={onNavigate} />
         <DataStatusRibbon vitals={vitals} pipeline={pipeline} vitalsLoading={vitalsLoading} />
         <NextBestAction vitals={vitals} pipeline={pipeline} vitalsLoading={vitalsLoading} onNavigate={onNavigate} />
       </motion.section>
