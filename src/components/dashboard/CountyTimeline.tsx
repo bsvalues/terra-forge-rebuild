@@ -25,7 +25,7 @@ import {
   Zap,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useCountyTimeline, type TimelineEvent, type TimelineRange } from "@/hooks/useCountyTimeline";
+import { useCountyTimeline, type TimelineEvent, type TimelineRange, type CausalFilter, type WindowFilter } from "@/hooks/useCountyTimeline";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useTodaySummary } from "@/hooks/useCountyVitalsToday";
 import { getMission } from "@/lib/missionConstitution";
@@ -95,21 +95,26 @@ const LINK_LABELS: Record<string, string> = {
 
 interface CountyTimelineProps {
   onNavigate?: (target: string) => void;
+  onMissionPreview?: (missionId: string) => void;
   maxHeight?: string;
   compact?: boolean;
 }
 
-export function CountyTimeline({ onNavigate, maxHeight = "500px", compact = false }: CountyTimelineProps) {
+export function CountyTimeline({ onNavigate, onMissionPreview, maxHeight = "500px", compact = false }: CountyTimelineProps) {
   const [range, setRange] = useState<TimelineRange>("7d");
   const [activeTypes, setActiveTypes] = useState<string[]>([]);
   const [searchInput, setSearchInput] = useState("");
   const debouncedSearch = useDebounce(searchInput, 300);
   const [selectedEvent, setSelectedEvent] = useState<TimelineEvent | null>(null);
+  const [causalFilter, setCausalFilter] = useState<CausalFilter | null>(null);
+  const [windowFilter, setWindowFilter] = useState<WindowFilter | null>(null);
 
   const { data, isLoading } = useCountyTimeline({
     range,
     types: activeTypes.length > 0 ? activeTypes : null,
     search: debouncedSearch,
+    causal: causalFilter,
+    window: windowFilter,
   });
 
   const { data: today } = useTodaySummary();
@@ -130,6 +135,11 @@ export function CountyTimeline({ onNavigate, maxHeight = "500px", compact = fals
   // Deep navigation from timeline event links — kernel-legal targets only
   const handleEventNavigate = (key: string, value: string | null) => {
     if (!value || !onNavigate) return;
+    // Special case: mission_id opens the preview drawer directly
+    if (key === "mission_id" && onMissionPreview) {
+      onMissionPreview(value);
+      return;
+    }
     switch (key) {
       case "mission_id":
         onNavigate("home:dashboard");
@@ -153,11 +163,30 @@ export function CountyTimeline({ onNavigate, maxHeight = "500px", compact = fals
     }
   };
 
-  // Causal chain: filter timeline by a related key
+  // Precise causal chain: use RPC-level filtering
   const handleCausalFilter = (key: string, value: string) => {
-    setSearchInput(value.slice(0, 12));
-    setRange("24h");
+    if (key === "time") {
+      // ±10 min window around the event
+      setWindowFilter({ center: value, minutes: 10 });
+      setCausalFilter(null);
+    } else {
+      // Exact link match
+      setCausalFilter({ linkKey: key, linkValue: value });
+      setWindowFilter(null);
+    }
+    // Widen range so RPC doesn't clip results
+    setRange("30d");
+    setActiveTypes([]);
+    setSearchInput("");
   };
+
+  // Clear causal/window filters
+  const clearCausalFilters = () => {
+    setCausalFilter(null);
+    setWindowFilter(null);
+  };
+
+  const hasCausalActive = !!causalFilter || !!windowFilter;
 
   // Group events by date
   const grouped = groupByDate(events);
@@ -268,6 +297,22 @@ export function CountyTimeline({ onNavigate, maxHeight = "500px", compact = fals
           </div>
         )}
       </div>
+
+      {/* Causal Filter Indicator */}
+      {hasCausalActive && (
+        <div className="flex items-center gap-2 px-2 py-1.5 rounded-md bg-primary/10 border border-primary/20">
+          <Filter className="w-3 h-3 text-primary" />
+          <span className="text-[10px] font-medium text-primary">
+            {windowFilter ? `±${windowFilter.minutes} min window` : `Filtered by ${LINK_LABELS[causalFilter!.linkKey] ?? causalFilter!.linkKey}`}
+          </span>
+          <button
+            onClick={clearCausalFilters}
+            className="ml-auto text-[10px] text-primary hover:text-primary/70 underline"
+          >
+            Clear
+          </button>
+        </div>
+      )}
 
       {/* Timeline */}
       {isLoading ? (
