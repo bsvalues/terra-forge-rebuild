@@ -190,10 +190,12 @@ export function useMappingProfiles(datasetType: string) {
       name,
       description,
       mapping,
+      transforms,
     }: {
       name: string;
       description?: string;
       mapping: Record<string, string>;
+      transforms?: Record<string, string[]>;
     }) => {
       // Upsert profile
       const { data: prof, error: pe } = await supabase
@@ -216,6 +218,7 @@ export function useMappingProfiles(datasetType: string) {
           profile_id: (prof as any).id,
           source_header: normalizeHeader(source_header),
           target_field,
+          transform: transforms?.[source_header]?.join(",") || null,
         }));
 
       if (rules.length > 0) {
