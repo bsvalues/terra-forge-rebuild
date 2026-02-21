@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { autoDetectMapping } from "@/hooks/useMappingProfiles";
+import { autoDetectMapping, useMappingProfiles } from "@/hooks/useMappingProfiles";
 import {
   Dialog,
   DialogContent,
@@ -20,11 +20,16 @@ import {
   X,
   ArrowRight,
   Loader2,
+  Brain,
+  Sparkles,
+  Copy,
+  BookOpen,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ColumnMapper } from "./ColumnMapper";
 import { ImportPreview } from "./ImportPreview";
 import { RowFixMissions } from "./RowFixMissions";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 
 interface DataImportDialogProps {
@@ -56,6 +61,14 @@ export function DataImportDialog({
   const [importErrors, setImportErrors] = useState<string[]>([]);
   const [importStats, setImportStats] = useState({ success: 0, failed: 0 });
   const [isDragging, setIsDragging] = useState(false);
+  const [learnedRulesCount, setLearnedRulesCount] = useState(0);
+
+  // For Victory Moment: track profile stats
+  const { profiles, defaultProfile } = useMappingProfiles(targetTable);
+  const recognitionRate = profiles.length > 0
+    ? Math.round((profiles.reduce((s, p) => s + p.rules.filter(r => r.confidence_override !== "low").length, 0) /
+        Math.max(1, profiles.reduce((s, p) => s + p.rules.length, 0))) * 100)
+    : 0;
 
   const targetSchema = getTargetSchema(targetTable);
 
@@ -373,32 +386,102 @@ export function DataImportDialog({
                 exit={{ opacity: 0, x: -20 }}
                 className="p-6 text-center"
               >
-                <CheckCircle2 className="w-12 h-12 mx-auto mb-4 text-green-500" />
-                <h3 className="text-lg font-medium mb-2">Import Complete!</h3>
-                <div className="flex justify-center gap-8 mb-6">
+                {/* Victory header */}
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: "spring", stiffness: 200, damping: 15 }}
+                >
+                  <CheckCircle2 className="w-14 h-14 mx-auto mb-3 text-[hsl(var(--tf-optimized-green))]" />
+                </motion.div>
+                <h3 className="text-lg font-semibold mb-1">Import Complete!</h3>
+                <p className="text-xs text-muted-foreground mb-4">Your data is now live in TerraFusion</p>
+
+                {/* Stats row */}
+                <div className="flex justify-center gap-6 mb-5">
                   <div className="text-center">
-                    <p className="text-3xl font-light text-green-500">
+                    <p className="text-3xl font-light text-[hsl(var(--tf-optimized-green))]">
                       {importStats.success}
                     </p>
-                    <p className="text-sm text-muted-foreground">Successful</p>
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Imported</p>
                   </div>
                   {importStats.failed > 0 && (
                     <div className="text-center">
-                      <p className="text-3xl font-light text-red-500">
+                      <p className="text-3xl font-light text-destructive">
                         {importStats.failed}
                       </p>
-                      <p className="text-sm text-muted-foreground">Failed</p>
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Failed</p>
                     </div>
                   )}
                 </div>
 
+                {/* Victory: Learning summary */}
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 }}
+                  className="max-w-sm mx-auto rounded-lg border border-[hsl(var(--tf-transcend-cyan)/0.2)] bg-[hsl(var(--tf-transcend-cyan)/0.04)] p-4 mb-4"
+                >
+                  <div className="flex items-center gap-2 mb-2 justify-center">
+                    <Brain className="w-4 h-4 text-tf-cyan" />
+                    <span className="text-xs font-semibold text-foreground">TerraFusion Learning</span>
+                  </div>
+                  <div className="space-y-1.5 text-xs">
+                    {Object.keys(columnMapping).length > 0 && (
+                      <p className="flex items-center gap-1.5 justify-center text-foreground/80">
+                        <Sparkles className="w-3 h-3 text-[hsl(var(--tf-sacred-gold))]" />
+                        <span className="font-medium text-[hsl(var(--tf-optimized-green))]">
+                          {Object.keys(columnMapping).filter(k => columnMapping[k] && columnMapping[k] !== "__skip__").length}
+                        </span> column mappings applied
+                      </p>
+                    )}
+                    {profiles.length > 0 && (
+                      <p className="text-muted-foreground">
+                        Auto-recognition: <span className="font-medium text-foreground">{recognitionRate}%</span> for {targetTable} imports
+                      </p>
+                    )}
+                    {defaultProfile && (
+                      <p className="text-muted-foreground">
+                        Profile: <span className="font-medium text-tf-cyan">{defaultProfile.name}</span>
+                      </p>
+                    )}
+                  </div>
+                </motion.div>
+
+                {/* Victory action buttons */}
+                <div className="flex justify-center gap-2 mb-4">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="text-[10px] h-7 gap-1"
+                    onClick={() => {
+                      const summary = `Imported ${importStats.success} ${targetTable} records. ${Object.keys(columnMapping).filter(k => columnMapping[k] !== "__skip__").length} mappings applied. Recognition: ${recognitionRate}%.`;
+                      navigator.clipboard.writeText(summary);
+                      toast.success("Summary copied!");
+                    }}
+                  >
+                    <Copy className="w-3 h-3" /> Copy Summary
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="text-[10px] h-7 gap-1"
+                    onClick={() => {
+                      // Navigate to Registry proof vault
+                      window.location.hash = "#registry";
+                    }}
+                  >
+                    <BookOpen className="w-3 h-3" /> View Receipt
+                  </Button>
+                </div>
+
                 {importErrors.length > 0 && (
-                  <div className="max-w-md mx-auto p-4 rounded-lg bg-red-500/10 text-left">
-                    <h4 className="font-medium text-red-500 mb-2 flex items-center gap-2">
+                  <div className="max-w-md mx-auto p-4 rounded-lg bg-destructive/10 text-left">
+                    <h4 className="font-medium text-destructive mb-2 flex items-center gap-2">
                       <AlertTriangle className="w-4 h-4" />
                       Errors ({importErrors.length})
                     </h4>
-                    <ul className="text-sm text-red-400 space-y-1 max-h-32 overflow-auto">
+                    <ul className="text-sm text-destructive/80 space-y-1 max-h-32 overflow-auto">
                       {importErrors.slice(0, 5).map((err, i) => (
                         <li key={i}>{err}</li>
                       ))}
