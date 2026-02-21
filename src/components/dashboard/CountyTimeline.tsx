@@ -29,6 +29,7 @@ import { useCountyTimeline, type TimelineEvent, type TimelineRange, type CausalF
 import { useDebounce } from "@/hooks/useDebounce";
 import { useTodaySummary } from "@/hooks/useCountyVitalsToday";
 import { getMission } from "@/lib/missionConstitution";
+import { useCausalNarrative } from "@/hooks/useCausalNarrative";
 
 const RANGE_OPTIONS: { id: TimelineRange; label: string }[] = [
   { id: "1h", label: "1h" },
@@ -447,6 +448,9 @@ function EventDetail({
   const missionDef = missionId ? getMission(missionId) : undefined;
   const displayTitle = missionDef?.title ?? event.title;
 
+  // Causal mini-narrative: Before → Event → After
+  const { data: causal } = useCausalNarrative(event);
+
   // Collect causal chain keys (any non-null link values)
   const causalKeys = event.links
     ? Object.entries(event.links).filter(([, v]) => v)
@@ -467,6 +471,42 @@ function EventDetail({
       </SheetHeader>
 
       <div className="mt-6 space-y-4">
+        {/* Causal Mini-Narrative: Before → Event → After */}
+        {causal && (causal.before || causal.after) && (
+          <div className="rounded-lg border border-[hsl(var(--tf-transcend-cyan)/0.2)] bg-[hsl(var(--tf-transcend-cyan)/0.04)] p-3 space-y-2">
+            <p className="text-[10px] text-tf-cyan uppercase tracking-wider font-semibold">Story</p>
+            <div className="space-y-1.5">
+              {causal.before && (
+                <div className="flex items-start gap-2">
+                  <span className="text-[10px] text-muted-foreground/50 font-mono w-12 shrink-0 pt-0.5">Before</span>
+                  <p className="text-[11px] text-muted-foreground leading-relaxed">
+                    <span className="font-medium text-foreground">{causal.before.title}</span>
+                    {" — "}
+                    {new Date(causal.before.event_time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                  </p>
+                </div>
+              )}
+              <div className="flex items-start gap-2">
+                <span className="text-[10px] text-tf-cyan font-mono w-12 shrink-0 pt-0.5 font-semibold">Event</span>
+                <p className="text-[11px] text-foreground leading-relaxed font-medium">
+                  {displayTitle}
+                  {" — "}
+                  {new Date(event.event_time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                </p>
+              </div>
+              {causal.after && (
+                <div className="flex items-start gap-2">
+                  <span className="text-[10px] text-muted-foreground/50 font-mono w-12 shrink-0 pt-0.5">After</span>
+                  <p className="text-[11px] text-muted-foreground leading-relaxed">
+                    <span className="font-medium text-foreground">{causal.after.title}</span>
+                    {" — "}
+                    {new Date(causal.after.event_time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
         {/* Meta */}
         <div className="grid grid-cols-2 gap-3">
           <MetaField label="Time" value={new Date(event.event_time).toLocaleString()} />
