@@ -1,11 +1,13 @@
-// TerraFusion OS — Mapping Studio (ColumnMapper v2)
+// TerraFusion OS — Mapping Studio (ColumnMapper v3)
 // "Fix this column mapping" — AI suggestions with confidence + profile save/load.
+// "Use this next time" promotion + Transform palette + Test Mode.
 // Constitutional: no direct DB writes; all profile saves routed through useMappingProfiles.
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   Check, X, ChevronDown, BookOpen, Zap, Save, Star,
   Info, AlertTriangle, ArrowRight, Trash2, RefreshCw,
+  Sparkles, FlaskConical, Undo2, Scissors, Type, Calendar, Hash,
 } from "lucide-react";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -13,6 +15,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import {
   Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,
@@ -23,6 +26,9 @@ import {
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Popover, PopoverContent, PopoverTrigger,
+} from "@/components/ui/popover";
 import { useMappingProfiles, autoDetectMapping, type MappingProfile } from "@/hooks/useMappingProfiles";
 
 // ─── Types ─────────────────────────────────────────────────────
@@ -47,8 +53,41 @@ interface ColumnMapperProps {
   mapping: Record<string, string>;
   onMappingChange: (mapping: Record<string, string>) => void;
   datasetType: string;
-  /** Called when user loads a saved profile */
   onProfileLoaded?: (profileName: string) => void;
+  /** Sample rows for Test Mode preview */
+  sampleRows?: Record<string, string | number | null>[];
+}
+
+// ─── Transform Palette ──────────────────────────────────────────
+
+const TRANSFORM_OPTIONS = [
+  { id: "trim", label: "Trim spaces", icon: Scissors, description: "Remove leading/trailing whitespace" },
+  { id: "uppercase", label: "UPPERCASE", icon: Type, description: "Convert to uppercase" },
+  { id: "lowercase", label: "lowercase", icon: Type, description: "Convert to lowercase" },
+  { id: "date_mdy", label: "Date MM/DD/YYYY → ISO", icon: Calendar, description: "Parse US date format" },
+  { id: "strip_currency", label: "Strip $, commas", icon: Hash, description: "Remove currency symbols" },
+  { id: "strip_dashes", label: "Strip dashes", icon: Hash, description: "Remove dashes (APN normalize)" },
+] as const;
+
+type TransformId = typeof TRANSFORM_OPTIONS[number]["id"];
+
+function applyTransformPreview(value: string | number | null, transforms: TransformId[]): string {
+  let v = String(value ?? "");
+  for (const t of transforms) {
+    switch (t) {
+      case "trim": v = v.trim(); break;
+      case "uppercase": v = v.toUpperCase(); break;
+      case "lowercase": v = v.toLowerCase(); break;
+      case "date_mdy": {
+        const m = v.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/);
+        if (m) v = `${m[3].length === 2 ? "20" + m[3] : m[3]}-${m[1].padStart(2, "0")}-${m[2].padStart(2, "0")}`;
+        break;
+      }
+      case "strip_currency": v = v.replace(/[$,]/g, ""); break;
+      case "strip_dashes": v = v.replace(/-/g, ""); break;
+    }
+  }
+  return v;
 }
 
 // ─── Confidence Badge ───────────────────────────────────────────
@@ -140,6 +179,191 @@ function SaveProfileDialog({
   );
 }
 
+// ─── Test Mode Dialog ────────────────────────────────────────────
+
+function TestModeDialog({
+  open,
+  onOpenChange,
+  profile,
+  sourceColumns,
+  sampleRows,
+  targetSchema,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  profile: MappingProfile;
+  sourceColumns: string[];
+  sampleRows: Record<string, string | number | null>[];
+  targetSchema: { fields: TargetField[]; required: string[] };
+}) {
+  const results = useMemo(() => {
+    const mapped: string[] = [];
+    const unmapped: string[] = [];
+    const conflicts: string[] = [];
+
+    for (const col of sourceColumns) {
+      const norm = col.toLowerCase().replace(/[\s_\-\.]+/g, "").replace(/[^a-z0-9]/g, "");
+      const rule = profile.rules.find((r) => r.source_header === norm);
+      if (rule) {
+        const valid = targetSchema.fields.some((f) => f.name === rule.target_field);
+        if (valid) mapped.push(`${col} → ${rule.target_field}`);
+        else conflicts.push(`${col} → ${rule.target_field} (target not found)`);
+      } else {
+        unmapped.push(col);
+      }
+    }
+    return { mapped, unmapped, conflicts };
+  }, [profile, sourceColumns, targetSchema]);
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-lg">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <FlaskConical className="w-4 h-4 text-tf-cyan" />
+            Test Profile: {profile.name}
+          </DialogTitle>
+          <DialogDescription>
+            Dry run — no data will be imported or changed.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-3 max-h-80 overflow-y-auto">
+          {results.mapped.length > 0 && (
+            <div>
+              <p className="text-xs font-semibold text-[hsl(var(--tf-optimized-green))] uppercase tracking-wider mb-1">
+                ✅ Mapped ({results.mapped.length})
+              </p>
+              <div className="space-y-0.5">
+                {results.mapped.map((m, i) => (
+                  <p key={i} className="text-xs text-foreground/80 font-mono pl-2">{m}</p>
+                ))}
+              </div>
+            </div>
+          )}
+          {results.unmapped.length > 0 && (
+            <div>
+              <p className="text-xs font-semibold text-[hsl(var(--tf-sacred-gold))] uppercase tracking-wider mb-1">
+                ⚠ Unmapped ({results.unmapped.length})
+              </p>
+              <div className="space-y-0.5">
+                {results.unmapped.map((m, i) => (
+                  <p key={i} className="text-xs text-muted-foreground font-mono pl-2">{m}</p>
+                ))}
+              </div>
+            </div>
+          )}
+          {results.conflicts.length > 0 && (
+            <div>
+              <p className="text-xs font-semibold text-[hsl(var(--tf-sovereignty-red))] uppercase tracking-wider mb-1">
+                ❌ Conflicts ({results.conflicts.length})
+              </p>
+              <div className="space-y-0.5">
+                {results.conflicts.map((m, i) => (
+                  <p key={i} className="text-xs text-[hsl(var(--tf-sovereignty-red)/0.8)] font-mono pl-2">{m}</p>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Sample row preview */}
+          {sampleRows.length > 0 && results.mapped.length > 0 && (
+            <div className="pt-2 border-t border-border/30">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                Sample Row Preview (row 1)
+              </p>
+              <div className="grid grid-cols-2 gap-1">
+                {results.mapped.slice(0, 6).map((m, i) => {
+                  const [src, tgt] = m.split(" → ");
+                  const val = sampleRows[0]?.[src] ?? "—";
+                  return (
+                    <div key={i} className="text-[11px] bg-muted/30 rounded px-2 py-1">
+                      <span className="text-muted-foreground">{tgt}:</span>{" "}
+                      <span className="font-mono text-foreground">{String(val).slice(0, 30)}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>Close</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// ─── Transform Popover ───────────────────────────────────────────
+
+function TransformPopover({
+  transforms,
+  onToggle,
+  sampleValue,
+}: {
+  transforms: TransformId[];
+  onToggle: (id: TransformId) => void;
+  sampleValue?: string | number | null;
+}) {
+  const preview = transforms.length > 0 && sampleValue != null
+    ? applyTransformPreview(sampleValue, transforms)
+    : null;
+
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <button
+          className={cn(
+            "p-0.5 rounded transition-colors",
+            transforms.length > 0
+              ? "text-tf-cyan hover:bg-[hsl(var(--tf-transcend-cyan)/0.1)]"
+              : "text-muted-foreground/30 hover:text-muted-foreground/60"
+          )}
+          title="Add transforms"
+        >
+          <Sparkles className="w-3 h-3" />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent className="w-56 p-2" align="end">
+        <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+          Transforms
+        </p>
+        <div className="space-y-1">
+          {TRANSFORM_OPTIONS.map((opt) => {
+            const active = transforms.includes(opt.id);
+            return (
+              <button
+                key={opt.id}
+                onClick={() => onToggle(opt.id)}
+                className={cn(
+                  "w-full flex items-center gap-2 px-2 py-1.5 rounded text-xs transition-colors text-left",
+                  active
+                    ? "bg-[hsl(var(--tf-transcend-cyan)/0.1)] text-tf-cyan"
+                    : "hover:bg-muted/60 text-foreground/70"
+                )}
+              >
+                <opt.icon className="w-3 h-3 shrink-0" />
+                <span className="flex-1">{opt.label}</span>
+                {active && <Check className="w-3 h-3" />}
+              </button>
+            );
+          })}
+        </div>
+        {preview !== null && (
+          <div className="mt-2 pt-2 border-t border-border/30">
+            <p className="text-[10px] text-muted-foreground">Preview:</p>
+            <p className="text-xs font-mono text-foreground truncate">
+              {String(sampleValue)} → <span className="text-tf-cyan">{preview}</span>
+            </p>
+          </div>
+        )}
+      </PopoverContent>
+    </Popover>
+  );
+}
+
 // ─── Main Component ─────────────────────────────────────────────
 
 export function ColumnMapper({
@@ -149,9 +373,15 @@ export function ColumnMapper({
   onMappingChange,
   datasetType,
   onProfileLoaded,
+  sampleRows = [],
 }: ColumnMapperProps) {
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
   const [showIgnored, setShowIgnored] = useState(false);
+  const [testProfile, setTestProfile] = useState<MappingProfile | null>(null);
+  // "Use this next time" promotions — source columns user wants to persist
+  const [promotions, setPromotions] = useState<Set<string>>(new Set());
+  // Per-column transforms
+  const [transforms, setTransforms] = useState<Record<string, TransformId[]>>({});
 
   const { profiles, isLoading, saveProfile, isSaving, deleteProfile, setDefault } =
     useMappingProfiles(datasetType);
@@ -170,20 +400,45 @@ export function ColumnMapper({
     const next = { ...mapping };
     if (targetCol === "__skip__") {
       delete next[sourceCol];
+      // Remove promotion if skipped
+      setPromotions((prev) => { const n = new Set(prev); n.delete(sourceCol); return n; });
     } else {
       next[sourceCol] = targetCol;
+      // Auto-check "use next time" when user manually changes a low/medium confidence mapping
+      const detected = detectedMap[sourceCol];
+      if (!detected || detected.target !== targetCol || detected.confidence !== "high") {
+        setPromotions((prev) => new Set(prev).add(sourceCol));
+      }
     }
     onMappingChange(next);
+  };
+
+  const toggleTransform = (col: string, transformId: TransformId) => {
+    setTransforms((prev) => {
+      const existing = prev[col] ?? [];
+      const next = existing.includes(transformId)
+        ? existing.filter((t) => t !== transformId)
+        : [...existing, transformId];
+      return { ...prev, [col]: next };
+    });
   };
 
   const loadProfile = (profile: MappingProfile) => {
     const next: Record<string, string> = { ...mapping };
     for (const rule of profile.rules) {
-      // Match normalized rule header against source column
       const matched = sourceColumns.find(
         (col) => col.toLowerCase().replace(/[\s_\-\.]+/g, "").replace(/[^a-z0-9]/g, "") === rule.source_header
       );
-      if (matched) next[matched] = rule.target_field;
+      if (matched) {
+        next[matched] = rule.target_field;
+        // Load transforms from profile
+        if (rule.transform) {
+          setTransforms((prev) => ({
+            ...prev,
+            [matched]: rule.transform!.split(",") as TransformId[],
+          }));
+        }
+      }
     }
     onMappingChange(next);
     onProfileLoaded?.(profile.name);
@@ -205,9 +460,27 @@ export function ColumnMapper({
     ? sourceColumns
     : sourceColumns.filter((c) => mapping[c] && mapping[c] !== "__skip__");
 
-  const hiddenColumns = sourceColumns.filter(
-    (c) => !mapping[c] || mapping[c] === "__skip__"
-  );
+  // Count of user corrections (manual or changed mappings)
+  const correctedCount = sourceColumns.filter((c) => {
+    const confidence = getRowConfidence(c);
+    return confidence === "manual";
+  }).length;
+
+  const handleSaveWithPromotions = (name: string, description?: string) => {
+    // Build mapping that includes transforms
+    const mappingWithTransforms: Record<string, string> = {};
+    for (const [source, target] of Object.entries(mapping)) {
+      if (target && target !== "__skip__") {
+        mappingWithTransforms[source] = target;
+      }
+    }
+    saveProfile({
+      name,
+      description,
+      mapping: mappingWithTransforms,
+      transforms,
+    });
+  };
 
   return (
     <div className="space-y-4">
@@ -251,6 +524,13 @@ export function ColumnMapper({
                       <span className="truncate text-xs">{profile.name}</span>
                     </div>
                     <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setTestProfile(profile); }}
+                        className="p-0.5 hover:text-tf-cyan transition-colors"
+                        title="Test profile"
+                      >
+                        <FlaskConical className="w-3 h-3" />
+                      </button>
                       <button
                         onClick={(e) => { e.stopPropagation(); setDefault(profile.id); }}
                         className="p-0.5 hover:text-[hsl(var(--tf-sacred-gold))] transition-colors"
@@ -300,14 +580,31 @@ export function ColumnMapper({
         </div>
       )}
 
+      {/* ── "Use this next time" promotion banner ─────────── */}
+      {correctedCount > 0 && (
+        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[hsl(var(--tf-sacred-gold)/0.06)] border border-[hsl(var(--tf-sacred-gold)/0.2)]">
+          <Sparkles className="w-3.5 h-3.5 text-[hsl(var(--tf-sacred-gold))] shrink-0" />
+          <p className="text-xs text-foreground/80">
+            You corrected {correctedCount} mapping{correctedCount !== 1 ? "s" : ""}.
+            {promotions.size > 0 && (
+              <span className="text-[hsl(var(--tf-sacred-gold))] font-semibold">
+                {" "}{promotions.size} will be saved to your profile.
+              </span>
+            )}
+          </p>
+        </div>
+      )}
+
       {/* ── Column list ──────────────────────────────────── */}
       <div className="rounded-xl border border-border/50 overflow-hidden">
-        {/* Column header row */}
-        <div className="grid grid-cols-[1fr_20px_220px_80px] items-center gap-2 px-3 py-2 bg-muted/40 border-b border-border/40">
+        <div className="grid grid-cols-[24px_1fr_20px_200px_60px_28px_60px] items-center gap-1.5 px-3 py-2 bg-muted/40 border-b border-border/40">
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">💾</span>
           <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Source Column</span>
           <span />
           <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Maps To</span>
-          <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground text-right">Confidence</span>
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground text-center">Conf.</span>
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground text-center">Fx</span>
+          <span />
         </div>
 
         <div className="divide-y divide-border/30 max-h-80 overflow-y-auto">
@@ -317,23 +614,44 @@ export function ColumnMapper({
             const targetField = targetSchema.fields.find((f) => f.name === targetCol);
             const isRequired = targetCol && targetSchema.required.includes(targetCol);
             const aiSuggestion = detectedMap[sourceCol];
+            const colTransforms = transforms[sourceCol] ?? [];
+            const isPromoted = promotions.has(sourceCol);
 
             return (
               <div
                 key={sourceCol}
                 className={cn(
-                  "grid grid-cols-[1fr_20px_220px_80px] items-center gap-2 px-3 py-2 transition-colors",
+                  "grid grid-cols-[24px_1fr_20px_200px_60px_28px_60px] items-center gap-1.5 px-3 py-2 transition-colors",
                   confidence === "high" && "bg-[hsl(var(--tf-optimized-green)/0.03)]",
                   confidence === "medium" && "bg-[hsl(var(--tf-sacred-gold)/0.03)]",
                   confidence === "low" && "bg-[hsl(var(--tf-sovereignty-red)/0.03)]",
                 )}
               >
+                {/* "Use next time" checkbox */}
+                <div className="flex items-center justify-center">
+                  {confidence !== "ignored" && (
+                    <Checkbox
+                      checked={isPromoted}
+                      onCheckedChange={(checked) => {
+                        setPromotions((prev) => {
+                          const next = new Set(prev);
+                          if (checked) next.add(sourceCol);
+                          else next.delete(sourceCol);
+                          return next;
+                        });
+                      }}
+                      className="w-3.5 h-3.5"
+                      title="Save this mapping for next time"
+                    />
+                  )}
+                </div>
+
                 {/* Source */}
                 <div className="min-w-0">
                   <p className="font-mono text-xs truncate text-foreground">{sourceCol}</p>
                   {aiSuggestion && aiSuggestion.target !== targetCol && (
                     <p className="text-[10px] text-muted-foreground/50 mt-0.5">
-                      AI suggested: <span className="text-tf-cyan/70">{targetField?.label ?? aiSuggestion.target}</span>
+                      AI suggested: <span className="text-tf-cyan/70">{targetSchema.fields.find(f => f.name === aiSuggestion.target)?.label ?? aiSuggestion.target}</span>
                     </p>
                   )}
                 </div>
@@ -377,9 +695,22 @@ export function ColumnMapper({
                   </SelectContent>
                 </Select>
 
-                {/* Confidence + tooltip */}
-                <div className="flex items-center justify-end gap-1">
+                {/* Confidence */}
+                <div className="flex items-center justify-center">
                   <ConfidenceBadge level={confidence} />
+                </div>
+
+                {/* Transform */}
+                <div className="flex items-center justify-center">
+                  <TransformPopover
+                    transforms={colTransforms}
+                    onToggle={(id) => toggleTransform(sourceCol, id)}
+                    sampleValue={sampleRows[0]?.[sourceCol]}
+                  />
+                </div>
+
+                {/* Info tooltip */}
+                <div className="flex items-center justify-end">
                   {(isRequired || targetField) && (
                     <TooltipProvider>
                       <Tooltip>
@@ -391,6 +722,11 @@ export function ColumnMapper({
                           {isRequired && <p className="text-[hsl(var(--tf-sovereignty-red))] text-xs mt-0.5">Required field</p>}
                           {confidence === "low" && (
                             <p className="text-[hsl(var(--tf-sacred-gold))] text-xs mt-0.5">Low confidence — please verify this mapping.</p>
+                          )}
+                          {colTransforms.length > 0 && (
+                            <p className="text-tf-cyan text-xs mt-0.5">
+                              Transforms: {colTransforms.join(", ")}
+                            </p>
                           )}
                         </TooltipContent>
                       </Tooltip>
@@ -443,10 +779,20 @@ export function ColumnMapper({
         open={saveDialogOpen}
         onOpenChange={setSaveDialogOpen}
         isSaving={isSaving}
-        onSave={(name, description) => {
-          saveProfile({ name, description, mapping });
-        }}
+        onSave={handleSaveWithPromotions}
       />
+
+      {/* ── Test mode dialog ──────────────────────────────── */}
+      {testProfile && (
+        <TestModeDialog
+          open={!!testProfile}
+          onOpenChange={(v) => !v && setTestProfile(null)}
+          profile={testProfile}
+          sourceColumns={sourceColumns}
+          sampleRows={sampleRows}
+          targetSchema={targetSchema}
+        />
+      )}
     </div>
   );
 }

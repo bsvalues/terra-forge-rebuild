@@ -308,6 +308,7 @@ export function DataImportDialog({
                   mapping={columnMapping}
                   onMappingChange={setColumnMapping}
                   datasetType={targetTable}
+                  sampleRows={parsedData.rows.slice(0, 5)}
                   onProfileLoaded={(name) => {
                     import("sonner").then(({ toast }) =>
                       toast.success(`✅ Mapping applied: ${name}`)
