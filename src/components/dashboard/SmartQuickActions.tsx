@@ -18,6 +18,8 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { TrustBoundary } from "@/components/trust/TrustBoundary";
+import { getMission } from "@/lib/missionConstitution";
 import type { SmartAction } from "@/hooks/useSmartActions";
 
 interface SmartQuickActionsProps {
@@ -135,6 +137,17 @@ export function SmartQuickActions({ onNavigate }: SmartQuickActionsProps) {
                   <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed line-clamp-2">
                     {action.description}
                   </p>
+                  {(() => {
+                    const mission = getMission(action.id);
+                    return mission ? (
+                      <TrustBoundary
+                        sources={mission.dataSources}
+                        fetchedAt={new Date().toISOString()}
+                        confidence="high"
+                        className="mt-1.5"
+                      />
+                    ) : null;
+                  })()}
                 </div>
               </div>
             </motion.button>
