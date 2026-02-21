@@ -6,3 +6,6 @@ export { ScopeHeader, type DataScope, type DataStatus } from "./ScopeHeader";
 export { ChangeReceipt, type ChangeReceiptData } from "./ChangeReceipt";
 export { TrustRegistryPage } from "./TrustRegistryPage";
 export { TrustOSHealthPanel } from "./TrustOSHealthPanel";
+export { TrustBoundary } from "./TrustBoundary";
+export { MissionImpactBadge } from "./MissionImpactBadge";
+export { MissionQualityDashboard } from "./MissionQualityDashboard";

@@ -4,11 +4,12 @@
 
 import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Shield, BookOpen, History, Search, FlaskConical, Cpu, Filter, X, ShieldCheck, CheckCircle2, AlertCircle, Zap, Brain } from "lucide-react";
+import { Shield, BookOpen, History, Search, FlaskConical, Cpu, Filter, X, ShieldCheck, CheckCircle2, AlertCircle, Zap, Brain, Target } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ScopeHeader } from "./ScopeHeader";
 import { ProvenanceNumber } from "./ProvenanceNumber";
 import { TrustOSHealthPanel } from "./TrustOSHealthPanel";
+import { MissionQualityDashboard } from "./MissionQualityDashboard";
 import { METRIC_CATALOG, TARGET, getAllMetricKeys } from "@/lib/metrics/metricCatalog";
 import { useCountyVitals } from "@/hooks/useCountyVitals";
 import { useTrustEvents } from "@/hooks/useTrustEvents";
@@ -26,7 +27,7 @@ function isValidTarget(t: string) {
   return VALID_TARGETS.has(t as typeof TARGET[keyof typeof TARGET]) || t.startsWith("workbench") || t.startsWith("factory") || t.startsWith("home") || t.startsWith("registry");
 }
 
-type TabId = "changes" | "runs" | "models" | "catalog" | "learning" | "health";
+type TabId = "changes" | "runs" | "models" | "catalog" | "learning" | "missions" | "health";
 
 type TimeRange = "1h" | "24h" | "7d" | "30d" | "all";
 
@@ -127,6 +128,7 @@ export function TrustRegistryPage({ onNavigate }: TrustRegistryPageProps) {
     { id: "models", label: "Models", icon: Cpu, count: filteredModels.length },
     { id: "catalog", label: "Data Catalog", icon: BookOpen },
     { id: "learning", label: "Data Learning", icon: Brain },
+    { id: "missions", label: "Mission Quality", icon: Target },
     { id: "health", label: "Trust OS Health", icon: ShieldCheck },
   ];
 
@@ -507,6 +509,13 @@ export function TrustRegistryPage({ onNavigate }: TrustRegistryPageProps) {
       {activeTab === "learning" && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
           <DataLearningPanel />
+        </motion.div>
+      )}
+
+      {/* ── Mission Quality Tab ── */}
+      {activeTab === "missions" && (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+          <MissionQualityDashboard />
         </motion.div>
       )}
 
