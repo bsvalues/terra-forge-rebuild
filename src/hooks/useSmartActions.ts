@@ -129,9 +129,52 @@ export function useSmartActions(): SmartAction[] {
         });
       }
 
+      // Low-confidence mapping rules
+      const { data: lowConfRules } = await supabase
+        .from("ingest_mapping_rules" as any)
+        .select("*")
+        .eq("confidence_override", "low")
+        .limit(100);
+
+      const lowConfCount = lowConfRules?.length ?? 0;
+      if (lowConfCount > 0) {
+        result.push({
+          id: "mapping-review",
+          title: "Low-Confidence Mappings",
+          description: `${lowConfCount} column mapping${lowConfCount > 1 ? "s" : ""} need review — fix once to train the system`,
+          iconName: "Brain",
+          target: "home:ids",
+          priority: lowConfCount > 10 ? "high" : "medium",
+          metric: `${lowConfCount}`,
+        });
+      }
+
+      // Missing default mapping profiles
+      const { data: allProfiles } = await supabase
+        .from("ingest_mapping_profiles" as any)
+        .select("dataset_type, is_default")
+        .limit(100);
+
+      const datasetTypes = ["parcels", "sales", "permits", "exemptions", "assessment_ratios"];
+      const typesWithDefault = new Set(
+        (allProfiles ?? []).filter((p: any) => p.is_default).map((p: any) => p.dataset_type)
+      );
+      const missingDefaults = datasetTypes.filter((t) => !typesWithDefault.has(t));
+      if (missingDefaults.length > 0 && (allProfiles?.length ?? 0) > 0) {
+        result.push({
+          id: "set-default-profile",
+          title: "Set Default Mapping Profile",
+          description: `${missingDefaults.length} dataset type${missingDefaults.length > 1 ? "s" : ""} missing default profiles`,
+          iconName: "Star",
+          target: "home:ids",
+          priority: "info",
+          metric: `${missingDefaults.length}`,
+        });
+      }
+
       const priorityOrder = { critical: 0, high: 1, medium: 2, info: 3 };
       result.sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
-      return result.slice(0, 4);
+      return result.slice(0, 5);
     },
     staleTime: 120_000,
   });
