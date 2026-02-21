@@ -13,9 +13,11 @@ interface TrustBoundaryProps {
   confidence?: "high" | "medium" | "low";
   hasEstimates?: boolean;
   className?: string;
+  scopeN?: number;
+  minClassN?: number;
 }
 
-export function TrustBoundary({ sources, fetchedAt, confidence = "high", hasEstimates = false, className }: TrustBoundaryProps) {
+export function TrustBoundary({ sources, fetchedAt, confidence = "high", hasEstimates = false, className, scopeN, minClassN }: TrustBoundaryProps) {
   const ageLabel = fetchedAt
     ? (() => {
         const sec = Math.round((Date.now() - new Date(fetchedAt).getTime()) / 1000);
@@ -49,6 +51,12 @@ export function TrustBoundary({ sources, fetchedAt, confidence = "high", hasEsti
         <div className="flex items-center gap-1 text-[hsl(var(--tf-sacred-gold))]">
           <AlertTriangle className="w-2.5 h-2.5" />
           <span>includes estimates</span>
+        </div>
+      )}
+      {scopeN != null && (
+        <div className="flex items-center gap-1">
+          <span>{scopeN.toLocaleString()} parcels</span>
+          {minClassN != null && <span>• min class {minClassN}</span>}
         </div>
       )}
     </div>

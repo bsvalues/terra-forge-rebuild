@@ -19,6 +19,8 @@ export interface SmartAction {
     sources: string[];
     confidence: "high" | "medium" | "low";
     confidence_reason?: string;
+    scope_n?: number;
+    min_class_n?: number;
   };
 }
 
@@ -30,6 +32,8 @@ function extractProvenance(block: Record<string, any> | undefined): SmartAction[
     sources: Array.isArray(block.sources) ? block.sources : [],
     confidence: block.confidence ?? "medium",
     confidence_reason: block.confidence_reason,
+    scope_n: block.scope_n ?? undefined,
+    min_class_n: block.min_class_n ?? undefined,
   };
 }
 
