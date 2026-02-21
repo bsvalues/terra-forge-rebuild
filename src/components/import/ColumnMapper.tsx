@@ -8,6 +8,7 @@ import {
   Check, X, ChevronDown, BookOpen, Zap, Save, Star,
   Info, AlertTriangle, ArrowRight, Trash2, RefreshCw,
   Sparkles, FlaskConical, Undo2, Scissors, Type, Calendar, Hash,
+  LayoutGrid, FileSearch, Link,
 } from "lucide-react";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -30,6 +31,7 @@ import {
   Popover, PopoverContent, PopoverTrigger,
 } from "@/components/ui/popover";
 import { useMappingProfiles, autoDetectMapping, type MappingProfile } from "@/hooks/useMappingProfiles";
+import { useTrustMode } from "@/contexts/TrustModeContext";
 
 // ─── Types ─────────────────────────────────────────────────────
 
@@ -61,12 +63,15 @@ interface ColumnMapperProps {
 // ─── Transform Palette ──────────────────────────────────────────
 
 const TRANSFORM_OPTIONS = [
-  { id: "trim", label: "Trim spaces", icon: Scissors, description: "Remove leading/trailing whitespace" },
-  { id: "uppercase", label: "UPPERCASE", icon: Type, description: "Convert to uppercase" },
-  { id: "lowercase", label: "lowercase", icon: Type, description: "Convert to lowercase" },
-  { id: "date_mdy", label: "Date MM/DD/YYYY → ISO", icon: Calendar, description: "Parse US date format" },
-  { id: "strip_currency", label: "Strip $, commas", icon: Hash, description: "Remove currency symbols" },
-  { id: "strip_dashes", label: "Strip dashes", icon: Hash, description: "Remove dashes (APN normalize)" },
+  { id: "trim", label: "Trim spaces", icon: Scissors, description: "Remove leading/trailing whitespace", tier: 1 },
+  { id: "uppercase", label: "UPPERCASE", icon: Type, description: "Convert to uppercase", tier: 1 },
+  { id: "lowercase", label: "lowercase", icon: Type, description: "Convert to lowercase", tier: 1 },
+  { id: "date_mdy", label: "Date MM/DD/YYYY → ISO", icon: Calendar, description: "Parse US date format", tier: 1 },
+  { id: "strip_currency", label: "Strip $, commas", icon: Hash, description: "Remove currency symbols", tier: 1 },
+  { id: "strip_dashes", label: "Strip dashes", icon: Hash, description: "Remove dashes (APN normalize)", tier: 1 },
+  { id: "lookup_map", label: "Replace codes → names", icon: LayoutGrid, description: "Map codes to labels (e.g. R → Residential)", tier: 2 },
+  { id: "regex_replace", label: "Advanced replace", icon: FileSearch, description: "Regex pattern replacement (Trust Mode)", tier: 3 },
+  { id: "concat", label: "Combine columns", icon: Link, description: "Merge multiple columns", tier: 2 },
 ] as const;
 
 type TransformId = typeof TRANSFORM_OPTIONS[number]["id"];
@@ -85,6 +90,9 @@ function applyTransformPreview(value: string | number | null, transforms: Transf
       }
       case "strip_currency": v = v.replace(/[$,]/g, ""); break;
       case "strip_dashes": v = v.replace(/-/g, ""); break;
+      case "lookup_map": v = `[lookup: ${v}]`; break;
+      case "regex_replace": break; // requires config, preview only
+      case "concat": break; // requires multi-column, preview only
     }
   }
   return v;
@@ -307,9 +315,15 @@ function TransformPopover({
   onToggle: (id: TransformId) => void;
   sampleValue?: string | number | null;
 }) {
+  const { trustMode } = useTrustMode();
   const preview = transforms.length > 0 && sampleValue != null
     ? applyTransformPreview(sampleValue, transforms)
     : null;
+
+  // Filter: hide regex_replace unless Trust Mode is on
+  const visibleTransforms = TRANSFORM_OPTIONS.filter(
+    (opt) => opt.tier <= 2 || (opt.id === "regex_replace" && trustMode)
+  );
 
   return (
     <Popover>
@@ -326,12 +340,12 @@ function TransformPopover({
           <Sparkles className="w-3 h-3" />
         </button>
       </PopoverTrigger>
-      <PopoverContent className="w-56 p-2" align="end">
+      <PopoverContent className="w-60 p-2" align="end">
         <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">
           Transforms
         </p>
         <div className="space-y-1">
-          {TRANSFORM_OPTIONS.map((opt) => {
+          {visibleTransforms.map((opt) => {
             const active = transforms.includes(opt.id);
             return (
               <button
@@ -346,6 +360,8 @@ function TransformPopover({
               >
                 <opt.icon className="w-3 h-3 shrink-0" />
                 <span className="flex-1">{opt.label}</span>
+                {opt.tier === 2 && <Badge variant="outline" className="text-[8px] py-0 px-1">Tier 2</Badge>}
+                {opt.tier === 3 && <Badge variant="outline" className="text-[8px] py-0 px-1 border-[hsl(var(--tf-sacred-gold)/0.4)] text-[hsl(var(--tf-sacred-gold))]">Advanced</Badge>}
                 {active && <Check className="w-3 h-3" />}
               </button>
             );

@@ -1,22 +1,23 @@
- import { useState } from "react";
- import { motion, AnimatePresence } from "framer-motion";
- import { 
-   Upload, 
-   Zap, 
-   FileSpreadsheet, 
-   Link2, 
-   ArrowRight,
-   CheckCircle2,
-   Circle,
-   Fingerprint,
-   Brain,
-   ShieldCheck,
-   Eye,
-   Rocket,
- } from "lucide-react";
- import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
- import { Button } from "@/components/ui/button";
- import { Badge } from "@/components/ui/badge";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { 
+  Upload, 
+  Zap, 
+  FileSpreadsheet, 
+  Link2, 
+  ArrowRight,
+  CheckCircle2,
+  Circle,
+  Fingerprint,
+  Brain,
+  ShieldCheck,
+  Eye,
+  Rocket,
+} from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { LearningScoreboard } from "@/components/import/LearningScoreboard";
  
  interface IngestPath {
    id: string;
@@ -269,19 +270,22 @@
          </CardContent>
        </Card>
  
-       {/* Active Ingest Runs */}
-       <Card className="bg-tf-elevated/50 border-tf-border">
-         <CardHeader>
-           <CardTitle className="text-base font-medium">Active Ingest Runs</CardTitle>
-         </CardHeader>
-         <CardContent>
-           <div className="text-center py-8 text-muted-foreground">
-             <Upload className="w-8 h-8 mx-auto mb-3 opacity-30" />
-             <p className="text-sm">No active ingest jobs</p>
-             <p className="text-xs mt-1">Select an ingest path above to begin</p>
-           </div>
-         </CardContent>
-       </Card>
-     </motion.div>
-   );
- }
+      {/* Learning Scoreboard */}
+      <LearningScoreboard className="border-tf-border" />
+
+      {/* Active Ingest Runs */}
+      <Card className="bg-tf-elevated/50 border-tf-border">
+        <CardHeader>
+          <CardTitle className="text-base font-medium">Active Ingest Runs</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-8 text-muted-foreground">
+            <Upload className="w-8 h-8 mx-auto mb-3 opacity-30" />
+            <p className="text-sm">No active ingest jobs</p>
+            <p className="text-xs mt-1">Select an ingest path above to begin</p>
+          </div>
+        </CardContent>
+      </Card>
+    </motion.div>
+  );
+}

@@ -4,7 +4,7 @@
 
 import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Shield, BookOpen, History, Search, FlaskConical, Cpu, Filter, X, ShieldCheck, CheckCircle2, AlertCircle, Zap } from "lucide-react";
+import { Shield, BookOpen, History, Search, FlaskConical, Cpu, Filter, X, ShieldCheck, CheckCircle2, AlertCircle, Zap, Brain } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ScopeHeader } from "./ScopeHeader";
 import { ProvenanceNumber } from "./ProvenanceNumber";
@@ -12,6 +12,7 @@ import { TrustOSHealthPanel } from "./TrustOSHealthPanel";
 import { METRIC_CATALOG, TARGET, getAllMetricKeys } from "@/lib/metrics/metricCatalog";
 import { useCountyVitals } from "@/hooks/useCountyVitals";
 import { useTrustEvents } from "@/hooks/useTrustEvents";
+import { DataLearningPanel } from "./DataLearningPanel";
 import { useTrustRuns, useTrustModels } from "@/hooks/useTrustModels";
 
 interface TrustRegistryPageProps {
@@ -25,7 +26,7 @@ function isValidTarget(t: string) {
   return VALID_TARGETS.has(t as typeof TARGET[keyof typeof TARGET]) || t.startsWith("workbench") || t.startsWith("factory") || t.startsWith("home") || t.startsWith("registry");
 }
 
-type TabId = "changes" | "runs" | "models" | "catalog" | "health";
+type TabId = "changes" | "runs" | "models" | "catalog" | "learning" | "health";
 
 type TimeRange = "1h" | "24h" | "7d" | "30d" | "all";
 
@@ -125,6 +126,7 @@ export function TrustRegistryPage({ onNavigate }: TrustRegistryPageProps) {
     { id: "runs", label: "Runs", icon: FlaskConical, count: filteredRuns.length },
     { id: "models", label: "Models", icon: Cpu, count: filteredModels.length },
     { id: "catalog", label: "Data Catalog", icon: BookOpen },
+    { id: "learning", label: "Data Learning", icon: Brain },
     { id: "health", label: "Trust OS Health", icon: ShieldCheck },
   ];
 
@@ -167,7 +169,7 @@ export function TrustRegistryPage({ onNavigate }: TrustRegistryPageProps) {
       </div>
 
       {/* ── Filter Bar (for Changes / Runs / Models) ── */}
-      {activeTab !== "catalog" && (
+      {activeTab !== "catalog" && activeTab !== "learning" && (
         <div className="flex items-center gap-3 flex-wrap">
           <div className="relative flex-1 max-w-xs">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
@@ -498,6 +500,13 @@ export function TrustRegistryPage({ onNavigate }: TrustRegistryPageProps) {
               </tbody>
             </table>
           </div>
+        </motion.div>
+      )}
+
+      {/* ── Data Learning Tab ── */}
+      {activeTab === "learning" && (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+          <DataLearningPanel />
         </motion.div>
       )}
 
