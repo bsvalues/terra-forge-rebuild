@@ -25,6 +25,7 @@ import { Progress } from "@/components/ui/progress";
 import { TerraTraceActivityFeed } from "@/components/proof/TerraTraceActivityFeed";
 import { AuditTimelineSparkline } from "./AuditTimelineSparkline";
 import { SmartQuickActions } from "./SmartQuickActions";
+import { LearningMilestones } from "./LearningMilestones";
 import { DataPipelineLedger } from "./DataPipelineLedger";
 import { useState, useRef, useEffect } from "react";
 import { useDebounce } from "@/hooks/useDebounce";
@@ -319,6 +320,15 @@ export function SuiteHub({ onNavigate, onParcelNavigate }: SuiteHubProps) {
         transition={{ delay: 0.22, duration: 0.35 }}
       >
         <SmartQuickActions onNavigate={onNavigate} />
+      </motion.section>
+
+      {/* ── Learning Milestones (Weekly Digest) ── */}
+      <motion.section
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.23, duration: 0.35 }}
+      >
+        <LearningMilestones />
       </motion.section>
 
       {/* ── Data Pipeline Ledger ── */}

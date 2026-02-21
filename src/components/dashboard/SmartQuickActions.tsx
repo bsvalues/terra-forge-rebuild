@@ -7,10 +7,12 @@ import {
   AlertTriangle,
   ArrowRight,
   BarChart3,
+  Brain,
   CheckCircle2,
   Gavel,
   Shield,
   Sparkles,
+  Star,
   Upload,
   Zap,
 } from "lucide-react";
@@ -24,8 +26,10 @@ interface SmartQuickActionsProps {
 
 const ICON_MAP: Record<string, React.ElementType> = {
   BarChart3,
+  Brain,
   Gavel,
   Shield,
+  Star,
   Upload,
   CheckCircle2,
   AlertTriangle,
