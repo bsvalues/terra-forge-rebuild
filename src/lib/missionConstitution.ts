@@ -231,10 +231,10 @@ export const MISSION_REGISTRY: MissionDefinition[] = [
   },
   // ── Characteristics Consistency Missions ────────────────────────────
   {
-    id: "gla-mismatch",
-    title: "GLA / Building Area Mismatch",
+    id: "building-area-outliers",
+    title: "Building Area Outliers",
     scope: "county",
-    descriptionTemplate: "{{count}} parcels have living area that differs from building area by >20% — drives wrong model inputs and appeal risk",
+    descriptionTemplate: "{{count}} parcels have building area outside 1.5×IQR for their property class — likely data entry errors or missing updates",
     iconName: "Ruler",
     target: "home:quality",
     threshold: 5,
@@ -244,7 +244,7 @@ export const MISSION_REGISTRY: MissionDefinition[] = [
     slaCooldownDays: 7,
     roleGate: ["admin", "moderator", "user"],
     impactCategory: "model_reliability_improved",
-    receiptAction: "characteristics.gla_corrected",
+    receiptAction: "characteristics.area_outlier_corrected",
     dataSources: ["parcels"],
     canCreateRule: true,
   },

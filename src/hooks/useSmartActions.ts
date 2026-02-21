@@ -1,5 +1,6 @@
 // TerraFusion OS — Smart Actions Hook (Constitutional: data access only in hooks)
-// Extracts SmartQuickActions query logic out of the component per DATA_CONSTITUTION.md
+// Uses server-side get_mission_counts() RPC for characteristics missions.
+// Client-side detection only for missions requiring cross-table joins not in RPC.
 
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -20,36 +21,25 @@ export function useSmartActions(): SmartAction[] {
     queryFn: async (): Promise<SmartAction[]> => {
       const result: SmartAction[] = [];
 
-      // ── Correction Mission 1: Improvement value = 0 but active permits ──
-      const { data: zeroImpParcels } = await supabase
-        .from("parcels")
-        .select("id, parcel_number")
-        .eq("improvement_value", 0)
-        .limit(500);
+      // ── Server-side mission counts (single RPC call) ──
+      const { data: missionCounts } = await supabase.rpc("get_mission_counts");
+      const mc = (missionCounts ?? {}) as Record<string, any>;
 
-      if (zeroImpParcels && zeroImpParcels.length > 0) {
-        // Check which have active permits
-        const parcelIds = zeroImpParcels.map(p => p.id);
-        const { count: withPermits } = await supabase
-          .from("permits")
-          .select("*", { count: "exact", head: true })
-          .in("parcel_id", parcelIds.slice(0, 100))
-          .in("status", ["applied", "pending", "issued"]);
-
-        if ((withPermits || 0) >= 5) {
-          result.push({
-            id: "zero-imp-permits",
-            title: "Improvement = $0 with Active Permits",
-            description: `${withPermits} parcels have $0 improvement value but active building permits — likely missing data`,
-            iconName: "AlertTriangle",
-            target: "home:quality",
-            priority: (withPermits || 0) > 20 ? "critical" : "high",
-            metric: `${withPermits}`,
-          });
-        }
+      // ── Zero improvement with active permits ──
+      const zeroImpCount = mc["zero-imp-permits"]?.total ?? 0;
+      if (zeroImpCount >= 5) {
+        result.push({
+          id: "zero-imp-permits",
+          title: "Improvement = $0 with Active Permits",
+          description: `${zeroImpCount} parcels have $0 improvement value but active building permits — likely missing data`,
+          iconName: "AlertTriangle",
+          target: "home:quality",
+          priority: zeroImpCount > 20 ? "critical" : "high",
+          metric: `${zeroImpCount}`,
+        });
       }
 
-      // ── Correction Mission 2: Sale price outliers ──
+      // ── Sale price outliers (requires client-side IQR — small dataset) ──
       const { data: recentSales } = await supabase
         .from("sales")
         .select("sale_price")
@@ -80,7 +70,7 @@ export function useSmartActions(): SmartAction[] {
         }
       }
 
-      // ── Correction Mission 3: Neighborhood code drift ──
+      // ── Neighborhood code drift (requires client-side grouping) ──
       const { data: nbhdParcels } = await supabase
         .from("parcels")
         .select("neighborhood_code")
@@ -106,7 +96,7 @@ export function useSmartActions(): SmartAction[] {
         }
       }
 
-      // Uncalibrated neighborhoods
+      // ── Uncalibrated neighborhoods (requires cross-table) ──
       const { data: parcels } = await supabase
         .from("parcels")
         .select("neighborhood_code")
@@ -135,39 +125,23 @@ export function useSmartActions(): SmartAction[] {
         });
       }
 
-      // Pending appeals
-      const { count: appealCount } = await supabase
-        .from("appeals")
-        .select("*", { count: "exact", head: true })
-        .in("status", ["filed", "pending"]);
-
-      if ((appealCount || 0) > 0) {
+      // ── Pending appeals (from RPC) ──
+      const appealCount = mc["appeals"]?.total ?? 0;
+      if (appealCount > 0) {
         result.push({
           id: "appeals",
           title: "Pending Appeals",
-          description: `${appealCount} appeal${(appealCount || 0) > 1 ? "s" : ""} awaiting review`,
+          description: `${appealCount} appeal${appealCount > 1 ? "s" : ""} awaiting review`,
           iconName: "Gavel",
           target: "workbench:dais:appeals",
-          priority: (appealCount || 0) > 10 ? "critical" : "medium",
+          priority: appealCount > 10 ? "critical" : "medium",
           metric: `${appealCount}`,
         });
       }
 
-      // Missing coordinates
-      const { count: totalParcels } = await supabase
-        .from("parcels")
-        .select("*", { count: "exact", head: true });
-
-      const { count: noCoords } = await supabase
-        .from("parcels")
-        .select("*", { count: "exact", head: true })
-        .is("latitude", null);
-
-      const missingPct =
-        (totalParcels || 0) > 0
-          ? Math.round(((noCoords || 0) / (totalParcels || 1)) * 100)
-          : 0;
-
+      // ── Missing coordinates (from RPC) ──
+      const geocoding = mc["geocoding"] ?? {};
+      const missingPct = geocoding.pct ?? 0;
       if (missingPct > 20) {
         result.push({
           id: "geocoding",
@@ -180,12 +154,9 @@ export function useSmartActions(): SmartAction[] {
         });
       }
 
-      // Low sales volume
-      const { count: salesCount } = await supabase
-        .from("sales")
-        .select("*", { count: "exact", head: true });
-
-      if ((salesCount || 0) < 50) {
+      // ── Low sales volume (from RPC) ──
+      const salesTotal = mc["sales-data"]?.total ?? 0;
+      if (salesTotal < 50) {
         result.push({
           id: "sales-data",
           title: "Low Sales Volume",
@@ -193,29 +164,25 @@ export function useSmartActions(): SmartAction[] {
           iconName: "Upload",
           target: "home:ids",
           priority: "medium",
-          metric: `${salesCount || 0}`,
+          metric: `${salesTotal}`,
         });
       }
 
-      // Uncertified assessments
-      const { count: uncertifiedCount } = await supabase
-        .from("assessments")
-        .select("*", { count: "exact", head: true })
-        .eq("certified", false);
-
-      if ((uncertifiedCount || 0) > 0) {
+      // ── Uncertified assessments (from RPC) ──
+      const uncertifiedCount = mc["uncertified"]?.total ?? 0;
+      if (uncertifiedCount > 0) {
         result.push({
           id: "uncertified",
           title: "Uncertified Assessments",
-          description: `${uncertifiedCount} assessment${(uncertifiedCount || 0) > 1 ? "s" : ""} pending certification`,
+          description: `${uncertifiedCount} assessment${uncertifiedCount > 1 ? "s" : ""} pending certification`,
           iconName: "CheckCircle2",
           target: "home:readiness",
-          priority: (uncertifiedCount || 0) > 100 ? "high" : "medium",
+          priority: uncertifiedCount > 100 ? "high" : "medium",
           metric: `${uncertifiedCount}`,
         });
       }
 
-      // Low-confidence mapping rules — Learning SLA: only surface if ≥3 rules AND created in last 7 days
+      // ── Low-confidence mapping rules (Learning SLA) ──
       const sevenDaysAgo = new Date(Date.now() - 7 * 86400_000).toISOString();
       const { data: lowConfRules } = await supabase
         .from("ingest_mapping_rules" as any)
@@ -237,7 +204,7 @@ export function useSmartActions(): SmartAction[] {
         });
       }
 
-      // Missing default mapping profiles — Learning SLA: only show if at least 1 profile exists
+      // ── Missing default mapping profiles ──
       const { data: allProfiles } = await supabase
         .from("ingest_mapping_profiles" as any)
         .select("dataset_type, is_default")
@@ -260,58 +227,14 @@ export function useSmartActions(): SmartAction[] {
         });
       }
 
-      // ── Characteristics Consistency Missions ────────────────────────
-
-      // Mission: GLA / Building Area Mismatch
-      const { data: glaParcels } = await supabase
-        .from("parcels")
-        .select("id, building_area, land_area")
-        .not("building_area", "is", null)
-        .gt("building_area", 0)
-        .limit(2000);
-
-      if (glaParcels && glaParcels.length > 0) {
-        // Compare building_area vs assessed improvement proxy — flag where building_area is present
-        // but also check for parcels where one is null and the other isn't
-        const { data: noAreaButImprovement } = await supabase
-          .from("parcels")
-          .select("id", { count: "exact", head: true })
-          .is("building_area", null)
-          .gt("improvement_value", 0)
-          .limit(1);
-
-        // For the mismatch check, we look at parcels where both exist but diverge significantly
-        // Since we only have building_area (not separate GLA), check for zero/null inconsistencies
-        const mismatchCount = (noAreaButImprovement as any)?.length ?? 0;
-        // We'll merge this with the "missing building area" mission below
-      }
-
-      // Mission: Impossible Year Built
-      const currentYear = new Date().getFullYear();
-      const { count: tooOldCount } = await supabase
-        .from("parcels")
-        .select("*", { count: "exact", head: true })
-        .lt("year_built", 1700)
-        .not("year_built", "is", null);
-
-      const { count: futureCount } = await supabase
-        .from("parcels")
-        .select("*", { count: "exact", head: true })
-        .gt("year_built", currentYear + 1)
-        .not("year_built", "is", null);
-
-      const { count: nullYearWithImprovements } = await supabase
-        .from("parcels")
-        .select("*", { count: "exact", head: true })
-        .is("year_built", null)
-        .gt("improvement_value", 0);
-
-      const impossibleYearTotal = (tooOldCount || 0) + (futureCount || 0) + (nullYearWithImprovements || 0);
+      // ── Characteristics: Impossible Year Built (from RPC) ──
+      const yearData = mc["impossible-year-built"] ?? {};
+      const impossibleYearTotal = yearData.total ?? 0;
       if (impossibleYearTotal >= 3) {
         const parts: string[] = [];
-        if ((tooOldCount || 0) > 0) parts.push(`${tooOldCount} pre-1700`);
-        if ((futureCount || 0) > 0) parts.push(`${futureCount} future`);
-        if ((nullYearWithImprovements || 0) > 0) parts.push(`${nullYearWithImprovements} missing`);
+        if ((yearData.pre1700 ?? 0) > 0) parts.push(`${yearData.pre1700} pre-1700`);
+        if ((yearData.future ?? 0) > 0) parts.push(`${yearData.future} future`);
+        if ((yearData.missing ?? 0) > 0) parts.push(`${yearData.missing} missing`);
         result.push({
           id: "impossible-year-built",
           title: "Impossible Year Built",
@@ -323,66 +246,32 @@ export function useSmartActions(): SmartAction[] {
         });
       }
 
-      // Mission: Missing Building Areas
-      const { count: missingAreaCount } = await supabase
-        .from("parcels")
-        .select("*", { count: "exact", head: true })
-        .gt("improvement_value", 0)
-        .or("building_area.is.null,building_area.eq.0");
-
-      if ((missingAreaCount || 0) >= 10) {
+      // ── Characteristics: Missing Building Areas (from RPC) ──
+      const missingAreaCount = mc["missing-building-area"]?.total ?? 0;
+      if (missingAreaCount >= 10) {
         result.push({
           id: "missing-building-area",
           title: "Missing Building Areas",
           description: `${missingAreaCount} parcels have improvement value but no building area — not defensible without measurement data`,
           iconName: "SquareDashed",
           target: "home:quality",
-          priority: (missingAreaCount || 0) > 50 ? "critical" : "high",
+          priority: missingAreaCount > 50 ? "critical" : "high",
           metric: `${missingAreaCount}`,
         });
       }
 
-      // Mission: GLA Mismatch (building_area present but land_area suggests inconsistency)
-      // Since we lack a separate GLA field, detect parcels where building_area > land_area (impossible physically)
-      const { count: glaOverLand } = await supabase
-        .from("parcels")
-        .select("*", { count: "exact", head: true })
-        .not("building_area", "is", null)
-        .not("land_area", "is", null)
-        .gt("building_area", 0)
-        .gt("land_area", 0);
-
-      // We need to do client-side filter for building_area > land_area * threshold
-      if ((glaOverLand || 0) > 0) {
-        const { data: areaCheckParcels } = await supabase
-          .from("parcels")
-          .select("id, building_area, land_area")
-          .not("building_area", "is", null)
-          .not("land_area", "is", null)
-          .gt("building_area", 0)
-          .gt("land_area", 0)
-          .limit(2000);
-
-        const mismatches = (areaCheckParcels || []).filter(p => {
-          const ba = Number(p.building_area);
-          const la = Number(p.land_area);
-          if (la === 0) return false;
-          const ratio = ba / la;
-          // Flag if building area > land area (physically impossible) or ratio > 5x (likely data entry error)
-          return ratio > 1.0 || ratio < 0.001;
+      // ── Characteristics: Building Area Outliers (from RPC, per-class IQR) ──
+      const areaOutlierCount = mc["building-area-outliers"]?.total ?? 0;
+      if (areaOutlierCount >= 5) {
+        result.push({
+          id: "building-area-outliers",
+          title: "Building Area Outliers",
+          description: `${areaOutlierCount} parcels have building area outside 1.5×IQR for their property class — likely data entry errors`,
+          iconName: "Ruler",
+          target: "home:quality",
+          priority: areaOutlierCount > 25 ? "critical" : "high",
+          metric: `${areaOutlierCount}`,
         });
-
-        if (mismatches.length >= 5) {
-          result.push({
-            id: "gla-mismatch",
-            title: "GLA / Building Area Mismatch",
-            description: `${mismatches.length} parcels have building area inconsistent with land area — drives wrong model inputs`,
-            iconName: "Ruler",
-            target: "home:quality",
-            priority: mismatches.length > 25 ? "critical" : "high",
-            metric: `${mismatches.length}`,
-          });
-        }
       }
 
       const priorityOrder = { critical: 0, high: 1, medium: 2, info: 3 };
