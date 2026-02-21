@@ -151,6 +151,8 @@ export function SmartQuickActions({ onNavigate }: SmartQuickActionsProps) {
                         sources={prov?.sources ?? mission.dataSources}
                         fetchedAt={prov?.as_of ?? new Date().toISOString()}
                         confidence={prov?.confidence ?? "high"}
+                        scopeN={prov?.scope_n}
+                        minClassN={prov?.min_class_n}
                         className="mt-1.5"
                       />
                     ) : null;
