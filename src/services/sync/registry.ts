@@ -16,6 +16,7 @@ import {
   BENTON_PRODUCT_REQUIREMENTS,
   connectorSatisfiesRequirements,
 } from "./connectors/types";
+import type { YearDoctrine, YearDoctrineMode } from "./yearDoctrine";
 
 // ============================================================
 // Source Lane IDs (exhaustive for Benton County)
@@ -43,6 +44,10 @@ export interface SourceLaneRegistration {
   products: string[];
   /** Whether this lane is currently active */
   active: boolean;
+  /** Year doctrine for this lane (discovered or configured) */
+  yearDoctrine?: YearDoctrine;
+  /** Expected year doctrine mode (for validation before discovery) */
+  expectedYearMode?: YearDoctrineMode;
   /** Notes about this source */
   notes?: string[];
 }
@@ -264,7 +269,8 @@ export function createBentonRegistry(): SourceLaneRegistry {
       "pacs_current_year_property_val",
     ],
     active: false,
-    notes: ["Legacy lane. Requires Windows extractor agent with ODBC driver.", "No workflow or hood support."],
+    expectedYearMode: "implicit_current",
+    notes: ["Legacy lane. Requires Windows extractor agent with ODBC driver.", "No workflow or hood support.", "Year doctrine TBD — run discoverYearDoctrine() on first connect."],
   });
 
   // Legacy: Asend (Access .mdb, inactive)
@@ -288,7 +294,8 @@ export function createBentonRegistry(): SourceLaneRegistry {
       "pacs_current_year_property_val",
     ],
     active: false,
-    notes: ["Legacy lane. Requires Windows extractor agent with ODBC driver."],
+    expectedYearMode: "implicit_current",
+    notes: ["Legacy lane. Requires Windows extractor agent with ODBC driver.", "Year doctrine TBD."],
   });
 
   // Legacy: Manatron GIS (Access .mdb, inactive)

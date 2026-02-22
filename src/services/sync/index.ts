@@ -26,3 +26,10 @@ export {
   type ProductSyncResult,
   type SyncRunResult,
 } from "./runtime";
+export {
+  discoverYearDoctrine,
+  inferDoctrine,
+  resolveYear,
+  type YearDoctrine,
+  type YearDoctrineMode,
+} from "./yearDoctrine";
