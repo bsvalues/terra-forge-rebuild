@@ -15,26 +15,26 @@ interface EquityHeatmapProps {
 }
 
 function ratioColor(ratio: number | null): string {
-  if (ratio === null) return "#6b7280";
+  if (ratio === null) return "hsl(var(--muted-foreground))";
   const dev = Math.abs(ratio - 1.0);
-  if (dev < 0.03) return "#10b981";
-  if (dev < 0.07) return "#f59e0b";
-  if (dev < 0.12) return "#f97316";
-  return "#ef4444";
+  if (dev < 0.03) return "hsl(var(--tf-optimized-green))";
+  if (dev < 0.07) return "hsl(var(--tf-sacred-gold))";
+  if (dev < 0.12) return "hsl(var(--tf-anomaly-amber))";
+  return "hsl(var(--destructive))";
 }
 
 function codFill(cod: number): string {
-  if (cod <= 10) return "rgba(16,185,129,0.25)";
-  if (cod <= 15) return "rgba(245,158,11,0.25)";
-  if (cod <= 20) return "rgba(249,115,22,0.25)";
-  return "rgba(239,68,68,0.25)";
+  if (cod <= 10) return "hsl(var(--tf-optimized-green) / 0.25)";
+  if (cod <= 15) return "hsl(var(--tf-sacred-gold) / 0.25)";
+  if (cod <= 20) return "hsl(var(--tf-anomaly-amber) / 0.25)";
+  return "hsl(var(--destructive) / 0.25)";
 }
 
 function codStroke(cod: number): string {
-  if (cod <= 10) return "#10b981";
-  if (cod <= 15) return "#f59e0b";
-  if (cod <= 20) return "#f97316";
-  return "#ef4444";
+  if (cod <= 10) return "hsl(var(--tf-optimized-green))";
+  if (cod <= 15) return "hsl(var(--tf-sacred-gold))";
+  if (cod <= 20) return "hsl(var(--tf-anomaly-amber))";
+  return "hsl(var(--destructive))";
 }
 
 export function EquityHeatmap({ studyPeriodId, onParcelSelect, neighborhoodFilter }: EquityHeatmapProps) {
@@ -174,7 +174,7 @@ export function EquityHeatmap({ studyPeriodId, onParcelSelect, neighborhoodFilte
     <div className="w-full h-full flex">
       {/* Map */}
       <div className="flex-1 relative">
-        <div ref={containerRef} className="w-full h-full z-0" style={{ background: "#0a0f14" }} />
+        <div ref={containerRef} className="w-full h-full z-0 bg-tf-substrate" />
 
         {/* Loading overlay */}
         {isLoading && (
@@ -236,15 +236,15 @@ export function EquityHeatmap({ studyPeriodId, onParcelSelect, neighborhoodFilte
         {/* Legend */}
         <div className="absolute bottom-3 left-3 z-[1000] material-bento p-3 rounded-lg text-xs space-y-1.5">
           <div className="font-medium text-foreground mb-1">Ratio Legend</div>
-          <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full" style={{ backgroundColor: "#10b981" }} /><span>±3% (On Target)</span></div>
-          <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full" style={{ backgroundColor: "#f59e0b" }} /><span>3-7% (Caution)</span></div>
-          <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full" style={{ backgroundColor: "#f97316" }} /><span>7-12% (Warning)</span></div>
-          <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full" style={{ backgroundColor: "#ef4444" }} /><span>&gt;12% (Critical)</span></div>
-          <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full" style={{ backgroundColor: "#6b7280" }} /><span>No Sale Data</span></div>
+          <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-tf-green" /><span>±3% (On Target)</span></div>
+          <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-tf-gold" /><span>3-7% (Caution)</span></div>
+          <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-tf-amber" /><span>7-12% (Warning)</span></div>
+          <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-destructive" /><span>&gt;12% (Critical)</span></div>
+          <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-muted-foreground" /><span>No Sale Data</span></div>
           <div className="border-t border-border/50 mt-2 pt-2 font-medium">COD Overlay</div>
-          <div className="flex items-center gap-2"><div className="w-3 h-3 rounded border" style={{ backgroundColor: "rgba(16,185,129,0.25)", borderColor: "#10b981" }} /><span>≤10% (Excellent)</span></div>
-          <div className="flex items-center gap-2"><div className="w-3 h-3 rounded border" style={{ backgroundColor: "rgba(245,158,11,0.25)", borderColor: "#f59e0b" }} /><span>10-15% (Acceptable)</span></div>
-          <div className="flex items-center gap-2"><div className="w-3 h-3 rounded border" style={{ backgroundColor: "rgba(239,68,68,0.25)", borderColor: "#ef4444" }} /><span>&gt;15% (Non-Compliant)</span></div>
+          <div className="flex items-center gap-2"><div className="w-3 h-3 rounded border border-tf-green" style={{ backgroundColor: "hsl(var(--tf-optimized-green) / 0.25)" }} /><span>≤10% (Excellent)</span></div>
+          <div className="flex items-center gap-2"><div className="w-3 h-3 rounded border border-tf-gold" style={{ backgroundColor: "hsl(var(--tf-sacred-gold) / 0.25)" }} /><span>10-15% (Acceptable)</span></div>
+          <div className="flex items-center gap-2"><div className="w-3 h-3 rounded border border-destructive" style={{ backgroundColor: "hsl(var(--destructive) / 0.25)" }} /><span>&gt;15% (Non-Compliant)</span></div>
         </div>
       </div>
 
