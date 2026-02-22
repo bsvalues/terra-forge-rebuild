@@ -1247,6 +1247,56 @@ export type Database = {
           },
         ]
       }
+      pacs_schema_registry: {
+        Row: {
+          actual_columns: Json | null
+          county_id: string
+          created_at: string
+          expected_columns: Json
+          id: string
+          last_validated_at: string | null
+          missing_optional: string[] | null
+          missing_required: string[] | null
+          source_table: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          actual_columns?: Json | null
+          county_id: string
+          created_at?: string
+          expected_columns?: Json
+          id?: string
+          last_validated_at?: string | null
+          missing_optional?: string[] | null
+          missing_required?: string[] | null
+          source_table: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          actual_columns?: Json | null
+          county_id?: string
+          created_at?: string
+          expected_columns?: Json
+          id?: string
+          last_validated_at?: string | null
+          missing_optional?: string[] | null
+          missing_required?: string[] | null
+          source_table?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pacs_schema_registry_county_id_fkey"
+            columns: ["county_id"]
+            isOneToOne: false
+            referencedRelation: "counties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       parcel_neighborhood_year: {
         Row: {
           county_id: string
@@ -1872,6 +1922,59 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "study_periods_county_id_fkey"
+            columns: ["county_id"]
+            isOneToOne: false
+            referencedRelation: "counties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sync_watermarks: {
+        Row: {
+          county_id: string
+          created_at: string
+          error_message: string | null
+          id: string
+          last_modified_at: string | null
+          last_row_count: number
+          last_seen_change_id: string | null
+          last_strategy: string
+          last_success_at: string | null
+          product_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          county_id: string
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          last_modified_at?: string | null
+          last_row_count?: number
+          last_seen_change_id?: string | null
+          last_strategy?: string
+          last_success_at?: string | null
+          product_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          county_id?: string
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          last_modified_at?: string | null
+          last_row_count?: number
+          last_seen_change_id?: string | null
+          last_strategy?: string
+          last_success_at?: string | null
+          product_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sync_watermarks_county_id_fkey"
             columns: ["county_id"]
             isOneToOne: false
             referencedRelation: "counties"
