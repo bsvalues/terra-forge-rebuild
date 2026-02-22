@@ -2830,6 +2830,10 @@ export type Database = {
         Returns: boolean
       }
       is_admin: { Args: never; Returns: boolean }
+      link_parcels_to_polygons_by_location: {
+        Args: { p_county_id: string; p_layer_id: string; p_limit?: number }
+        Returns: Json
+      }
       longtransactionsenabled: { Args: never; Returns: boolean }
       populate_geometry_columns:
         | { Args: { tbl_oid: unknown; use_typmod?: boolean }; Returns: number }
