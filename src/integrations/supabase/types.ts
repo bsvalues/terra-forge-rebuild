@@ -1369,6 +1369,8 @@ export type Database = {
           neighborhood_code: string | null
           parcel_number: string
           property_class: string | null
+          situs_point_wgs84: unknown
+          situs_source: string | null
           source_parcel_id: string | null
           state: string | null
           updated_at: string
@@ -1401,6 +1403,8 @@ export type Database = {
           neighborhood_code?: string | null
           parcel_number: string
           property_class?: string | null
+          situs_point_wgs84?: unknown
+          situs_source?: string | null
           source_parcel_id?: string | null
           state?: string | null
           updated_at?: string
@@ -1433,6 +1437,8 @@ export type Database = {
           neighborhood_code?: string | null
           parcel_number?: string
           property_class?: string | null
+          situs_point_wgs84?: unknown
+          situs_source?: string | null
           source_parcel_id?: string | null
           state?: string | null
           updated_at?: string
