@@ -3474,6 +3474,10 @@ export type Database = {
         }
         Returns: Json
       }
+      upsert_parcel_polygons_bulk: {
+        Args: { p_county_id: string; p_layer_id: string; p_rows: Json }
+        Returns: Json
+      }
     }
     Enums: {
       app_role: "admin" | "analyst" | "viewer"

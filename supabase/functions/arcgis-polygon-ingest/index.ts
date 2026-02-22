@@ -1,6 +1,6 @@
-// TerraFusion OS — ArcGIS Polygon Layer Ingester
-// Pages through ArcGIS FeatureServer, requests GeoJSON in WGS84 (outSR=4326),
-// and upserts parcel polygons via upsert_parcel_polygon RPC.
+// TerraFusion OS — ArcGIS Polygon Layer Ingester (Bulk Mode)
+// Pages through ArcGIS FeatureServer (2K/batch), requests GeoJSON in WGS84,
+// and bulk-upserts via upsert_parcel_polygons_bulk RPC (one call per page).
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { requireAdmin, createServiceClient } from "../_shared/auth.ts";
@@ -13,10 +13,9 @@ const corsHeaders = {
 
 interface IngestRequest {
   featureServerUrl: string;
-  layerId?: string;
   countyId: string;
-  parcelIdField?: string; // ArcGIS attribute name for parcel number
-  maxPages?: number; // safety cap (default 100 = 200K features)
+  parcelIdField?: string;
+  maxPages?: number;
 }
 
 serve(async (req) => {
@@ -49,7 +48,6 @@ serve(async (req) => {
       );
     }
 
-    // Validate URL
     try {
       const u = new URL(featureServerUrl);
       if (!["http:", "https:"].includes(u.protocol)) throw new Error("bad");
@@ -60,27 +58,20 @@ serve(async (req) => {
       );
     }
 
-    console.log(`[arcgis-polygon-ingest] Admin ${auth.userId} ingesting polygons from: ${featureServerUrl}`);
+    console.log(`[arcgis-polygon-ingest] Admin ${auth.userId} ingesting from: ${featureServerUrl}`);
 
     // 1) Register layer in gis_layers
-    const { data: layerRow, error: layerErr } = await supabase
-      .from("gis_layers")
-      .upsert(
-        {
-          name: "ParcelsAndAssess",
-          layer_type: "polygon",
-          srid: 4326, // we request outSR=4326
-          file_format: "arcgis_featureserver",
-          properties_schema: { parcel_id_field: parcelIdField },
-        },
-        { onConflict: "name" }
-      )
-      .select("id")
-      .single();
-
-    // If upsert fails due to no unique constraint on name, just insert
     let layerId: string;
-    if (layerErr) {
+    const { data: existingLayer } = await supabase
+      .from("gis_layers")
+      .select("id")
+      .eq("name", "ParcelsAndAssess")
+      .limit(1)
+      .maybeSingle();
+
+    if (existingLayer) {
+      layerId = existingLayer.id;
+    } else {
       const { data: inserted, error: insertErr } = await supabase
         .from("gis_layers")
         .insert({
@@ -88,155 +79,111 @@ serve(async (req) => {
           layer_type: "polygon",
           srid: 4326,
           file_format: "arcgis_featureserver",
-          properties_schema: { parcel_id_field: parcelIdField },
+          properties_schema: { parcel_id_field: parcelIdField, source_url: featureServerUrl },
         })
         .select("id")
         .single();
       if (insertErr) throw new Error(`Failed to register layer: ${insertErr.message}`);
       layerId = inserted.id;
-    } else {
-      layerId = layerRow.id;
     }
 
-    console.log(`[arcgis-polygon-ingest] Layer registered: ${layerId}`);
+    console.log(`[arcgis-polygon-ingest] Layer ID: ${layerId}`);
 
     // 2) Page through ArcGIS FeatureServer
-    //    Request GeoJSON format with outSR=4326 so we get WGS84 directly
-    const pageSize = 2000; // maxRecordCount for this service
+    const pageSize = 2000;
     let offset = 0;
     let totalFetched = 0;
+    let totalUpserted = 0;
     let totalMatched = 0;
-    let totalUnmatched = 0;
     let page = 0;
     let hasMore = true;
 
-    // Build outFields list — get key assessment fields too
     const outFields = [
-      parcelIdField,
-      "owner_name",
-      "situs_address",
-      "neighborhood_code",
-      "neighborhood_name",
-      "appraised_val",
-      "legal_acres",
-      "land_sqft",
-      "year_blt",
-      "primary_use",
-      "tax_code_area",
-      "geo_id",
-      "GlobalID",
-      "OBJECTID",
+      parcelIdField, "owner_name", "situs_address", "neighborhood_code",
+      "neighborhood_name", "appraised_val", "legal_acres", "land_sqft",
+      "year_blt", "primary_use", "tax_code_area", "geo_id", "GlobalID", "OBJECTID",
     ].join(",");
 
     while (hasMore && page < maxPages) {
       const queryUrl =
-        `${featureServerUrl}/query?` +
-        `where=1%3D1` +
+        `${featureServerUrl}/query?where=1%3D1` +
         `&outFields=${encodeURIComponent(outFields)}` +
-        `&returnGeometry=true` +
-        `&outSR=4326` +
-        `&f=geojson` +
-        `&resultOffset=${offset}` +
-        `&resultRecordCount=${pageSize}`;
+        `&returnGeometry=true&outSR=4326&f=geojson` +
+        `&resultOffset=${offset}&resultRecordCount=${pageSize}`;
 
       console.log(`[arcgis-polygon-ingest] Page ${page + 1}, offset ${offset}`);
 
       const resp = await fetch(queryUrl);
-      if (!resp.ok) throw new Error(`ArcGIS query failed: ${resp.status} ${resp.statusText}`);
-
+      if (!resp.ok) throw new Error(`ArcGIS query failed: ${resp.status}`);
       const geojson = await resp.json();
-
-      if (geojson.error) {
-        throw new Error(`ArcGIS error: ${geojson.error.message || JSON.stringify(geojson.error)}`);
-      }
+      if (geojson.error) throw new Error(`ArcGIS error: ${geojson.error.message || JSON.stringify(geojson.error)}`);
 
       const features = geojson.features || [];
-      if (features.length === 0) {
-        hasMore = false;
-        break;
-      }
+      if (features.length === 0) { hasMore = false; break; }
 
-      // 3) Process each feature — call upsert_parcel_polygon RPC
+      // 3) Build bulk rows array
+      const rows: { parcel_number: string; source_object_id: string; geom: unknown; props: unknown }[] = [];
+
       for (const feature of features) {
         const props = feature.properties || {};
         const parcelNumber = props[parcelIdField];
-        if (!parcelNumber) {
-          totalUnmatched++;
-          continue;
-        }
+        const geom = feature.geometry;
+
+        if (!parcelNumber || !geom) continue;
+        if (geom.type !== "Polygon" && geom.type !== "MultiPolygon") continue;
 
         const parcelNumStr = String(parcelNumber).trim();
-        if (!parcelNumStr) {
-          totalUnmatched++;
-          continue;
-        }
+        if (!parcelNumStr) continue;
 
-        // The geometry is already GeoJSON in WGS84
-        const geojsonGeom = feature.geometry;
-        if (!geojsonGeom) {
-          totalUnmatched++;
-          continue;
-        }
-
-        // Ensure it's a proper polygon/multipolygon
-        if (geojsonGeom.type !== "Polygon" && geojsonGeom.type !== "MultiPolygon") {
-          totalUnmatched++;
-          continue;
-        }
-
-        // Convert Polygon to MultiPolygon for consistency
-        const multiGeom =
-          geojsonGeom.type === "Polygon"
-            ? { type: "MultiPolygon", coordinates: [geojsonGeom.coordinates] }
-            : geojsonGeom;
+        const multiGeom = geom.type === "Polygon"
+          ? { type: "MultiPolygon", coordinates: [geom.coordinates] }
+          : geom;
 
         const sourceObjId = props.GlobalID || String(props.OBJECTID || "");
+        if (!sourceObjId) continue;
 
-        const { data: result, error: rpcErr } = await supabase.rpc(
-          "upsert_parcel_polygon",
-          {
-            p_county_id: countyId,
-            p_layer_id: layerId,
-            p_parcel_number: parcelNumStr,
-            p_geojson_geometry: multiGeom,
-            p_properties: props,
-            p_source_object_id: sourceObjId,
-          }
+        rows.push({
+          parcel_number: parcelNumStr,
+          source_object_id: sourceObjId,
+          geom: multiGeom,
+          props,
+        });
+      }
+
+      // 4) Bulk upsert via RPC (one call per page)
+      if (rows.length > 0) {
+        const { data: bulkRes, error: bulkErr } = await supabase.rpc(
+          "upsert_parcel_polygons_bulk",
+          { p_county_id: countyId, p_layer_id: layerId, p_rows: rows }
         );
 
-        if (rpcErr) {
-          console.error(`[arcgis-polygon-ingest] RPC error for ${parcelNumStr}: ${rpcErr.message}`);
-          totalUnmatched++;
-        } else {
-          const res = result as { matched: boolean };
-          if (res?.matched) {
-            totalMatched++;
-          } else {
-            totalUnmatched++;
-          }
+        if (bulkErr) {
+          console.error(`[arcgis-polygon-ingest] Bulk error page ${page + 1}: ${bulkErr.message}`);
+          throw new Error(`Bulk upsert failed on page ${page + 1}: ${bulkErr.message}`);
         }
+
+        const res = bulkRes as { upserted_features: number; matched_parcels: number } | null;
+        totalUpserted += res?.upserted_features ?? 0;
+        totalMatched += res?.matched_parcels ?? 0;
       }
 
       totalFetched += features.length;
       offset += features.length;
       page++;
-
-      // Check if there are more
       hasMore = features.length === pageSize;
 
-      // Log progress every page
       console.log(
-        `[arcgis-polygon-ingest] Progress: ${totalFetched} fetched, ${totalMatched} matched, ${totalUnmatched} unmatched`
+        `[arcgis-polygon-ingest] Progress: ${totalFetched} fetched, ${totalUpserted} upserted, ${totalMatched} matched`
       );
     }
 
-    // 4) Update layer feature count
+    // 5) Update layer metadata
     await supabase
       .from("gis_layers")
       .update({ feature_count: totalFetched, updated_at: new Date().toISOString() })
       .eq("id", layerId);
 
-    // 5) Emit trace event
+    // 6) Trace event
     await supabase.from("trace_events" as any).insert({
       county_id: countyId,
       source_module: "arcgis-polygon-ingest",
@@ -245,8 +192,8 @@ serve(async (req) => {
         layer_id: layerId,
         feature_server_url: featureServerUrl,
         total_fetched: totalFetched,
+        total_upserted: totalUpserted,
         total_matched: totalMatched,
-        total_unmatched: totalUnmatched,
         pages_processed: page,
         parcel_id_field: parcelIdField,
       },
@@ -256,10 +203,9 @@ serve(async (req) => {
       success: true,
       layerId,
       totalFetched,
+      totalUpserted,
       totalMatched,
-      totalUnmatched,
       pagesProcessed: page,
-      parcelIdField,
     };
 
     console.log(`[arcgis-polygon-ingest] Complete:`, JSON.stringify(summary));
@@ -271,8 +217,7 @@ serve(async (req) => {
     const msg = error instanceof Error ? error.message : "Unknown error";
     console.error("[arcgis-polygon-ingest] Fatal:", msg);
     return new Response(JSON.stringify({ success: false, error: msg }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 });
