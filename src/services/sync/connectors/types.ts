@@ -17,6 +17,12 @@ export interface SourceCapabilities {
   supportsIntrospection: boolean;
   /** Whether incremental watermark-based sync is possible */
   supportsIncrementalWatermarks: boolean;
+  /** Whether year-scoped hood_cd joins are available */
+  supportsYearScopedHood: boolean;
+  /** Whether workflow tables (appeals/permits/exemptions) are available */
+  supportsWorkflows: boolean;
+  /** Whether DECLARE @var / CTE / ROW_NUMBER patterns work */
+  supportsSqlServerDialect: boolean;
   /** Human-readable notes about this connector */
   notes?: string[];
 }
@@ -84,3 +90,69 @@ export interface ReadOnlyConnector {
  * Used by the registry to create connectors on demand.
  */
 export type ConnectorFactory = () => Promise<ReadOnlyConnector>;
+
+// ============================================================
+// Product Capability Requirements
+// ============================================================
+
+/**
+ * Defines the minimum capabilities a connector must have
+ * to serve a given sync product.
+ */
+export interface ProductCapabilityRequirements {
+  /** Product ID (must match SYNC_PRODUCTS[].id) */
+  productId: string;
+  /** Minimum capabilities to serve this product */
+  requires: Partial<Omit<SourceCapabilities, "readonly" | "notes">>;
+}
+
+/**
+ * Check if a connector satisfies capability requirements for a product.
+ */
+export function connectorSatisfiesRequirements(
+  connector: ReadOnlyConnector,
+  requirements: ProductCapabilityRequirements
+): boolean {
+  const caps = connector.capabilities;
+  const reqs = requirements.requires;
+
+  if (reqs.supportsParameterizedQueries && !caps.supportsParameterizedQueries) return false;
+  if (reqs.supportsIntrospection && !caps.supportsIntrospection) return false;
+  if (reqs.supportsIncrementalWatermarks && !caps.supportsIncrementalWatermarks) return false;
+  if (reqs.supportsYearScopedHood && !caps.supportsYearScopedHood) return false;
+  if (reqs.supportsWorkflows && !caps.supportsWorkflows) return false;
+  if (reqs.supportsSqlServerDialect && !caps.supportsSqlServerDialect) return false;
+
+  return true;
+}
+
+/**
+ * Benton product capability requirements.
+ * Defines what each product needs from a connector.
+ */
+export const BENTON_PRODUCT_REQUIREMENTS: ProductCapabilityRequirements[] = [
+  {
+    productId: "pacs_current_year_property_core",
+    requires: { supportsSqlServerDialect: true },
+  },
+  {
+    productId: "pacs_current_year_property_val",
+    requires: { supportsYearScopedHood: true, supportsSqlServerDialect: true },
+  },
+  {
+    productId: "pacs_current_year_neighborhood_dim",
+    requires: { supportsYearScopedHood: true },
+  },
+  {
+    productId: "pacs_workflow_appeals_current_year",
+    requires: { supportsWorkflows: true, supportsSqlServerDialect: true },
+  },
+  {
+    productId: "pacs_workflow_permits_open",
+    requires: { supportsWorkflows: true, supportsSqlServerDialect: true },
+  },
+  {
+    productId: "pacs_workflow_exemptions_pending",
+    requires: { supportsWorkflows: true, supportsSqlServerDialect: true },
+  },
+];

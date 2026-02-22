@@ -6,6 +6,11 @@ export type {
   ColumnInfo,
   ReadOnlyConnector,
   ConnectorFactory,
+  ProductCapabilityRequirements,
+} from "./types";
+export {
+  connectorSatisfiesRequirements,
+  BENTON_PRODUCT_REQUIREMENTS,
 } from "./types";
 export { SqlServerReadOnlyConnector } from "./sqlServerConnector";
 export type { SqlServerConnectorOptions } from "./sqlServerConnector";

@@ -4,10 +4,18 @@
 // Each source lane has a priority; higher priority wins when
 // multiple lanes provide the same product.
 //
-// 🧃 It's like a lunch menu for databases.
+// NEW: Capability negotiation — the registry now checks that
+// a lane's connector actually satisfies a product's capability
+// requirements before selecting it.
+//
+// 🧃 It's like a lunch menu for databases. With allergen labels.
 // ═══════════════════════════════════════════════════════════
 
 import type { ReadOnlyConnector, ConnectorFactory } from "./connectors/types";
+import {
+  BENTON_PRODUCT_REQUIREMENTS,
+  connectorSatisfiesRequirements,
+} from "./connectors/types";
 
 // ============================================================
 // Source Lane IDs (exhaustive for Benton County)
@@ -45,8 +53,9 @@ export interface SourceLaneRegistration {
  * Key behaviors:
  *   - All connectors are read-only (enforced by interface)
  *   - Multiple lanes can provide the same product (priority wins)
+ *   - Capability negotiation: checks connector capabilities vs product requirements
  *   - Lazy initialization via factory functions
- *   - Health checks report connector status
+ *   - Health checks report connector status + capability coverage
  */
 export class SourceLaneRegistry {
   private lanes = new Map<BentonSourceLaneId, SourceLaneRegistration>();
@@ -73,13 +82,21 @@ export class SourceLaneRegistry {
 
   /**
    * Get the best connector for a given product ID.
-   * Returns the highest-priority active lane that provides this product.
+   * Returns the highest-priority active lane that:
+   *   1. Declares the product in its product list
+   *   2. Satisfies the product's capability requirements
+   *   3. Can be initialized successfully
    */
   async getConnectorForProduct(
     productId: string
   ): Promise<{ lane: SourceLaneRegistration; connector: ReadOnlyConnector } | null> {
     const candidates = this.listActive().filter((l) =>
       l.products.includes(productId)
+    );
+
+    // Find capability requirements for this product
+    const requirements = BENTON_PRODUCT_REQUIREMENTS.find(
+      (r) => r.productId === productId
     );
 
     for (const lane of candidates) {
@@ -96,12 +113,64 @@ export class SourceLaneRegistry {
         }
       }
 
-      if (lane.connector) {
-        return { lane, connector: lane.connector };
+      if (!lane.connector) continue;
+
+      // Capability negotiation: check if connector can serve this product
+      if (requirements && !connectorSatisfiesRequirements(lane.connector, requirements)) {
+        console.info(
+          `[Registry] Lane '${lane.id}' skipped for '${productId}' — capabilities insufficient.`
+        );
+        continue;
       }
+
+      return { lane, connector: lane.connector };
     }
 
     return null;
+  }
+
+  /**
+   * Get capability coverage report — which products each lane can actually serve.
+   */
+  getCapabilityCoverage(): Array<{
+    laneId: string;
+    laneName: string;
+    active: boolean;
+    connected: boolean;
+    canServe: string[];
+    cannotServe: Array<{ productId: string; reason: string }>;
+  }> {
+    return this.list().map((lane) => {
+      const canServe: string[] = [];
+      const cannotServe: Array<{ productId: string; reason: string }> = [];
+
+      for (const req of BENTON_PRODUCT_REQUIREMENTS) {
+        if (!lane.products.includes(req.productId)) {
+          cannotServe.push({ productId: req.productId, reason: "Not declared in product list" });
+          continue;
+        }
+        if (lane.connector && !connectorSatisfiesRequirements(lane.connector, req)) {
+          const missing = Object.entries(req.requires)
+            .filter(([key, val]) => val && !(lane.connector!.capabilities as any)[key])
+            .map(([key]) => key);
+          cannotServe.push({
+            productId: req.productId,
+            reason: `Missing capabilities: ${missing.join(", ")}`,
+          });
+          continue;
+        }
+        canServe.push(req.productId);
+      }
+
+      return {
+        laneId: lane.id,
+        laneName: lane.name,
+        active: lane.active,
+        connected: lane.connector !== null,
+        canServe,
+        cannotServe,
+      };
+    });
   }
 
   /** Get registry health summary */
@@ -109,6 +178,7 @@ export class SourceLaneRegistry {
     totalLanes: number;
     activeLanes: number;
     connectedLanes: number;
+    capabilityCoverage: ReturnType<SourceLaneRegistry["getCapabilityCoverage"]>;
     lanes: Array<{
       id: string;
       active: boolean;
@@ -122,6 +192,7 @@ export class SourceLaneRegistry {
       totalLanes: all.length,
       activeLanes: all.filter((l) => l.active).length,
       connectedLanes: all.filter((l) => l.connector !== null).length,
+      capabilityCoverage: this.getCapabilityCoverage(),
       lanes: all.map((l) => ({
         id: l.id,
         active: l.active,
@@ -148,6 +219,7 @@ export class SourceLaneRegistry {
 // ============================================================
 
 import { SqlServerReadOnlyConnector } from "./connectors/sqlServerConnector";
+import { OdbcReadOnlyConnector } from "./connectors/odbcConnector";
 import { SYNC_PRODUCTS } from "@/config/pacsBentonContract";
 
 /**
@@ -168,7 +240,7 @@ export function createBentonRegistry(): SourceLaneRegistry {
     priority: 100,
     products: allProductIds,
     active: true,
-    notes: ["Primary lane. Triple read-only enforcement."],
+    notes: ["Primary lane. Quadruple read-only enforcement."],
   });
 
   // Legacy: ProVal (Access .mdb, inactive)
@@ -176,13 +248,23 @@ export function createBentonRegistry(): SourceLaneRegistry {
     id: "proval_access",
     name: "ProVal Legacy (Access .mdb)",
     connector: null,
+    factory: async () =>
+      new OdbcReadOnlyConnector({
+        name: "proval_access",
+        connectionString: "Driver={Microsoft Access Driver (*.mdb)};DBQ=C:\\legacy\\Real_tables1.mdb;ReadOnly=1;",
+        capabilityOverrides: {
+          supportsYearScopedHood: false,
+          supportsWorkflows: false,
+          supportsSqlServerDialect: false,
+        },
+      }),
     priority: 50,
     products: [
       "pacs_current_year_property_core",
       "pacs_current_year_property_val",
     ],
     active: false,
-    notes: ["Legacy lane. Requires Windows extractor agent with ODBC driver."],
+    notes: ["Legacy lane. Requires Windows extractor agent with ODBC driver.", "No workflow or hood support."],
   });
 
   // Legacy: Asend (Access .mdb, inactive)
@@ -190,6 +272,16 @@ export function createBentonRegistry(): SourceLaneRegistry {
     id: "asend_access",
     name: "Asend Legacy (Access .mdb)",
     connector: null,
+    factory: async () =>
+      new OdbcReadOnlyConnector({
+        name: "asend_access",
+        connectionString: "Driver={Microsoft Access Driver (*.mdb)};DBQ=C:\\legacy\\asend.mdb;ReadOnly=1;",
+        capabilityOverrides: {
+          supportsYearScopedHood: false,
+          supportsWorkflows: false,
+          supportsSqlServerDialect: false,
+        },
+      }),
     priority: 40,
     products: [
       "pacs_current_year_property_core",
@@ -204,6 +296,17 @@ export function createBentonRegistry(): SourceLaneRegistry {
     id: "manatron_access",
     name: "Manatron GIS 2000 (Access .mdb)",
     connector: null,
+    factory: async () =>
+      new OdbcReadOnlyConnector({
+        name: "manatron_access",
+        connectionString: "Driver={Microsoft Access Driver (*.mdb)};DBQ=C:\\legacy\\gis_manatron_2000.mdb;ReadOnly=1;",
+        capabilityOverrides: {
+          supportsYearScopedHood: false,
+          supportsWorkflows: false,
+          supportsSqlServerDialect: false,
+          supportsIncrementalWatermarks: false,
+        },
+      }),
     priority: 30,
     products: [],
     active: false,
