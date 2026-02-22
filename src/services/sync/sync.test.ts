@@ -1,5 +1,5 @@
 // TerraFusion OS — Multi-Lane Sync Kernel Tests
-// Tests: connectors, registry, runtime, PII redaction, schema drift, quality gates, capability negotiation
+// Tests: connectors, registry, runtime, PII redaction, schema drift, quality gates, capability negotiation, year doctrine
 
 import { describe, it, expect } from "vitest";
 import { SqlServerReadOnlyConnector } from "./connectors/sqlServerConnector";
@@ -11,6 +11,7 @@ import {
 import { runContractSync, runContractSyncFromRegistry } from "./runtime";
 import type { ReadOnlyConnector, QueryResult, SourceCapabilities } from "./connectors/types";
 import { connectorSatisfiesRequirements, BENTON_PRODUCT_REQUIREMENTS } from "./connectors/types";
+import { inferDoctrine, resolveYear, type YearDoctrine } from "./yearDoctrine";
 
 // ============================================================
 // Helper: full capabilities object
@@ -348,5 +349,146 @@ describe("runContractSyncFromRegistry", () => {
     const result = await runContractSyncFromRegistry(registry, 2025);
     expect(result.county).toBe("Benton");
     expect(result.products.length).toBe(6);
+  });
+});
+
+// ============================================================
+// Year Doctrine Tests
+// ============================================================
+
+describe("Year Doctrine — inferDoctrine", () => {
+  it("detects control_table mode when year column is on a control table", () => {
+    const doctrine = inferDoctrine(
+      [{ table: "dbo.pacs_system", column: "appr_yr", type: "int" }],
+      [{ table: "dbo.property_val", column: "total_val", type: "decimal" }],
+      [],
+      ["dbo.pacs_system"],
+      20
+    );
+    expect(doctrine.mode).toBe("control_table");
+    expect(doctrine.confidence).toBe("high");
+    expect(doctrine.controlTable).toBe("dbo.pacs_system");
+    expect(doctrine.controlColumn).toBe("appr_yr");
+  });
+
+  it("detects valuation_join mode when year only on value tables", () => {
+    const doctrine = inferDoctrine(
+      [{ table: "dbo.property_val", column: "prop_val_yr", type: "int" }],
+      [{ table: "dbo.property_val", column: "total_val", type: "decimal" }],
+      [],
+      [],
+      20
+    );
+    expect(doctrine.mode).toBe("valuation_join");
+    expect(doctrine.confidence).toBe("high");
+    expect(doctrine.valuationTables).toContain("dbo.property_val");
+    expect(doctrine.valuationYearColumn).toBe("prop_val_yr");
+  });
+
+  it("detects column_per_table when year is on many tables", () => {
+    const yearHits = Array.from({ length: 8 }, (_, i) => ({
+      table: `dbo.table_${i}`,
+      column: "tax_yr",
+      type: "int",
+    }));
+    const doctrine = inferDoctrine(yearHits, [], [], [], 10);
+    expect(doctrine.mode).toBe("column_per_table");
+    expect(doctrine.yearColumnName).toBe("tax_yr");
+  });
+
+  it("detects dated_rows when only date columns present", () => {
+    const doctrine = inferDoctrine(
+      [],
+      [],
+      [{ table: "dbo.valuations", column: "eff_date", type: "datetime" }],
+      [],
+      15
+    );
+    expect(doctrine.mode).toBe("dated_rows");
+    expect(doctrine.dateColumn).toBe("eff_date");
+  });
+
+  it("falls back to implicit_current when nothing found", () => {
+    const doctrine = inferDoctrine([], [], [], [], 10);
+    expect(doctrine.mode).toBe("implicit_current");
+    expect(doctrine.confidence).toBe("medium");
+  });
+});
+
+describe("Year Doctrine — resolveYear", () => {
+  it("returns fallback for implicit_current", async () => {
+    const connector = createMockConnector();
+    const doctrine: YearDoctrine = {
+      mode: "implicit_current",
+      confidence: "medium",
+      yearColumnHits: [],
+      controlTableCandidates: [],
+      summary: "No year columns",
+      discoveredAt: new Date().toISOString(),
+    };
+    const year = await resolveYear(connector, doctrine, 2025);
+    expect(year).toBe(2025);
+  });
+
+  it("returns current year for implicit_current with no fallback", async () => {
+    const connector = createMockConnector();
+    const doctrine: YearDoctrine = {
+      mode: "implicit_current",
+      confidence: "medium",
+      yearColumnHits: [],
+      controlTableCandidates: [],
+      summary: "No year columns",
+      discoveredAt: new Date().toISOString(),
+    };
+    const year = await resolveYear(connector, doctrine);
+    expect(year).toBe(new Date().getFullYear());
+  });
+
+  it("queries control table for control_table mode", async () => {
+    const connector = createMockConnector([{ resolved_year: 2025 }]);
+    const doctrine: YearDoctrine = {
+      mode: "control_table",
+      confidence: "high",
+      controlTable: "dbo.pacs_system",
+      controlColumn: "appr_yr",
+      yearColumnHits: [],
+      controlTableCandidates: [],
+      summary: "Control table",
+      discoveredAt: new Date().toISOString(),
+    };
+    const year = await resolveYear(connector, doctrine);
+    expect(year).toBe(2025);
+  });
+
+  it("queries max year for valuation_join mode", async () => {
+    const connector = createMockConnector([{ resolved_year: 2024 }]);
+    const doctrine: YearDoctrine = {
+      mode: "valuation_join",
+      confidence: "high",
+      valuationTables: ["dbo.property_val"],
+      valuationYearColumn: "prop_val_yr",
+      yearColumnHits: [],
+      controlTableCandidates: [],
+      summary: "Valuation join",
+      discoveredAt: new Date().toISOString(),
+    };
+    const year = await resolveYear(connector, doctrine);
+    expect(year).toBe(2024);
+  });
+});
+
+describe("Year Doctrine — registry integration", () => {
+  it("legacy lanes have expectedYearMode set", () => {
+    const registry = createBentonRegistry();
+    const proval = registry.get("proval_access");
+    expect(proval?.expectedYearMode).toBe("implicit_current");
+    const asend = registry.get("asend_access");
+    expect(asend?.expectedYearMode).toBe("implicit_current");
+  });
+
+  it("PACS lane has no expectedYearMode (uses control_table via contract)", () => {
+    const registry = createBentonRegistry();
+    const pacs = registry.get("pacs_benton_sql");
+    expect(pacs?.expectedYearMode).toBeUndefined();
   });
 });
