@@ -70,11 +70,11 @@ const PILL_CONFIG = [
 function deriveTopAction(
   nbaActions: SmartAction[],
   vitals: ReturnType<typeof useCountyVitals>["data"]
-): { label: string; target: string } | null {
+): { label: string; description?: string; target: string } | null {
   // Primary: use the top-ranked NBA action (already scored, SLA'd, mission-constitutional)
   if (nbaActions.length > 0) {
     const top = nbaActions[0];
-    return { label: top.title, target: top.target };
+    return { label: top.title, description: top.description, target: top.target };
   }
 
   // Fallback: vitals heuristics when NBA engine returns empty
@@ -129,6 +129,9 @@ function buildBriefText(
     lines.push("");
     lines.push(`⚡ Top Action: ${topAction.label}`);
   }
+
+  lines.push("");
+  lines.push("Details: Home → Timeline → (Imports / Missions / Fixes)");
 
   return lines.join("\n");
 }
@@ -234,6 +237,11 @@ export function DailyBriefing({ onNavigate, onTimelineFilter }: DailyBriefingPro
             <p className="text-xs font-medium text-foreground mt-0.5 truncate">
               {topAction.label}
             </p>
+            {topAction.description && topAction.description !== topAction.label && (
+              <p className="text-[10px] text-muted-foreground mt-0.5 truncate">
+                {topAction.description}
+              </p>
+            )}
           </div>
           <ArrowRight className="w-3.5 h-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
         </button>
