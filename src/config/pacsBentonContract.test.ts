@@ -2,6 +2,11 @@ import { describe, it, expect } from "vitest";
 import { validateContract, getContractSummary, SYNC_PRODUCTS, IDENTITY_DOCTRINE, BENTON_COUNTY } from "@/config/pacsBentonContract";
 import { runQualityGates, detectSchemaDrift, type SyncProductData } from "@/config/pacsQualityGates";
 import { pickOneRowPerKey, safeIntCast, declareAppraisalYear } from "@/config/sqlServerHelpers";
+import {
+  validateReadOnlySQL,
+  validateReadOnlyPermissions,
+  BENTON_CONNECTOR_CONFIG,
+} from "@/services/pacsConnector";
 
 describe("PACS Benton Contract", () => {
   it("contract self-validates without errors", () => {
@@ -34,6 +39,8 @@ describe("PACS Benton Contract", () => {
     expect(BENTON_COUNTY.countyName).toBe("Benton");
     expect(BENTON_COUNTY.countyState).toBe("WA");
     expect(BENTON_COUNTY.connectionMethod).toBe("direct_sql");
+    expect(BENTON_COUNTY.accessPosture).toBe("read_only");
+    expect(BENTON_COUNTY.allowedStatements).toContain("SELECT");
   });
 
   it("getContractSummary returns valid shape", () => {
@@ -160,5 +167,93 @@ describe("SQL Server Helpers", () => {
   it("generates appraisal year preamble", () => {
     expect(declareAppraisalYear(2025)).toBe("DECLARE @yr int = 2025;");
     expect(declareAppraisalYear()).toContain("pacs_system");
+  });
+});
+
+// ============================================================
+// Read-Only Connector Governance Tests
+// ============================================================
+
+describe("Read-Only SQL Connector", () => {
+  it("allows SELECT statements", () => {
+    expect(validateReadOnlySQL("SELECT * FROM dbo.property").valid).toBe(true);
+  });
+
+  it("allows WITH...SELECT (CTEs)", () => {
+    const sql = `WITH ranked AS (
+      SELECT prop_id, ROW_NUMBER() OVER (PARTITION BY prop_id ORDER BY sup_num) AS rn
+      FROM dbo.property_val
+    ) SELECT * FROM ranked WHERE rn = 1;`;
+    expect(validateReadOnlySQL(sql).valid).toBe(true);
+  });
+
+  it("allows DECLARE @yr preamble", () => {
+    const sql = `DECLARE @yr int = (SELECT appr_yr FROM dbo.pacs_system);
+    SELECT prop_id, hood_cd FROM dbo.property_val WHERE prop_val_yr = @yr;`;
+    expect(validateReadOnlySQL(sql).valid).toBe(true);
+  });
+
+  it("blocks INSERT statements", () => {
+    const result = validateReadOnlySQL("INSERT INTO dbo.property (prop_id) VALUES (1)");
+    expect(result.valid).toBe(false);
+    expect(result.reason).toContain("must start with SELECT");
+  });
+
+  it("blocks UPDATE statements", () => {
+    const result = validateReadOnlySQL("UPDATE dbo.property SET geo_id = 'X' WHERE prop_id = 1");
+    expect(result.valid).toBe(false);
+  });
+
+  it("blocks DELETE statements", () => {
+    const result = validateReadOnlySQL("DELETE FROM dbo.property WHERE prop_id = 1");
+    expect(result.valid).toBe(false);
+  });
+
+  it("blocks DROP/ALTER", () => {
+    expect(validateReadOnlySQL("DROP TABLE dbo.property").valid).toBe(false);
+    expect(validateReadOnlySQL("ALTER TABLE dbo.property ADD col INT").valid).toBe(false);
+  });
+
+  it("blocks EXEC/xp_ injection", () => {
+    expect(validateReadOnlySQL("EXEC sp_executesql N'SELECT 1'").valid).toBe(false);
+  });
+
+  it("blocks sneaky multi-statement injection", () => {
+    const sql = "SELECT 1; DELETE FROM dbo.property";
+    const result = validateReadOnlySQL(sql);
+    expect(result.valid).toBe(false);
+    expect(result.reason).toContain("sub-statement");
+  });
+
+  it("blocks embedded blocked keywords in SELECT", () => {
+    const sql = "SELECT * FROM dbo.property; INSERT INTO dbo.hack VALUES(1)";
+    expect(validateReadOnlySQL(sql).valid).toBe(false);
+  });
+
+  it("rejects empty/null input", () => {
+    expect(validateReadOnlySQL("").valid).toBe(false);
+    expect(validateReadOnlySQL(null as any).valid).toBe(false);
+  });
+
+  it("connector config is hardcoded read-only", () => {
+    expect(BENTON_CONNECTOR_CONFIG.canWrite).toBe(false);
+    expect(BENTON_CONNECTOR_CONFIG.method).toBe("direct_sql");
+    expect(BENTON_CONNECTOR_CONFIG.allowedSchemas).toEqual(["dbo"]);
+  });
+
+  it("validates read-only permissions correctly", () => {
+    // All zeros = read-only
+    const clean = validateReadOnlyPermissions({
+      can_insert: 0, can_update: 0, can_delete: 0, can_alter: 0, can_execute: 0,
+    });
+    expect(clean.readOnly).toBe(true);
+    expect(clean.violations).toHaveLength(0);
+
+    // Has INSERT = violation
+    const dirty = validateReadOnlyPermissions({
+      can_insert: 1, can_update: 0, can_delete: 0, can_alter: 0, can_execute: 0,
+    });
+    expect(dirty.readOnly).toBe(false);
+    expect(dirty.violations).toContain("INSERT");
   });
 });
