@@ -1,7 +1,7 @@
-// TerraFusion OS — Sync Engine Tests (Delta Detection + Workflow Runners)
+// TerraFusion OS — Sync Engine Tests (Delta Detection + Workflow Runners + PACS Identity Modes)
 
 import { describe, it, expect, vi } from "vitest";
-import { detectDeltas, runBulkImport } from "./syncEngine";
+import { detectDeltas, runBulkImport, getPACSKeyField, injectCompositeKeys } from "./syncEngine";
 
 describe("detectDeltas", () => {
   it("detects inserts (in source, not in target)", () => {
@@ -60,6 +60,50 @@ describe("detectDeltas", () => {
     // Compare "extra" — should find update
     const result2 = detectDeltas(source, target, "id", "parcels", ["extra"]);
     expect(result2.updates).toHaveLength(1);
+  });
+});
+
+describe("PACS Identity Modes", () => {
+  it("CURRENT_YEAR uses prop_id as key", () => {
+    expect(getPACSKeyField("CURRENT_YEAR")).toBe("prop_id");
+  });
+
+  it("CERTIFIED_YEARS uses composite key", () => {
+    expect(getPACSKeyField("CERTIFIED_YEARS")).toBe("__composite_key");
+  });
+
+  it("injectCompositeKeys is passthrough for CURRENT_YEAR", () => {
+    const records = [{ prop_id: "100", hood_cd: "A1" }];
+    const result = injectCompositeKeys(records, "CURRENT_YEAR");
+    expect(result).toEqual(records);
+    expect(result[0]).not.toHaveProperty("__composite_key");
+  });
+
+  it("injectCompositeKeys adds composite key for CERTIFIED_YEARS", () => {
+    const records = [{ prop_id: "100", sup_num: 2, year: 2025, hood_cd: "A1" }];
+    const result = injectCompositeKeys(records, "CERTIFIED_YEARS");
+    expect(result[0].__composite_key).toBe("100|2|2025");
+  });
+
+  it("composite key defaults sup_num to 0 when missing", () => {
+    const records = [{ prop_id: "200", year: 2025 }];
+    const result = injectCompositeKeys(records, "CERTIFIED_YEARS");
+    expect(result[0].__composite_key).toBe("200|0|2025");
+  });
+
+  it("delta detection works with composite keys", () => {
+    const source = [
+      { __composite_key: "100|0|2025", hood_cd: "A1" },
+      { __composite_key: "200|1|2025", hood_cd: "B2" },
+    ];
+    const target = [
+      { __composite_key: "100|0|2025", hood_cd: "A1" },
+      { __composite_key: "300|0|2025", hood_cd: "C3" },
+    ];
+    const result = detectDeltas(source, target, "__composite_key", "pny", ["hood_cd"]);
+    expect(result.inserts).toHaveLength(1); // 200|1|2025
+    expect(result.deletes).toHaveLength(1); // 300|0|2025
+    expect(result.updates).toHaveLength(0);
   });
 });
 

@@ -10,6 +10,10 @@ export interface Neighborhood {
   year: number;
 }
 
+/**
+ * Fetches year-scoped neighborhoods.
+ * Uses CURRENT_YEAR identity mode by default (prop_id only, sup_num ignored).
+ */
 export function useNeighborhoodYear(year?: number) {
   const effectiveYear = year ?? new Date().getFullYear();
 

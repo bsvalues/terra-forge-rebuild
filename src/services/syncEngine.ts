@@ -4,6 +4,7 @@
 import { SagaOrchestrator, type StepHandler, type SagaExecutionResult } from "./sagaOrchestrator";
 import { emitTraceEventAsync } from "./terraTrace";
 import { supabase } from "@/integrations/supabase/client";
+import { type PACSIdentityMode, resolvePACSKey } from "@/config/pacsFieldMappings";
 
 // ============================================================
 // Delta Detection — find what changed between source and target
@@ -489,4 +490,130 @@ export function clearCompletedSagas() {
   for (const [id, saga] of activeSagas) {
     if (saga.status !== "running") activeSagas.delete(id);
   }
+}
+
+// ============================================================
+// PACS Identity-Mode-Aware Neighborhood Sync
+// ============================================================
+
+/**
+ * Resolve delta key field based on PACS identity mode.
+ * CURRENT_YEAR → "prop_id" (single-column key)
+ * CERTIFIED_YEARS → composite "prop_id|sup_num|year" via resolvePACSKey
+ */
+export function getPACSKeyField(mode: PACSIdentityMode): string {
+  return mode === "CURRENT_YEAR" ? "prop_id" : "__composite_key";
+}
+
+/**
+ * Inject composite keys into records for CERTIFIED_YEARS mode delta detection.
+ */
+export function injectCompositeKeys(
+  records: Record<string, unknown>[],
+  mode: PACSIdentityMode
+): Record<string, unknown>[] {
+  if (mode === "CURRENT_YEAR") return records;
+  return records.map((r) => ({
+    ...r,
+    __composite_key: resolvePACSKey(r, mode),
+  }));
+}
+
+/**
+ * Run a PACS neighborhood sync: extract hood assignments, diff against
+ * parcel_neighborhood_year, and upsert changes.
+ *
+ * Identity mode controls keying:
+ *   CURRENT_YEAR  → prop_id only (sup_num = null)
+ *   CERTIFIED_YEARS → (prop_id, sup_num, year) full key
+ */
+export async function runPACSNeighborhoodSync(
+  year: number,
+  mode: PACSIdentityMode = "CURRENT_YEAR",
+  sourceRecords: Record<string, unknown>[]
+): Promise<SagaExecutionResult> {
+  const orchestrator = createTracedOrchestrator();
+  const keyField = getPACSKeyField(mode);
+
+  const handlers: StepHandler[] = [
+    {
+      name: "prepare_source",
+      action: async (ctx) => {
+        const keyed = injectCompositeKeys(sourceRecords, mode);
+        ctx.set("source", keyed);
+        ctx.set("sourceCount", keyed.length);
+        ctx.set("identityMode", mode);
+      },
+    },
+    {
+      name: "fetch_target",
+      action: async (ctx) => {
+        // Fetch existing parcel_neighborhood_year rows for this year
+        const { data, error } = await supabase
+          .from("parcel_neighborhood_year" as any)
+          .select("parcel_id, hood_cd, year, sup_num")
+          .eq("year", year)
+          .limit(10000);
+        if (error) throw new Error(`Target fetch failed: ${error.message}`);
+
+        // Build target records with matching key structure
+        const target = (data || []).map((r: any) => ({
+          prop_id: r.parcel_id,
+          hood_cd: r.hood_cd,
+          year: r.year,
+          sup_num: r.sup_num ?? 0,
+        }));
+        const keyedTarget = injectCompositeKeys(target, mode);
+        ctx.set("target", keyedTarget);
+        ctx.set("targetCount", keyedTarget.length);
+      },
+    },
+    {
+      name: "diff_neighborhoods",
+      action: async (ctx) => {
+        const source = ctx.get("source") as Record<string, unknown>[];
+        const target = ctx.get("target") as Record<string, unknown>[];
+        const deltas = detectDeltas(source, target, keyField, "parcel_neighborhood_year", ["hood_cd"]);
+        ctx.set("deltas", deltas);
+        ctx.set("totalChanges", deltas.totalChanges);
+      },
+    },
+    {
+      name: "apply_upserts",
+      action: async (ctx) => {
+        const deltas = ctx.get("deltas") as DeltaResult;
+        if (deltas.totalChanges === 0) {
+          ctx.set("applied", 0);
+          ctx.set("skipped", true);
+          return;
+        }
+        // In production: upsert inserts + updates, delete removes
+        // For now: dry-run tracking
+        ctx.set("applied", deltas.inserts.length + deltas.updates.length);
+        ctx.set("deleted", deltas.deletes.length);
+        ctx.set("upsertMode", "dry-run");
+      },
+      compensate: async (ctx) => {
+        console.warn("[PACSNeighborhoodSync] Compensation: rollback stub");
+        ctx.set("rolledBack", true);
+      },
+    },
+    {
+      name: "emit_report",
+      action: async (ctx) => {
+        ctx.set("report", {
+          year,
+          identityMode: mode,
+          sourceCount: ctx.get("sourceCount"),
+          targetCount: ctx.get("targetCount"),
+          totalChanges: ctx.get("totalChanges"),
+          applied: ctx.get("applied"),
+          deleted: ctx.get("deleted"),
+          completedAt: new Date().toISOString(),
+        });
+      },
+    },
+  ];
+
+  return orchestrator.execute(`pacs_neighborhood_sync_${year}_${mode}_${Date.now()}`, handlers);
 }
