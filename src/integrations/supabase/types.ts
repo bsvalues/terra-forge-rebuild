@@ -2022,7 +2022,7 @@ export type Database = {
         Insert: {
           assigned_by?: string
           assigned_to?: string | null
-          county_id?: string
+          county_id: string
           created_at?: string
           description?: string | null
           due_date?: string | null

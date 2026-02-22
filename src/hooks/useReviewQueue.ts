@@ -88,7 +88,8 @@ export function useCreateReviewQueue() {
         .eq("user_id", user.id)
         .single();
 
-      const countyId = profile?.county_id || "00000000-0000-0000-0000-000000000001";
+      const countyId = profile?.county_id;
+      if (!countyId) throw new Error("No county assigned to your profile");
 
       // Create the queue
       const { data: queue, error: queueError } = await supabase

@@ -175,7 +175,8 @@ export function ScenarioMode({ neighborhoodCode }: ScenarioModeProps) {
       if (!impact || !neighborhoodCode) throw new Error("No scenario to apply");
 
       const { data: profile } = await supabase.from("profiles").select("county_id").single();
-      const countyId = profile?.county_id ?? "00000000-0000-0000-0000-000000000001";
+      const countyId = profile?.county_id;
+      if (!countyId) throw new Error("No county assigned to your profile");
 
       const adjustments = impact.details
         .filter(p => Math.abs(p.change) > 0.5)

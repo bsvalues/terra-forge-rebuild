@@ -8,11 +8,13 @@ const corsHeaders = {
 export interface AuthResult {
   supabase: ReturnType<typeof createClient>;
   userId: string;
+  countyId: string;
 }
 
 /**
  * Authenticate a request and return a Supabase client scoped to the user.
- * Throws an error (returns a 401 Response) if the user is not authenticated.
+ * Also resolves the user's county_id from their profile.
+ * Throws an error (returns a 401/403 Response) if auth or county is missing.
  */
 export async function requireAuth(req: Request): Promise<AuthResult> {
   const authHeader = req.headers.get("Authorization");
@@ -40,7 +42,23 @@ export async function requireAuth(req: Request): Promise<AuthResult> {
     );
   }
 
-  return { supabase, userId: data.claims.sub as string };
+  const userId = data.claims.sub as string;
+
+  // Resolve county_id from user profile
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("county_id")
+    .eq("user_id", userId)
+    .single();
+
+  if (!profile?.county_id) {
+    throw new Response(
+      JSON.stringify({ error: "User profile incomplete — no county assigned" }),
+      { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  }
+
+  return { supabase, userId, countyId: profile.county_id };
 }
 
 /**
