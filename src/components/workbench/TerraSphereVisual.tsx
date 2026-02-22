@@ -3,21 +3,13 @@ import { Canvas, useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { SystemState } from "./types";
 import { cn } from "@/lib/utils";
+import { TF3D, TF3D_STATES } from "@/lib/colors/tf3dPalette";
 
 interface TerraSphereVisualProps {
   size?: "sm" | "md" | "lg";
   state?: SystemState;
   className?: string;
 }
-
-// Color configurations for different states
-const STATE_COLORS: Record<SystemState, { primary: string; secondary: string }> = {
-  idle: { primary: "#00E5E5", secondary: "#0080ff" },
-  boot: { primary: "#00E5E5", secondary: "#00ff88" },
-  processing: { primary: "#00ffff", secondary: "#00E5E5" },
-  alert: { primary: "#ff4444", secondary: "#ff8800" },
-  success: { primary: "#00ff88", secondary: "#00E5E5" },
-};
 
 const SIZE_MAP = {
   sm: { container: "w-8 h-8", scale: 0.4 },
@@ -30,7 +22,7 @@ function CoreSphere({ state }: { state: SystemState }) {
   const meshRef = useRef<THREE.Mesh>(null);
   const materialRef = useRef<THREE.ShaderMaterial>(null);
 
-  const colors = STATE_COLORS[state];
+  const colors = TF3D_STATES[state];
 
   const shaderMaterial = useMemo(() => {
     return new THREE.ShaderMaterial({
@@ -96,7 +88,6 @@ function CoreSphere({ state }: { state: SystemState }) {
     if (materialRef.current) {
       materialRef.current.uniforms.uTime.value += delta;
       
-      // Adjust pulse based on state
       let targetPulse = 1;
       if (state === "processing") targetPulse = 1.5;
       if (state === "alert") targetPulse = 1.8;
@@ -121,7 +112,7 @@ function CoreSphere({ state }: { state: SystemState }) {
 // Wireframe lattice rings
 function LatticeRings({ state }: { state: SystemState }) {
   const groupRef = useRef<THREE.Group>(null);
-  const colors = STATE_COLORS[state];
+  const colors = TF3D_STATES[state];
 
   useFrame((_, delta) => {
     if (groupRef.current) {
@@ -157,7 +148,7 @@ function LatticeRings({ state }: { state: SystemState }) {
 // Orbiting particles
 function OrbitingParticles({ state }: { state: SystemState }) {
   const groupRef = useRef<THREE.Group>(null);
-  const colors = STATE_COLORS[state];
+  const colors = TF3D_STATES[state];
   const particleCount = 12;
 
   useFrame((rootState) => {
@@ -195,8 +186,8 @@ function TerraSphereScene({ state }: { state: SystemState }) {
   return (
     <>
       <ambientLight intensity={0.3} />
-      <pointLight position={[5, 5, 5]} intensity={0.5} color="#00ffff" />
-      <pointLight position={[-5, -5, -5]} intensity={0.3} color="#0080ff" />
+      <pointLight position={[5, 5, 5]} intensity={0.5} color={TF3D.lightPrimary} />
+      <pointLight position={[-5, -5, -5]} intensity={0.3} color={TF3D.lightSecondary} />
       
       <CoreSphere state={state} />
       <LatticeRings state={state} />
