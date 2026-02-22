@@ -1,3 +1,4 @@
+import { useNeighborhoodYear } from "@/hooks/useNeighborhoodYear";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -11,23 +12,31 @@ import {
 interface NeighborhoodSelectorProps {
   value: string | null;
   onChange: (value: string | null) => void;
+  /** Appraisal year to scope neighborhoods. Falls back to parcels table if no year-scoped data exists. */
+  year?: number;
 }
 
-export function NeighborhoodSelector({ value, onChange }: NeighborhoodSelectorProps) {
-  const { data: neighborhoods = [], isLoading } = useQuery({
-    queryKey: ["factory-neighborhoods"],
+export function NeighborhoodSelector({ value, onChange, year }: NeighborhoodSelectorProps) {
+  // Primary: year-scoped neighborhoods from the dimension table
+  const { data: yearScoped = [], isLoading: loadingYear } = useNeighborhoodYear(year);
+
+  // Fallback: distinct neighborhood_code from parcels (legacy behavior)
+  const { data: legacyCodes = [], isLoading: loadingLegacy } = useQuery({
+    queryKey: ["factory-neighborhoods-legacy"],
     queryFn: async () => {
       const { data } = await supabase
         .from("parcels")
         .select("neighborhood_code")
         .not("neighborhood_code", "is", null)
         .order("neighborhood_code");
-
-      const unique = [...new Set((data || []).map((p) => p.neighborhood_code!))];
-      return unique;
+      return [...new Set((data || []).map((p) => p.neighborhood_code!))];
     },
     staleTime: 120_000,
+    enabled: yearScoped.length === 0 && !loadingYear,
   });
+
+  const hasYearData = yearScoped.length > 0;
+  const isLoading = loadingYear || (loadingLegacy && !hasYearData);
 
   return (
     <Select
@@ -39,11 +48,17 @@ export function NeighborhoodSelector({ value, onChange }: NeighborhoodSelectorPr
       </SelectTrigger>
       <SelectContent>
         <SelectItem value="all">All Neighborhoods</SelectItem>
-        {neighborhoods.map((code) => (
-          <SelectItem key={code} value={code}>
-            {code}
-          </SelectItem>
-        ))}
+        {hasYearData
+          ? yearScoped.map((n) => (
+              <SelectItem key={n.hood_cd} value={n.hood_cd}>
+                {n.hood_name ? `${n.hood_cd} — ${n.hood_name}` : n.hood_cd}
+              </SelectItem>
+            ))
+          : legacyCodes.map((code) => (
+              <SelectItem key={code} value={code}>
+                {code}
+              </SelectItem>
+            ))}
       </SelectContent>
     </Select>
   );

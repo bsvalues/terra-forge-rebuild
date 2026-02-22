@@ -265,6 +265,56 @@ ORDER BY application_dt DESC`,
 };
 
 // ============================================================
+// PACS Neighborhood Extraction Queries (year-scoped)
+// ============================================================
+export const PACS_NEIGHBORHOOD_QUERIES = {
+  /** Neighborhoods dimension for a given appraisal year */
+  neighborhoods: (year: number) => `
+SELECT
+  n.hood_yr AS year,
+  n.hood_cd,
+  n.hood_name
+FROM dbo.neighborhood n
+WHERE n.hood_yr = ${year};`,
+
+  /** Parcel → Neighborhood assignment via property_val (year-scoped truth join) */
+  parcelAssignment: (year: number) => `
+SELECT
+  pv.prop_val_yr AS year,
+  pv.hood_cd,
+  pv.prop_id,
+  pv.sup_num
+FROM dbo.property_val pv
+WHERE pv.prop_val_yr = ${year};`,
+
+  /** Neighborhood rollup stats */
+  rollupStats: (year: number) => `
+SELECT
+  pv.prop_val_yr AS [year],
+  pv.hood_cd,
+  COUNT(*) AS parcels,
+  AVG(pv.total_val) AS avg_total_value,
+  MIN(pv.total_val) AS min_total_value,
+  MAX(pv.total_val) AS max_total_value,
+  SUM(pv.total_val) AS sum_total_value
+FROM dbo.property_val pv
+WHERE pv.prop_val_yr = ${year}
+GROUP BY pv.prop_val_yr, pv.hood_cd;`,
+};
+
+/** PACS table mapping for neighborhoods dimension */
+export const PACS_NEIGHBORHOOD_TABLE_MAPPING: PACSTableMapping = {
+  sourceTable: "neighborhood",
+  targetTable: "parcels" as const, // routed to neighborhoods table in practice
+  description: "Year-versioned neighborhood dimension (hood_cd + hood_yr)",
+  fields: [
+    { sourceColumn: "hood_cd", targetColumn: "neighborhood_code", transform: "string" },
+    { sourceColumn: "hood_name", targetColumn: "address", transform: "string", notes: "Maps to hood_name in neighborhoods table" },
+    { sourceColumn: "hood_yr", targetColumn: "year_built", transform: "number", notes: "Maps to year in neighborhoods table" },
+  ],
+};
+
+// ============================================================
 // Get merged field aliases (base + PACS-specific)
 // ============================================================
 export function getPACSEnhancedAliases(baseAliases: Record<string, string[]>): Record<string, string[]> {
