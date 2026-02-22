@@ -1,6 +1,7 @@
-// TerraFusion OS — ArcGIS Polygon Layer Ingester (Bulk Mode)
+// TerraFusion OS — ArcGIS Polygon Layer Ingester (Bulk Mode, Resumable)
 // Pages through ArcGIS FeatureServer (2K/batch), requests GeoJSON in WGS84,
 // and bulk-upserts via upsert_parcel_polygons_bulk RPC (one call per page).
+// Supports startOffset for resumable chunked ingestion.
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { requireAdmin, createServiceClient } from "../_shared/auth.ts";
@@ -16,6 +17,7 @@ interface IngestRequest {
   countyId: string;
   parcelIdField?: string;
   maxPages?: number;
+  startOffset?: number;
 }
 
 serve(async (req) => {
@@ -38,7 +40,8 @@ serve(async (req) => {
       featureServerUrl,
       countyId,
       parcelIdField = "Parcel_ID",
-      maxPages = 100,
+      maxPages = 5,
+      startOffset = 0,
     } = body;
 
     if (!featureServerUrl || !countyId) {
@@ -58,7 +61,7 @@ serve(async (req) => {
       );
     }
 
-    console.log(`[arcgis-polygon-ingest] Admin ${auth.userId} ingesting from: ${featureServerUrl}`);
+    console.log(`[arcgis-polygon-ingest] Admin ${auth.userId} ingesting from offset ${startOffset}: ${featureServerUrl}`);
 
     // 1) Register layer in gis_layers
     let layerId: string;
@@ -91,7 +94,7 @@ serve(async (req) => {
 
     // 2) Page through ArcGIS FeatureServer
     const pageSize = 2000;
-    let offset = 0;
+    let offset = startOffset;
     let totalFetched = 0;
     let totalUpserted = 0;
     let totalMatched = 0;
@@ -180,7 +183,7 @@ serve(async (req) => {
     // 5) Update layer metadata
     await supabase
       .from("gis_layers")
-      .update({ feature_count: totalFetched, updated_at: new Date().toISOString() })
+      .update({ feature_count: startOffset + totalFetched, updated_at: new Date().toISOString() })
       .eq("id", layerId);
 
     // 6) Trace event
@@ -195,6 +198,8 @@ serve(async (req) => {
         total_upserted: totalUpserted,
         total_matched: totalMatched,
         pages_processed: page,
+        start_offset: startOffset,
+        next_offset: hasMore ? offset : null,
         parcel_id_field: parcelIdField,
       },
     });
@@ -206,6 +211,9 @@ serve(async (req) => {
       totalUpserted,
       totalMatched,
       pagesProcessed: page,
+      startOffset,
+      nextOffset: hasMore ? offset : null,
+      done: !hasMore,
     };
 
     console.log(`[arcgis-polygon-ingest] Complete:`, JSON.stringify(summary));
