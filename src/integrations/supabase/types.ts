@@ -2423,6 +2423,7 @@ export type Database = {
             Returns: Json
           }
       get_county_vitals: { Args: never; Returns: Json }
+      get_geometry_health_report: { Args: never; Returns: Json }
       get_mission_counts: { Args: never; Returns: Json }
       get_mission_preview: {
         Args: { p_limit?: number; p_mission_id: string; p_offset?: number }
