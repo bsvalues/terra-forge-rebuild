@@ -1,12 +1,22 @@
 // TerraFusion OS — Geometry Health Report Hook
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 export interface GeometryIssue {
   type: string;
   severity: "critical" | "warning" | "info";
   count: number;
   description: string;
+}
+
+export interface WGS84BackfillStatus {
+  total_with_raw: number;
+  backfilled: number;
+  raw_wgs84: number;
+  converted_2286: number;
+  unknown: number;
+  pct: number;
 }
 
 export interface SectionData {
@@ -30,6 +40,7 @@ export interface GeometryHealthReport {
       duplicate_locations: number;
       invalid_latitude: number;
       invalid_longitude: number;
+      wgs84_backfill: WGS84BackfillStatus;
     };
     gis_features: SectionData & {
       total_layers: number;
@@ -49,6 +60,15 @@ export interface GeometryHealthReport {
   };
 }
 
+export interface BackfillResult {
+  county_id: string;
+  updated: number;
+  skipped_unknown: number;
+  already_done: number;
+  remaining: number;
+  batch_limit: number;
+}
+
 export function useGeometryHealth() {
   return useQuery<GeometryHealthReport>({
     queryKey: ["geometry-health-report"],
@@ -57,7 +77,30 @@ export function useGeometryHealth() {
       if (error) throw error;
       return data as unknown as GeometryHealthReport;
     },
-    staleTime: 60_000, // 1 minute — this is a diagnostic scan
+    staleTime: 60_000,
     refetchOnWindowFocus: false,
+  });
+}
+
+export function useBackfillWGS84() {
+  const qc = useQueryClient();
+  return useMutation<BackfillResult, Error, { countyId: string; limit?: number }>({
+    mutationFn: async ({ countyId, limit = 5000 }) => {
+      const { data, error } = await supabase.rpc("backfill_parcel_wgs84_from_raw", {
+        p_county_id: countyId,
+        p_limit: limit,
+      });
+      if (error) throw error;
+      return data as unknown as BackfillResult;
+    },
+    onSuccess: (result) => {
+      toast.success(`SRID backfill complete`, {
+        description: `${result.updated} converted, ${result.remaining} remaining`,
+      });
+      qc.invalidateQueries({ queryKey: ["geometry-health-report"] });
+    },
+    onError: (err) => {
+      toast.error("Backfill failed", { description: err.message });
+    },
   });
 }
