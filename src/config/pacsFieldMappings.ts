@@ -265,6 +265,63 @@ ORDER BY application_dt DESC`,
 };
 
 // ============================================================
+// Benton PACS Identity Modes
+// ============================================================
+// sup_num is ignored in the current year because sup_num is taking a nap in certified-land.
+
+export type PACSIdentityMode = "CURRENT_YEAR" | "CERTIFIED_YEARS";
+
+export interface PACSIdentityConfig {
+  mode: PACSIdentityMode;
+  /** For CURRENT_YEAR: key = prop_id only. For CERTIFIED_YEARS: key = (prop_id, sup_num, year) */
+  keyFields: string[];
+  /** APN / parcel number source column */
+  apnColumn: string;
+  /** How to resolve neighborhood */
+  neighborhoodJoin: string;
+  description: string;
+}
+
+export const PACS_IDENTITY_MODES: Record<PACSIdentityMode, PACSIdentityConfig> = {
+  CURRENT_YEAR: {
+    mode: "CURRENT_YEAR",
+    keyFields: ["prop_id"],
+    apnColumn: "geo_id",
+    neighborhoodJoin: "property_val.hood_cd WHERE prop_val_yr = appr_yr",
+    description:
+      "Operational mode — one property = one story. sup_num ignored. " +
+      "Joins property_val at current appraisal year for hood_cd, values.",
+  },
+  CERTIFIED_YEARS: {
+    mode: "CERTIFIED_YEARS",
+    keyFields: ["prop_id", "sup_num", "year"],
+    apnColumn: "geo_id",
+    neighborhoodJoin: "property_val.hood_cd year-scoped per certified year",
+    description:
+      "Audit/legal mode — every supplement matters. " +
+      "Facts keyed by (prop_id, sup_num, year) for certified roll integrity.",
+  },
+};
+
+/**
+ * Resolve the composite key string for a PACS record based on identity mode.
+ * Current year: prop_id alone.
+ * Certified years: prop_id|sup_num|year.
+ */
+export function resolvePACSKey(
+  record: Record<string, unknown>,
+  mode: PACSIdentityMode
+): string {
+  if (mode === "CURRENT_YEAR") {
+    return String(record.prop_id ?? record.parcel_number ?? "");
+  }
+  const propId = String(record.prop_id ?? record.parcel_number ?? "");
+  const supNum = String(record.sup_num ?? 0);
+  const year = String(record.year ?? record.prop_val_yr ?? record.tax_year ?? "");
+  return `${propId}|${supNum}|${year}`;
+}
+
+// ============================================================
 // PACS Neighborhood Extraction Queries (year-scoped)
 // ============================================================
 export const PACS_NEIGHBORHOOD_QUERIES = {
@@ -277,8 +334,24 @@ SELECT
 FROM dbo.neighborhood n
 WHERE n.hood_yr = ${year};`,
 
-  /** Parcel → Neighborhood assignment via property_val (year-scoped truth join) */
-  parcelAssignment: (year: number) => `
+  /**
+   * Parcel → Neighborhood assignment via property_val (year-scoped truth join).
+   * CURRENT_YEAR mode: ignores sup_num (picks primary row per prop_id).
+   * CERTIFIED_YEARS mode: preserves sup_num for full keying.
+   */
+  parcelAssignment: (year: number, mode: PACSIdentityMode = "CURRENT_YEAR") =>
+    mode === "CURRENT_YEAR"
+      ? `
+-- Current-year mode: one row per prop_id (sup_num ignored)
+SELECT DISTINCT ON (pv.prop_id)
+  pv.prop_val_yr AS year,
+  pv.hood_cd,
+  pv.prop_id
+FROM dbo.property_val pv
+WHERE pv.prop_val_yr = ${year}
+ORDER BY pv.prop_id, pv.sup_num ASC;`
+      : `
+-- Certified-year mode: full (prop_id, sup_num, year) key
 SELECT
   pv.prop_val_yr AS year,
   pv.hood_cd,
@@ -300,6 +373,43 @@ SELECT
 FROM dbo.property_val pv
 WHERE pv.prop_val_yr = ${year}
 GROUP BY pv.prop_val_yr, pv.hood_cd;`,
+
+  /**
+   * Current-year valuation extraction (Mode A: prop_id only).
+   * Picks one row per prop_id at current appraisal year.
+   */
+  currentYearValues: (year: number) => `
+SELECT
+  pv.prop_id,
+  p.geo_id,
+  pv.hood_cd,
+  pv.total_val,
+  pv.land_val,
+  pv.total_imprv_val AS imprv_val,
+  pv.prop_val_yr AS year
+FROM dbo.property_val pv
+JOIN dbo.property p ON p.prop_id = pv.prop_id
+WHERE pv.prop_val_yr = ${year}
+  AND p.prop_inactive_dt IS NULL
+ORDER BY pv.prop_id, pv.sup_num ASC;`,
+
+  /**
+   * Certified-year valuation extraction (Mode B: full key).
+   * Preserves sup_num for audit integrity.
+   */
+  certifiedYearValues: (year: number) => `
+SELECT
+  pv.prop_id,
+  pv.sup_num,
+  p.geo_id,
+  pv.hood_cd,
+  pv.total_val,
+  pv.land_val,
+  pv.total_imprv_val AS imprv_val,
+  pv.prop_val_yr AS year
+FROM dbo.property_val pv
+JOIN dbo.property p ON p.prop_id = pv.prop_id
+WHERE pv.prop_val_yr = ${year};`,
 };
 
 /** PACS table mapping for neighborhoods dimension */
