@@ -1203,6 +1203,95 @@ export type Database = {
           },
         ]
       }
+      neighborhoods: {
+        Row: {
+          county_id: string
+          created_at: string
+          geometry: Json | null
+          hood_cd: string
+          hood_name: string | null
+          id: string
+          metadata: Json | null
+          updated_at: string
+          year: number
+        }
+        Insert: {
+          county_id: string
+          created_at?: string
+          geometry?: Json | null
+          hood_cd: string
+          hood_name?: string | null
+          id?: string
+          metadata?: Json | null
+          updated_at?: string
+          year: number
+        }
+        Update: {
+          county_id?: string
+          created_at?: string
+          geometry?: Json | null
+          hood_cd?: string
+          hood_name?: string | null
+          id?: string
+          metadata?: Json | null
+          updated_at?: string
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "neighborhoods_county_id_fkey"
+            columns: ["county_id"]
+            isOneToOne: false
+            referencedRelation: "counties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      parcel_neighborhood_year: {
+        Row: {
+          county_id: string
+          created_at: string
+          hood_cd: string
+          id: string
+          parcel_id: string
+          sup_num: number | null
+          year: number
+        }
+        Insert: {
+          county_id: string
+          created_at?: string
+          hood_cd: string
+          id?: string
+          parcel_id: string
+          sup_num?: number | null
+          year: number
+        }
+        Update: {
+          county_id?: string
+          created_at?: string
+          hood_cd?: string
+          id?: string
+          parcel_id?: string
+          sup_num?: number | null
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "parcel_neighborhood_year_county_id_fkey"
+            columns: ["county_id"]
+            isOneToOne: false
+            referencedRelation: "counties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "parcel_neighborhood_year_parcel_id_fkey"
+            columns: ["parcel_id"]
+            isOneToOne: false
+            referencedRelation: "parcels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       parcels: {
         Row: {
           address: string
@@ -2235,6 +2324,20 @@ export type Database = {
       get_mission_preview: {
         Args: { p_limit?: number; p_mission_id: string; p_offset?: number }
         Returns: Json
+      }
+      get_neighborhood_stats: {
+        Args: { p_year?: number }
+        Returns: {
+          avg_assessed_value: number
+          avg_improvement_value: number
+          avg_land_value: number
+          hood_cd: string
+          hood_name: string
+          max_assessed_value: number
+          min_assessed_value: number
+          parcel_count: number
+          total_assessed_value: number
+        }[]
       }
       get_pipeline_status: { Args: { p_county_id?: string }; Returns: Json }
       get_user_county_id: { Args: never; Returns: string }
