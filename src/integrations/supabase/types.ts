@@ -864,34 +864,43 @@ export type Database = {
           centroid_lat: number | null
           centroid_lng: number | null
           coordinates: Json
+          county_id: string | null
           created_at: string
+          geom: unknown
           geometry_type: string
           id: string
           layer_id: string
           parcel_id: string | null
           properties: Json | null
+          source_object_id: string | null
         }
         Insert: {
           centroid_lat?: number | null
           centroid_lng?: number | null
           coordinates: Json
+          county_id?: string | null
           created_at?: string
+          geom?: unknown
           geometry_type: string
           id?: string
           layer_id: string
           parcel_id?: string | null
           properties?: Json | null
+          source_object_id?: string | null
         }
         Update: {
           centroid_lat?: number | null
           centroid_lng?: number | null
           coordinates?: Json
+          county_id?: string | null
           created_at?: string
+          geom?: unknown
           geometry_type?: string
           id?: string
           layer_id?: string
           parcel_id?: string | null
           properties?: Json | null
+          source_object_id?: string | null
         }
         Relationships: [
           {
@@ -1367,6 +1376,7 @@ export type Database = {
           longitude: number | null
           longitude_wgs84: number | null
           neighborhood_code: string | null
+          parcel_geom_wgs84: unknown
           parcel_number: string
           property_class: string | null
           situs_point_wgs84: unknown
@@ -1401,6 +1411,7 @@ export type Database = {
           longitude?: number | null
           longitude_wgs84?: number | null
           neighborhood_code?: string | null
+          parcel_geom_wgs84?: unknown
           parcel_number: string
           property_class?: string | null
           situs_point_wgs84?: unknown
@@ -1435,6 +1446,7 @@ export type Database = {
           longitude?: number | null
           longitude_wgs84?: number | null
           neighborhood_code?: string | null
+          parcel_geom_wgs84?: unknown
           parcel_number?: string
           property_class?: string | null
           situs_point_wgs84?: unknown
@@ -2570,6 +2582,16 @@ export type Database = {
         }
         Returns: Json
       }
+      assign_parcels_from_polygon_layer: {
+        Args: {
+          p_county_id: string
+          p_layer_id: string
+          p_layer_property_key: string
+          p_limit?: number
+          p_target_column: string
+        }
+        Returns: Json
+      }
       backfill_parcel_wgs84_from_raw: {
         Args: { p_county_id: string; p_limit?: number }
         Returns: Json
@@ -3440,6 +3462,17 @@ export type Database = {
           table_name: string
         }
         Returns: string
+      }
+      upsert_parcel_polygon: {
+        Args: {
+          p_county_id: string
+          p_geojson_geometry: Json
+          p_layer_id: string
+          p_parcel_number: string
+          p_properties?: Json
+          p_source_object_id?: string
+        }
+        Returns: Json
       }
     }
     Enums: {
