@@ -1,4 +1,5 @@
 // TerraFusion OS — Geometry Health Report Dashboard
+import { useState } from "react";
 import { motion } from "framer-motion";
 import {
   AlertTriangle,
@@ -11,6 +12,7 @@ import {
   Info,
   Globe,
   Target,
+  Zap,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -18,7 +20,12 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
-import { useGeometryHealth, type GeometryIssue } from "@/hooks/useGeometryHealth";
+import {
+  useGeometryHealth,
+  useBackfillWGS84,
+  type GeometryIssue,
+  type WGS84BackfillStatus,
+} from "@/hooks/useGeometryHealth";
 
 function SeverityIcon({ severity }: { severity: string }) {
   switch (severity) {
@@ -152,6 +159,104 @@ function MetricRow({ label, value, total, severity }: { label: string; value: nu
   );
 }
 
+function BackfillCard({
+  backfill,
+  countyId,
+}: {
+  backfill: WGS84BackfillStatus;
+  countyId: string;
+}) {
+  const { mutate, isPending } = useBackfillWGS84();
+  const [lastResult, setLastResult] = useState<{ updated: number; remaining: number } | null>(null);
+  const needsBackfill = backfill.pct < 100 && backfill.total_with_raw > 0;
+  const isDone = backfill.pct >= 100 || backfill.total_with_raw === 0;
+
+  return (
+    <Card className={cn(
+      "border-border/50 backdrop-blur-sm",
+      needsBackfill ? "bg-amber-500/5 border-amber-500/20" : "bg-emerald-500/5 border-emerald-500/20"
+    )}>
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className={cn(
+              "w-8 h-8 rounded-lg flex items-center justify-center",
+              needsBackfill ? "bg-amber-500/10" : "bg-emerald-500/10"
+            )}>
+              <Zap className={cn("w-4 h-4", needsBackfill ? "text-amber-400" : "text-emerald-400")} />
+            </div>
+            <CardTitle className="text-base font-medium">SRID Backfill</CardTitle>
+          </div>
+          <SeverityBadge severity={isDone ? "healthy" : "warning"} />
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="space-y-2">
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-muted-foreground">WGS84 conversion progress</span>
+            <span className="font-mono font-medium">{backfill.pct}%</span>
+          </div>
+          <Progress value={backfill.pct} className="h-2" />
+          <div className="grid grid-cols-3 gap-2 pt-1">
+            <div className="text-center">
+              <p className="text-lg font-mono font-semibold text-foreground">{backfill.raw_wgs84.toLocaleString()}</p>
+              <p className="text-[10px] text-muted-foreground uppercase">Already WGS84</p>
+            </div>
+            <div className="text-center">
+              <p className="text-lg font-mono font-semibold text-amber-400">{backfill.converted_2286.toLocaleString()}</p>
+              <p className="text-[10px] text-muted-foreground uppercase">Converted 2286</p>
+            </div>
+            <div className="text-center">
+              <p className="text-lg font-mono font-semibold text-muted-foreground">{(backfill.total_with_raw - backfill.backfilled).toLocaleString()}</p>
+              <p className="text-[10px] text-muted-foreground uppercase">Remaining</p>
+            </div>
+          </div>
+        </div>
+
+        {lastResult && (
+          <div className="text-xs text-muted-foreground bg-muted/30 rounded-md p-2 font-mono">
+            Last run: {lastResult.updated} converted, {lastResult.remaining} remaining
+          </div>
+        )}
+
+        {needsBackfill && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full border-amber-500/30 text-amber-400 hover:bg-amber-500/10"
+            disabled={isPending}
+            onClick={() =>
+              mutate(
+                { countyId, limit: 5000 },
+                { onSuccess: (r) => setLastResult({ updated: r.updated, remaining: r.remaining }) }
+              )
+            }
+          >
+            {isPending ? (
+              <>
+                <RefreshCw className="w-4 h-4 mr-1.5 animate-spin" />
+                Converting…
+              </>
+            ) : (
+              <>
+                <Zap className="w-4 h-4 mr-1.5" />
+                Run SRID Backfill (EPSG:2286 → WGS84)
+              </>
+            )}
+          </Button>
+        )}
+
+        {isDone && backfill.total_with_raw > 0 && (
+          <div className="flex items-center gap-2 text-sm text-emerald-400">
+            <CheckCircle2 className="w-4 h-4" />
+            All coordinates converted to WGS84
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 function LoadingSkeleton() {
   return (
     <div className="p-6 max-w-5xl mx-auto space-y-6">
@@ -196,6 +301,7 @@ export function GeometryHealthDashboard() {
   const coords = sections.parcel_coordinates;
   const gis = sections.gis_features;
   const nbhd = sections.neighborhood_coverage;
+  const backfill = coords.wgs84_backfill;
 
   return (
     <div className="p-6 max-w-5xl mx-auto space-y-6">
@@ -274,6 +380,11 @@ export function GeometryHealthDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {/* SRID Backfill Card */}
+      {backfill && (
+        <BackfillCard backfill={backfill} countyId={report.county_id} />
+      )}
 
       {/* Section Details */}
       <div className="space-y-4">
