@@ -17,6 +17,7 @@ const IDSCommandCenter = lazy(() => import("@/components/ids/IDSCommandCenter").
 const DataQualityScoringEngine = lazy(() => import("@/components/quality/DataQualityScoringEngine").then(m => ({ default: m.DataQualityScoringEngine })));
 const RollReadinessDashboard = lazy(() => import("@/components/certification").then(m => ({ default: m.RollReadinessDashboard })));
 const SyncDashboard = lazy(() => import("@/components/sync/SyncDashboard").then(m => ({ default: m.SyncDashboard })));
+const GeometryHealthDashboard = lazy(() => import("@/components/geometry").then(m => ({ default: m.GeometryHealthDashboard })));
 
 // Workbench views
 const PropertyWorkbench = lazy(() => import("@/components/workbench").then(m => ({ default: m.PropertyWorkbench })));
@@ -215,6 +216,8 @@ export function AppLayout({ initialParcel: routeParcel, initialModule, initialFa
                 <RollReadinessDashboard />
               </div>
             );
+          case "geometry":
+            return <GeometryHealthDashboard />;
           case "sync":
             return (
               <div className="p-6 max-w-7xl mx-auto">

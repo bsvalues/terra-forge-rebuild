@@ -15,6 +15,7 @@ import {
   Map,
   Compass,
   TrendingUp,
+  Hexagon,
   type LucideIcon,
 } from "lucide-react";
 
@@ -81,6 +82,7 @@ export const IA_MODULES: ModuleDefinition[] = [
       { id: "ids", label: "Data Ingestion", icon: Database, scope: "county" },
       { id: "quality", label: "Data Quality", icon: Target, scope: "county" },
       { id: "readiness", label: "Roll Readiness", icon: ShieldCheck, scope: "county" },
+      { id: "geometry", label: "Geometry Health", icon: Hexagon, scope: "county" },
       { id: "sync", label: "Sync Engine", icon: Shield, scope: "county" },
     ],
   },
@@ -133,6 +135,7 @@ export const LEGACY_REDIRECTS: LegacyRedirect[] = [
   { legacyId: "ids", targetModule: "home", targetView: "ids" },
   { legacyId: "quality", targetModule: "home", targetView: "quality" },
   { legacyId: "readiness", targetModule: "home", targetView: "readiness" },
+  { legacyId: "geometry", targetModule: "home", targetView: "geometry" },
   { legacyId: "sync", targetModule: "home", targetView: "sync" },
   // Factory absorbs these
   { legacyId: "vei", targetModule: "factory", targetView: "vei" },
