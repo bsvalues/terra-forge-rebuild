@@ -87,7 +87,7 @@ export function useCalibration(neighborhoodCode: string | null) {
         .single();
 
       const { error } = await supabase.from("calibration_runs").insert({
-        county_id: profile?.county_id ?? "00000000-0000-0000-0000-000000000001",
+        county_id: profile?.county_id ?? (() => { throw new Error("No county assigned"); })(),
         neighborhood_code: neighborhoodCode,
         model_type: "ols",
         status: "completed",

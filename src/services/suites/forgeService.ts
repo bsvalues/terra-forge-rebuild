@@ -107,7 +107,8 @@ export async function batchApplyAdjustments(
     .select("county_id")
     .single();
 
-  const countyId = profile?.county_id ?? "00000000-0000-0000-0000-000000000001";
+  const countyId = profile?.county_id;
+  if (!countyId) throw new Error("No county assigned to your profile");
   const errors: string[] = [];
   let applied = 0;
 

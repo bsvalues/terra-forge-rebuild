@@ -608,7 +608,8 @@ async function executeConfirmedWrite(
   toolName: string,
   args: Record<string, unknown>,
   serviceClient: ReturnType<typeof createServiceClient>,
-  userId: string
+  userId: string,
+  countyId: string
 ): Promise<string> {
   try {
     switch (toolName) {
@@ -623,7 +624,7 @@ async function executeConfirmedWrite(
         if (error) return JSON.stringify({ success: false, error: error.message });
         // Emit trace event
         await serviceClient.from("trace_events").insert({
-          county_id: "00000000-0000-0000-0000-000000000001",
+          county_id: countyId,
           parcel_id: String(args.parcel_id),
           actor_id: userId,
           source_module: "terrapilot",
@@ -638,7 +639,7 @@ async function executeConfirmedWrite(
         const { data: parcel } = await serviceClient.from("parcels").select("assessed_value").eq("id", String(args.parcel_id)).single();
         const { data, error } = await serviceClient.from("appeals").insert({
           parcel_id: String(args.parcel_id),
-          county_id: "00000000-0000-0000-0000-000000000001",
+          county_id: countyId,
           appeal_date: new Date().toISOString().split("T")[0],
           original_value: parcel?.assessed_value || 0,
           requested_value: args.requested_value ? Number(args.requested_value) : null,
@@ -647,7 +648,7 @@ async function executeConfirmedWrite(
         }).select().single();
         if (error) return JSON.stringify({ success: false, error: error.message });
         await serviceClient.from("trace_events").insert({
-          county_id: "00000000-0000-0000-0000-000000000001",
+          county_id: countyId,
           parcel_id: String(args.parcel_id),
           actor_id: userId,
           source_module: "terrapilot",
@@ -665,7 +666,7 @@ async function executeConfirmedWrite(
           .select().single();
         if (error) return JSON.stringify({ success: false, error: error.message });
         await serviceClient.from("trace_events").insert({
-          county_id: "00000000-0000-0000-0000-000000000001",
+          county_id: countyId,
           parcel_id: String(args.parcel_id),
           actor_id: userId,
           source_module: "terrapilot",
@@ -685,7 +686,7 @@ async function executeConfirmedWrite(
           .eq("id", String(args.parcel_id));
         if (upErr) return JSON.stringify({ success: false, error: upErr.message });
         await serviceClient.from("trace_events").insert({
-          county_id: "00000000-0000-0000-0000-000000000001",
+          county_id: countyId,
           parcel_id: String(args.parcel_id),
           actor_id: userId,
           source_module: "terrapilot",
@@ -697,7 +698,7 @@ async function executeConfirmedWrite(
 
       case "assign_task": {
         const { data, error: taskErr } = await serviceClient.from("workflow_tasks").insert({
-          county_id: "00000000-0000-0000-0000-000000000001",
+          county_id: countyId,
           parcel_id: args.parcel_id ? String(args.parcel_id) : null,
           assigned_by: userId,
           title: String(args.title),
@@ -709,7 +710,7 @@ async function executeConfirmedWrite(
         }).select().single();
         if (taskErr) return JSON.stringify({ success: false, error: taskErr.message });
         await serviceClient.from("trace_events").insert({
-          county_id: "00000000-0000-0000-0000-000000000001",
+          county_id: countyId,
           parcel_id: args.parcel_id ? String(args.parcel_id) : null,
           actor_id: userId,
           source_module: "terrapilot",
@@ -721,7 +722,7 @@ async function executeConfirmedWrite(
 
       case "create_workflow": {
         const { data, error: wfErr } = await serviceClient.from("workflow_tasks").insert({
-          county_id: "00000000-0000-0000-0000-000000000001",
+          county_id: countyId,
           parcel_id: args.parcel_id ? String(args.parcel_id) : null,
           assigned_by: userId,
           title: String(args.title),
@@ -733,7 +734,7 @@ async function executeConfirmedWrite(
         }).select().single();
         if (wfErr) return JSON.stringify({ success: false, error: wfErr.message });
         await serviceClient.from("trace_events").insert({
-          county_id: "00000000-0000-0000-0000-000000000001",
+          county_id: countyId,
           parcel_id: args.parcel_id ? String(args.parcel_id) : null,
           actor_id: userId,
           source_module: "terrapilot",
@@ -761,7 +762,7 @@ async function executeConfirmedWrite(
           .eq("id", taskId);
         if (escErr) return JSON.stringify({ success: false, error: escErr.message });
         await serviceClient.from("trace_events").insert({
-          county_id: "00000000-0000-0000-0000-000000000001",
+          county_id: countyId,
           actor_id: userId,
           source_module: "terrapilot",
           event_type: "task_escalated",
@@ -807,7 +808,7 @@ serve(async (req) => {
         });
       }
       const serviceClient = createServiceClient();
-      const result = await executeConfirmedWrite(tool_name, args, serviceClient, auth.user.id);
+      const result = await executeConfirmedWrite(tool_name, args, serviceClient, auth.userId, auth.countyId);
       return new Response(result, {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
