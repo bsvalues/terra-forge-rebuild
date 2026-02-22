@@ -1,7 +1,7 @@
 // TerraFusion OS — ArcGIS Polygon Layer Ingester (Bulk Mode, Resumable)
 // Pages through ArcGIS FeatureServer (2K/batch), requests GeoJSON in WGS84,
 // and bulk-upserts via upsert_parcel_polygons_bulk RPC (one call per page).
-// Supports startOffset for resumable chunked ingestion.
+// Supports startOffset, time-budget cutoff, and inter-page backoff.
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { requireAdmin, createServiceClient } from "../_shared/auth.ts";
@@ -19,6 +19,11 @@ interface IngestRequest {
   maxPages?: number;
   startOffset?: number;
 }
+
+// Time budget: stop before platform timeout (25s safe margin)
+const TIME_BUDGET_MS = 25_000;
+// Inter-page backoff to prevent DB pool saturation
+const PAGE_BACKOFF_MS = 150;
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -63,6 +68,8 @@ serve(async (req) => {
 
     console.log(`[arcgis-polygon-ingest] Admin ${auth.userId} ingesting from offset ${startOffset}: ${featureServerUrl}`);
 
+    const started = Date.now();
+
     // 1) Register layer in gis_layers
     let layerId: string;
     const { data: existingLayer } = await supabase
@@ -90,8 +97,6 @@ serve(async (req) => {
       layerId = inserted.id;
     }
 
-    console.log(`[arcgis-polygon-ingest] Layer ID: ${layerId}`);
-
     // 2) Page through ArcGIS FeatureServer
     const pageSize = 2000;
     let offset = startOffset;
@@ -100,14 +105,21 @@ serve(async (req) => {
     let totalMatched = 0;
     let page = 0;
     let hasMore = true;
+    let timeBudgetExceeded = false;
 
+    // Only request essential fields to reduce payload
     const outFields = [
-      parcelIdField, "owner_name", "situs_address", "neighborhood_code",
-      "neighborhood_name", "appraised_val", "legal_acres", "land_sqft",
-      "year_blt", "primary_use", "tax_code_area", "geo_id", "GlobalID", "OBJECTID",
+      parcelIdField, "neighborhood_code", "GlobalID", "OBJECTID",
     ].join(",");
 
     while (hasMore && page < maxPages) {
+      // Time budget check
+      if (Date.now() - started > TIME_BUDGET_MS) {
+        console.log(`[arcgis-polygon-ingest] Time budget exceeded at page ${page + 1}, stopping.`);
+        timeBudgetExceeded = true;
+        break;
+      }
+
       const queryUrl =
         `${featureServerUrl}/query?where=1%3D1` +
         `&outFields=${encodeURIComponent(outFields)}` +
@@ -124,7 +136,7 @@ serve(async (req) => {
       const features = geojson.features || [];
       if (features.length === 0) { hasMore = false; break; }
 
-      // 3) Build bulk rows array
+      // 3) Build slim bulk rows (only essential props)
       const rows: { parcel_number: string; source_object_id: string; geom: unknown; props: unknown }[] = [];
 
       for (const feature of features) {
@@ -145,15 +157,23 @@ serve(async (req) => {
         const sourceObjId = props.GlobalID || String(props.OBJECTID || "");
         if (!sourceObjId) continue;
 
+        // Slim props: only what we write-through
+        const propsLite = {
+          [parcelIdField]: parcelNumStr,
+          neighborhood_code: props.neighborhood_code ?? null,
+          GlobalID: props.GlobalID ?? null,
+          OBJECTID: props.OBJECTID ?? null,
+        };
+
         rows.push({
           parcel_number: parcelNumStr,
           source_object_id: sourceObjId,
           geom: multiGeom,
-          props,
+          props: propsLite,
         });
       }
 
-      // 4) Bulk upsert via RPC (one call per page)
+      // 4) Bulk upsert via RPC
       if (rows.length > 0) {
         const { data: bulkRes, error: bulkErr } = await supabase.rpc(
           "upsert_parcel_polygons_bulk",
@@ -176,8 +196,13 @@ serve(async (req) => {
       hasMore = features.length === pageSize;
 
       console.log(
-        `[arcgis-polygon-ingest] Progress: ${totalFetched} fetched, ${totalUpserted} upserted, ${totalMatched} matched`
+        `[arcgis-polygon-ingest] Progress: ${totalFetched} fetched, ${totalUpserted} upserted, ${totalMatched} matched (${Date.now() - started}ms elapsed)`
       );
+
+      // Inter-page backoff to let DB breathe
+      if (hasMore && page < maxPages) {
+        await new Promise(r => setTimeout(r, PAGE_BACKOFF_MS));
+      }
     }
 
     // 5) Update layer metadata
@@ -200,6 +225,8 @@ serve(async (req) => {
         pages_processed: page,
         start_offset: startOffset,
         next_offset: hasMore ? offset : null,
+        time_budget_exceeded: timeBudgetExceeded,
+        elapsed_ms: Date.now() - started,
         parcel_id_field: parcelIdField,
       },
     });
@@ -214,6 +241,8 @@ serve(async (req) => {
       startOffset,
       nextOffset: hasMore ? offset : null,
       done: !hasMore,
+      timeBudgetExceeded,
+      elapsedMs: Date.now() - started,
     };
 
     console.log(`[arcgis-polygon-ingest] Complete:`, JSON.stringify(summary));
