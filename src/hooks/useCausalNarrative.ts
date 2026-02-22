@@ -1,5 +1,7 @@
 // TerraFusion OS — Causal Mini-Narrative Hook
 // Fetches Before→Event→After chain for a selected timeline event.
+// Prefers events sharing the same link key (exact causal chain)
+// before falling back to time-nearest events.
 
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,6 +12,22 @@ export interface CausalNarrative {
   after: TimelineEvent | null;
 }
 
+/** Find the strongest non-null link key from an event */
+function pickStrongestLinkKey(event: TimelineEvent): { key: string; value: string } | null {
+  if (!event.links) return null;
+  // Priority order: receipt_id > ingest_job_id > mission_id > run_id > parcel_id
+  const priority = ["receipt_id", "ingest_job_id", "mission_id", "run_id", "parcel_id"];
+  for (const key of priority) {
+    const val = event.links[key];
+    if (val) return { key, value: val };
+  }
+  // Fallback: any non-null link
+  for (const [key, val] of Object.entries(event.links)) {
+    if (val) return { key, value: val };
+  }
+  return null;
+}
+
 export function useCausalNarrative(event: TimelineEvent | null) {
   return useQuery<CausalNarrative>({
     queryKey: ["causal-narrative", event?.id],
@@ -17,8 +35,49 @@ export function useCausalNarrative(event: TimelineEvent | null) {
       if (!event) return { before: null, after: null };
 
       const eventTime = event.event_time;
+      const eventTimeMs = new Date(eventTime).getTime();
 
-      // Fetch events in a ±15 minute window around the event
+      // Strategy 1: Try link-key-based causal chain first
+      const linkKey = pickStrongestLinkKey(event);
+
+      if (linkKey) {
+        const { data: linkedData } = await supabase.rpc("get_county_timeline" as any, {
+          p_from: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString(),
+          p_to: new Date().toISOString(),
+          p_types: null,
+          p_search: null,
+          p_limit: 20,
+          p_offset: 0,
+          p_link_key: linkKey.key,
+          p_link_value: linkKey.value,
+          p_window_center: null,
+          p_window_minutes: 10,
+        });
+
+        const linkedResult = linkedData as any;
+        const linkedRows: TimelineEvent[] = linkedResult?.rows ?? [];
+
+        if (linkedRows.length > 1) {
+          let before: TimelineEvent | null = null;
+          let after: TimelineEvent | null = null;
+
+          for (const row of linkedRows) {
+            if (row.id === event.id) continue;
+            const rowTime = new Date(row.event_time).getTime();
+
+            if (rowTime < eventTimeMs) {
+              if (!before || rowTime > new Date(before.event_time).getTime()) before = row;
+            } else if (rowTime > eventTimeMs) {
+              if (!after || rowTime < new Date(after.event_time).getTime()) after = row;
+            }
+          }
+
+          // If we found at least one related event, return this chain
+          if (before || after) return { before, after };
+        }
+      }
+
+      // Strategy 2: Fallback to ±15 minute time window
       const { data, error } = await supabase.rpc("get_county_timeline" as any, {
         p_from: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString(),
         p_to: new Date().toISOString(),
@@ -37,8 +96,6 @@ export function useCausalNarrative(event: TimelineEvent | null) {
       const result = data as any;
       const rows: TimelineEvent[] = result?.rows ?? [];
 
-      // Find events before and after the current one
-      const eventTimeMs = new Date(eventTime).getTime();
       let before: TimelineEvent | null = null;
       let after: TimelineEvent | null = null;
 
@@ -47,15 +104,9 @@ export function useCausalNarrative(event: TimelineEvent | null) {
         const rowTime = new Date(row.event_time).getTime();
 
         if (rowTime < eventTimeMs) {
-          // Closest before
-          if (!before || rowTime > new Date(before.event_time).getTime()) {
-            before = row;
-          }
+          if (!before || rowTime > new Date(before.event_time).getTime()) before = row;
         } else if (rowTime > eventTimeMs) {
-          // Closest after
-          if (!after || rowTime < new Date(after.event_time).getTime()) {
-            after = row;
-          }
+          if (!after || rowTime < new Date(after.event_time).getTime()) after = row;
         }
       }
 
