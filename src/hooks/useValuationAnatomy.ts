@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { TF3D } from "@/lib/colors/tf3dPalette";
 
 export interface FeatureContribution {
   id: string;
@@ -188,7 +189,7 @@ function generateFeatureContributions(
     contribution: landValue,
     percentage: assessedValue > 0 ? (landValue / assessedValue) * 100 : 0,
     category: "physical",
-    color: "#10B981", // Green
+    color: TF3D.green,
   });
 
   // Building area contribution (major driver)
@@ -202,7 +203,7 @@ function generateFeatureContributions(
     contribution: sqftContribution,
     percentage: assessedValue > 0 ? (sqftContribution / assessedValue) * 100 : 0,
     category: "physical",
-    color: "#00D9D9", // Cyan
+    color: TF3D.cyan,
   });
 
   // Age/Year Built contribution
@@ -217,7 +218,7 @@ function generateFeatureContributions(
     contribution: ageContribution,
     percentage: assessedValue > 0 ? (ageContribution / assessedValue) * 100 : 0,
     category: "physical",
-    color: "#F59E0B", // Amber
+    color: TF3D.amber,
   });
 
   // Bedrooms contribution
@@ -231,7 +232,7 @@ function generateFeatureContributions(
     contribution: bedroomContribution,
     percentage: assessedValue > 0 ? (bedroomContribution / assessedValue) * 100 : 0,
     category: "physical",
-    color: "#8B5CF6", // Purple
+    color: TF3D.purple,
   });
 
   // Bathrooms contribution
@@ -245,7 +246,7 @@ function generateFeatureContributions(
     contribution: bathroomContribution,
     percentage: assessedValue > 0 ? (bathroomContribution / assessedValue) * 100 : 0,
     category: "physical",
-    color: "#EC4899", // Pink
+    color: TF3D.pink,
   });
 
   // Location/Neighborhood contribution
@@ -258,7 +259,7 @@ function generateFeatureContributions(
     contribution: locationContribution,
     percentage: assessedValue > 0 ? (locationContribution / assessedValue) * 100 : 0,
     category: "location",
-    color: "#D4AF37", // Gold
+    color: TF3D.gold,
   });
 
   // Base value (residual)
@@ -273,7 +274,7 @@ function generateFeatureContributions(
       contribution: residual,
       percentage: assessedValue > 0 ? (residual / assessedValue) * 100 : 0,
       category: "market",
-      color: "#6B7280", // Gray
+      color: TF3D.muted,
     });
   }
 
@@ -301,7 +302,7 @@ function generateAggregateFeatures(
       contribution: avgLand,
       percentage: avgValue > 0 ? (avgLand / avgValue) * 100 : 0,
       category: "physical",
-      color: "#10B981",
+      color: TF3D.green,
     },
     {
       id: "sqft",
@@ -311,7 +312,7 @@ function generateAggregateFeatures(
       contribution: avgImprovement * 0.45,
       percentage: avgValue > 0 ? ((avgImprovement * 0.45) / avgValue) * 100 : 0,
       category: "physical",
-      color: "#00D9D9",
+      color: TF3D.cyan,
     },
     {
       id: "age",
@@ -321,7 +322,7 @@ function generateAggregateFeatures(
       contribution: avgImprovement * 0.15,
       percentage: avgValue > 0 ? ((avgImprovement * 0.15) / avgValue) * 100 : 0,
       category: "physical",
-      color: "#F59E0B",
+      color: TF3D.amber,
     },
     {
       id: "bedrooms",
@@ -331,7 +332,7 @@ function generateAggregateFeatures(
       contribution: avgImprovement * 0.1,
       percentage: avgValue > 0 ? ((avgImprovement * 0.1) / avgValue) * 100 : 0,
       category: "physical",
-      color: "#8B5CF6",
+      color: TF3D.purple,
     },
     {
       id: "bathrooms",
@@ -341,7 +342,7 @@ function generateAggregateFeatures(
       contribution: avgImprovement * 0.12,
       percentage: avgValue > 0 ? ((avgImprovement * 0.12) / avgValue) * 100 : 0,
       category: "physical",
-      color: "#EC4899",
+      color: TF3D.pink,
     },
   ];
 }

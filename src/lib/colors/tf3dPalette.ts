@@ -28,6 +28,7 @@ export const TF3D = {
   amber:      "#F59E0B",   // --tf-anomaly-amber    (38 92% 58%)
   red:        "#EF4444",   // --tf-warning-red       (0 72% 58%)
   purple:     "#8B5CF6",   // --tf-muse-purple      (280 70% 65%)
+  pink:       "#EC4899",   // pink accent            (330 81% 60%)
 
   // Surfaces
   substrate:  "#060A14",   // --tf-substrate        (220 50% 4%)
