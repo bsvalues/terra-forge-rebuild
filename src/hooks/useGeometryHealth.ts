@@ -5,68 +5,45 @@ import { toast } from "sonner";
 
 export interface GeometryIssue {
   type: string;
-  severity: "critical" | "warning" | "info";
+  severity: "critical" | "warning" | "info" | "error";
   count: number;
   description: string;
 }
 
 export interface WGS84BackfillStatus {
-  total_with_raw: number;
-  backfilled: number;
-  raw_wgs84: number;
-  converted_2286: number;
-  unknown: number;
-  pct: number;
+  completed: number;
+  total_eligible: number;
+  remaining: number;
+  pct_done: number;
 }
 
-export interface SectionData {
-  issues: GeometryIssue[];
-  [key: string]: unknown;
+export interface CoordinateQuality {
+  total_with_coords: number;
+  null_coordinates: number;
+  zero_coordinates: number;
+  invalid_wgs84: number;
+  convertible_wkid_2927: number;
+  out_of_conus_bounds: number;
+  duplicate_coordinate_groups: number;
 }
 
 export interface GeometryHealthReport {
-  report_time: string;
   county_id: string;
-  overall_severity: "healthy" | "critical" | "degraded" | "warning";
-  total_issues: number;
+  total_parcels: number;
+  generated_at: string;
   sections: {
-    parcel_coordinates: SectionData & {
-      total_parcels: number;
-      with_coordinates: number;
-      missing_coordinates: number;
-      coverage_pct: number;
-      out_of_conus_bounds: number;
-      zero_coordinates: number;
-      duplicate_locations: number;
-      invalid_latitude: number;
-      invalid_longitude: number;
-      wgs84_backfill: WGS84BackfillStatus;
-    };
-    gis_features: SectionData & {
-      total_layers: number;
-      total_features: number;
-      orphan_features: number;
-      missing_centroids: number;
-      empty_coordinates: number;
-      distinct_srids: number;
-      parcels_with_features: number;
-      features_without_parcel: number;
-    };
-    neighborhood_coverage: SectionData & {
-      total_neighborhoods: number;
-      parcels_without_neighborhood: number;
-      neighborhoods_without_geometry: number;
-    };
+    coordinate_quality: CoordinateQuality;
+    wgs84_backfill: WGS84BackfillStatus;
   };
+  issues: GeometryIssue[];
 }
 
 export interface BackfillResult {
   county_id: string;
   updated: number;
   skipped_unknown: number;
-  already_done: number;
-  remaining: number;
-  batch_limit: number;
+  limit: number;
+  assumed_projected_wkid: number;
 }
 
 export function useGeometryHealth() {
@@ -95,7 +72,7 @@ export function useBackfillWGS84() {
     },
     onSuccess: (result) => {
       toast.success(`SRID backfill complete`, {
-        description: `${result.updated} converted, ${result.remaining} remaining`,
+        description: `${result.updated} converted, ${result.skipped_unknown} skipped`,
       });
       qc.invalidateQueries({ queryKey: ["geometry-health-report"] });
     },
