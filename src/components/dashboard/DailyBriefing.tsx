@@ -1,6 +1,6 @@
 // TerraFusion OS — Daily Briefing
 // "Here's what happened, here's what to do first."
-// Morning command brief: one-sentence narrative + today's activity + top NBA action
+// Morning command brief: one-sentence narrative + today's activity + top NBA action + copy button
 
 import { motion } from "framer-motion";
 import {
@@ -12,13 +12,17 @@ import {
   Activity,
   ArrowRight,
   Zap,
-  TrendingUp,
+  Copy,
+  Check,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useTodaySummary, type TodaySummary } from "@/hooks/useCountyVitalsToday";
 import { useCountyVitals } from "@/hooks/useCountyVitals";
 import { usePipelineStatus } from "@/hooks/usePipelineStatus";
+import { useSmartActions, type SmartAction } from "@/hooks/useSmartActions";
 import { cn } from "@/lib/utils";
+import { useState, useCallback } from "react";
+import { toast } from "sonner";
 
 // ─── Narrative Generator ─────────────────────────────────────
 
@@ -28,7 +32,6 @@ function generateNarrative(
   pipeline: ReturnType<typeof usePipelineStatus>["data"]
 ): string {
   if (!today || today.total === 0) {
-    // No activity today
     const quality = vitals?.quality.overall ?? 0;
     if (quality >= 90) return "No activity yet today. Your county data is in excellent shape — consider running calibration or reviewing appeals.";
     if (quality >= 70) return "No activity yet today. Data quality is good but there are a few gaps worth addressing.";
@@ -36,38 +39,19 @@ function generateNarrative(
   }
 
   const parts: string[] = [];
-
-  if (today.imports > 0) {
-    parts.push(`${today.imports} import${today.imports > 1 ? "s" : ""} completed`);
-  }
-  if (today.missions > 0) {
-    parts.push(`${today.missions} mission${today.missions > 1 ? "s" : ""} detected`);
-  }
-  if (today.fixes > 0) {
-    parts.push(`${today.fixes} fix${today.fixes > 1 ? "es" : ""} applied`);
-  }
-  if (today.models > 0) {
-    parts.push(`${today.models} model run${today.models > 1 ? "s" : ""}`);
-  }
-  if (today.workflows > 0) {
-    parts.push(`${today.workflows} workflow action${today.workflows > 1 ? "s" : ""}`);
-  }
+  if (today.imports > 0) parts.push(`${today.imports} import${today.imports > 1 ? "s" : ""} completed`);
+  if (today.missions > 0) parts.push(`${today.missions} mission${today.missions > 1 ? "s" : ""} detected`);
+  if (today.fixes > 0) parts.push(`${today.fixes} fix${today.fixes > 1 ? "es" : ""} applied`);
+  if (today.models > 0) parts.push(`${today.models} model run${today.models > 1 ? "s" : ""}`);
+  if (today.workflows > 0) parts.push(`${today.workflows} workflow action${today.workflows > 1 ? "s" : ""}`);
 
   const narrative = parts.join(", ");
-
-  // Add quality context
   const quality = vitals?.quality.overall ?? 0;
   const hasFailed = pipeline?.overall === "failed";
 
-  if (hasFailed) {
-    return `Today: ${narrative}. ⚠️ A pipeline stage needs attention — check the data status above.`;
-  }
-  if (quality >= 90) {
-    return `Today: ${narrative}. County data is in great shape.`;
-  }
-  if (today.fixes > 0) {
-    return `Today: ${narrative}. Nice progress on data quality.`;
-  }
+  if (hasFailed) return `Today: ${narrative}. ⚠️ A pipeline stage needs attention — check the data status above.`;
+  if (quality >= 90) return `Today: ${narrative}. County data is in great shape.`;
+  if (today.fixes > 0) return `Today: ${narrative}. Nice progress on data quality.`;
   return `Today: ${narrative}.`;
 }
 
@@ -81,41 +65,72 @@ const PILL_CONFIG = [
   { key: "workflows", label: "Workflows", icon: Activity, color: "text-chart-3", bg: "bg-chart-3/10" },
 ] as const;
 
-// ─── Top NBA summary ─────────────────────────────────────────
+// ─── Top Action: NBA-first, vitals-fallback ──────────────────
 
 function deriveTopAction(
+  nbaActions: SmartAction[],
   vitals: ReturnType<typeof useCountyVitals>["data"]
 ): { label: string; target: string } | null {
+  // Primary: use the top-ranked NBA action (already scored, SLA'd, mission-constitutional)
+  if (nbaActions.length > 0) {
+    const top = nbaActions[0];
+    return { label: top.title, target: top.target };
+  }
+
+  // Fallback: vitals heuristics when NBA engine returns empty
   if (!vitals) return null;
 
   const total = vitals.parcels.total;
-
-  // Failed ingest = top priority
   const failedJob = vitals.ingest.recentJobs.find(j => j.status === "failed");
-  if (failedJob) {
-    return { label: `Fix failed import: ${failedJob.file_name}`, target: "home:ids" };
-  }
+  if (failedJob) return { label: `Fix failed import: ${failedJob.file_name}`, target: "home:ids" };
 
-  // Missing coords
   const missingCoords = total - vitals.parcels.withCoords;
   if (missingCoords > 0 && total > 0) {
     const pct = Math.round((missingCoords / total) * 100);
-    if (pct > 10) {
-      return { label: `Geocode ${missingCoords.toLocaleString()} parcels (${pct}% missing)`, target: "factory:geoequity" };
-    }
+    if (pct > 10) return { label: `Geocode ${missingCoords.toLocaleString()} parcels (${pct}% missing)`, target: "factory:geoequity" };
   }
 
-  // Pending appeals
   if (vitals.workflows.pendingAppeals > 0) {
     return { label: `Review ${vitals.workflows.pendingAppeals} pending appeal${vitals.workflows.pendingAppeals > 1 ? "s" : ""}`, target: "workbench:dais:appeals" };
   }
 
-  // Quality below threshold
   if (vitals.quality.overall < 80) {
     return { label: `Improve data quality (currently ${vitals.quality.overall}%)`, target: "home:quality" };
   }
 
   return null;
+}
+
+// ─── Copy Morning Brief ──────────────────────────────────────
+
+function buildBriefText(
+  greeting: string,
+  narrative: string,
+  today: TodaySummary | undefined,
+  topAction: { label: string; target: string } | null
+): string {
+  const lines: string[] = [];
+  lines.push(`📋 ${greeting} Briefing — ${new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })}`);
+  lines.push("");
+  lines.push(narrative);
+
+  if (today && today.total > 0) {
+    const counts: string[] = [];
+    if (today.imports > 0) counts.push(`${today.imports} Imports`);
+    if (today.missions > 0) counts.push(`${today.missions} Missions`);
+    if (today.fixes > 0) counts.push(`${today.fixes} Fixes`);
+    if (today.models > 0) counts.push(`${today.models} Models`);
+    if (today.workflows > 0) counts.push(`${today.workflows} Workflows`);
+    lines.push("");
+    lines.push(`Activity: ${counts.join(" · ")}`);
+  }
+
+  if (topAction) {
+    lines.push("");
+    lines.push(`⚡ Top Action: ${topAction.label}`);
+  }
+
+  return lines.join("\n");
 }
 
 // ─── Component ────────────────────────────────────────────────
@@ -129,14 +144,23 @@ export function DailyBriefing({ onNavigate, onTimelineFilter }: DailyBriefingPro
   const { data: today } = useTodaySummary();
   const { data: vitals } = useCountyVitals();
   const { data: pipeline } = usePipelineStatus();
+  const nbaActions = useSmartActions();
+  const [copied, setCopied] = useState(false);
 
   const narrative = generateNarrative(today, vitals, pipeline);
-  const topAction = deriveTopAction(vitals);
-
-  // Don't render if no data at all
-  if (!vitals) return null;
-
+  const topAction = deriveTopAction(nbaActions, vitals);
   const greeting = getGreeting();
+
+  const handleCopy = useCallback(() => {
+    const text = buildBriefText(greeting, narrative, today, topAction);
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(true);
+      toast.success("Morning brief copied to clipboard");
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }, [greeting, narrative, today, topAction]);
+
+  if (!vitals) return null;
 
   return (
     <motion.div
@@ -156,11 +180,20 @@ export function DailyBriefing({ onNavigate, onTimelineFilter }: DailyBriefingPro
             {narrative}
           </p>
         </div>
-        {today && today.total > 0 && (
-          <Badge variant="outline" className="text-[10px] px-2 py-0.5 text-tf-cyan border-[hsl(var(--tf-transcend-cyan)/0.3)] shrink-0">
-            {today.total} events today
-          </Badge>
-        )}
+        <div className="flex items-center gap-1.5 shrink-0">
+          {today && today.total > 0 && (
+            <Badge variant="outline" className="text-[10px] px-2 py-0.5 text-tf-cyan border-[hsl(var(--tf-transcend-cyan)/0.3)]">
+              {today.total} events today
+            </Badge>
+          )}
+          <button
+            onClick={handleCopy}
+            className="p-1.5 rounded-md hover:bg-muted/50 transition-colors text-muted-foreground hover:text-foreground"
+            title="Copy Morning Brief"
+          >
+            {copied ? <Check className="w-3.5 h-3.5 text-chart-2" /> : <Copy className="w-3.5 h-3.5" />}
+          </button>
+        </div>
       </div>
 
       {/* Activity pills */}
