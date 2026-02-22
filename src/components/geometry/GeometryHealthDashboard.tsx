@@ -16,6 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import {
   useGeometryHealth,
@@ -95,6 +96,7 @@ function MetricRow({ label, value, severity }: { label: string; value: number; s
 function BackfillCard({ backfill, countyId }: { backfill: WGS84BackfillStatus; countyId: string }) {
   const { mutate, isPending } = useBackfillWGS84();
   const [lastResult, setLastResult] = useState<{ updated: number; skipped: number } | null>(null);
+  const [confirmed, setConfirmed] = useState(false);
   const needsBackfill = backfill.remaining > 0;
   const isDone = backfill.remaining === 0 && backfill.total_eligible > 0;
 
@@ -147,30 +149,42 @@ function BackfillCard({ backfill, countyId }: { backfill: WGS84BackfillStatus; c
         )}
 
         {needsBackfill && (
-          <Button
-            variant="outline"
-            size="sm"
-            className="w-full border-amber-500/30 text-amber-400 hover:bg-amber-500/10"
-            disabled={isPending}
-            onClick={() =>
-              mutate(
-                { countyId, limit: 5000 },
-                { onSuccess: (r) => setLastResult({ updated: r.updated, skipped: r.skipped_unknown }) }
-              )
-            }
-          >
-            {isPending ? (
-              <>
-                <RefreshCw className="w-4 h-4 mr-1.5 animate-spin" />
-                Converting…
-              </>
-            ) : (
-              <>
-                <Zap className="w-4 h-4 mr-1.5" />
-                Run SRID Backfill (WKID 2927 → WGS84)
-              </>
-            )}
-          </Button>
+          <div className="space-y-3">
+            <label className="flex items-start gap-2 cursor-pointer">
+              <Checkbox
+                checked={confirmed}
+                onCheckedChange={(v) => setConfirmed(v === true)}
+                className="mt-0.5"
+              />
+              <span className="text-xs text-muted-foreground leading-relaxed">
+                I understand this writes to canonical WGS84 fields only — raw latitude/longitude values are preserved.
+              </span>
+            </label>
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full border-amber-500/30 text-amber-400 hover:bg-amber-500/10"
+              disabled={isPending || !confirmed}
+              onClick={() =>
+                mutate(
+                  { countyId, limit: 5000 },
+                  { onSuccess: (r) => setLastResult({ updated: r.updated, skipped: r.skipped_unknown }) }
+                )
+              }
+            >
+              {isPending ? (
+                <>
+                  <RefreshCw className="w-4 h-4 mr-1.5 animate-spin" />
+                  Converting…
+                </>
+              ) : (
+                <>
+                  <Zap className="w-4 h-4 mr-1.5" />
+                  Run SRID Backfill (WKID 2927 → WGS84)
+                </>
+              )}
+            </Button>
+          </div>
         )}
 
         {isDone && (
