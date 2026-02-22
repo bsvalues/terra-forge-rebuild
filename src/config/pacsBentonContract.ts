@@ -34,6 +34,10 @@ export interface PACSCountyContract {
   databaseSchema: string;
   /** How the sync engine connects: "direct_sql" or "pacs_api" */
   connectionMethod: "direct_sql" | "pacs_api";
+  /** Access posture — hardcoded to "read_only", never configurable */
+  readonly accessPosture: "read_only";
+  /** Allowed SQL statement types */
+  readonly allowedStatements: readonly string[];
 }
 
 export const BENTON_COUNTY: PACSCountyContract = {
@@ -44,6 +48,8 @@ export const BENTON_COUNTY: PACSCountyContract = {
   camaVersion: "CIAPS / PropAccess",
   databaseSchema: "dbo",
   connectionMethod: "direct_sql",
+  accessPosture: "read_only",
+  allowedStatements: ["SELECT", "WITH", "DECLARE"] as const,
 };
 
 // ============================================================
