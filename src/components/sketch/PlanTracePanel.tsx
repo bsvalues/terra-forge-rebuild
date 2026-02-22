@@ -90,14 +90,24 @@ export function PlanTracePanel({ onSave, saving, currentGLA }: PlanTracePanelPro
           drawPlan(img);
         };
         // Fallback: show as placeholder
-        img.src = "data:image/svg+xml," + encodeURIComponent(
-          `<svg xmlns="http://www.w3.org/2000/svg" width="600" height="400" fill="#1a1a2e">
-            <rect width="100%" height="100%" fill="#1a1a2e"/>
-            <text x="300" y="200" text-anchor="middle" fill="#666" font-size="14">
-              PDF loaded: ${file.name} — render via pdf.js in production
-            </text>
-          </svg>`
-        );
+        // Render PDF placeholder via offscreen canvas with tokenized colors
+        const placeholder = document.createElement("canvas");
+        placeholder.width = 600;
+        placeholder.height = 400;
+        const pCtx = placeholder.getContext("2d");
+        if (pCtx) {
+          const styles = getComputedStyle(document.documentElement);
+          const bg = styles.getPropertyValue("--tf-substrate").trim();
+          const fg = styles.getPropertyValue("--muted-foreground").trim();
+          pCtx.fillStyle = bg ? `hsl(${bg})` : "#1a1a2e";
+          pCtx.fillRect(0, 0, 600, 400);
+          pCtx.fillStyle = fg ? `hsl(${fg})` : "#666";
+          pCtx.font = "14px sans-serif";
+          pCtx.textAlign = "center";
+          pCtx.textBaseline = "middle";
+          pCtx.fillText(`PDF loaded: ${file.name} — render via pdf.js in production`, 300, 200);
+        }
+        img.src = placeholder.toDataURL();
       };
       reader.readAsDataURL(file);
     }
