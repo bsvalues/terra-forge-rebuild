@@ -493,7 +493,7 @@ export function clearCompletedSagas() {
 }
 
 // ============================================================
-// PACS Identity-Mode-Aware Neighborhood Sync
+// PACS Identity-Mode Key Helpers
 // ============================================================
 
 /**
@@ -519,6 +519,89 @@ export function injectCompositeKeys(
   }));
 }
 
+// ============================================================
+// PACS → TerraFusion UUID Resolver
+// ============================================================
+
+/**
+ * Resolve PACS prop_id (INT) → TerraFusion parcel UUID via parcels.source_parcel_id.
+ * Returns a Map<string_prop_id, uuid>.
+ *
+ * Without this resolver, delta detection compares UUIDs against prop_ids,
+ * causing "everything changed" false positives on every sync.
+ */
+export async function buildPropIdToUUIDMap(
+  propIds: string[]
+): Promise<Map<string, string>> {
+  const map = new Map<string, string>();
+  if (propIds.length === 0) return map;
+
+  // Batch in chunks of 500 to stay under query limits
+  const chunkSize = 500;
+  for (let i = 0; i < propIds.length; i += chunkSize) {
+    const chunk = propIds.slice(i, i + chunkSize);
+    const { data, error } = await supabase
+      .from("parcels")
+      .select("id, source_parcel_id, parcel_number")
+      .in("source_parcel_id", chunk);
+
+    if (error) {
+      console.warn(`[UUID Resolver] chunk ${i}: ${error.message}`);
+      continue;
+    }
+
+    for (const row of data || []) {
+      // source_parcel_id is the PACS prop_id stored as string
+      if (row.source_parcel_id) {
+        map.set(row.source_parcel_id, row.id);
+      }
+    }
+  }
+
+  return map;
+}
+
+/**
+ * Reverse map: TerraFusion UUID → PACS prop_id (for target→source comparison).
+ */
+export async function buildUUIDToPropIdMap(
+  year: number
+): Promise<Map<string, string>> {
+  const { data, error } = await supabase
+    .from("parcel_neighborhood_year" as any)
+    .select("parcel_id")
+    .eq("year", year)
+    .limit(10000);
+
+  if (error || !data) return new Map();
+
+  const uuids = [...new Set((data as any[]).map((r: any) => r.parcel_id))];
+  if (uuids.length === 0) return new Map();
+
+  const map = new Map<string, string>();
+
+  const chunkSize = 500;
+  for (let i = 0; i < uuids.length; i += chunkSize) {
+    const chunk = uuids.slice(i, i + chunkSize);
+    const { data: parcels } = await supabase
+      .from("parcels")
+      .select("id, source_parcel_id")
+      .in("id", chunk);
+
+    for (const p of parcels || []) {
+      if (p.source_parcel_id) {
+        map.set(p.id, p.source_parcel_id);
+      }
+    }
+  }
+
+  return map;
+}
+
+// ============================================================
+// PACS Identity-Mode-Aware Neighborhood Sync
+// ============================================================
+
 /**
  * Run a PACS neighborhood sync: extract hood assignments, diff against
  * parcel_neighborhood_year, and upsert changes.
@@ -526,6 +609,12 @@ export function injectCompositeKeys(
  * Identity mode controls keying:
  *   CURRENT_YEAR  → prop_id only (sup_num = null)
  *   CERTIFIED_YEARS → (prop_id, sup_num, year) full key
+ *
+ * UUID Resolution:
+ *   Source records use PACS prop_id (INT).
+ *   Target records use TerraFusion UUID (parcel_id).
+ *   The resolver maps UUID → source_parcel_id so deltas compare
+ *   prop_id ↔ prop_id, not UUID ↔ prop_id.
  */
 export async function runPACSNeighborhoodSync(
   year: number,
@@ -556,16 +645,23 @@ export async function runPACSNeighborhoodSync(
           .limit(10000);
         if (error) throw new Error(`Target fetch failed: ${error.message}`);
 
-        // Build target records with matching key structure
+        // UUID Resolution: map TerraFusion UUIDs back to PACS prop_ids
+        // so delta detection compares like-for-like (prop_id ↔ prop_id)
+        const uuidToPropId = await buildUUIDToPropIdMap(year);
+
         const target = (data || []).map((r: any) => ({
-          prop_id: r.parcel_id,
+          // Resolve UUID → prop_id for delta comparison
+          prop_id: uuidToPropId.get(r.parcel_id) ?? r.parcel_id,
           hood_cd: r.hood_cd,
           year: r.year,
           sup_num: r.sup_num ?? 0,
+          // Preserve original UUID for upsert targeting
+          __tf_parcel_uuid: r.parcel_id,
         }));
         const keyedTarget = injectCompositeKeys(target, mode);
         ctx.set("target", keyedTarget);
         ctx.set("targetCount", keyedTarget.length);
+        ctx.set("uuidResolved", uuidToPropId.size);
       },
     },
     {
@@ -587,8 +683,8 @@ export async function runPACSNeighborhoodSync(
           ctx.set("skipped", true);
           return;
         }
-        // In production: upsert inserts + updates, delete removes
-        // For now: dry-run tracking
+        // In production: resolve prop_id → UUID via buildPropIdToUUIDMap
+        // then upsert into parcel_neighborhood_year with the UUID
         ctx.set("applied", deltas.inserts.length + deltas.updates.length);
         ctx.set("deleted", deltas.deletes.length);
         ctx.set("upsertMode", "dry-run");
@@ -606,6 +702,7 @@ export async function runPACSNeighborhoodSync(
           identityMode: mode,
           sourceCount: ctx.get("sourceCount"),
           targetCount: ctx.get("targetCount"),
+          uuidResolved: ctx.get("uuidResolved"),
           totalChanges: ctx.get("totalChanges"),
           applied: ctx.get("applied"),
           deleted: ctx.get("deleted"),
