@@ -3,6 +3,7 @@ import { Canvas, useFrame } from "@react-three/fiber";
 import { OrbitControls, Text, Float, Line } from "@react-three/drei";
 import * as THREE from "three";
 import type { FileNode } from "./AxiomFSDashboard";
+import { TF3D, TF3D_FILE_TYPES } from "@/lib/colors/tf3dPalette";
 
 const PHI = 1.618033988749895;
 const TAU = Math.PI * 2;
@@ -15,14 +16,7 @@ interface FileLatticeCanvasProps {
 }
 
 function getFileColor(type: FileNode["type"]): string {
-  switch (type) {
-    case "folder": return "#00D9D9";
-    case "document": return "#10B981";
-    case "image": return "#F59E0B";
-    case "data": return "#8B5CF6";
-    case "config": return "#D4AF37";
-    default: return "#6B7280";
-  }
+  return TF3D_FILE_TYPES[type as keyof typeof TF3D_FILE_TYPES] ?? TF3D_FILE_TYPES.default;
 }
 
 interface GlassVoxelProps {
@@ -37,16 +31,13 @@ function GlassVoxel({ file, position, isSelected, onClick }: GlassVoxelProps) {
   const [hovered, setHovered] = useState(false);
   const color = useMemo(() => getFileColor(file.type), [file.type]);
   
-  // Size based on file size (logarithmic scale)
   const baseSize = 0.3 + Math.log10(Math.max(file.size, 1000)) * 0.05;
   const size = file.type === "folder" ? baseSize * 1.2 : baseSize;
 
   useFrame((state) => {
     if (meshRef.current) {
-      // Subtle floating animation
       meshRef.current.position.y = position[1] + Math.sin(state.clock.elapsedTime * 0.5 + position[0]) * 0.05;
       
-      // Rotation for selected/hovered
       if (isSelected || hovered) {
         meshRef.current.rotation.y += 0.01;
       }
@@ -109,7 +100,7 @@ function GlassVoxel({ file, position, isSelected, onClick }: GlassVoxelProps) {
           <Text
             position={[0, size * 0.8, 0]}
             fontSize={0.12}
-            color="white"
+            color={TF3D.white}
             anchorX="center"
             anchorY="bottom"
             maxWidth={2}
@@ -129,17 +120,13 @@ interface PhiLatticeProps {
 }
 
 function PhiLattice({ files, selectedFile, onSelectFile }: PhiLatticeProps) {
-  // Generate Phi-governed spiral positions
   const filePositions = useMemo(() => {
     const positions: Array<{ file: FileNode; position: [number, number, number] }> = [];
     
     const placeFiles = (nodes: FileNode[], centerX: number, centerZ: number, radius: number, startAngle: number) => {
       nodes.forEach((file, index) => {
-        // Golden angle for optimal distribution
         const goldenAngle = TAU / (PHI * PHI);
         const angle = startAngle + index * goldenAngle;
-        
-        // Phi-based radius spiral
         const r = radius * Math.pow(PHI, index * 0.1);
         const x = centerX + Math.cos(angle) * r;
         const z = centerZ + Math.sin(angle) * r;
@@ -147,7 +134,6 @@ function PhiLattice({ files, selectedFile, onSelectFile }: PhiLatticeProps) {
         
         positions.push({ file, position: [x, y, z] });
         
-        // Place children in sub-spiral
         if (file.children && file.children.length > 0) {
           placeFiles(file.children, x, z, radius * 0.4, angle);
         }
@@ -181,7 +167,7 @@ function PhiLattice({ files, selectedFile, onSelectFile }: PhiLatticeProps) {
             <Line
               key={`${file.id}-${child.id}`}
               points={[position, childPos.position]}
-              color="#00D9D9"
+              color={TF3D.cyan}
               lineWidth={1}
               transparent
               opacity={0.3}
@@ -196,25 +182,21 @@ function PhiLattice({ files, selectedFile, onSelectFile }: PhiLatticeProps) {
 function Scene({ files, selectedFile, onSelectFile }: PhiLatticeProps) {
   return (
     <>
-      {/* Lighting */}
       <ambientLight intensity={0.4} />
-      <pointLight position={[10, 10, 10]} intensity={1} color="#00D9D9" />
-      <pointLight position={[-10, -10, -10]} intensity={0.5} color="#D4AF37" />
+      <pointLight position={[10, 10, 10]} intensity={1} color={TF3D.lightPrimary} />
+      <pointLight position={[-10, -10, -10]} intensity={0.5} color={TF3D.lightAccent} />
       <spotLight
         position={[0, 10, 0]}
         angle={0.5}
         penumbra={1}
         intensity={0.8}
-        color="#ffffff"
+        color={TF3D.white}
       />
       
-      {/* Grid */}
-      <gridHelper args={[20, 20, "#1a2744", "#0d1526"]} position={[0, -0.5, 0]} />
+      <gridHelper args={[20, 20, TF3D.elevated, TF3D.deep]} position={[0, -0.5, 0]} />
       
-      {/* Phi Lattice */}
       <PhiLattice files={files} selectedFile={selectedFile} onSelectFile={onSelectFile} />
       
-      {/* Controls */}
       <OrbitControls
         enablePan={true}
         enableZoom={true}
@@ -254,7 +236,7 @@ export function FileLatticeCanvas({ files, selectedFile, onSelectFile }: FileLat
           <span className="text-muted-foreground">Image</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <div className="w-3 h-3 rounded" style={{ background: "#8B5CF6" }} />
+          <div className="w-3 h-3 rounded bg-tf-muse-purple/70" />
           <span className="text-muted-foreground">Data</span>
         </div>
       </div>
