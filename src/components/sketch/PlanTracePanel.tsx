@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { PlanSourceType, ScaleMethod, PlanProvenance, ComponentType } from "@/types/sketch";
+import { PlanTracePlaceholderIcon } from "@/components/icons/PlanTracePlaceholderIcon";
 
 interface PlanTracePanelProps {
   onSave: (data: Record<string, unknown>) => void;
@@ -41,6 +42,7 @@ export function PlanTracePanel({ onSave, saving, currentGLA }: PlanTracePanelPro
   // Plan image state
   const [planImage, setPlanImage] = useState<HTMLImageElement | null>(null);
   const [planFileName, setPlanFileName] = useState("");
+  const [pdfPlaceholder, setPdfPlaceholder] = useState(false);
 
   // Scale state
   const [scaleMode, setScaleMode] = useState<"none" | "setting" | "set">("none");
@@ -81,35 +83,8 @@ export function PlanTracePanel({ onSave, saving, currentGLA }: PlanTracePanelPro
       };
       reader.readAsDataURL(file);
     } else {
-      // PDF: render first page to canvas (simplified — production would use pdf.js)
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        const img = new Image();
-        img.onload = () => {
-          setPlanImage(img);
-          drawPlan(img);
-        };
-        // Fallback: show as placeholder
-        // Render PDF placeholder via offscreen canvas with tokenized colors
-        const placeholder = document.createElement("canvas");
-        placeholder.width = 600;
-        placeholder.height = 400;
-        const pCtx = placeholder.getContext("2d");
-        if (pCtx) {
-          const styles = getComputedStyle(document.documentElement);
-          const bg = styles.getPropertyValue("--tf-substrate").trim();
-          const fg = styles.getPropertyValue("--muted-foreground").trim();
-          pCtx.fillStyle = bg ? `hsl(${bg})` : "#1a1a2e";
-          pCtx.fillRect(0, 0, 600, 400);
-          pCtx.fillStyle = fg ? `hsl(${fg})` : "#666";
-          pCtx.font = "14px sans-serif";
-          pCtx.textAlign = "center";
-          pCtx.textBaseline = "middle";
-          pCtx.fillText(`PDF loaded: ${file.name} — render via pdf.js in production`, 300, 200);
-        }
-        img.src = placeholder.toDataURL();
-      };
-      reader.readAsDataURL(file);
+      // PDF: mark as placeholder (production would use pdf.js to render pages)
+      setPdfPlaceholder(true);
     }
   };
 
@@ -257,7 +232,7 @@ export function PlanTracePanel({ onSave, saving, currentGLA }: PlanTracePanelPro
   return (
     <div className="space-y-4">
       {/* Plan Upload */}
-      {!planImage ? (
+      {!planImage && !pdfPlaceholder ? (
         <Card className="border-dashed border-2 border-border/50 hover:border-primary/30 transition-colors">
           <CardContent className="p-8 text-center">
             <label className="cursor-pointer block">
@@ -365,40 +340,52 @@ export function PlanTracePanel({ onSave, saving, currentGLA }: PlanTracePanelPro
             </CardContent>
           </Card>
 
-          {/* Canvas */}
-          <Card className="border-border/50 overflow-hidden">
-            <div className="relative bg-background">
-              <canvas
-                ref={canvasRef}
-                width={600}
-                height={400}
-                className="w-full cursor-crosshair touch-none"
-                style={{ aspectRatio: "3/2" }}
-                onClick={handleCanvasClick}
-              />
-
-              {/* Zoom controls */}
-              <div className="absolute top-2 right-2 flex gap-1">
-                <Button variant="secondary" size="icon" className="h-7 w-7" onClick={() => { setZoom((z) => Math.min(z + 0.2, 3)); setTimeout(redraw, 0); }}>
-                  <ZoomIn className="w-3 h-3" />
-                </Button>
-                <Button variant="secondary" size="icon" className="h-7 w-7" onClick={() => { setZoom((z) => Math.max(z - 0.2, 0.4)); setTimeout(redraw, 0); }}>
-                  <ZoomOut className="w-3 h-3" />
-                </Button>
+          {/* Canvas or PDF Placeholder */}
+          {pdfPlaceholder && !planImage ? (
+            <Card className="border-border/50 overflow-hidden">
+              <div className="flex flex-col items-center justify-center gap-3 py-12 bg-background" style={{ aspectRatio: "3/2" }}>
+                <PlanTracePlaceholderIcon className="w-16 h-16 opacity-60" title={`PDF loaded: ${planFileName}`} />
+                <p className="text-sm text-muted-foreground">
+                  PDF loaded: <span className="font-medium text-foreground">{planFileName}</span>
+                </p>
+                <p className="text-[10px] text-muted-foreground">Render via pdf.js in production</p>
               </div>
+            </Card>
+          ) : (
+            <Card className="border-border/50 overflow-hidden">
+              <div className="relative bg-background">
+                <canvas
+                  ref={canvasRef}
+                  width={600}
+                  height={400}
+                  className="w-full cursor-crosshair touch-none"
+                  style={{ aspectRatio: "3/2" }}
+                  onClick={handleCanvasClick}
+                />
 
-              {/* Status hint */}
-              <div className="absolute top-2 left-2 text-[10px] text-muted-foreground bg-background/80 px-2 py-1 rounded">
-                {scaleMode === "setting"
-                  ? "Click to set scale points"
-                  : tracing
-                  ? `Tracing: ${tracePoints.length} points · Click to add · Double-click to close`
-                  : scaleMode === "set"
-                  ? "Ready to trace"
-                  : "Set scale first"}
+                {/* Zoom controls */}
+                <div className="absolute top-2 right-2 flex gap-1">
+                  <Button variant="secondary" size="icon" className="h-7 w-7" onClick={() => { setZoom((z) => Math.min(z + 0.2, 3)); setTimeout(redraw, 0); }}>
+                    <ZoomIn className="w-3 h-3" />
+                  </Button>
+                  <Button variant="secondary" size="icon" className="h-7 w-7" onClick={() => { setZoom((z) => Math.max(z - 0.2, 0.4)); setTimeout(redraw, 0); }}>
+                    <ZoomOut className="w-3 h-3" />
+                  </Button>
+                </div>
+
+                {/* Status hint */}
+                <div className="absolute top-2 left-2 text-[10px] text-muted-foreground bg-background/80 px-2 py-1 rounded">
+                  {scaleMode === "setting"
+                    ? "Click to set scale points"
+                    : tracing
+                    ? `Tracing: ${tracePoints.length} points · Click to add · Double-click to close`
+                    : scaleMode === "set"
+                    ? "Ready to trace"
+                    : "Set scale first"}
+                </div>
               </div>
-            </div>
-          </Card>
+            </Card>
+          )}
 
           {/* Trace Controls */}
           {scaleMode === "set" && (
