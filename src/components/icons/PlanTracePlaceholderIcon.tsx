@@ -5,15 +5,19 @@ type Props = React.SVGProps<SVGSVGElement> & {
 };
 
 export function PlanTracePlaceholderIcon({ title = "Plan trace placeholder", ...props }: Props) {
+  const titleId = React.useId();
+
   return (
     <svg
       viewBox="0 0 64 64"
-      role={title ? "img" : "presentation"}
-      aria-label={title}
+      role="img"
+      aria-labelledby={title ? titleId : undefined}
       aria-hidden={title ? undefined : true}
+      focusable="false"
+      xmlns="http://www.w3.org/2000/svg"
       {...props}
     >
-      {title ? <title>{title}</title> : null}
+      {title ? <title id={titleId}>{title}</title> : null}
 
       {/* Paper */}
       <rect
