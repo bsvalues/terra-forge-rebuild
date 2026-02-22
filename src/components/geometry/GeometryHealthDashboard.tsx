@@ -1,5 +1,6 @@
 // TerraFusion OS — Geometry Health Report Dashboard
 import { useState } from "react";
+import { useParcelPolygonLinkStats } from "@/hooks/useParcelPolygonLinkStats";
 import { motion } from "framer-motion";
 import {
   AlertTriangle,
@@ -214,6 +215,8 @@ function LoadingSkeleton() {
 
 export function GeometryHealthDashboard() {
   const { data: report, isLoading, error, refetch, isFetching } = useGeometryHealth();
+  const countyId = report?.county_id || "00000000-0000-0000-0000-000000000001";
+  const { data: linkStats } = useParcelPolygonLinkStats(countyId);
 
   if (isLoading) return <LoadingSkeleton />;
 
@@ -312,6 +315,35 @@ export function GeometryHealthDashboard() {
 
       {/* SRID Backfill Card */}
       <BackfillCard backfill={backfill} countyId={report.county_id} />
+
+      {/* Polygon Link Coverage */}
+      {linkStats && (
+        <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+          <CardHeader className="pb-3">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                <Target className="w-4 h-4 text-primary" />
+              </div>
+              <CardTitle className="text-base font-medium">Parcel Polygon Coverage</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="divide-y divide-border/20">
+              <MetricRow label="Features ingested" value={linkStats.features_ingested} />
+              <MetricRow label="Features linked to parcels" value={linkStats.features_linked_to_parcels} />
+              <MetricRow label="Parcels with situs point" value={linkStats.parcels_with_situs_point} />
+              <MetricRow label="Parcels with polygon geometry" value={linkStats.parcels_with_polygon} />
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">Polygon coverage (of situs parcels)</span>
+                <span className="font-mono font-medium">{linkStats.coverage_pct_of_situs}%</span>
+              </div>
+              <Progress value={linkStats.coverage_pct_of_situs} className="h-2" />
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Coordinate Quality Details */}
       <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
