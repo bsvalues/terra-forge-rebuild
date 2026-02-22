@@ -343,13 +343,19 @@ WHERE n.hood_yr = ${year};`,
     mode === "CURRENT_YEAR"
       ? `
 -- Current-year mode: one row per prop_id (sup_num ignored)
-SELECT DISTINCT ON (pv.prop_id)
-  pv.prop_val_yr AS year,
-  pv.hood_cd,
-  pv.prop_id
-FROM dbo.property_val pv
-WHERE pv.prop_val_yr = ${year}
-ORDER BY pv.prop_id, pv.sup_num ASC;`
+-- Uses ROW_NUMBER() for SQL Server compatibility (DISTINCT ON is PostgreSQL-only)
+WITH ranked AS (
+  SELECT
+    pv.prop_val_yr AS [year],
+    pv.hood_cd,
+    pv.prop_id,
+    ROW_NUMBER() OVER (PARTITION BY pv.prop_id ORDER BY pv.sup_num ASC) AS rn
+  FROM dbo.property_val pv
+  WHERE pv.prop_val_yr = ${year}
+)
+SELECT [year], hood_cd, prop_id
+FROM ranked
+WHERE rn = 1;`
       : `
 -- Certified-year mode: full (prop_id, sup_num, year) key
 SELECT
@@ -379,19 +385,25 @@ GROUP BY pv.prop_val_yr, pv.hood_cd;`,
    * Picks one row per prop_id at current appraisal year.
    */
   currentYearValues: (year: number) => `
-SELECT
-  pv.prop_id,
-  p.geo_id,
-  pv.hood_cd,
-  pv.total_val,
-  pv.land_val,
-  pv.total_imprv_val AS imprv_val,
-  pv.prop_val_yr AS year
-FROM dbo.property_val pv
-JOIN dbo.property p ON p.prop_id = pv.prop_id
-WHERE pv.prop_val_yr = ${year}
-  AND p.prop_inactive_dt IS NULL
-ORDER BY pv.prop_id, pv.sup_num ASC;`,
+-- Current-year values: one row per prop_id via ROW_NUMBER() (SQL Server compat)
+WITH ranked AS (
+  SELECT
+    pv.prop_id,
+    p.geo_id,
+    pv.hood_cd,
+    pv.total_val,
+    pv.land_val,
+    pv.total_imprv_val AS imprv_val,
+    pv.prop_val_yr AS [year],
+    ROW_NUMBER() OVER (PARTITION BY pv.prop_id ORDER BY pv.sup_num ASC) AS rn
+  FROM dbo.property_val pv
+  JOIN dbo.property p ON p.prop_id = pv.prop_id
+  WHERE pv.prop_val_yr = ${year}
+    AND p.prop_inactive_dt IS NULL
+)
+SELECT prop_id, geo_id, hood_cd, total_val, land_val, imprv_val, [year]
+FROM ranked
+WHERE rn = 1;`,
 
   /**
    * Certified-year valuation extraction (Mode B: full key).
