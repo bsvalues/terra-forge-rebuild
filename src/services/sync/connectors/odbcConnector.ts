@@ -4,6 +4,11 @@
 // Access ODBC drivers are Windows-only; this connector is used
 // by a small "extractor agent" running near the legacy files.
 //
+// Capabilities are limited vs SQL Server:
+//   - No year-scoped hood (varies by schema)
+//   - No SQL Server dialect (DECLARE/TRY_CONVERT unsupported)
+//   - Introspection via ODBC catalog functions
+//
 // 🐸 ODBC is like a tunnel. Sometimes it smells like pennies. It still works.
 // ═══════════════════════════════════════════════════════════
 
@@ -22,6 +27,28 @@ export interface OdbcConnectorOptions {
   connectionString: string;
   /** Query timeout in ms */
   queryTimeoutMs?: number;
+  /** Override capabilities for specific legacy systems */
+  capabilityOverrides?: Partial<Omit<SourceCapabilities, "readonly">>;
+}
+
+/**
+ * Defense-in-depth guard for ODBC connector.
+ * Access SQL is simpler but we still block writes.
+ */
+function odbcLayerGuard(sql: string): void {
+  const trimmed = sql.trim();
+  if (!trimmed) throw new Error("[OdbcConnector] Empty SQL statement.");
+
+  // Block EXEC (Access doesn't support it but someone might try)
+  if (/\bEXEC(UTE)?\s/i.test(trimmed)) {
+    throw new Error("[OdbcConnector] EXEC/EXECUTE blocked.");
+  }
+
+  // Block multiple statements
+  const stripped = trimmed.replace(/;\s*$/, "");
+  if (stripped.includes(";")) {
+    throw new Error("[OdbcConnector] Multi-statement SQL blocked.");
+  }
 }
 
 /**
@@ -33,24 +60,15 @@ export interface OdbcConnectorOptions {
  *
  * Read-only enforcement:
  *   1. SQL validation via validateReadOnlySQL()
- *   2. Access databases opened with ReadOnly=1 in connection string
- *   3. No write operations exposed in the interface
+ *   2. ODBC layer guard (EXEC/multi-statement blocking)
+ *   3. Access databases opened with ReadOnly=1 in connection string
+ *   4. No write operations exposed in the interface
  */
 export class OdbcReadOnlyConnector implements ReadOnlyConnector {
   kind: "odbc" = "odbc";
   name: string;
 
-  capabilities: SourceCapabilities = {
-    readonly: true,
-    supportsParameterizedQueries: true,
-    supportsIntrospection: true,
-    supportsIncrementalWatermarks: false, // Access .mdb lacks change tracking
-    notes: [
-      "ODBC connector for legacy Access .mdb databases.",
-      "Requires Windows host with Microsoft Access ODBC driver.",
-      "Read-only: SQL validation + ReadOnly=1 connection flag.",
-    ],
-  };
+  capabilities: SourceCapabilities;
 
   private connectionString: string;
   private queryTimeoutMs: number;
@@ -59,13 +77,34 @@ export class OdbcReadOnlyConnector implements ReadOnlyConnector {
     this.name = options.name;
     this.connectionString = options.connectionString;
     this.queryTimeoutMs = options.queryTimeoutMs ?? 30_000;
+
+    // Default capabilities for ODBC/Access — limited vs SQL Server
+    this.capabilities = {
+      readonly: true,
+      supportsParameterizedQueries: true,
+      supportsIntrospection: true,
+      supportsIncrementalWatermarks: false, // Access .mdb lacks change tracking
+      supportsYearScopedHood: false, // Schema-dependent, off by default
+      supportsWorkflows: false, // Schema-dependent, off by default
+      supportsSqlServerDialect: false, // Access uses Jet SQL, not T-SQL
+      notes: [
+        "ODBC connector for legacy Access .mdb databases.",
+        "Requires Windows host with Microsoft Access ODBC driver.",
+        "Read-only: SQL validation + ODBC guard + ReadOnly=1 connection flag.",
+      ],
+      // Apply overrides
+      ...options.capabilityOverrides,
+    };
   }
 
   async query<Row = Record<string, unknown>>(
     sql: string,
     _params?: Record<string, string | number | boolean | null>
   ): Promise<QueryResult<Row>> {
-    // Read-only enforcement
+    // Layer 1: ODBC-level defense-in-depth guard
+    odbcLayerGuard(sql);
+
+    // Layer 2: Read-only enforcement
     const validation = validateReadOnlySQL(sql);
     if (!validation.valid) {
       throw new Error(
@@ -97,6 +136,7 @@ export class OdbcReadOnlyConnector implements ReadOnlyConnector {
   async listColumns(table: string): Promise<ColumnInfo[]> {
     // In production: use ODBC catalog functions
     // conn.columns(null, null, table, null)
+    void table;
     return [];
   }
 

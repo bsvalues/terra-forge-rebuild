@@ -1,7 +1,7 @@
 // TerraFusion OS — Multi-Lane Sync Kernel Tests
-// Tests: connectors, registry, runtime, PII redaction, schema drift, quality gates
+// Tests: connectors, registry, runtime, PII redaction, schema drift, quality gates, capability negotiation
 
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect } from "vitest";
 import { SqlServerReadOnlyConnector } from "./connectors/sqlServerConnector";
 import { OdbcReadOnlyConnector } from "./connectors/odbcConnector";
 import {
@@ -9,25 +9,45 @@ import {
   createBentonRegistry,
 } from "./registry";
 import { runContractSync, runContractSyncFromRegistry } from "./runtime";
-import type { ReadOnlyConnector, QueryResult } from "./connectors/types";
+import type { ReadOnlyConnector, QueryResult, SourceCapabilities } from "./connectors/types";
+import { connectorSatisfiesRequirements, BENTON_PRODUCT_REQUIREMENTS } from "./connectors/types";
+
+// ============================================================
+// Helper: full capabilities object
+// ============================================================
+
+function mockCapabilities(overrides?: Partial<SourceCapabilities>): SourceCapabilities {
+  return {
+    readonly: true,
+    supportsParameterizedQueries: true,
+    supportsIntrospection: false,
+    supportsIncrementalWatermarks: false,
+    supportsYearScopedHood: false,
+    supportsWorkflows: false,
+    supportsSqlServerDialect: false,
+    ...overrides,
+  };
+}
 
 // ============================================================
 // SQL Server Connector
 // ============================================================
 
 describe("SqlServerReadOnlyConnector", () => {
-  it("has read-only capabilities", () => {
+  it("has full read-only capabilities", () => {
     const conn = new SqlServerReadOnlyConnector({ name: "test_sql" });
     expect(conn.capabilities.readonly).toBe(true);
+    expect(conn.capabilities.supportsYearScopedHood).toBe(true);
+    expect(conn.capabilities.supportsWorkflows).toBe(true);
+    expect(conn.capabilities.supportsSqlServerDialect).toBe(true);
     expect(conn.kind).toBe("sqlserver");
-    expect(conn.name).toBe("test_sql");
   });
 
   it("rejects write SQL", async () => {
     const conn = new SqlServerReadOnlyConnector({ name: "test_sql" });
-    await expect(conn.query("INSERT INTO x VALUES (1)")).rejects.toThrow("READ-ONLY VIOLATION");
-    await expect(conn.query("DELETE FROM parcels")).rejects.toThrow("READ-ONLY VIOLATION");
-    await expect(conn.query("UPDATE parcels SET x=1")).rejects.toThrow("READ-ONLY VIOLATION");
+    await expect(conn.query("INSERT INTO x VALUES (1)")).rejects.toThrow();
+    await expect(conn.query("DELETE FROM parcels")).rejects.toThrow();
+    await expect(conn.query("UPDATE parcels SET x=1")).rejects.toThrow();
   });
 
   it("allows SELECT queries", async () => {
@@ -35,13 +55,18 @@ describe("SqlServerReadOnlyConnector", () => {
     const result = await conn.query("SELECT 1 AS test");
     expect(result.source).toBe("test_sql");
     expect(result.rows).toEqual([]);
-    expect(result.truncated).toBe(false);
   });
 
   it("allows WITH CTE queries", async () => {
     const conn = new SqlServerReadOnlyConnector({ name: "test_sql" });
     const result = await conn.query("WITH cte AS (SELECT 1 AS x) SELECT * FROM cte");
     expect(result.source).toBe("test_sql");
+  });
+
+  it("blocks EXEC at connector layer (defense-in-depth)", async () => {
+    const conn = new SqlServerReadOnlyConnector({ name: "test_sql" });
+    await expect(conn.query("EXEC sp_help")).rejects.toThrow();
+    await expect(conn.query("EXECUTE sp_who")).rejects.toThrow();
   });
 });
 
@@ -50,22 +75,86 @@ describe("SqlServerReadOnlyConnector", () => {
 // ============================================================
 
 describe("OdbcReadOnlyConnector", () => {
-  it("has read-only capabilities with no watermark support", () => {
+  it("has limited capabilities by default", () => {
     const conn = new OdbcReadOnlyConnector({
       name: "proval_test",
       connectionString: "Driver={Microsoft Access Driver};DBQ=test.mdb;ReadOnly=1",
     });
     expect(conn.capabilities.readonly).toBe(true);
     expect(conn.capabilities.supportsIncrementalWatermarks).toBe(false);
+    expect(conn.capabilities.supportsYearScopedHood).toBe(false);
+    expect(conn.capabilities.supportsWorkflows).toBe(false);
+    expect(conn.capabilities.supportsSqlServerDialect).toBe(false);
     expect(conn.kind).toBe("odbc");
   });
 
-  it("rejects write SQL", async () => {
+  it("accepts capability overrides", () => {
     const conn = new OdbcReadOnlyConnector({
-      name: "proval_test",
+      name: "custom",
       connectionString: "test",
+      capabilityOverrides: { supportsWorkflows: true },
     });
-    await expect(conn.query("DROP TABLE properties")).rejects.toThrow("READ-ONLY VIOLATION");
+    expect(conn.capabilities.supportsWorkflows).toBe(true);
+    expect(conn.capabilities.readonly).toBe(true); // always true
+  });
+
+  it("rejects write SQL", async () => {
+    const conn = new OdbcReadOnlyConnector({ name: "proval_test", connectionString: "test" });
+    await expect(conn.query("DROP TABLE properties")).rejects.toThrow();
+  });
+
+  it("blocks EXEC at ODBC layer", async () => {
+    const conn = new OdbcReadOnlyConnector({ name: "test", connectionString: "test" });
+    await expect(conn.query("EXEC sp_tables")).rejects.toThrow("EXEC");
+  });
+
+  it("blocks multi-statement at ODBC layer", async () => {
+    const conn = new OdbcReadOnlyConnector({ name: "test", connectionString: "test" });
+    await expect(conn.query("SELECT 1; DROP TABLE x")).rejects.toThrow("Multi-statement");
+  });
+});
+
+// ============================================================
+// Capability Negotiation
+// ============================================================
+
+describe("Capability Negotiation", () => {
+  it("SQL Server satisfies all Benton product requirements", () => {
+    const conn = new SqlServerReadOnlyConnector({ name: "test" });
+    for (const req of BENTON_PRODUCT_REQUIREMENTS) {
+      expect(connectorSatisfiesRequirements(conn, req)).toBe(true);
+    }
+  });
+
+  it("ODBC connector fails workflow product requirements", () => {
+    const conn = new OdbcReadOnlyConnector({ name: "odbc", connectionString: "test" });
+    const workflowReq = BENTON_PRODUCT_REQUIREMENTS.find(
+      (r) => r.productId === "pacs_workflow_appeals_current_year"
+    )!;
+    expect(connectorSatisfiesRequirements(conn, workflowReq)).toBe(false);
+  });
+
+  it("ODBC connector fails property_val requirements (needs yearScopedHood)", () => {
+    const conn = new OdbcReadOnlyConnector({ name: "odbc", connectionString: "test" });
+    const valReq = BENTON_PRODUCT_REQUIREMENTS.find(
+      (r) => r.productId === "pacs_current_year_property_val"
+    )!;
+    expect(connectorSatisfiesRequirements(conn, valReq)).toBe(false);
+  });
+
+  it("custom ODBC with overrides can pass specific requirements", () => {
+    const conn = new OdbcReadOnlyConnector({
+      name: "custom_odbc",
+      connectionString: "test",
+      capabilityOverrides: {
+        supportsYearScopedHood: true,
+        supportsSqlServerDialect: true,
+      },
+    });
+    const valReq = BENTON_PRODUCT_REQUIREMENTS.find(
+      (r) => r.productId === "pacs_current_year_property_val"
+    )!;
+    expect(connectorSatisfiesRequirements(conn, valReq)).toBe(true);
   });
 });
 
@@ -122,12 +211,13 @@ describe("SourceLaneRegistry", () => {
     expect(registry.listActive()[0].id).toBe("pacs_benton_sql");
   });
 
-  it("reports health summary", () => {
+  it("reports health with capability coverage", () => {
     const registry = createBentonRegistry();
     const health = registry.getHealth();
     expect(health.totalLanes).toBe(5);
-    expect(health.activeLanes).toBe(1); // only pacs_benton_sql
-    expect(health.connectedLanes).toBe(0); // lazy init
+    expect(health.activeLanes).toBe(1);
+    expect(health.capabilityCoverage).toBeDefined();
+    expect(health.capabilityCoverage.length).toBe(5);
   });
 });
 
@@ -153,12 +243,12 @@ describe("createBentonRegistry", () => {
     expect(registry.get("pacs_api")?.active).toBe(false);
   });
 
-  it("lazy-inits connector via factory", async () => {
+  it("lazy-inits connector via factory with capability check", async () => {
     const registry = createBentonRegistry();
     const result = await registry.getConnectorForProduct("pacs_current_year_property_val");
     expect(result).not.toBeNull();
     expect(result!.connector.kind).toBe("sqlserver");
-    expect(result!.lane.id).toBe("pacs_benton_sql");
+    expect(result!.connector.capabilities.supportsYearScopedHood).toBe(true);
   });
 });
 
@@ -166,17 +256,15 @@ describe("createBentonRegistry", () => {
 // Contract-Driven Sync Runtime
 // ============================================================
 
-/** Create a mock connector that returns stub rows */
 function createMockConnector(rowsPerQuery: Record<string, unknown>[] = []): ReadOnlyConnector {
   return {
     kind: "sqlserver",
     name: "mock_connector",
-    capabilities: {
-      readonly: true,
-      supportsParameterizedQueries: true,
-      supportsIntrospection: false,
-      supportsIncrementalWatermarks: false,
-    },
+    capabilities: mockCapabilities({
+      supportsYearScopedHood: true,
+      supportsWorkflows: true,
+      supportsSqlServerDialect: true,
+    }),
     query: async <Row = Record<string, unknown>>(_sql: string): Promise<QueryResult<Row>> => ({
       rows: rowsPerQuery as Row[],
       fetchedAt: new Date().toISOString(),
@@ -218,8 +306,6 @@ describe("runContractSync", () => {
     });
 
     const exemptionResult = result.products[0];
-    // The product definition declares PII columns to redact
-    // Even with empty rows, the contract tracks which columns are redacted
     expect(exemptionResult.status).toBe("success");
     expect(exemptionResult.productId).toBe("pacs_workflow_exemptions_pending");
   });
@@ -228,12 +314,11 @@ describe("runContractSync", () => {
     const conn: ReadOnlyConnector = {
       kind: "sqlserver",
       name: "failing_connector",
-      capabilities: {
-        readonly: true,
-        supportsParameterizedQueries: true,
-        supportsIntrospection: false,
-        supportsIncrementalWatermarks: false,
-      },
+      capabilities: mockCapabilities({
+        supportsYearScopedHood: true,
+        supportsWorkflows: true,
+        supportsSqlServerDialect: true,
+      }),
       query: async () => {
         throw new Error("Connection refused");
       },

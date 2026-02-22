@@ -1,10 +1,11 @@
 // TerraFusion OS — SQL Server Read-Only Connector
 // ═══════════════════════════════════════════════════════════
 // Connects to PACS SQL Server via the PACS Connector layer.
-// Three layers of read-only enforcement:
+// FOUR layers of read-only enforcement:
 //   1. SQL Server login: db_datareader only (DBA responsibility)
 //   2. Statement validation via pacsConnector.validateReadOnlySQL()
 //   3. Schema whitelist via pacsConnector.executeReadOnlyQuery()
+//   4. Connector-level EXEC/semicolon blocking (defense-in-depth)
 //
 // 🐶 It fetches rows and wags its tail. It cannot write. Ever.
 // ═══════════════════════════════════════════════════════════
@@ -31,6 +32,44 @@ export interface SqlServerConnectorOptions {
 }
 
 /**
+ * Defense-in-depth: secondary blocking at the connector layer.
+ * Even if validateReadOnlySQL() misses something, this catches it.
+ * Blocks EXEC patterns and dangerous multi-statement payloads.
+ */
+function connectorLayerGuard(sql: string): void {
+  const trimmed = sql.trim();
+
+  // Block truly empty
+  if (!trimmed) throw new Error("[SqlServerConnector] Empty SQL statement.");
+
+  // Secondary semicolon check: count non-trailing semicolons
+  const stripped = trimmed.replace(/;\s*$/, ""); // remove trailing semicolon
+  if (stripped.includes(";")) {
+    // Allow DECLARE blocks with semicolons (e.g. DECLARE @yr int = 2025;)
+    const parts = stripped.split(";").map((s) => s.trim()).filter(Boolean);
+    for (const part of parts) {
+      const upper = part.toUpperCase();
+      if (
+        !upper.startsWith("DECLARE") &&
+        !upper.startsWith("SELECT") &&
+        !upper.startsWith("WITH") &&
+        !upper.startsWith("--")
+      ) {
+        throw new Error(
+          `[SqlServerConnector] Blocked multi-statement: sub-statement starts with "${upper.slice(0, 30)}..."`
+        );
+      }
+    }
+  }
+
+  // Secondary EXEC block (case-insensitive word boundary)
+  const upper = trimmed.toUpperCase();
+  if (/\bEXEC(UTE)?\s/i.test(upper)) {
+    throw new Error("[SqlServerConnector] EXEC/EXECUTE blocked at connector layer.");
+  }
+}
+
+/**
  * SQL Server Read-Only Connector.
  *
  * Wraps the existing pacsConnector infrastructure to provide
@@ -48,9 +87,12 @@ export class SqlServerReadOnlyConnector implements ReadOnlyConnector {
     supportsParameterizedQueries: true,
     supportsIntrospection: true,
     supportsIncrementalWatermarks: true,
+    supportsYearScopedHood: true,
+    supportsWorkflows: true,
+    supportsSqlServerDialect: true,
     notes: [
-      "SQL Server connector with triple read-only enforcement.",
-      "Statement validation + schema whitelist + db_datareader login.",
+      "SQL Server connector with quadruple read-only enforcement.",
+      "Statement validation + schema whitelist + db_datareader login + connector guard.",
     ],
   };
 
@@ -65,6 +107,9 @@ export class SqlServerReadOnlyConnector implements ReadOnlyConnector {
     sql: string,
     params?: Record<string, string | number | boolean | null>
   ): Promise<QueryResult<Row>> {
+    // Layer 0: Connector-level defense-in-depth guard
+    connectorLayerGuard(sql);
+
     // Layer 1: Pre-validate read-only (redundant with executeReadOnlyQuery, but defense-in-depth)
     const validation = validateReadOnlySQL(sql);
     if (!validation.valid) {
