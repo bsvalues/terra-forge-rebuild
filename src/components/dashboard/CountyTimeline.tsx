@@ -474,7 +474,14 @@ function EventDetail({
         {/* Causal Mini-Narrative: Before → Event → After */}
         {causal && (causal.before || causal.after) && (
           <div className="rounded-lg border border-[hsl(var(--tf-transcend-cyan)/0.2)] bg-[hsl(var(--tf-transcend-cyan)/0.04)] p-3 space-y-2">
-            <p className="text-[10px] text-tf-cyan uppercase tracking-wider font-semibold">Story</p>
+            <div className="flex items-center justify-between">
+              <p className="text-[10px] text-tf-cyan uppercase tracking-wider font-semibold">Story</p>
+              {causal.matchedBy && (
+                <span className="text-[9px] text-muted-foreground/60 font-mono">
+                  chain: {causal.matchedBy.replace(/_/g, " ")}
+                </span>
+              )}
+            </div>
             <div className="space-y-1.5">
               {causal.before && (
                 <div className="flex items-start gap-2">

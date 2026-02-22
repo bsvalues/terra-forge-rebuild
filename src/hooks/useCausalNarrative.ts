@@ -10,6 +10,8 @@ import type { TimelineEvent } from "./useCountyTimeline";
 export interface CausalNarrative {
   before: TimelineEvent | null;
   after: TimelineEvent | null;
+  /** Which link key was used to match the chain, if any */
+  matchedBy: string | null;
 }
 
 /** Find the strongest non-null link key from an event */
@@ -32,7 +34,7 @@ export function useCausalNarrative(event: TimelineEvent | null) {
   return useQuery<CausalNarrative>({
     queryKey: ["causal-narrative", event?.id],
     queryFn: async (): Promise<CausalNarrative> => {
-      if (!event) return { before: null, after: null };
+      if (!event) return { before: null, after: null, matchedBy: null };
 
       const eventTime = event.event_time;
       const eventTimeMs = new Date(eventTime).getTime();
@@ -73,7 +75,7 @@ export function useCausalNarrative(event: TimelineEvent | null) {
           }
 
           // If we found at least one related event, return this chain
-          if (before || after) return { before, after };
+          if (before || after) return { before, after, matchedBy: linkKey.key };
         }
       }
 
@@ -110,7 +112,7 @@ export function useCausalNarrative(event: TimelineEvent | null) {
         }
       }
 
-      return { before, after };
+      return { before, after, matchedBy: null };
     },
     enabled: !!event,
     staleTime: 60_000,
