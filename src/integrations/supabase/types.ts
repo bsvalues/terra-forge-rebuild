@@ -2819,6 +2819,10 @@ export type Database = {
           total_assessed_value: number
         }[]
       }
+      get_parcel_polygon_link_stats: {
+        Args: { p_county_id: string }
+        Returns: Json
+      }
       get_pipeline_status: { Args: { p_county_id?: string }; Returns: Json }
       get_user_county_id: { Args: never; Returns: string }
       gettransactionid: { Args: never; Returns: unknown }
