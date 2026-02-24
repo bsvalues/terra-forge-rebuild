@@ -266,52 +266,75 @@ export function GeometryHealthDashboard() {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Card className="border-border/50 bg-card/50">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <MapPin className="w-4 h-4 text-primary" />
-              <span className="text-xs text-muted-foreground uppercase tracking-wider">With Coordinates</span>
-            </div>
-            <div className="flex items-end gap-2">
-              <span className="text-2xl font-mono font-semibold">{coords.total_with_coords.toLocaleString()}</span>
-              <span className="text-xs text-muted-foreground mb-1">/ {report.total_parcels.toLocaleString()}</span>
-            </div>
-            <Progress
-              value={report.total_parcels > 0 ? (coords.total_with_coords / report.total_parcels) * 100 : 0}
-              className="mt-2 h-1.5"
-            />
-          </CardContent>
-        </Card>
+      {(() => {
+        const usableWgs84 = Math.max(0,
+          coords.total_with_coords
+          - coords.convertible_wkid_2927
+          - coords.invalid_wgs84
+          - coords.zero_coordinates
+          - coords.out_of_conus_bounds
+        );
+        const usablePct = report.total_parcels > 0 ? (usableWgs84 / report.total_parcels) * 100 : 0;
+        return (
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+            <Card className="border-border/50 bg-card/50">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                  <span className="text-xs text-muted-foreground uppercase tracking-wider">Usable WGS84</span>
+                </div>
+                <div className="flex items-end gap-2">
+                  <span className="text-2xl font-mono font-semibold text-emerald-400">{usableWgs84.toLocaleString()}</span>
+                  <span className="text-xs text-muted-foreground mb-1">/ {report.total_parcels.toLocaleString()}</span>
+                </div>
+                <Progress value={usablePct} className="mt-2 h-1.5" />
+                <p className="text-[10px] text-muted-foreground mt-1">Valid degrees, map-ready</p>
+              </CardContent>
+            </Card>
 
-        <Card className="border-border/50 bg-card/50">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <Zap className="w-4 h-4 text-primary" />
-              <span className="text-xs text-muted-foreground uppercase tracking-wider">Convertible (2927)</span>
-            </div>
-            <span className="text-2xl font-mono font-semibold text-amber-400">
-              {coords.convertible_wkid_2927.toLocaleString()}
-            </span>
-            <p className="text-[10px] text-muted-foreground mt-1">State Plane feet → WGS84 auto-convertible</p>
-          </CardContent>
-        </Card>
+            <Card className="border-border/50 bg-card/50">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Zap className="w-4 h-4 text-amber-400" />
+                  <span className="text-xs text-muted-foreground uppercase tracking-wider">Convertible (2927)</span>
+                </div>
+                <span className="text-2xl font-mono font-semibold text-amber-400">
+                  {coords.convertible_wkid_2927.toLocaleString()}
+                </span>
+                <p className="text-[10px] text-muted-foreground mt-1">State Plane feet → backfill to WGS84</p>
+              </CardContent>
+            </Card>
 
-        <Card className="border-border/50 bg-card/50">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <Target className="w-4 h-4 text-primary" />
-              <span className="text-xs text-muted-foreground uppercase tracking-wider">Issues Found</span>
-            </div>
-            <span className={cn(
-              "text-2xl font-mono font-semibold",
-              issues.length === 0 ? "text-emerald-400" : "text-amber-400"
-            )}>
-              {issues.length}
-            </span>
-          </CardContent>
-        </Card>
-      </div>
+            <Card className="border-border/50 bg-card/50">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <MapPin className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-xs text-muted-foreground uppercase tracking-wider">No Coordinates</span>
+                </div>
+                <span className="text-2xl font-mono font-semibold text-muted-foreground">
+                  {coords.null_coordinates.toLocaleString()}
+                </span>
+                <p className="text-[10px] text-muted-foreground mt-1">Resolvable via polygon point-on-surface</p>
+              </CardContent>
+            </Card>
+
+            <Card className="border-border/50 bg-card/50">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Target className="w-4 h-4 text-primary" />
+                  <span className="text-xs text-muted-foreground uppercase tracking-wider">Issues Found</span>
+                </div>
+                <span className={cn(
+                  "text-2xl font-mono font-semibold",
+                  issues.length === 0 ? "text-emerald-400" : "text-amber-400"
+                )}>
+                  {issues.length}
+                </span>
+              </CardContent>
+            </Card>
+          </div>
+        );
+      })()}
 
       {/* SRID Backfill Card */}
       <BackfillCard backfill={backfill} countyId={report.county_id} />
@@ -358,10 +381,11 @@ export function GeometryHealthDashboard() {
         <CardContent className="space-y-4">
           <div className="divide-y divide-border/20">
             <MetricRow label="Total parcels" value={report.total_parcels} />
-            <MetricRow label="With coordinates" value={coords.total_with_coords} />
+            <MetricRow label="Usable WGS84 (map-ready)" value={Math.max(0, coords.total_with_coords - coords.convertible_wkid_2927 - coords.invalid_wgs84 - coords.zero_coordinates - coords.out_of_conus_bounds)} />
+            <MetricRow label="Raw present (any SRID)" value={coords.total_with_coords} />
+            <MetricRow label="Convertible WKID 2927 (needs backfill)" value={coords.convertible_wkid_2927} severity={coords.convertible_wkid_2927 > 0 ? "warning" : undefined} />
             <MetricRow label="Null coordinates" value={coords.null_coordinates} severity={coords.null_coordinates > 0 ? "warning" : undefined} />
-            <MetricRow label="Zero (0,0) coordinates" value={coords.zero_coordinates} severity={coords.zero_coordinates > 0 ? "warning" : undefined} />
-            <MetricRow label="Convertible WKID 2927" value={coords.convertible_wkid_2927} severity={coords.convertible_wkid_2927 > 0 ? "warning" : undefined} />
+            <MetricRow label="Zero (0,0) coordinates" value={coords.zero_coordinates} severity={coords.zero_coordinates > 0 ? "error" : undefined} />
             <MetricRow label="Invalid WGS84 (unclassified)" value={coords.invalid_wgs84} severity={coords.invalid_wgs84 > 0 ? "error" : undefined} />
             <MetricRow label="Out of CONUS bounds" value={coords.out_of_conus_bounds} severity={coords.out_of_conus_bounds > 0 ? "warning" : undefined} />
             <MetricRow label="Duplicate coordinate groups" value={coords.duplicate_coordinate_groups} />
