@@ -267,14 +267,7 @@ export function GeometryHealthDashboard() {
 
       {/* Summary Cards */}
       {(() => {
-        const usableWgs84 = Math.max(0,
-          coords.total_with_coords
-          - coords.convertible_wkid_2927
-          - coords.invalid_wgs84
-          - coords.zero_coordinates
-          - coords.out_of_conus_bounds
-        );
-        const usablePct = report.total_parcels > 0 ? (usableWgs84 / report.total_parcels) * 100 : 0;
+        const usablePct = report.total_parcels > 0 ? (coords.usable_wgs84 / report.total_parcels) * 100 : 0;
         return (
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
             <Card className="border-border/50 bg-card/50">
@@ -284,11 +277,11 @@ export function GeometryHealthDashboard() {
                   <span className="text-xs text-muted-foreground uppercase tracking-wider">Usable WGS84</span>
                 </div>
                 <div className="flex items-end gap-2">
-                  <span className="text-2xl font-mono font-semibold text-emerald-400">{usableWgs84.toLocaleString()}</span>
+                  <span className="text-2xl font-mono font-semibold text-emerald-400">{coords.usable_wgs84.toLocaleString()}</span>
                   <span className="text-xs text-muted-foreground mb-1">/ {report.total_parcels.toLocaleString()}</span>
                 </div>
                 <Progress value={usablePct} className="mt-2 h-1.5" />
-                <p className="text-[10px] text-muted-foreground mt-1">Valid degrees, map-ready</p>
+                <p className="text-[10px] text-muted-foreground mt-1">SQL-verified degrees, map-ready</p>
               </CardContent>
             </Card>
 
@@ -381,11 +374,11 @@ export function GeometryHealthDashboard() {
         <CardContent className="space-y-4">
           <div className="divide-y divide-border/20">
             <MetricRow label="Total parcels" value={report.total_parcels} />
-            <MetricRow label="Usable WGS84 (map-ready)" value={Math.max(0, coords.total_with_coords - coords.convertible_wkid_2927 - coords.invalid_wgs84 - coords.zero_coordinates - coords.out_of_conus_bounds)} />
-            <MetricRow label="Raw present (any SRID)" value={coords.total_with_coords} />
+            <MetricRow label="Usable WGS84 (map-ready)" value={coords.usable_wgs84} />
+            <MetricRow label="Raw present (excl. zero)" value={coords.raw_present} />
             <MetricRow label="Convertible WKID 2927 (needs backfill)" value={coords.convertible_wkid_2927} severity={coords.convertible_wkid_2927 > 0 ? "warning" : undefined} />
             <MetricRow label="Null coordinates" value={coords.null_coordinates} severity={coords.null_coordinates > 0 ? "warning" : undefined} />
-            <MetricRow label="Zero (0,0) coordinates" value={coords.zero_coordinates} severity={coords.zero_coordinates > 0 ? "error" : undefined} />
+            <MetricRow label="Zero (0,0) coordinates" value={coords.zero_coordinates} severity={coords.zero_coordinates > 0 ? (report.total_parcels > 0 && coords.zero_coordinates / report.total_parcels > 0.1 ? "error" : "warning") : undefined} />
             <MetricRow label="Invalid WGS84 (unclassified)" value={coords.invalid_wgs84} severity={coords.invalid_wgs84 > 0 ? "error" : undefined} />
             <MetricRow label="Out of CONUS bounds" value={coords.out_of_conus_bounds} severity={coords.out_of_conus_bounds > 0 ? "warning" : undefined} />
             <MetricRow label="Duplicate coordinate groups" value={coords.duplicate_coordinate_groups} />

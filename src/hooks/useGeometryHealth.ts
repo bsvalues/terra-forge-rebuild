@@ -18,6 +18,8 @@ export interface WGS84BackfillStatus {
 }
 
 export interface CoordinateQuality {
+  usable_wgs84: number;
+  raw_present: number;
   total_with_coords: number;
   null_coordinates: number;
   zero_coordinates: number;
