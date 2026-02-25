@@ -29,10 +29,19 @@ export interface CoordinateQuality {
   duplicate_coordinate_groups: number;
 }
 
+export interface GeometryHealthDefinitions {
+  usable_wgs84: string;
+  raw_present: string;
+  convertible_wkid_2927: string;
+  null_coordinates: string;
+  zero_severity_denominator: string;
+}
+
 export interface GeometryHealthReport {
   county_id: string;
   total_parcels: number;
   generated_at: string;
+  definitions: GeometryHealthDefinitions;
   sections: {
     coordinate_quality: CoordinateQuality;
     wgs84_backfill: WGS84BackfillStatus;
