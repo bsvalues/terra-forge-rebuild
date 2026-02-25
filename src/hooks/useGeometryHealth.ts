@@ -38,6 +38,7 @@ export interface GeometryHealthDefinitions {
 }
 
 export interface GeometryHealthReport {
+  schema_version: number;
   county_id: string;
   total_parcels: number;
   generated_at: string;
