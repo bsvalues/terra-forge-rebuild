@@ -20,7 +20,7 @@ export interface WGS84BackfillStatus {
 export interface CoordinateQuality {
   usable_wgs84: number;
   raw_present: number;
-  total_with_coords: number;
+  raw_any_present: number;
   null_coordinates: number;
   zero_coordinates: number;
   invalid_wgs84: number;
@@ -32,9 +32,15 @@ export interface CoordinateQuality {
 export interface GeometryHealthDefinitions {
   usable_wgs84: string;
   raw_present: string;
+  raw_any_present: string;
   convertible_wkid_2927: string;
   null_coordinates: string;
+  out_of_conus_bounds: string;
+  duplicate_coordinate_groups: string;
   zero_severity_denominator: string;
+  effective_coord_rule: string;
+  backfill_completed: string;
+  backfill_eligible: string;
 }
 
 export interface GeometryHealthReport {
