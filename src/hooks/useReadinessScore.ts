@@ -1,4 +1,5 @@
-// TerraFusion OS — Feature Completeness / Readiness Score Hook
+// TerraFusion OS — Feature Completeness / Readiness Score Hook (v2)
+// Dual indices: model_readiness vs roll_readiness
 // Calls compute_readiness_score RPC for always-on data quality metrics
 
 import { useQuery } from "@tanstack/react-query";
@@ -6,10 +7,14 @@ import { supabase } from "@/integrations/supabase/client";
 
 export interface ReadinessSummary {
   total_parcels: number;
-  readiness_index: number;
-  parcels_ready: number;
-  parcels_partial: number;
-  parcels_at_risk: number;
+  model_readiness_index: number;
+  roll_readiness_index: number;
+  model_ready: number;
+  model_partial: number;
+  model_at_risk: number;
+  roll_ready: number;
+  model_ready_after_backfill: number;
+  convertible_2927_count: number;
 }
 
 export interface FieldCoverage {
@@ -31,6 +36,8 @@ export interface NeighborhoodReadiness {
   readiness_index: number;
   parcels_ready: number;
   parcels_at_risk: number;
+  worst_field: string | null;
+  worst_field_pct: number | null;
 }
 
 export interface MissingCombo {
@@ -46,11 +53,15 @@ export interface ReadinessScoreData {
   field_coverage: FieldCoverage;
   neighborhoods: NeighborhoodReadiness[];
   missing_combos: MissingCombo[];
-  weights: Record<string, number>;
+  weights: {
+    model: Record<string, number>;
+    roll: Record<string, number>;
+  };
   definitions: Record<string, string>;
 }
 
 const COMBO_LABELS: Record<string, string> = {
+  // Legacy single-label patterns
   no_building_record: "No Building Record (missing GLA + year built)",
   gis_only_no_address: "GIS-Only (coords but no situs address)",
   value_no_characteristics: "Value Without Characteristics",
@@ -58,8 +69,24 @@ const COMBO_LABELS: Record<string, string> = {
   coords_no_neighborhood: "Coordinates Without Neighborhood",
 };
 
+/** Format bitmask combo keys like "no_coords,no_gla" into readable labels */
 export function getComboLabel(pattern: string): string {
-  return COMBO_LABELS[pattern] || pattern;
+  // Check legacy labels first
+  if (COMBO_LABELS[pattern]) return COMBO_LABELS[pattern];
+
+  // Parse bitmask keys
+  const PART_LABELS: Record<string, string> = {
+    no_coords: "No Coords",
+    no_gla: "No GLA",
+    no_yr: "No Year Built",
+    no_land: "No Land Area",
+    no_nh: "No Neighborhood",
+    no_situs: "No Situs",
+  };
+
+  const parts = pattern.split(",").filter(Boolean);
+  if (parts.length === 0) return pattern;
+  return parts.map((p) => PART_LABELS[p.trim()] || p.trim()).join(" + ");
 }
 
 const FIELD_LABELS: Record<string, string> = {
@@ -87,6 +114,6 @@ export function useReadinessScore() {
       if (error) throw error;
       return data as unknown as ReadinessScoreData;
     },
-    staleTime: 60_000,
+    staleTime: 5 * 60_000, // 5 min cache
   });
 }
