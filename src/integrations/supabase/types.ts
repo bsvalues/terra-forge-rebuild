@@ -2638,6 +2638,7 @@ export type Database = {
               tier_slope: number
             }[]
           }
+      compute_readiness_score: { Args: { p_county_id?: string }; Returns: Json }
       disablelongtransactions: { Args: never; Returns: string }
       dropgeometrycolumn:
         | {
