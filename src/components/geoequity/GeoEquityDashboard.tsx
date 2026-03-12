@@ -225,6 +225,10 @@ export function GeoEquityDashboard({ onNavigateToWorkbench }: GeoEquityDashboard
           <GISLayersPanel layers={layers} isLoading={isLoadingLayers} />
         </TabsContent>
 
+        <TabsContent value="ingest" className="mt-4">
+          <IngestControlPanel />
+        </TabsContent>
+
         <TabsContent value="jobs" className="mt-4">
           <ScrapeJobsDashboard />
         </TabsContent>
