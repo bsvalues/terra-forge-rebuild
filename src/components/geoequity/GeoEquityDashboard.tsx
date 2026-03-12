@@ -38,7 +38,7 @@ interface GeoEquityDashboardProps {
 
 export function GeoEquityDashboard({ onNavigateToWorkbench }: GeoEquityDashboardProps) {
   const [selectedPeriodId, setSelectedPeriodId] = useState<string | undefined>();
-  const [activeTab, setActiveTab] = useState<"heatmap" | "map" | "sources" | "layers" | "jobs" | "search">("heatmap");
+  const [activeTab, setActiveTab] = useState<"heatmap" | "map" | "sources" | "layers" | "jobs" | "search" | "ingest">("heatmap");
   const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [arcgisImportOpen, setArcgisImportOpen] = useState(false);
   const [assessorScrapeOpen, setAssessorScrapeOpen] = useState(false);
