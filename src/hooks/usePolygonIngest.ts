@@ -113,3 +113,11 @@ export function usePauseIngest() {
     pause: (jobId: string) => action.mutateAsync({ action: "pause", jobId }),
   };
 }
+
+export function useRetryPage() {
+  const action = useIngestAction();
+  return {
+    ...action,
+    retryPage: (jobId: string) => action.mutateAsync({ action: "retry_page", jobId }),
+  };
+}
