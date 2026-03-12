@@ -30,6 +30,7 @@ import {
   useStartIngest,
   useResumeIngest,
   usePauseIngest,
+  useRetryPage,
   type IngestJob,
 } from "@/hooks/usePolygonIngest";
 
@@ -60,20 +61,28 @@ function JobCard({ job }: { job: IngestJob }) {
   const [expanded, setExpanded] = useState(false);
   const { resume, isPending: isResuming } = useResumeIngest();
   const { pause, isPending: isPausing } = usePauseIngest();
+  const { retryPage, isPending: isRetrying } = useRetryPage();
   const { data: events = [] } = useIngestJobEvents(expanded ? job.id : undefined);
 
   const canResume = job.status === "paused" || job.status === "failed";
+  const canRetry = job.status === "failed";
   const canPause = job.status === "running";
 
   const handleResume = async () => {
     toast.info("Resuming ingestion…");
     await resume(job.id);
-    toast.success("Ingest batch complete — check status for next offset");
+    toast.success("Ingest batch complete — check status for next cursor");
   };
 
   const handlePause = async () => {
     await pause(job.id);
     toast.info("Ingest paused — cursor preserved");
+  };
+
+  const handleRetryPage = async () => {
+    toast.info("Retrying failed page…");
+    await retryPage(job.id);
+    toast.success("Retry complete — check event log");
   };
 
   const copyDiagnostics = () => {
@@ -134,6 +143,22 @@ function JobCard({ job }: { job: IngestJob }) {
                 <Play className="w-3 h-3" />
               )}
               Resume
+            </Button>
+          )}
+          {canRetry && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleRetryPage}
+              disabled={isRetrying}
+              className="gap-1"
+            >
+              {isRetrying ? (
+                <Loader2 className="w-3 h-3 animate-spin" />
+              ) : (
+                <RotateCcw className="w-3 h-3" />
+              )}
+              Retry Page
             </Button>
           )}
           {canPause && (

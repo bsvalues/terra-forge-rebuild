@@ -47,6 +47,9 @@ serve(async (req) => {
     if (action === "resume") {
       return await handleResume(supabase, body, auth);
     }
+    if (action === "retry_page") {
+      return await handleRetryPage(supabase, body, auth);
+    }
 
     return jsonResponse({ error: `Unknown action: ${action}` }, 400);
   } catch (error: unknown) {
@@ -189,6 +192,37 @@ async function handleResume(supabase: any, body: any, auth: any) {
   });
 
   const result = await runIngestLoop(supabase, job, maxPages);
+  return jsonResponse(result);
+}
+
+async function handleRetryPage(supabase: any, body: any, auth: any) {
+  const { jobId } = body;
+  if (!jobId) return jsonResponse({ error: "jobId required" }, 400);
+
+  // Fetch the failed job (must be in failed state, county-scoped)
+  const { data: job, error } = await supabase
+    .from("gis_ingest_jobs")
+    .select("*")
+    .eq("id", jobId)
+    .eq("county_id", auth.countyId)
+    .eq("status", "failed")
+    .single();
+
+  if (error || !job) return jsonResponse({ error: "Job not found or not in failed state" }, 404);
+
+  // Mark running for the retry attempt
+  await supabase
+    .from("gis_ingest_jobs")
+    .update({ status: "running", last_error: null, updated_at: new Date().toISOString() })
+    .eq("id", jobId);
+
+  await emitEvent(supabase, jobId, "page_retry", {
+    retried_by: auth.userId,
+    cursor_offset: job.cursor_offset,
+  });
+
+  // Run exactly 1 page from the current cursor to isolate the failure
+  const result = await runIngestLoop(supabase, { ...job, status: "running" }, 1);
   return jsonResponse(result);
 }
 

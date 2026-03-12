@@ -1,5 +1,5 @@
 // TerraFusion OS — Geometry Health Report Dashboard
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParcelPolygonLinkStats } from "@/hooks/useParcelPolygonLinkStats";
 import { motion } from "framer-motion";
 import {
@@ -217,6 +217,19 @@ export function GeometryHealthDashboard() {
   const { data: report, isLoading, error, refetch, isFetching } = useGeometryHealth();
   const countyId = report?.county_id || "00000000-0000-0000-0000-000000000001";
   const { data: linkStats } = useParcelPolygonLinkStats(countyId);
+  const [ingestFilter, setIngestFilter] = useState<{ jobId: string } | null>(null);
+
+  // Listen for tf:navigate deep-link events from IngestControlPanel
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      if (detail?.target === "geometry-health" && detail?.filter?.jobId) {
+        setIngestFilter({ jobId: detail.filter.jobId });
+      }
+    };
+    window.addEventListener("tf:navigate", handler);
+    return () => window.removeEventListener("tf:navigate", handler);
+  }, []);
 
   if (isLoading) return <LoadingSkeleton />;
 
@@ -264,6 +277,26 @@ export function GeometryHealthDashboard() {
           </Button>
         </div>
       </div>
+
+      {/* Ingest failure context banner */}
+      {ingestFilter && (
+        <Card className="border-destructive/30 bg-destructive/5">
+          <CardContent className="p-4 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4 text-destructive" />
+              <span className="text-sm">
+                Showing geometry context for ingest job failure
+              </span>
+              <Badge variant="outline" className="font-mono text-[10px]">
+                {ingestFilter.jobId.slice(0, 8)}
+              </Badge>
+            </div>
+            <Button size="sm" variant="ghost" onClick={() => setIngestFilter(null)}>
+              Clear filter
+            </Button>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Summary Cards */}
       {(() => {

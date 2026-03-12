@@ -14,6 +14,7 @@ export interface IngestJob {
   page_size: number;
   status: "queued" | "running" | "paused" | "failed" | "complete";
   cursor_offset: number;
+  cursor_type: "objectid" | "offset";
   total_fetched: number;
   total_upserted: number;
   total_matched: number;
@@ -110,5 +111,13 @@ export function usePauseIngest() {
   return {
     ...action,
     pause: (jobId: string) => action.mutateAsync({ action: "pause", jobId }),
+  };
+}
+
+export function useRetryPage() {
+  const action = useIngestAction();
+  return {
+    ...action,
+    retryPage: (jobId: string) => action.mutateAsync({ action: "retry_page", jobId }),
   };
 }
