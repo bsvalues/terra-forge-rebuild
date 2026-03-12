@@ -14,6 +14,7 @@ export interface IngestJob {
   page_size: number;
   status: "queued" | "running" | "paused" | "failed" | "complete";
   cursor_offset: number;
+  cursor_type: "objectid" | "offset";
   total_fetched: number;
   total_upserted: number;
   total_matched: number;
