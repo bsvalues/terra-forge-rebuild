@@ -61,7 +61,7 @@ interface Appeal {
   resolution_date: string | null;
   resolution_type: string | null;
   notes: string | null;
-  owner_email: string | null;
+  owner_email?: string | null;
   parcel: {
     id: string;
     parcel_number: string;
