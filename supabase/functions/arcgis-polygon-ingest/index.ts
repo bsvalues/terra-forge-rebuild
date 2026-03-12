@@ -65,6 +65,7 @@ async function handleStatus(supabase: any, body: any, countyId: string) {
       .from("gis_ingest_jobs")
       .select("*")
       .eq("id", jobId)
+      .eq("county_id", countyId)
       .single();
     if (error) return jsonResponse({ error: error.message }, 404);
 
