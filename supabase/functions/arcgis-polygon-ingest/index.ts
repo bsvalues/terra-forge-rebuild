@@ -406,11 +406,14 @@ function buildBulkRows(features: any[], parcelIdField: string) {
   return rows;
 }
 
-async function ensureLayer(supabase: any, featureServerUrl: string, parcelIdField: string) {
+async function ensureLayer(supabase: any, countyId: string, featureServerUrl: string, parcelIdField: string) {
+  // County-scoped layer lookup to prevent cross-county collisions
+  const layerName = `ParcelsAndAssess`;
   const { data: existing } = await supabase
     .from("gis_layers")
     .select("id")
-    .eq("name", "ParcelsAndAssess")
+    .eq("name", layerName)
+    .eq("properties_schema->>source_url", featureServerUrl)
     .limit(1)
     .maybeSingle();
 
@@ -419,11 +422,15 @@ async function ensureLayer(supabase: any, featureServerUrl: string, parcelIdFiel
   const { data: inserted, error } = await supabase
     .from("gis_layers")
     .insert({
-      name: "ParcelsAndAssess",
+      name: layerName,
       layer_type: "polygon",
       srid: 4326,
       file_format: "arcgis_featureserver",
-      properties_schema: { parcel_id_field: parcelIdField, source_url: featureServerUrl },
+      properties_schema: {
+        parcel_id_field: parcelIdField,
+        source_url: featureServerUrl,
+        county_id: countyId,
+      },
     })
     .select("id")
     .single();
