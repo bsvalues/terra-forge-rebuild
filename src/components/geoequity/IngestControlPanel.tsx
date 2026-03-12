@@ -145,6 +145,21 @@ function JobCard({ job }: { job: IngestJob }) {
               Resume
             </Button>
           )}
+          {canRetry && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleRetryPage}
+              disabled={isRetrying}
+              className="gap-1"
+            >
+              {isRetrying ? (
+                <Loader2 className="w-3 h-3 animate-spin" />
+              ) : (
+                <RotateCcw className="w-3 h-3" />
+              )}
+              Retry Page
+            </Button>
           {canPause && (
             <Button
               size="sm"
