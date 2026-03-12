@@ -919,6 +919,119 @@ export type Database = {
           },
         ]
       }
+      gis_ingest_job_events: {
+        Row: {
+          created_at: string
+          event_type: string
+          id: string
+          job_id: string
+          payload: Json
+        }
+        Insert: {
+          created_at?: string
+          event_type: string
+          id?: string
+          job_id: string
+          payload?: Json
+        }
+        Update: {
+          created_at?: string
+          event_type?: string
+          id?: string
+          job_id?: string
+          payload?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gis_ingest_job_events_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "gis_ingest_jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gis_ingest_jobs: {
+        Row: {
+          completed_at: string | null
+          county_id: string
+          created_at: string
+          created_by: string
+          cursor_offset: number
+          dataset: string
+          feature_server_url: string
+          id: string
+          last_error: string | null
+          layer_id: string | null
+          page_size: number
+          pages_processed: number
+          parcel_id_field: string
+          started_at: string | null
+          status: string
+          total_fetched: number
+          total_matched: number
+          total_upserted: number
+          updated_at: string
+        }
+        Insert: {
+          completed_at?: string | null
+          county_id: string
+          created_at?: string
+          created_by?: string
+          cursor_offset?: number
+          dataset: string
+          feature_server_url: string
+          id?: string
+          last_error?: string | null
+          layer_id?: string | null
+          page_size?: number
+          pages_processed?: number
+          parcel_id_field?: string
+          started_at?: string | null
+          status?: string
+          total_fetched?: number
+          total_matched?: number
+          total_upserted?: number
+          updated_at?: string
+        }
+        Update: {
+          completed_at?: string | null
+          county_id?: string
+          created_at?: string
+          created_by?: string
+          cursor_offset?: number
+          dataset?: string
+          feature_server_url?: string
+          id?: string
+          last_error?: string | null
+          layer_id?: string | null
+          page_size?: number
+          pages_processed?: number
+          parcel_id_field?: string
+          started_at?: string | null
+          status?: string
+          total_fetched?: number
+          total_matched?: number
+          total_upserted?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gis_ingest_jobs_county_id_fkey"
+            columns: ["county_id"]
+            isOneToOne: false
+            referencedRelation: "counties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gis_ingest_jobs_layer_id_fkey"
+            columns: ["layer_id"]
+            isOneToOne: false
+            referencedRelation: "gis_layers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       gis_layers: {
         Row: {
           bounds: Json | null

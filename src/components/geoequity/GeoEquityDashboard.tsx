@@ -28,6 +28,7 @@ import { ScrapeJobsDashboard } from "./ScrapeJobsDashboard";
 import { NotificationBell } from "./NotificationBell";
 import { ParcelImportWizard } from "./ParcelImportWizard";
 import { ParcelSearchPanel } from "./ParcelSearchPanel";
+import { IngestControlPanel } from "./IngestControlPanel";
 import { useScrapeJobNotifications } from "@/hooks/useScrapeJobNotifications";
 import { useGISDataSources, useGISLayers, useNeighborhoodGeoStats } from "@/hooks/useGISData";
 
@@ -37,7 +38,7 @@ interface GeoEquityDashboardProps {
 
 export function GeoEquityDashboard({ onNavigateToWorkbench }: GeoEquityDashboardProps) {
   const [selectedPeriodId, setSelectedPeriodId] = useState<string | undefined>();
-  const [activeTab, setActiveTab] = useState<"heatmap" | "map" | "sources" | "layers" | "jobs" | "search">("heatmap");
+  const [activeTab, setActiveTab] = useState<"heatmap" | "map" | "sources" | "layers" | "jobs" | "search" | "ingest">("heatmap");
   const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [arcgisImportOpen, setArcgisImportOpen] = useState(false);
   const [assessorScrapeOpen, setAssessorScrapeOpen] = useState(false);
@@ -173,6 +174,10 @@ export function GeoEquityDashboard({ onNavigateToWorkbench }: GeoEquityDashboard
             <Layers className="w-4 h-4" />
             Layers
           </TabsTrigger>
+          <TabsTrigger value="ingest" className="gap-2 data-[state=active]:bg-primary/20">
+            <Database className="w-4 h-4" />
+            Polygon Ingest
+          </TabsTrigger>
           <TabsTrigger value="jobs" className="gap-2 data-[state=active]:bg-tf-sacred-gold/20">
             <Zap className="w-4 h-4" />
             Statewide Jobs
@@ -218,6 +223,10 @@ export function GeoEquityDashboard({ onNavigateToWorkbench }: GeoEquityDashboard
 
         <TabsContent value="layers" className="mt-4">
           <GISLayersPanel layers={layers} isLoading={isLoadingLayers} />
+        </TabsContent>
+
+        <TabsContent value="ingest" className="mt-4">
+          <IngestControlPanel />
         </TabsContent>
 
         <TabsContent value="jobs" className="mt-4">
