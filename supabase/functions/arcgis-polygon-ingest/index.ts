@@ -169,6 +169,7 @@ async function handleResume(supabase: any, body: any, auth: any) {
     .from("gis_ingest_jobs")
     .select("*")
     .eq("id", jobId)
+    .eq("county_id", auth.countyId)
     .in("status", ["paused", "failed"])
     .single();
 
