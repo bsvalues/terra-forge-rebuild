@@ -192,12 +192,13 @@ async function handleResume(supabase: any, body: any, auth: any) {
   return jsonResponse(result);
 }
 
-// ─── CORE INGEST LOOP ─────────────────────────────────────
+// ─── CORE INGEST LOOP (OBJECTID cursor paging) ───────────
 
 async function runIngestLoop(supabase: any, job: any, maxPages: number) {
   const started = Date.now();
   const basePages = job.pages_processed ?? 0;
-  let offset = job.cursor_offset ?? 0;
+  // cursor_offset now stores the last-seen OBJECTID (not a row offset)
+  let lastObjectId = job.cursor_offset ?? 0;
   let totalFetched = job.total_fetched ?? 0;
   let totalUpserted = job.total_upserted ?? 0;
   let totalMatched = job.total_matched ?? 0;
@@ -230,11 +231,14 @@ async function runIngestLoop(supabase: any, job: any, maxPages: number) {
       break;
     }
 
+    // OBJECTID cursor: fetch features where OBJECTID > lastObjectId, ordered ascending
+    const whereClause = encodeURIComponent(`OBJECTID>${lastObjectId}`);
     const queryUrl =
-      `${job.feature_server_url}/query?where=1%3D1` +
+      `${job.feature_server_url}/query?where=${whereClause}` +
       `&outFields=${encodeURIComponent(outFields)}` +
       `&returnGeometry=true&outSR=4326&f=geojson` +
-      `&resultOffset=${offset}&resultRecordCount=${job.page_size}`;
+      `&orderByFields=${encodeURIComponent("OBJECTID ASC")}` +
+      `&resultRecordCount=${job.page_size}`;
 
     try {
       const resp = await fetch(queryUrl);
@@ -244,6 +248,13 @@ async function runIngestLoop(supabase: any, job: any, maxPages: number) {
 
       const features = geojson.features || [];
       if (features.length === 0) { hasMore = false; break; }
+
+      // Track max OBJECTID for cursor advancement
+      let maxOid = lastObjectId;
+      for (const f of features) {
+        const oid = f.properties?.OBJECTID ?? 0;
+        if (oid > maxOid) maxOid = oid;
+      }
 
       // Build bulk rows
       const rows = buildBulkRows(features, job.parcel_id_field);
@@ -261,24 +272,24 @@ async function runIngestLoop(supabase: any, job: any, maxPages: number) {
       }
 
       totalFetched += features.length;
-      offset += features.length;
+      lastObjectId = maxOid;
       page++;
       hasMore = features.length === job.page_size;
 
       // Emit page event
       await emitEvent(supabase, job.id, "page_ok", {
         page,
-        offset,
+        last_objectid: lastObjectId,
         fetched: features.length,
         upserted: rows.length,
         elapsed_ms: Date.now() - started,
       });
 
-      // Update cursor (null-safe pages_processed)
+      // Update cursor (stores last OBJECTID, not row offset)
       await supabase
         .from("gis_ingest_jobs")
         .update({
-          cursor_offset: offset,
+          cursor_offset: lastObjectId,
           total_fetched: totalFetched,
           total_upserted: totalUpserted,
           total_matched: totalMatched,
@@ -294,10 +305,30 @@ async function runIngestLoop(supabase: any, job: any, maxPages: number) {
       const errMsg = pageErr.message || "Unknown page error";
       console.error(`[ingest] Page ${page + 1} failed: ${errMsg}`);
 
+      // Collect failure sample: first 20 source_object_ids from the failing batch
+      let failureSample: string[] = [];
+      try {
+        // Re-fetch just IDs to capture what failed
+        const sampleUrl =
+          `${job.feature_server_url}/query?where=${encodeURIComponent(`OBJECTID>${lastObjectId}`)}` +
+          `&outFields=OBJECTID,GlobalID,${encodeURIComponent(job.parcel_id_field)}` +
+          `&returnGeometry=false&f=json` +
+          `&orderByFields=${encodeURIComponent("OBJECTID ASC")}` +
+          `&resultRecordCount=20`;
+        const sResp = await fetch(sampleUrl);
+        if (sResp.ok) {
+          const sJson = await sResp.json();
+          failureSample = (sJson.features || []).map((f: any) =>
+            f.attributes?.GlobalID || String(f.attributes?.OBJECTID || "")
+          ).filter(Boolean).slice(0, 20);
+        }
+      } catch { /* best-effort sample */ }
+
       await emitEvent(supabase, job.id, "page_fail", {
         page: page + 1,
-        offset,
+        last_objectid: lastObjectId,
         error: errMsg,
+        failure_sample: failureSample,
       });
 
       // Mark failed with cursor preserved
@@ -306,7 +337,7 @@ async function runIngestLoop(supabase: any, job: any, maxPages: number) {
         .update({
           status: "failed",
           last_error: errMsg,
-          cursor_offset: offset,
+          cursor_offset: lastObjectId,
           total_fetched: totalFetched,
           total_upserted: totalUpserted,
           total_matched: totalMatched,
@@ -319,10 +350,11 @@ async function runIngestLoop(supabase: any, job: any, maxPages: number) {
         success: false,
         jobId: job.id,
         error: errMsg,
-        cursorOffset: offset,
+        cursorOffset: lastObjectId,
         totalFetched,
         totalUpserted,
         pagesProcessed: basePages + page,
+        failureSample,
       };
     }
   }
@@ -335,7 +367,7 @@ async function runIngestLoop(supabase: any, job: any, maxPages: number) {
     .from("gis_ingest_jobs")
     .update({
       status: finalStatus,
-      cursor_offset: offset,
+      cursor_offset: lastObjectId,
       total_fetched: totalFetched,
       total_upserted: totalUpserted,
       total_matched: totalMatched,
@@ -364,7 +396,7 @@ async function runIngestLoop(supabase: any, job: any, maxPages: number) {
     success: true,
     jobId: job.id,
     status: finalStatus,
-    cursorOffset: offset,
+    cursorOffset: lastObjectId,
     totalFetched,
     totalUpserted,
     totalMatched,

@@ -115,7 +115,7 @@ function JobCard({ job }: { job: IngestJob }) {
               {formatNumber(job.total_upserted)} upserted
             </span>
             <span>
-              Page {job.pages_processed} · Offset {formatNumber(job.cursor_offset)}
+              Page {job.pages_processed} · OID cursor {formatNumber(job.cursor_offset)}
             </span>
           </div>
         </div>
@@ -165,6 +165,23 @@ function JobCard({ job }: { job: IngestJob }) {
             <AlertTriangle className="w-4 h-4 text-destructive mt-0.5 shrink-0" />
             <div className="flex-1 min-w-0">
               <p className="text-xs text-destructive font-mono break-all">{job.last_error}</p>
+              <p className="text-[10px] text-muted-foreground mt-1">
+                Failed at OID cursor {formatNumber(job.cursor_offset)} (page {job.pages_processed}).
+                {" → "}
+                <a
+                  href="/?tab=geometry-health"
+                  className="underline text-primary hover:text-primary/80"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    // Navigate to geometry health with failure context
+                    window.dispatchEvent(new CustomEvent("tf:navigate", {
+                      detail: { target: "geometry-health", filter: { source: "ingest", jobId: job.id } }
+                    }));
+                  }}
+                >
+                  Open Geometry Health
+                </a>
+              </p>
             </div>
             <Button size="sm" variant="ghost" onClick={copyDiagnostics} className="shrink-0">
               <Copy className="w-3 h-3" />
@@ -215,8 +232,13 @@ function JobCard({ job }: { job: IngestJob }) {
                     {ev.payload.fetched && (
                       <span>+{ev.payload.fetched} features</span>
                     )}
-                    {ev.payload.offset && (
-                      <span className="text-muted-foreground">offset {ev.payload.offset}</span>
+                    {ev.payload.last_objectid && (
+                      <span className="text-muted-foreground">OID {ev.payload.last_objectid}</span>
+                    )}
+                    {ev.payload.failure_sample && ev.payload.failure_sample.length > 0 && (
+                      <span className="text-warning">
+                        {ev.payload.failure_sample.length} features flagged
+                      </span>
                     )}
                   </div>
                 ))
