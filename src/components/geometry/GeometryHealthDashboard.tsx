@@ -217,6 +217,19 @@ export function GeometryHealthDashboard() {
   const { data: report, isLoading, error, refetch, isFetching } = useGeometryHealth();
   const countyId = report?.county_id || "00000000-0000-0000-0000-000000000001";
   const { data: linkStats } = useParcelPolygonLinkStats(countyId);
+  const [ingestFilter, setIngestFilter] = useState<{ jobId: string } | null>(null);
+
+  // Listen for tf:navigate deep-link events from IngestControlPanel
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      if (detail?.target === "geometry-health" && detail?.filter?.jobId) {
+        setIngestFilter({ jobId: detail.filter.jobId });
+      }
+    };
+    window.addEventListener("tf:navigate", handler);
+    return () => window.removeEventListener("tf:navigate", handler);
+  }, []);
 
   if (isLoading) return <LoadingSkeleton />;
 
