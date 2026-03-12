@@ -367,7 +367,7 @@ async function runIngestLoop(supabase: any, job: any, maxPages: number) {
     .from("gis_ingest_jobs")
     .update({
       status: finalStatus,
-      cursor_offset: offset,
+      cursor_offset: lastObjectId,
       total_fetched: totalFetched,
       total_upserted: totalUpserted,
       total_matched: totalMatched,
@@ -396,7 +396,7 @@ async function runIngestLoop(supabase: any, job: any, maxPages: number) {
     success: true,
     jobId: job.id,
     status: finalStatus,
-    cursorOffset: offset,
+    cursorOffset: lastObjectId,
     totalFetched,
     totalUpserted,
     totalMatched,
