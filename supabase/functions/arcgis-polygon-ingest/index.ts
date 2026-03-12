@@ -127,8 +127,8 @@ async function handleStart(supabase: any, body: any, auth: any) {
     return jsonResponse({ error: "featureServerUrl must be valid HTTP(S)" }, 400);
   }
 
-  // Register layer
-  const layerId = await ensureLayer(supabase, featureServerUrl, parcelIdField);
+  // Register layer (county-scoped)
+  const layerId = await ensureLayer(supabase, auth.countyId, featureServerUrl, parcelIdField);
 
   // Create job
   const { data: job, error: jobErr } = await supabase
