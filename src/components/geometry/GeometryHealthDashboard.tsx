@@ -278,6 +278,26 @@ export function GeometryHealthDashboard() {
         </div>
       </div>
 
+      {/* Ingest failure context banner */}
+      {ingestFilter && (
+        <Card className="border-destructive/30 bg-destructive/5">
+          <CardContent className="p-4 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4 text-destructive" />
+              <span className="text-sm">
+                Showing geometry context for ingest job failure
+              </span>
+              <Badge variant="outline" className="font-mono text-[10px]">
+                {ingestFilter.jobId.slice(0, 8)}
+              </Badge>
+            </div>
+            <Button size="sm" variant="ghost" onClick={() => setIngestFilter(null)}>
+              Clear filter
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Summary Cards */}
       {(() => {
         const usablePct = report.total_parcels > 0 ? (coords.usable_wgs84 / report.total_parcels) * 100 : 0;
