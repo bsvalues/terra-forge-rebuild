@@ -958,6 +958,7 @@ export type Database = {
           created_at: string
           created_by: string
           cursor_offset: number
+          cursor_type: string
           dataset: string
           feature_server_url: string
           id: string
@@ -979,6 +980,7 @@ export type Database = {
           created_at?: string
           created_by?: string
           cursor_offset?: number
+          cursor_type?: string
           dataset: string
           feature_server_url: string
           id?: string
@@ -1000,6 +1002,7 @@ export type Database = {
           created_at?: string
           created_by?: string
           cursor_offset?: number
+          cursor_type?: string
           dataset?: string
           feature_server_url?: string
           id?: string
