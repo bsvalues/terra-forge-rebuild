@@ -115,7 +115,7 @@ function JobCard({ job }: { job: IngestJob }) {
               {formatNumber(job.total_upserted)} upserted
             </span>
             <span>
-              Page {job.pages_processed} · Offset {formatNumber(job.cursor_offset)}
+              Page {job.pages_processed} · OID cursor {formatNumber(job.cursor_offset)}
             </span>
           </div>
         </div>
