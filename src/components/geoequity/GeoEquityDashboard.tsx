@@ -174,6 +174,10 @@ export function GeoEquityDashboard({ onNavigateToWorkbench }: GeoEquityDashboard
             <Layers className="w-4 h-4" />
             Layers
           </TabsTrigger>
+          <TabsTrigger value="ingest" className="gap-2 data-[state=active]:bg-primary/20">
+            <Database className="w-4 h-4" />
+            Polygon Ingest
+          </TabsTrigger>
           <TabsTrigger value="jobs" className="gap-2 data-[state=active]:bg-tf-sacred-gold/20">
             <Zap className="w-4 h-4" />
             Statewide Jobs
