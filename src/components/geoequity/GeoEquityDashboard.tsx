@@ -28,6 +28,7 @@ import { ScrapeJobsDashboard } from "./ScrapeJobsDashboard";
 import { NotificationBell } from "./NotificationBell";
 import { ParcelImportWizard } from "./ParcelImportWizard";
 import { ParcelSearchPanel } from "./ParcelSearchPanel";
+import { IngestControlPanel } from "./IngestControlPanel";
 import { useScrapeJobNotifications } from "@/hooks/useScrapeJobNotifications";
 import { useGISDataSources, useGISLayers, useNeighborhoodGeoStats } from "@/hooks/useGISData";
 
