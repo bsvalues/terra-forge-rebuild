@@ -160,6 +160,7 @@ function JobCard({ job }: { job: IngestJob }) {
               )}
               Retry Page
             </Button>
+          )}
           {canPause && (
             <Button
               size="sm"
