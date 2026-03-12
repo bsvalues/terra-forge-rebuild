@@ -2,6 +2,7 @@
 // Actions: start | resume | pause | status
 // Auth: JWT-verified admin → service-role for writes
 // State: gis_ingest_jobs + gis_ingest_job_events (append-only)
+// All mutations are county-scoped to prevent cross-county access.
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { requireAdmin, createServiceClient } from "../_shared/auth.ts";
@@ -38,7 +39,7 @@ serve(async (req) => {
       return await handleStatus(supabase, body, auth.countyId);
     }
     if (action === "pause") {
-      return await handlePause(supabase, body, auth.userId);
+      return await handlePause(supabase, body, auth.countyId, auth.userId);
     }
     if (action === "start") {
       return await handleStart(supabase, body, auth);
@@ -90,7 +91,7 @@ async function handleStatus(supabase: any, body: any, countyId: string) {
   return jsonResponse({ jobs: jobs || [] });
 }
 
-async function handlePause(supabase: any, body: any, userId: string) {
+async function handlePause(supabase: any, body: any, countyId: string, userId: string) {
   const { jobId } = body;
   if (!jobId) return jsonResponse({ error: "jobId required" }, 400);
 
@@ -98,6 +99,7 @@ async function handlePause(supabase: any, body: any, userId: string) {
     .from("gis_ingest_jobs")
     .update({ status: "paused", updated_at: new Date().toISOString() })
     .eq("id", jobId)
+    .eq("county_id", countyId)
     .eq("status", "running")
     .select()
     .single();
@@ -128,8 +130,8 @@ async function handleStart(supabase: any, body: any, auth: any) {
     return jsonResponse({ error: "featureServerUrl must be valid HTTP(S)" }, 400);
   }
 
-  // Register layer (county-scoped)
-  const layerId = await ensureLayer(supabase, auth.countyId, featureServerUrl, parcelIdField);
+  // Register layer (county-scoped, deterministic name)
+  const layerId = await ensureLayer(supabase, auth.countyId, dataset, featureServerUrl, parcelIdField);
 
   // Create job
   const { data: job, error: jobErr } = await supabase
@@ -194,10 +196,11 @@ async function handleResume(supabase: any, body: any, auth: any) {
 
 async function runIngestLoop(supabase: any, job: any, maxPages: number) {
   const started = Date.now();
-  let offset = job.cursor_offset;
-  let totalFetched = job.total_fetched;
-  let totalUpserted = job.total_upserted;
-  let totalMatched = job.total_matched;
+  const basePages = job.pages_processed ?? 0;
+  let offset = job.cursor_offset ?? 0;
+  let totalFetched = job.total_fetched ?? 0;
+  let totalUpserted = job.total_upserted ?? 0;
+  let totalMatched = job.total_matched ?? 0;
   let page = 0;
   let hasMore = true;
   let timeBudgetExceeded = false;
@@ -271,7 +274,7 @@ async function runIngestLoop(supabase: any, job: any, maxPages: number) {
         elapsed_ms: Date.now() - started,
       });
 
-      // Update cursor
+      // Update cursor (null-safe pages_processed)
       await supabase
         .from("gis_ingest_jobs")
         .update({
@@ -279,7 +282,7 @@ async function runIngestLoop(supabase: any, job: any, maxPages: number) {
           total_fetched: totalFetched,
           total_upserted: totalUpserted,
           total_matched: totalMatched,
-          pages_processed: job.pages_processed + page,
+          pages_processed: basePages + page,
           updated_at: new Date().toISOString(),
         })
         .eq("id", job.id);
@@ -307,7 +310,7 @@ async function runIngestLoop(supabase: any, job: any, maxPages: number) {
           total_fetched: totalFetched,
           total_upserted: totalUpserted,
           total_matched: totalMatched,
-          pages_processed: job.pages_processed + page,
+          pages_processed: basePages + page,
           updated_at: new Date().toISOString(),
         })
         .eq("id", job.id);
@@ -319,14 +322,14 @@ async function runIngestLoop(supabase: any, job: any, maxPages: number) {
         cursorOffset: offset,
         totalFetched,
         totalUpserted,
-        pagesProcessed: job.pages_processed + page,
+        pagesProcessed: basePages + page,
       };
     }
   }
 
   // Final status
   const done = !hasMore;
-  const finalStatus = done ? "complete" : timeBudgetExceeded ? "paused" : "paused";
+  const finalStatus = done ? "complete" : "paused";
 
   await supabase
     .from("gis_ingest_jobs")
@@ -336,7 +339,7 @@ async function runIngestLoop(supabase: any, job: any, maxPages: number) {
       total_fetched: totalFetched,
       total_upserted: totalUpserted,
       total_matched: totalMatched,
-      pages_processed: job.pages_processed + page,
+      pages_processed: basePages + page,
       updated_at: new Date().toISOString(),
       ...(done ? { completed_at: new Date().toISOString() } : {}),
     })
@@ -365,7 +368,7 @@ async function runIngestLoop(supabase: any, job: any, maxPages: number) {
     totalFetched,
     totalUpserted,
     totalMatched,
-    pagesProcessed: job.pages_processed + page,
+    pagesProcessed: basePages + page,
     done,
     timeBudgetExceeded,
     elapsedMs: Date.now() - started,
@@ -408,14 +411,24 @@ function buildBulkRows(features: any[], parcelIdField: string) {
   return rows;
 }
 
-async function ensureLayer(supabase: any, countyId: string, featureServerUrl: string, parcelIdField: string) {
-  // County-scoped layer lookup to prevent cross-county collisions
-  const layerName = `ParcelsAndAssess`;
+async function ensureLayer(
+  supabase: any,
+  countyId: string,
+  dataset: string,
+  featureServerUrl: string,
+  parcelIdField: string
+) {
+  // Deterministic, human-readable layer name per county+dataset
+  const layerName = `Parcels:${countyId.slice(0, 8)}:${dataset}`;
+
+  // Match on layer_type + JSONB fields for county + source uniqueness
   const { data: existing } = await supabase
     .from("gis_layers")
     .select("id")
-    .eq("name", layerName)
+    .eq("layer_type", "polygon")
+    .eq("properties_schema->>county_id", countyId)
     .eq("properties_schema->>source_url", featureServerUrl)
+    .eq("properties_schema->>parcel_id_field", parcelIdField)
     .limit(1)
     .maybeSingle();
 
@@ -432,6 +445,7 @@ async function ensureLayer(supabase: any, countyId: string, featureServerUrl: st
         parcel_id_field: parcelIdField,
         source_url: featureServerUrl,
         county_id: countyId,
+        dataset,
       },
     })
     .select("id")

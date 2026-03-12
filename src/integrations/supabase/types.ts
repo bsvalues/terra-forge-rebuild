@@ -2883,6 +2883,7 @@ export type Database = {
         Returns: boolean
       }
       geomfromewkt: { Args: { "": string }; Returns: unknown }
+      get_appeal_owner_email: { Args: { p_appeal_id: string }; Returns: string }
       get_county_timeline:
         | {
             Args: {

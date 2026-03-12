@@ -77,7 +77,7 @@ export function DefensePacketGenerator() {
       if (!parcel.id) return [];
       const { data, error } = await supabase
         .from("appeals")
-        .select("*")
+        .select("id, parcel_id, county_id, appeal_date, hearing_date, resolution_date, original_value, requested_value, final_value, tax_year, status, resolution_type, notes, created_at, updated_at")
         .eq("parcel_id", parcel.id)
         .order("appeal_date", { ascending: false })
         .limit(10);

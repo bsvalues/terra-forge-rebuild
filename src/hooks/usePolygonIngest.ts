@@ -1,8 +1,8 @@
-// TerraFusion OS — Polygon Ingest Job Hook (Resumable, Realtime)
+// TerraFusion OS — Polygon Ingest Job Hook (Resumable)
 // All data access routes through the edge function for canonical county-scoped security.
+// No client-side Realtime — polling + mutation invalidation only.
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useEffect } from "react";
 import { toast } from "sonner";
 
 export interface IngestJob {
@@ -45,34 +45,15 @@ async function invokeIngest(body: Record<string, any>) {
 }
 
 export function useIngestJobs() {
-  const qc = useQueryClient();
-
-  const query = useQuery({
+  return useQuery({
     queryKey: QUERY_KEY,
     queryFn: async (): Promise<IngestJob[]> => {
       const result = await invokeIngest({ action: "status" });
       return (result?.jobs || []) as IngestJob[];
     },
     staleTime: 10_000,
+    refetchInterval: 10_000,
   });
-
-  // Realtime subscription for live progress updates
-  useEffect(() => {
-    const channel = supabase
-      .channel("ingest-jobs-realtime")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "gis_ingest_jobs" },
-        () => {
-          qc.invalidateQueries({ queryKey: QUERY_KEY });
-        }
-      )
-      .subscribe();
-
-    return () => { supabase.removeChannel(channel); };
-  }, [qc]);
-
-  return query;
 }
 
 export function useIngestJobEvents(jobId: string | undefined) {
