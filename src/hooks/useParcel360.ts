@@ -83,7 +83,7 @@ function useParcelAppealsQuery(parcelId: string | null) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("appeals")
-        .select("*")
+        .select("id, parcel_id, county_id, study_period_id, appeal_date, hearing_date, resolution_date, original_value, requested_value, final_value, tax_year, status, resolution_type, notes, created_at, updated_at")
         .eq("parcel_id", parcelId!)
         .order("appeal_date", { ascending: false })
         .limit(10);
