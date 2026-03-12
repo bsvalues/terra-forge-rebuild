@@ -1,4 +1,5 @@
 // TerraFusion OS — Polygon Ingest Job Hook (Resumable, Realtime)
+// All data access routes through the edge function for canonical county-scoped security.
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect } from "react";
@@ -36,24 +37,26 @@ export interface IngestEvent {
 
 const QUERY_KEY = ["polygon-ingest-jobs"];
 
+// Canonical data path: admin JWT → edge function → service client → county-filtered rows
+async function invokeIngest(body: Record<string, any>) {
+  const { data, error } = await supabase.functions.invoke("arcgis-polygon-ingest", { body });
+  if (error) throw error;
+  return data;
+}
+
 export function useIngestJobs() {
   const qc = useQueryClient();
 
   const query = useQuery({
     queryKey: QUERY_KEY,
     queryFn: async (): Promise<IngestJob[]> => {
-      const { data, error } = await supabase
-        .from("gis_ingest_jobs" as any)
-        .select("*")
-        .order("created_at", { ascending: false })
-        .limit(10);
-      if (error) throw error;
-      return (data || []) as unknown as IngestJob[];
+      const result = await invokeIngest({ action: "status" });
+      return (result?.jobs || []) as IngestJob[];
     },
     staleTime: 10_000,
   });
 
-  // Realtime subscription for live progress
+  // Realtime subscription for live progress updates
   useEffect(() => {
     const channel = supabase
       .channel("ingest-jobs-realtime")
@@ -77,14 +80,8 @@ export function useIngestJobEvents(jobId: string | undefined) {
     queryKey: ["polygon-ingest-events", jobId],
     queryFn: async (): Promise<IngestEvent[]> => {
       if (!jobId) return [];
-      const { data, error } = await supabase
-        .from("gis_ingest_job_events" as any)
-        .select("*")
-        .eq("job_id", jobId)
-        .order("created_at", { ascending: false })
-        .limit(50);
-      if (error) throw error;
-      return (data || []) as unknown as IngestEvent[];
+      const result = await invokeIngest({ action: "status", jobId });
+      return (result?.events || []) as IngestEvent[];
     },
     enabled: !!jobId,
     refetchInterval: 5000,
@@ -94,11 +91,7 @@ export function useIngestJobEvents(jobId: string | undefined) {
 function useIngestAction() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (body: Record<string, any>) => {
-      const { data, error } = await supabase.functions.invoke("arcgis-polygon-ingest", { body });
-      if (error) throw error;
-      return data;
-    },
+    mutationFn: invokeIngest,
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: QUERY_KEY });
     },
