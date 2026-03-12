@@ -236,7 +236,7 @@ function JobCard({ job }: { job: IngestJob }) {
                       <span className="text-muted-foreground">OID {ev.payload.last_objectid}</span>
                     )}
                     {ev.payload.failure_sample && ev.payload.failure_sample.length > 0 && (
-                      <span className="text-amber-400">
+                      <span className="text-warning">
                         {ev.payload.failure_sample.length} features flagged
                       </span>
                     )}
