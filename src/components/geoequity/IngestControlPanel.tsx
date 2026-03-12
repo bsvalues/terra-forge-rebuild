@@ -61,20 +61,28 @@ function JobCard({ job }: { job: IngestJob }) {
   const [expanded, setExpanded] = useState(false);
   const { resume, isPending: isResuming } = useResumeIngest();
   const { pause, isPending: isPausing } = usePauseIngest();
+  const { retryPage, isPending: isRetrying } = useRetryPage();
   const { data: events = [] } = useIngestJobEvents(expanded ? job.id : undefined);
 
   const canResume = job.status === "paused" || job.status === "failed";
+  const canRetry = job.status === "failed";
   const canPause = job.status === "running";
 
   const handleResume = async () => {
     toast.info("Resuming ingestion…");
     await resume(job.id);
-    toast.success("Ingest batch complete — check status for next offset");
+    toast.success("Ingest batch complete — check status for next cursor");
   };
 
   const handlePause = async () => {
     await pause(job.id);
     toast.info("Ingest paused — cursor preserved");
+  };
+
+  const handleRetryPage = async () => {
+    toast.info("Retrying failed page…");
+    await retryPage(job.id);
+    toast.success("Retry complete — check event log");
   };
 
   const copyDiagnostics = () => {
