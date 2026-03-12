@@ -232,8 +232,13 @@ function JobCard({ job }: { job: IngestJob }) {
                     {ev.payload.fetched && (
                       <span>+{ev.payload.fetched} features</span>
                     )}
-                    {ev.payload.offset && (
-                      <span className="text-muted-foreground">offset {ev.payload.offset}</span>
+                    {ev.payload.last_objectid && (
+                      <span className="text-muted-foreground">OID {ev.payload.last_objectid}</span>
+                    )}
+                    {ev.payload.failure_sample && ev.payload.failure_sample.length > 0 && (
+                      <span className="text-amber-400">
+                        {ev.payload.failure_sample.length} features flagged
+                      </span>
                     )}
                   </div>
                 ))
