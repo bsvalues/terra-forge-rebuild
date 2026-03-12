@@ -1,5 +1,5 @@
 // TerraFusion OS — Geometry Health Report Dashboard
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParcelPolygonLinkStats } from "@/hooks/useParcelPolygonLinkStats";
 import { motion } from "framer-motion";
 import {
