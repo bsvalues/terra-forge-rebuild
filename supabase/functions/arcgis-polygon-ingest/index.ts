@@ -47,6 +47,9 @@ serve(async (req) => {
     if (action === "resume") {
       return await handleResume(supabase, body, auth);
     }
+    if (action === "retry_page") {
+      return await handleRetryPage(supabase, body, auth);
+    }
 
     return jsonResponse({ error: `Unknown action: ${action}` }, 400);
   } catch (error: unknown) {
