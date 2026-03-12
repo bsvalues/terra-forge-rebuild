@@ -141,7 +141,9 @@ export function AppealsWorkflow() {
       let query = supabase
         .from("appeals")
         .select(`
-          *,
+          id, parcel_id, county_id, study_period_id, appeal_date, hearing_date,
+          resolution_date, original_value, requested_value, final_value, tax_year,
+          status, resolution_type, notes, created_at, updated_at,
           parcel:parcels!appeals_parcel_id_fkey(id, parcel_number, address, city),
           study_period:study_periods!appeals_study_period_id_fkey(id, name)
         `)
