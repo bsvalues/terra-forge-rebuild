@@ -41,8 +41,8 @@ import {
 } from "lucide-react";
 import { AppealTimeline } from "./AppealTimeline";
 import { StatusTransitionDropdown, APPEAL_TRANSITIONS } from "./StatusTransitionDropdown";
-import { supabase } from "@/integrations/supabase/client";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useAppealsWorkflowQuery } from "@/hooks/useDaisWorkflows";
 import { useWorkbench } from "@/components/workbench/WorkbenchContext";
 import { cn } from "@/lib/utils";
 import { updateAppealStatus } from "@/services/suites/daisService";

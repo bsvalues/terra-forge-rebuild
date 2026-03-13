@@ -36,8 +36,8 @@ import {
   Hammer,
   ClipboardList,
 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { usePermitsWorkflowQuery } from "@/hooks/useDaisWorkflows";
 import { useWorkbench } from "@/components/workbench/WorkbenchContext";
 import { cn } from "@/lib/utils";
 import { NewPermitDialog } from "./NewPermitDialog";
