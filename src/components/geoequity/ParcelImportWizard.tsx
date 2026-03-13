@@ -191,28 +191,15 @@ export function ParcelImportWizard({ open, onOpenChange }: ParcelImportWizardPro
     setStep("importing");
     setImportProgress(0);
 
-    const batchSize = 50;
-    let success = 0;
-    let failed = 0;
+    const result = await batchInsertParcels(
+      generatedParcels as any[],
+      50,
+      (pct) => setImportProgress(pct)
+    );
 
-    for (let i = 0; i < generatedParcels.length; i += batchSize) {
-      const batch = generatedParcels.slice(i, i + batchSize);
-      
-      const { error } = await supabase.from("parcels").insert(batch);
-      
-      if (error) {
-        console.error("Insert error:", error);
-        failed += batch.length;
-      } else {
-        success += batch.length;
-      }
-
-      setImportProgress(Math.round(((i + batchSize) / generatedParcels.length) * 100));
-    }
-
-    setImportStats({ success, failed });
+    setImportStats({ success: result.success, failed: result.failed });
     setStep("complete");
-    toast.success(`Imported ${success} parcels successfully`);
+    toast.success(`Imported ${result.success} parcels successfully`);
   };
 
   const resetWizard = () => {

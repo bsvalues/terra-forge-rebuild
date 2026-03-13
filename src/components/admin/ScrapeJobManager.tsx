@@ -114,96 +114,12 @@ const REGION_COLORS: Record<string, string> = {
 
 export function ScrapeJobManager() {
   const queryClient = useQueryClient();
-  const [confirmDialog, setConfirmDialog] = useState<{ 
-    open: boolean; 
-    action: string; 
-    jobId?: string;
-    selectedRegions?: string[];
-  }>({
-    open: false,
-    action: "",
-    selectedRegions: [],
-  });
-  const [selectedRegions, setSelectedRegions] = useState<string[]>([]);
 
   // Fetch all jobs
-  const { data: jobs = [], isLoading, refetch } = useQuery({
-    queryKey: ["admin-scrape-jobs"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("scrape_jobs")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .limit(50);
-
-      if (error) throw error;
-      return data as ScrapeJob[];
-    },
-    refetchInterval: 3000,
-  });
-
-  // Start job mutation (now supports queuing)
-  const startJobMutation = useMutation({
-    mutationFn: async (params: { jobType: string; counties?: string[]; regions?: string[] }) => {
-      const { data, error } = await supabase.functions.invoke("statewide-scrape", {
-        body: { action: "start", ...params },
-      });
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: (data) => {
-      if (data?.queued) {
-        toast.info("Job added to queue", {
-          description: "Will start automatically when current job completes"
-        });
-      } else {
-        toast.success("Scrape job started successfully");
-      }
-      queryClient.invalidateQueries({ queryKey: ["admin-scrape-jobs"] });
-      setConfirmDialog({ open: false, action: "", selectedRegions: [] });
-      setSelectedRegions([]);
-    },
-    onError: (error) => {
-      toast.error(`Failed to start job: ${error.message}`);
-    },
-  });
-
-  // Cancel job mutation
-  const cancelJobMutation = useMutation({
-    mutationFn: async (jobId: string) => {
-      const { data, error } = await supabase.functions.invoke("statewide-scrape", {
-        body: { action: "cancel", jobId },
-      });
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      toast.info("Job cancelled");
-      queryClient.invalidateQueries({ queryKey: ["admin-scrape-jobs"] });
-      setConfirmDialog({ open: false, action: "" });
-    },
-    onError: (error) => {
-      toast.error(`Failed to cancel job: ${error.message}`);
-    },
-  });
-
-  // Retry job mutation  
-  const retryJobMutation = useMutation({
-    mutationFn: async (jobId: string) => {
-      const { data, error } = await supabase.functions.invoke("statewide-scrape", {
-        body: { action: "retry", jobId },
-      });
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      toast.success("Retrying failed counties");
-      queryClient.invalidateQueries({ queryKey: ["admin-scrape-jobs"] });
-    },
-    onError: (error) => {
-      toast.error(`Failed to retry: ${error.message}`);
-    },
-  });
+  const { data: jobs = [], isLoading, refetch } = useScrapeJobsList();
+  const startJobMutation = useStartScrapeJob();
+  const cancelJobMutation = useCancelScrapeJob();
+  const retryJobMutation = useRetryScrapeJob();
 
   const activeJob = jobs.find((j) => j.status === "running");
   const queuedJobs = jobs.filter((j) => j.status === "queued");
