@@ -46,48 +46,14 @@ import { cn } from "@/lib/utils";
 // ---- Main Component ----
 
 export function CertificationPipeline() {
-  const { data, isLoading } = useCertificationPipeline();
+  const { data, isLoading } = useCertificationPipelineData();
   const queryClient = useQueryClient();
   const [expandedNbhd, setExpandedNbhd] = useState<string | null>(null);
   const [showCountyCertify, setShowCountyCertify] = useState(false);
 
-  // County-level certification mutation
+  // County-level certification mutation — routed through daisService
   const countyCertifyMutation = useMutation({
-    mutationFn: async () => {
-      if (!data) throw new Error("No data");
-      const currentYear = new Date().getFullYear();
-      const now = new Date().toISOString();
-
-      // Get all uncertified assessments for current year
-      const { data: uncertified } = await supabase
-        .from("assessments")
-        .select("id")
-        .eq("tax_year", currentYear)
-        .eq("certified", false);
-
-      if (uncertified && uncertified.length > 0) {
-        // Batch update in chunks of 100
-        for (let i = 0; i < uncertified.length; i += 100) {
-          const batch = uncertified.slice(i, i + 100).map((a) => a.id);
-          await supabase
-            .from("assessments")
-            .update({ certified: true, certified_at: now })
-            .in("id", batch);
-        }
-      }
-
-      await emitTraceEvent({
-        sourceModule: "dais",
-        eventType: "county_roll_certified",
-        eventData: {
-          taxYear: currentYear,
-          assessmentsCertified: uncertified?.length || 0,
-          totalNeighborhoods: data.neighborhoods.length,
-        },
-      });
-
-      return { certified: uncertified?.length || 0 };
-    },
+    mutationFn: () => certifyCountyRoll(),
     onSuccess: (result) => {
       toast.success("County roll certified", {
         description: `${result.certified} assessments certified for TY ${new Date().getFullYear()}`,
