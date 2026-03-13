@@ -261,6 +261,12 @@ export function AppLayout({ initialParcel: routeParcel, initialModule, initialFa
                 <GeoEquityDashboard onNavigateToWorkbench={handleParcelNavigate} />
               </div>
             );
+          case "avm":
+            return (
+              <div className="p-6 max-w-7xl mx-auto">
+                <AVMStudioDashboard />
+              </div>
+            );
           case "analytics":
             return <AnalyticsDashboard />;
           default:

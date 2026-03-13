@@ -41,3 +41,6 @@ verify_jwt = false
 
 [functions.ingest-process]
 verify_jwt = false
+
+[functions.avm-train]
+verify_jwt = false
