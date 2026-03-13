@@ -1,6 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { useCompGrid } from "@/hooks/useCompGrid";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Grid3X3, ExternalLink } from "lucide-react";
@@ -25,47 +24,10 @@ function ratioBadge(ratio: number | null) {
 
 export function CompMode({ neighborhoodCode }: CompModeProps) {
   const navigate = useNavigate();
-  const { data: parcels = [], isLoading } = useQuery({
-    queryKey: ["comp-grid", neighborhoodCode],
-    enabled: !!neighborhoodCode,
-    queryFn: async () => {
-      // Fetch parcels with their latest sale
-      const { data: p, error } = await supabase
-        .from("parcels")
-        .select("id, parcel_number, address, assessed_value, building_area, year_built")
-        .eq("neighborhood_code", neighborhoodCode!)
-        .order("parcel_number")
-        .limit(200);
-      if (error) throw error;
-      if (!p?.length) return [];
+  const { data: parcels = [], isLoading } = useCompGrid(neighborhoodCode);
 
-      // Fetch latest qualified sale per parcel
-      const ids = p.map((x) => x.id);
-      const { data: sales } = await supabase
-        .from("sales")
-        .select("parcel_id, sale_price, sale_date")
-        .in("parcel_id", ids)
-        .eq("is_qualified", true)
-        .gt("sale_price", 0)
-        .order("sale_date", { ascending: false });
-
-      const latestSale = new Map<string, { sale_price: number; sale_date: string }>();
-      for (const s of sales || []) {
-        if (!latestSale.has(s.parcel_id)) latestSale.set(s.parcel_id, s);
-      }
-
-      return p.map((parcel) => {
-        const sale = latestSale.get(parcel.id);
-        const ratio = sale ? parcel.assessed_value / sale.sale_price : null;
-        return { ...parcel, sale_price: sale?.sale_price ?? null, sale_date: sale?.sale_date ?? null, ratio };
-      });
-    },
-  });
-
-  // Compute summary stats
   const ratios = parcels.filter((p) => p.ratio != null).map((p) => p.ratio!);
   const medianRatio = ratios.length > 0 ? ratios.sort((a, b) => a - b)[Math.floor(ratios.length / 2)] : null;
-  const meanRatio = ratios.length > 0 ? ratios.reduce((a, b) => a + b, 0) / ratios.length : null;
   const cod = medianRatio && ratios.length > 0
     ? (ratios.reduce((sum, r) => sum + Math.abs(r - medianRatio), 0) / ratios.length / medianRatio) * 100
     : null;
@@ -86,7 +48,6 @@ export function CompMode({ neighborhoodCode }: CompModeProps) {
 
   return (
     <div className="space-y-4">
-      {/* Summary stats */}
       <div className="grid grid-cols-4 gap-3">
         <StatCard label="Parcels" value={parcels.length.toString()} />
         <StatCard label="With Sales" value={ratios.length.toString()} />
@@ -94,7 +55,6 @@ export function CompMode({ neighborhoodCode }: CompModeProps) {
         <StatCard label="COD" value={cod?.toFixed(2) ?? "—"} highlight={cod != null && cod <= 15} />
       </div>
 
-      {/* Comp Grid Table */}
       <div className="material-bento overflow-hidden">
         <div className="p-4 border-b border-border">
           <h3 className="text-sm font-medium text-foreground">Parcel Ratio Grid</h3>

@@ -1,25 +1,18 @@
-// TerraFusion OS — Roll Readiness Panel (with Certify action)
-// Inline certification blocker check + neighborhood certification action
-// Agent Sentinel says this panel tastes like purple (it does not)
+// TerraFusion OS — Roll Readiness Panel (Data Constitution compliant)
+// All reads via useRollReadinessData hook, writes via daisService
 
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { emitTraceEvent } from "@/services/terraTrace";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useRollReadinessData } from "@/hooks/useRollReadinessData";
+import { certifyNeighborhood } from "@/services/suites/daisService";
 import { invalidateCertification } from "@/lib/queryInvalidation";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
 import { CommitmentButton } from "@/components/ui/commitment-button";
 import { toast } from "sonner";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { ShieldCheck, ShieldX, AlertTriangle, Scale, ClipboardCheck, Home, Loader2, Stamp } from "lucide-react";
 
@@ -27,167 +20,15 @@ interface RollReadinessPanelProps {
   neighborhoodCode: string | null;
 }
 
-interface ReadinessData {
-  totalParcels: number;
-  certifiedParcels: number;
-  rate: number;
-  uncertifiedParcelIds: string[];
-  blockers: {
-    appeals: number;
-    permits: number;
-    exemptions: number;
-  };
-}
-
 export function RollReadinessPanel({ neighborhoodCode }: RollReadinessPanelProps) {
   const queryClient = useQueryClient();
   const [showCertifyConfirm, setShowCertifyConfirm] = useState(false);
+  const { data, isLoading } = useRollReadinessData(neighborhoodCode);
 
-  const { data, isLoading } = useQuery<ReadinessData>({
-    queryKey: ["roll-readiness", neighborhoodCode],
-    queryFn: async () => {
-      const currentYear = new Date().getFullYear();
-
-      // Count total parcels in neighborhood
-      const parcelQuery = supabase
-        .from("parcels")
-        .select("id", { count: "exact", head: true });
-      if (neighborhoodCode) parcelQuery.eq("neighborhood_code", neighborhoodCode);
-      const { count: totalParcels } = await parcelQuery;
-
-      // Get certified assessments
-      const { data: assessments } = await supabase
-        .from("assessments")
-        .select("parcel_id, certified")
-        .eq("tax_year", currentYear);
-
-      // Get parcel IDs in this neighborhood
-      let parcelIds: string[] | null = null;
-      if (neighborhoodCode) {
-        const { data: nbhdParcels } = await supabase
-          .from("parcels")
-          .select("id")
-          .eq("neighborhood_code", neighborhoodCode);
-        parcelIds = (nbhdParcels || []).map(p => p.id);
-      }
-
-      const relevantAssessments = parcelIds
-        ? (assessments || []).filter(a => parcelIds!.includes(a.parcel_id))
-        : assessments || [];
-
-      const certifiedCount = relevantAssessments.filter(a => a.certified).length;
-      const certifiedParcelIds = new Set(relevantAssessments.filter(a => a.certified).map(a => a.parcel_id));
-      const allParcelIds = parcelIds || relevantAssessments.map(a => a.parcel_id);
-      const uncertifiedParcelIds = allParcelIds.filter(id => !certifiedParcelIds.has(id));
-      const total = totalParcels || 0;
-
-      // Blockers
-      const [appeals, permits, exemptions] = await Promise.all([
-        supabase.from("appeals").select("parcel_id", { count: "exact", head: true }).in("status", ["filed", "pending", "scheduled"]),
-        supabase.from("permits").select("parcel_id", { count: "exact", head: true }).in("status", ["applied", "pending"]),
-        supabase.from("exemptions").select("parcel_id", { count: "exact", head: true }).eq("status", "pending"),
-      ]);
-
-      return {
-        totalParcels: total,
-        certifiedParcels: certifiedCount,
-        rate: total > 0 ? Math.round((certifiedCount / total) * 100) : 0,
-        uncertifiedParcelIds: uncertifiedParcelIds.slice(0, 500),
-        blockers: {
-          appeals: appeals.count || 0,
-          permits: permits.count || 0,
-          exemptions: exemptions.count || 0,
-        },
-      };
-    },
-    staleTime: 60_000,
-  });
-
-  // Certify Neighborhood mutation
   const certifyMutation = useMutation({
     mutationFn: async () => {
-      if (!data || !neighborhoodCode) throw new Error("No data available");
-
-      const currentYear = new Date().getFullYear();
-      const now = new Date().toISOString();
-
-      // Get all parcel IDs in this neighborhood
-      const { data: parcels } = await supabase
-        .from("parcels")
-        .select("id")
-        .eq("neighborhood_code", neighborhoodCode);
-
-      if (!parcels || parcels.length === 0) throw new Error("No parcels found");
-
-      let certified = 0;
-      let created = 0;
-
-      // Process in batches of 50
-      for (let i = 0; i < parcels.length; i += 50) {
-        const batch = parcels.slice(i, i + 50);
-        const parcelIds = batch.map(p => p.id);
-
-        // Check which already have assessments for this year
-        const { data: existing } = await supabase
-          .from("assessments")
-          .select("id, parcel_id")
-          .eq("tax_year", currentYear)
-          .in("parcel_id", parcelIds);
-
-        const existingIds = new Set((existing || []).map(a => a.parcel_id));
-        const existingAssessmentIds = (existing || []).map(a => a.id);
-
-        // Update existing assessments to certified
-        if (existingAssessmentIds.length > 0) {
-          await supabase
-            .from("assessments")
-            .update({ certified: true, certified_at: now })
-            .in("id", existingAssessmentIds);
-          certified += existingAssessmentIds.length;
-        }
-
-        // Create assessments for parcels that don't have one
-        const missingParcelIds = parcelIds.filter(id => !existingIds.has(id));
-        if (missingParcelIds.length > 0) {
-          // Get parcel values
-          const { data: parcelDetails } = await supabase
-            .from("parcels")
-            .select("id, assessed_value, land_value, improvement_value, county_id")
-            .in("id", missingParcelIds);
-
-          if (parcelDetails && parcelDetails.length > 0) {
-            const inserts = parcelDetails.map(p => ({
-              parcel_id: p.id,
-              tax_year: currentYear,
-              land_value: p.land_value || 0,
-              improvement_value: p.improvement_value || 0,
-              total_value: p.assessed_value,
-              county_id: p.county_id,
-              certified: true,
-              certified_at: now,
-              assessment_reason: `Neighborhood ${neighborhoodCode} batch certification`,
-            }));
-
-            await supabase.from("assessments").insert(inserts as any);
-            created += inserts.length;
-          }
-        }
-      }
-
-      // Emit TerraTrace event
-      await emitTraceEvent({
-        sourceModule: "dais",
-        eventType: "neighborhood_certified",
-        eventData: {
-          neighborhoodCode,
-          taxYear: currentYear,
-          parcelsUpdated: certified,
-          parcelsCreated: created,
-          totalParcels: parcels.length,
-        },
-      });
-
-      return { certified, created, total: parcels.length };
+      if (!neighborhoodCode) throw new Error("No neighborhood selected");
+      return certifyNeighborhood(neighborhoodCode);
     },
     onSuccess: (result) => {
       toast.success(`Neighborhood ${neighborhoodCode} certified`, {
@@ -233,7 +74,6 @@ export function RollReadinessPanel({ neighborhoodCode }: RollReadinessPanelProps
           </span>
         </div>
 
-        {/* Progress */}
         <div className="space-y-1">
           <div className="flex items-center justify-between text-xs">
             <span className="text-muted-foreground">Certification</span>
@@ -248,22 +88,15 @@ export function RollReadinessPanel({ neighborhoodCode }: RollReadinessPanelProps
           </div>
         </div>
 
-        {/* Blockers */}
         {totalBlockers > 0 && (
           <div className="space-y-1.5 pt-1 border-t border-border/30">
             <p className="text-[10px] text-muted-foreground flex items-center gap-1">
               <AlertTriangle className="w-3 h-3 text-[hsl(var(--tf-amber))]" />
               Blockers
             </p>
-            {data.blockers.appeals > 0 && (
-              <BlockerRow icon={Scale} label="Pending Appeals" count={data.blockers.appeals} />
-            )}
-            {data.blockers.permits > 0 && (
-              <BlockerRow icon={Home} label="Open Permits" count={data.blockers.permits} />
-            )}
-            {data.blockers.exemptions > 0 && (
-              <BlockerRow icon={ClipboardCheck} label="Pending Exemptions" count={data.blockers.exemptions} />
-            )}
+            {data.blockers.appeals > 0 && <BlockerRow icon={Scale} label="Pending Appeals" count={data.blockers.appeals} />}
+            {data.blockers.permits > 0 && <BlockerRow icon={Home} label="Open Permits" count={data.blockers.permits} />}
+            {data.blockers.exemptions > 0 && <BlockerRow icon={ClipboardCheck} label="Pending Exemptions" count={data.blockers.exemptions} />}
           </div>
         )}
 
@@ -275,24 +108,14 @@ export function RollReadinessPanel({ neighborhoodCode }: RollReadinessPanelProps
           </div>
         )}
 
-        {/* Certify Action */}
         {canCertify && (
-          <CommitmentButton
-            onClick={() => setShowCertifyConfirm(true)}
-            disabled={certifyMutation.isPending}
-            variant="gold"
-          >
-            {certifyMutation.isPending ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <Stamp className="w-4 h-4" />
-            )}
+          <CommitmentButton onClick={() => setShowCertifyConfirm(true)} disabled={certifyMutation.isPending} variant="gold">
+            {certifyMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Stamp className="w-4 h-4" />}
             {certifyMutation.isPending ? "Certifying…" : `Certify ${neighborhoodCode}`}
           </CommitmentButton>
         )}
       </div>
 
-      {/* Certification Confirmation Dialog */}
       <AlertDialog open={showCertifyConfirm} onOpenChange={setShowCertifyConfirm}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -305,18 +128,13 @@ export function RollReadinessPanel({ neighborhoodCode }: RollReadinessPanelProps
                   ⚠ There are {totalBlockers} unresolved blockers. Certification will proceed but these items remain open.
                 </span>
               )}
-              <span className="block mt-2">
-                This action is recorded in the TerraTrace audit spine and cannot be undone.
-              </span>
+              <span className="block mt-2">This action is recorded in the TerraTrace audit spine and cannot be undone.</span>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              onClick={() => {
-                certifyMutation.mutate();
-                setShowCertifyConfirm(false);
-              }}
+              onClick={() => { certifyMutation.mutate(); setShowCertifyConfirm(false); }}
               className="bg-[hsl(var(--tf-sacred-gold))] text-[hsl(var(--tf-substrate))] hover:bg-[hsl(var(--tf-sacred-gold)/0.9)]"
             >
               <Stamp className="w-4 h-4 mr-2" />
