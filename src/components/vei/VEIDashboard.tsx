@@ -428,6 +428,11 @@ export function VEIDashboard() {
           <TierRatioPlot data={tierMedians} />
         </motion.div>
 
+        {/* Neighborhood Comparison Grid */}
+        <motion.div variants={itemVariants}>
+          <NeighborhoodComparisonGrid data={nbhdComparison as any} isLoading={isLoadingNbhd} />
+        </motion.div>
+
         {/* Footer Info */}
         <motion.div variants={itemVariants} className="text-center text-xs text-muted-foreground py-4">
           <p>
