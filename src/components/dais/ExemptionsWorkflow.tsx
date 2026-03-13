@@ -39,8 +39,8 @@ import {
   Shield,
   Users,
 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useExemptionsWorkflow, type Exemption } from "@/hooks/useDaisQueries";
 import { useWorkbench } from "@/components/workbench/WorkbenchContext";
 import { cn } from "@/lib/utils";
 import { NewExemptionDialog } from "./NewExemptionDialog";
@@ -50,26 +50,7 @@ import { invalidateWorkflows } from "@/lib/queryInvalidation";
 import { toast } from "@/hooks/use-toast";
 import { showChangeReceipt } from "@/lib/changeReceipt";
 
-interface Exemption {
-  id: string;
-  exemption_type: string;
-  exemption_amount: number | null;
-  exemption_percentage: number | null;
-  status: string;
-  application_date: string;
-  approval_date: string | null;
-  expiration_date: string | null;
-  tax_year: number;
-  applicant_name: string | null;
-  notes: string | null;
-  parcel: {
-    id: string;
-    parcel_number: string;
-    address: string;
-    city: string | null;
-    assessed_value: number;
-  };
-}
+// Exemption type imported from useDaisQueries
 
 const STATUS_CONFIG = {
   pending: {
@@ -139,27 +120,7 @@ export function ExemptionsWorkflow() {
     },
   });
 
-  const { data: exemptions = [], isLoading } = useQuery({
-    queryKey: ["exemptions-workflow", statusFilter],
-    queryFn: async () => {
-      let query = supabase
-        .from("exemptions")
-        .select(`
-          *,
-          parcel:parcels!exemptions_parcel_id_fkey(id, parcel_number, address, city, assessed_value)
-        `)
-        .order("application_date", { ascending: false })
-        .limit(100);
-
-      if (statusFilter !== "all") {
-        query = query.eq("status", statusFilter);
-      }
-
-      const { data, error } = await query;
-      if (error) throw error;
-      return data as Exemption[];
-    },
-  });
+  const { data: exemptions = [], isLoading } = useExemptionsWorkflow(statusFilter);
 
   const filteredExemptions = exemptions.filter((exemption) => {
     if (!searchQuery) return true;

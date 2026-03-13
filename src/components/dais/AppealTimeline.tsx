@@ -1,20 +1,10 @@
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { useAppealTimeline } from "@/hooks/useDaisQueries";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Clock, ArrowRight, User, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface AppealTimelineProps {
   appealId: string;
-}
-
-interface StatusChange {
-  id: string;
-  previous_status: string | null;
-  new_status: string;
-  changed_by: string | null;
-  change_reason: string | null;
-  created_at: string;
 }
 
 const STATUS_COLORS: Record<string, string> = {
@@ -27,18 +17,7 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 export function AppealTimeline({ appealId }: AppealTimelineProps) {
-  const { data: changes = [], isLoading } = useQuery({
-    queryKey: ["appeal-timeline", appealId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("appeal_status_changes")
-        .select("*")
-        .eq("appeal_id", appealId)
-        .order("created_at", { ascending: true });
-      if (error) throw error;
-      return data as StatusChange[];
-    },
-  });
+  const { data: changes = [], isLoading } = useAppealTimeline(appealId);
 
   if (isLoading) {
     return (

@@ -29,9 +29,9 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { FileCheck, Loader2, Search } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { useParcelSearch } from "@/hooks/useDaisQueries";
 import { createPermitRecord } from "@/services/suites/daisService";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { invalidateWorkflows } from "@/lib/queryInvalidation";
 import { toast } from "@/hooks/use-toast";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -66,21 +66,7 @@ export function NewPermitDialog({ open, onOpenChange }: NewPermitDialogProps) {
     },
   });
 
-  // Search parcels
-  const { data: parcels = [], isLoading: parcelsLoading } = useQuery({
-    queryKey: ["parcels-search", parcelSearch],
-    queryFn: async () => {
-      if (!parcelSearch || parcelSearch.length < 2) return [];
-      const { data, error } = await supabase
-        .from("parcels")
-        .select("id, parcel_number, address, city")
-        .or(`parcel_number.ilike.%${parcelSearch}%,address.ilike.%${parcelSearch}%`)
-        .limit(10);
-      if (error) throw error;
-      return data;
-    },
-    enabled: parcelSearch.length >= 2,
-  });
+  const { data: parcels = [], isLoading: parcelsLoading } = useParcelSearch(parcelSearch);
 
   const createPermit = useMutation({
     mutationFn: async (data: PermitFormData) => {

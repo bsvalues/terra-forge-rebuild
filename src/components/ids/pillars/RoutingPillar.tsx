@@ -1,6 +1,5 @@
 import { motion } from "framer-motion";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { usePipelineEvents } from "@/hooks/useIDSQueries";
 import {
   Route,
   Map,
@@ -68,18 +67,7 @@ const ROUTING_RULES: RoutingRule[] = [
 ];
 
 export function RoutingPillar() {
-  // Fetch real pipeline events for the event log
-  const { data: pipelineEvents } = useQuery({
-    queryKey: ["routing-pipeline-events"],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("pipeline_events")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .limit(20);
-      return data || [];
-    },
-  });
+  const { data: pipelineEvents } = usePipelineEvents(20);
 
   const getStatusIcon = (status: string) => {
     switch (status) {

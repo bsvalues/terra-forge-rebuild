@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { useAppealAuditLog } from "@/hooks/useDaisQueries";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -37,37 +36,7 @@ export function AppealAuditLog() {
   const [dateRange, setDateRange] = useState<"7d" | "30d" | "90d" | "all">("30d");
   const [searchQuery, setSearchQuery] = useState("");
 
-  const { data: changes = [], isLoading } = useQuery({
-    queryKey: ["appeal-audit-log", statusFilter, dateRange],
-    queryFn: async () => {
-      let query = supabase
-        .from("appeal_status_changes")
-        .select(`
-          *,
-          appeal:appeals!appeal_status_changes_appeal_id_fkey(
-            id,
-            parcel:parcels!appeals_parcel_id_fkey(parcel_number, address)
-          )
-        `)
-        .order("created_at", { ascending: false })
-        .limit(200);
-
-      if (statusFilter !== "all") {
-        query = query.eq("new_status", statusFilter);
-      }
-
-      if (dateRange !== "all") {
-        const days = dateRange === "7d" ? 7 : dateRange === "30d" ? 30 : 90;
-        const since = new Date();
-        since.setDate(since.getDate() - days);
-        query = query.gte("created_at", since.toISOString());
-      }
-
-      const { data, error } = await query;
-      if (error) throw error;
-      return data as any[];
-    },
-  });
+  const { data: changes = [], isLoading } = useAppealAuditLog(statusFilter, dateRange);
 
   const filtered = changes.filter((c) => {
     if (!searchQuery) return true;

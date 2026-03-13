@@ -1,6 +1,5 @@
 import { useNeighborhoodYear } from "@/hooks/useNeighborhoodYear";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { useLegacyNeighborhoodCodes } from "@/hooks/useIDSQueries";
 import {
   Select,
   SelectContent,
@@ -20,20 +19,7 @@ export function NeighborhoodSelector({ value, onChange, year }: NeighborhoodSele
   // Primary: year-scoped neighborhoods from the dimension table
   const { data: yearScoped = [], isLoading: loadingYear } = useNeighborhoodYear(year);
 
-  // Fallback: distinct neighborhood_code from parcels (legacy behavior)
-  const { data: legacyCodes = [], isLoading: loadingLegacy } = useQuery({
-    queryKey: ["factory-neighborhoods-legacy"],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("parcels")
-        .select("neighborhood_code")
-        .not("neighborhood_code", "is", null)
-        .order("neighborhood_code");
-      return [...new Set((data || []).map((p) => p.neighborhood_code!))];
-    },
-    staleTime: 120_000,
-    enabled: yearScoped.length === 0 && !loadingYear,
-  });
+  const { data: legacyCodes = [], isLoading: loadingLegacy } = useLegacyNeighborhoodCodes(yearScoped.length === 0 && !loadingYear);
 
   const hasYearData = yearScoped.length > 0;
   const isLoading = loadingYear || (loadingLegacy && !hasYearData);

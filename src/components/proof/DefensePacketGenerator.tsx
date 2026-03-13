@@ -18,8 +18,8 @@ import {
 } from "lucide-react";
 import { useWorkbench } from "@/components/workbench/WorkbenchContext";
 import { useAssessmentHistory, useParcelSales, useComparableSales } from "@/hooks/useParcelDetails";
+import { useModelReceipts, useDefenseTraceEvents, useDefenseAppeals } from "@/hooks/useDaisQueries";
 import { supabase } from "@/integrations/supabase/client";
-import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
 import { format } from "date-fns";
@@ -37,55 +37,13 @@ export function DefensePacketGenerator() {
   const { data: comps } = useComparableSales(parcel.id, parcel.neighborhoodCode, parcel.assessedValue);
 
   // Fetch model receipts for this parcel
-  const { data: receipts } = useQuery({
-    queryKey: ["model-receipts", parcel.id],
-    queryFn: async () => {
-      if (!parcel.id) return [];
-      const { data, error } = await supabase
-        .from("model_receipts")
-        .select("*")
-        .eq("parcel_id", parcel.id)
-        .order("created_at", { ascending: false })
-        .limit(10);
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!parcel.id,
-  });
+  const { data: receipts } = useModelReceipts(parcel.id);
 
   // Fetch trace events for audit trail appendix
-  const { data: traceEvents } = useQuery({
-    queryKey: ["defense-trace-events", parcel.id],
-    queryFn: async () => {
-      if (!parcel.id) return [];
-      const { data, error } = await supabase
-        .from("trace_events")
-        .select("*")
-        .eq("parcel_id", parcel.id)
-        .order("created_at", { ascending: false })
-        .limit(25);
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!parcel.id,
-  });
+  const { data: traceEvents } = useDefenseTraceEvents(parcel.id);
 
   // Fetch appeals for this parcel
-  const { data: appeals } = useQuery({
-    queryKey: ["defense-appeals", parcel.id],
-    queryFn: async () => {
-      if (!parcel.id) return [];
-      const { data, error } = await supabase
-        .from("appeals")
-        .select("id, parcel_id, county_id, appeal_date, hearing_date, resolution_date, original_value, requested_value, final_value, tax_year, status, resolution_type, notes, created_at, updated_at")
-        .eq("parcel_id", parcel.id)
-        .order("appeal_date", { ascending: false })
-        .limit(10);
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!parcel.id,
-  });
+  const { data: appeals } = useDefenseAppeals(parcel.id);
 
   const handleGenerate = async () => {
     if (!hasParcel) return;
