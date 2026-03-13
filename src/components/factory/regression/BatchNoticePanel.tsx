@@ -52,23 +52,11 @@ export function BatchNoticePanel({ calibrationRunId, neighborhoodCode, rSquared 
       if (!calibrationRunId) throw new Error("Save calibration run first");
 
       // Fetch all active adjustments for this run
-      const { data: adjustments, error } = await supabase
-        .from("value_adjustments")
-        .select("parcel_id, previous_value, new_value")
-        .eq("calibration_run_id", calibrationRunId)
-        .is("rolled_back_at", null);
-
-      if (error) throw error;
-      if (!adjustments || adjustments.length === 0) {
-        throw new Error("No active adjustments found — apply batch first");
-      }
+      const adjustments = await fetchActiveAdjustments(calibrationRunId);
 
       // Fetch parcel details
       const parcelIds = adjustments.map(a => a.parcel_id);
-      const { data: parcels } = await supabase
-        .from("parcels")
-        .select("id, parcel_number, address")
-        .in("id", parcelIds.slice(0, 500));
+      const parcels = await fetchParcelDetails(parcelIds);
 
       const parcelMap = new Map(
         (parcels || []).map(p => [p.id, { parcelNumber: p.parcel_number, address: p.address }])
