@@ -2712,6 +2712,22 @@ export type Database = {
         Args: { p_county_id: string; p_limit?: number }
         Returns: Json
       }
+      compute_ratio_distribution: {
+        Args: {
+          p_neighborhood_code?: string
+          p_outlier_method?: string
+          p_sales_end_date?: string
+          p_sales_start_date?: string
+          p_tax_year?: number
+        }
+        Returns: {
+          parcel_count: number
+          percentage: number
+          range_label: string
+          range_max: number
+          range_min: number
+        }[]
+      }
       compute_ratio_statistics:
         | {
             Args: {

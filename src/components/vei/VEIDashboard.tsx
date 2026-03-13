@@ -11,6 +11,7 @@ import { VEIDashboardSkeleton } from "./VEIDashboardSkeleton";
 import { VEIEmptyState } from "./VEIEmptyState";
 import { TaxYearSelector } from "./TaxYearSelector";
 import { SalesWindowSelector } from "./SalesWindowSelector";
+import { NeighborhoodComparisonGrid } from "./NeighborhoodComparisonGrid";
 import { 
   PRDDrilldownDialog, 
   CODDrilldownDialog, 
@@ -19,7 +20,7 @@ import {
 } from "./drilldown";
 import { Activity, TrendingUp, BarChart3, AlertTriangle, Percent, Target, Filter, Info, Compass } from "lucide-react";
 import { ScopeHeader, ProvenanceBadge } from "@/components/trust";
-import { useRatioAnalysis, useTaxYears, type OutlierMethod } from "@/hooks/useRatioAnalysis";
+import { useRatioAnalysis, useTaxYears, useNeighborhoodRatioComparison, type OutlierMethod } from "@/hooks/useRatioAnalysis";
 import { useHistoricalRatioTrend, useAppealsByValueTier } from "@/hooks/useHistoricalRatioTrend";
 import { useFieldCohort } from "@/hooks/useFieldCohort";
 import { Badge } from "@/components/ui/badge";
@@ -75,6 +76,11 @@ export function VEIDashboard() {
 
   // Fetch real appeals by value tier
   const { data: appealsData = [] } = useAppealsByValueTier(selectedYear);
+
+  // Fetch neighborhood comparison data
+  const { data: nbhdComparison = [], isLoading: isLoadingNbhd } = useNeighborhoodRatioComparison(
+    selectedYear, salesStartStr, salesEndStr
+  );
 
   const isLoading = isLoadingYears || isLoadingStats || isLoadingTrend;
 
@@ -422,6 +428,11 @@ export function VEIDashboard() {
           <TierRatioPlot data={tierMedians} />
         </motion.div>
 
+        {/* Neighborhood Comparison Grid */}
+        <motion.div variants={itemVariants}>
+          <NeighborhoodComparisonGrid data={nbhdComparison as any} isLoading={isLoadingNbhd} />
+        </motion.div>
+
         {/* Footer Info */}
         <motion.div variants={itemVariants} className="text-center text-xs text-muted-foreground py-4">
           <p>
@@ -442,11 +453,18 @@ export function VEIDashboard() {
         open={activeDrilldown === "prd"}
         onOpenChange={(open) => !open && setActiveDrilldown(null)}
         data={prdTrendData}
+        taxYear={selectedYear}
+        salesStartDate={salesStartStr}
+        salesEndDate={salesEndStr}
       />
       <CODDrilldownDialog
         open={activeDrilldown === "cod"}
         onOpenChange={(open) => !open && setActiveDrilldown(null)}
         data={codTrendData}
+        taxYear={selectedYear}
+        salesStartDate={salesStartStr}
+        salesEndDate={salesEndStr}
+        outlierMethod={outlierMethod}
       />
       <TierSlopeDrilldownDialog
         open={activeDrilldown === "tier"}
