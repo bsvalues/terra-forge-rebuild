@@ -278,6 +278,83 @@ export type Database = {
           },
         ]
       }
+      avm_runs: {
+        Row: {
+          cod: number | null
+          county_id: string
+          created_at: string
+          created_by: string
+          feature_importance: Json | null
+          id: string
+          mae: number | null
+          mape: number | null
+          model_name: string
+          model_type: string
+          model_version: string
+          prd: number | null
+          predictions: Json | null
+          r_squared: number | null
+          rmse: number | null
+          sample_size: number | null
+          status: string
+          training_config: Json | null
+          training_time_ms: number | null
+          updated_at: string
+        }
+        Insert: {
+          cod?: number | null
+          county_id: string
+          created_at?: string
+          created_by?: string
+          feature_importance?: Json | null
+          id?: string
+          mae?: number | null
+          mape?: number | null
+          model_name?: string
+          model_type?: string
+          model_version?: string
+          prd?: number | null
+          predictions?: Json | null
+          r_squared?: number | null
+          rmse?: number | null
+          sample_size?: number | null
+          status?: string
+          training_config?: Json | null
+          training_time_ms?: number | null
+          updated_at?: string
+        }
+        Update: {
+          cod?: number | null
+          county_id?: string
+          created_at?: string
+          created_by?: string
+          feature_importance?: Json | null
+          id?: string
+          mae?: number | null
+          mape?: number | null
+          model_name?: string
+          model_type?: string
+          model_version?: string
+          prd?: number | null
+          predictions?: Json | null
+          r_squared?: number | null
+          rmse?: number | null
+          sample_size?: number | null
+          status?: string
+          training_config?: Json | null
+          training_time_ms?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "avm_runs_county_id_fkey"
+            columns: ["county_id"]
+            isOneToOne: false
+            referencedRelation: "counties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       calibration_runs: {
         Row: {
           coefficients: Json
