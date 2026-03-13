@@ -18,8 +18,8 @@ import {
 } from "lucide-react";
 import { useWorkbench } from "@/components/workbench/WorkbenchContext";
 import { useAssessmentHistory, useParcelSales, useComparableSales } from "@/hooks/useParcelDetails";
+import { useModelReceipts, useDefenseTraceEvents, useDefenseAppeals } from "@/hooks/useDaisQueries";
 import { supabase } from "@/integrations/supabase/client";
-import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
 import { format } from "date-fns";
