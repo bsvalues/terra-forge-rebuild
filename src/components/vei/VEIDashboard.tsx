@@ -77,6 +77,11 @@ export function VEIDashboard() {
   // Fetch real appeals by value tier
   const { data: appealsData = [] } = useAppealsByValueTier(selectedYear);
 
+  // Fetch neighborhood comparison data
+  const { data: nbhdComparison = [], isLoading: isLoadingNbhd } = useNeighborhoodRatioComparison(
+    selectedYear, salesStartStr, salesEndStr
+  );
+
   const isLoading = isLoadingYears || isLoadingStats || isLoadingTrend;
 
   if (isLoading) {
