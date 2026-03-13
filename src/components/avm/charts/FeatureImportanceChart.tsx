@@ -1,27 +1,34 @@
 import { motion } from "framer-motion";
-import { cn } from "@/lib/utils";
 
-interface FeatureImportance {
+interface FeatureItem {
   feature: string;
-  rfImportance: number;
-  nnImportance: number;
+  importance: number;
 }
 
-export function FeatureImportanceChart() {
-  const features: FeatureImportance[] = [
-    { feature: "Living Area", rfImportance: 0.28, nnImportance: 0.31 },
-    { feature: "Location Score", rfImportance: 0.22, nnImportance: 0.19 },
-    { feature: "Year Built", rfImportance: 0.15, nnImportance: 0.17 },
-    { feature: "Lot Size", rfImportance: 0.12, nnImportance: 0.10 },
-    { feature: "Bedrooms", rfImportance: 0.08, nnImportance: 0.09 },
-    { feature: "Bathrooms", rfImportance: 0.07, nnImportance: 0.06 },
-    { feature: "Garage", rfImportance: 0.05, nnImportance: 0.05 },
-    { feature: "Pool", rfImportance: 0.03, nnImportance: 0.03 },
-  ];
+interface FeatureImportanceChartProps {
+  rfFeatures: FeatureItem[];
+  nnFeatures: FeatureItem[];
+}
 
-  const maxValue = Math.max(
-    ...features.flatMap((f) => [f.rfImportance, f.nnImportance])
-  );
+export function FeatureImportanceChart({ rfFeatures, nnFeatures }: FeatureImportanceChartProps) {
+  // Merge by feature name
+  const featureMap = new Map<string, { rf: number; nn: number }>();
+  for (const f of rfFeatures) featureMap.set(f.feature, { rf: f.importance, nn: 0 });
+  for (const f of nnFeatures) {
+    const existing = featureMap.get(f.feature) ?? { rf: 0, nn: 0 };
+    existing.nn = f.importance;
+    featureMap.set(f.feature, existing);
+  }
+
+  const features = Array.from(featureMap.entries())
+    .map(([feature, vals]) => ({ feature, ...vals }))
+    .sort((a, b) => b.rf - a.rf);
+
+  const maxValue = Math.max(...features.flatMap((f) => [f.rf, f.nn]), 0.01);
+
+  if (features.length === 0) {
+    return <div className="h-64 flex items-center justify-center text-sm text-muted-foreground">No feature data</div>;
+  }
 
   return (
     <div className="h-64 overflow-y-auto pr-2">
@@ -35,51 +42,29 @@ export function FeatureImportanceChart() {
             className="space-y-1"
           >
             <div className="flex items-center justify-between">
-              <span className="text-xs text-foreground truncate max-w-[100px]">
-                {feature.feature}
-              </span>
+              <span className="text-xs text-foreground truncate max-w-[100px]">{feature.feature}</span>
               <div className="flex items-center gap-2">
-                <span className="text-xs text-tf-optimized-green">
-                  {(feature.rfImportance * 100).toFixed(0)}%
-                </span>
-                <span className="text-xs text-tf-cyan">
-                  {(feature.nnImportance * 100).toFixed(0)}%
-                </span>
+                <span className="text-xs text-[hsl(var(--tf-optimized-green))]">{(feature.rf * 100).toFixed(0)}%</span>
+                <span className="text-xs text-[hsl(var(--tf-transcend-cyan))]">{(feature.nn * 100).toFixed(0)}%</span>
               </div>
             </div>
-
-            {/* RF Bar */}
-            <div className="h-1.5 bg-tf-elevated rounded-full overflow-hidden">
-              <motion.div
-                initial={{ width: 0 }}
-                animate={{ width: `${(feature.rfImportance / maxValue) * 100}%` }}
-                transition={{ duration: 0.5, delay: index * 0.05 }}
-                className="h-full bg-tf-optimized-green rounded-full"
-              />
+            <div className="h-1.5 bg-[hsl(var(--tf-elevated))] rounded-full overflow-hidden">
+              <motion.div initial={{ width: 0 }} animate={{ width: `${(feature.rf / maxValue) * 100}%` }} transition={{ duration: 0.5, delay: index * 0.05 }} className="h-full bg-[hsl(var(--tf-optimized-green))] rounded-full" />
             </div>
-
-            {/* NN Bar */}
-            <div className="h-1.5 bg-tf-elevated rounded-full overflow-hidden">
-              <motion.div
-                initial={{ width: 0 }}
-                animate={{ width: `${(feature.nnImportance / maxValue) * 100}%` }}
-                transition={{ duration: 0.5, delay: index * 0.05 + 0.1 }}
-                className="h-full bg-tf-cyan rounded-full"
-              />
+            <div className="h-1.5 bg-[hsl(var(--tf-elevated))] rounded-full overflow-hidden">
+              <motion.div initial={{ width: 0 }} animate={{ width: `${(feature.nn / maxValue) * 100}%` }} transition={{ duration: 0.5, delay: index * 0.05 + 0.1 }} className="h-full bg-[hsl(var(--tf-transcend-cyan))] rounded-full" />
             </div>
           </motion.div>
         ))}
       </div>
-
-      {/* Legend */}
       <div className="flex items-center justify-center gap-4 mt-4 pt-2 border-t border-border/50">
         <div className="flex items-center gap-1">
-          <div className="w-3 h-1.5 rounded-full bg-tf-optimized-green" />
-          <span className="text-xs text-muted-foreground">RF SHAP</span>
+          <div className="w-3 h-1.5 rounded-full bg-[hsl(var(--tf-optimized-green))]" />
+          <span className="text-xs text-muted-foreground">RF</span>
         </div>
         <div className="flex items-center gap-1">
-          <div className="w-3 h-1.5 rounded-full bg-tf-cyan" />
-          <span className="text-xs text-muted-foreground">NN SHAP</span>
+          <div className="w-3 h-1.5 rounded-full bg-[hsl(var(--tf-transcend-cyan))]" />
+          <span className="text-xs text-muted-foreground">NN</span>
         </div>
       </div>
     </div>

@@ -15,6 +15,7 @@ import {
   Map,
   Compass,
   TrendingUp,
+  Brain,
   Hexagon,
   type LucideIcon,
 } from "lucide-react";
@@ -111,6 +112,7 @@ export const IA_MODULES: ModuleDefinition[] = [
       { id: "calibration", label: "Calibration", icon: Factory, scope: "neighborhood" },
       { id: "vei", label: "Ratio Studies", icon: BarChart3, scope: "run" },
       { id: "geoequity", label: "Spatial Analysis", icon: Map, scope: "neighborhood" },
+      { id: "avm", label: "AVM Studio", icon: Brain, scope: "run" },
       { id: "analytics", label: "Analytics", icon: TrendingUp, scope: "run" },
     ],
   },
@@ -140,6 +142,7 @@ export const LEGACY_REDIRECTS: LegacyRedirect[] = [
   // Factory absorbs these
   { legacyId: "vei", targetModule: "factory", targetView: "vei" },
   { legacyId: "geoequity", targetModule: "factory", targetView: "geoequity" },
+  { legacyId: "avm", targetModule: "factory", targetView: "avm" },
   { legacyId: "analytics", targetModule: "factory", targetView: "analytics" },
   // Workbench absorbs Field
   { legacyId: "field", targetModule: "workbench", targetView: "field" },

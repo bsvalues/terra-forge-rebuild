@@ -1,148 +1,56 @@
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import {
-  Activity,
-  BarChart3,
-  Percent,
-  Target,
-  TrendingDown,
-  Sigma,
+  Activity, BarChart3, Percent, Target, TrendingDown, Sigma,
 } from "lucide-react";
+import type { AVMRun } from "@/hooks/useAVMRuns";
 
-interface MetricCard {
-  id: string;
-  label: string;
-  rfValue: string;
-  nnValue: string;
-  winner: "rf" | "nn" | "tie";
-  description: string;
-  icon: typeof Activity;
+interface ModelMetricsGridProps {
+  champion: AVMRun | null;
+  challenger: AVMRun | null;
 }
 
-export function ModelMetricsGrid() {
-  const metrics: MetricCard[] = [
-    {
-      id: "r2",
-      label: "R² Score",
-      rfValue: "0.9247",
-      nnValue: "0.9189",
-      winner: "rf",
-      description: "Coefficient of determination",
-      icon: Target,
-    },
-    {
-      id: "rmse",
-      label: "RMSE",
-      rfValue: "$12,847",
-      nnValue: "$13,421",
-      winner: "rf",
-      description: "Root mean square error",
-      icon: TrendingDown,
-    },
-    {
-      id: "mae",
-      label: "MAE",
-      rfValue: "$9,234",
-      nnValue: "$9,876",
-      winner: "rf",
-      description: "Mean absolute error",
-      icon: BarChart3,
-    },
-    {
-      id: "mape",
-      label: "MAPE",
-      rfValue: "4.2%",
-      nnValue: "4.6%",
-      winner: "rf",
-      description: "Mean absolute percentage error",
-      icon: Percent,
-    },
-    {
-      id: "cod",
-      label: "COD",
-      rfValue: "8.4",
-      nnValue: "9.1",
-      winner: "rf",
-      description: "Coefficient of dispersion",
-      icon: Sigma,
-    },
-    {
-      id: "prd",
-      label: "PRD",
-      rfValue: "1.02",
-      nnValue: "1.04",
-      winner: "rf",
-      description: "Price-related differential",
-      icon: Activity,
-    },
+export function ModelMetricsGrid({ champion, challenger }: ModelMetricsGridProps) {
+  const metrics = [
+    { id: "r2", label: "R² Score", rfVal: champion?.r_squared, nnVal: challenger?.r_squared, fmt: (v: number) => v.toFixed(4), higherBetter: true, icon: Target },
+    { id: "rmse", label: "RMSE", rfVal: champion?.rmse, nnVal: challenger?.rmse, fmt: (v: number) => `$${(v / 1000).toFixed(1)}k`, higherBetter: false, icon: TrendingDown },
+    { id: "mae", label: "MAE", rfVal: champion?.mae, nnVal: challenger?.mae, fmt: (v: number) => `$${(v / 1000).toFixed(1)}k`, higherBetter: false, icon: BarChart3 },
+    { id: "mape", label: "MAPE", rfVal: champion?.mape, nnVal: challenger?.mape, fmt: (v: number) => `${v}%`, higherBetter: false, icon: Percent },
+    { id: "cod", label: "COD", rfVal: champion?.cod, nnVal: challenger?.cod, fmt: (v: number) => v.toFixed(1), higherBetter: false, icon: Sigma },
+    { id: "prd", label: "PRD", rfVal: champion?.prd, nnVal: challenger?.prd, fmt: (v: number) => v.toFixed(3), higherBetter: false, icon: Activity },
   ];
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-      {metrics.map((metric, index) => {
-        const Icon = metric.icon;
+      {metrics.map((m, index) => {
+        const Icon = m.icon;
+        const rfV = m.rfVal ?? 0;
+        const nnV = m.nnVal ?? 0;
+        const rfWins = m.higherBetter ? rfV >= nnV : rfV <= nnV;
 
         return (
           <motion.div
-            key={metric.id}
+            key={m.id}
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: index * 0.05 }}
             className="material-bento rounded-lg p-4"
           >
-            {/* Header */}
             <div className="flex items-center justify-between mb-3">
               <Icon className="w-4 h-4 text-muted-foreground" />
-              <span className="text-xs text-muted-foreground">{metric.label}</span>
+              <span className="text-xs text-muted-foreground">{m.label}</span>
             </div>
-
-            {/* Values Comparison */}
             <div className="space-y-2">
-              {/* Random Forest */}
-              <div
-                className={cn(
-                  "flex items-center justify-between p-2 rounded",
-                  metric.winner === "rf"
-                    ? "bg-tf-optimized-green/10 border border-tf-optimized-green/30"
-                    : "bg-muted/30"
-                )}
-              >
+              <div className={cn("flex items-center justify-between p-2 rounded", rfWins ? "bg-[hsl(var(--tf-optimized-green)/0.1)] border border-[hsl(var(--tf-optimized-green)/0.3)]" : "bg-muted/30")}>
                 <span className="text-xs text-muted-foreground">RF</span>
-                <span
-                  className={cn(
-                    "text-sm font-medium",
-                    metric.winner === "rf" ? "text-tf-optimized-green" : "text-foreground"
-                  )}
-                >
-                  {metric.rfValue}
-                </span>
+                <span className={cn("text-sm font-medium", rfWins ? "text-[hsl(var(--tf-optimized-green))]" : "text-foreground")}>{m.fmt(rfV)}</span>
               </div>
-
-              {/* Neural Network */}
-              <div
-                className={cn(
-                  "flex items-center justify-between p-2 rounded",
-                  metric.winner === "nn"
-                    ? "bg-tf-cyan/10 border border-tf-cyan/30"
-                    : "bg-muted/30"
-                )}
-              >
+              <div className={cn("flex items-center justify-between p-2 rounded", !rfWins ? "bg-[hsl(var(--tf-transcend-cyan)/0.1)] border border-[hsl(var(--tf-transcend-cyan)/0.3)]" : "bg-muted/30")}>
                 <span className="text-xs text-muted-foreground">NN</span>
-                <span
-                  className={cn(
-                    "text-sm font-medium",
-                    metric.winner === "nn" ? "text-tf-cyan" : "text-foreground"
-                  )}
-                >
-                  {metric.nnValue}
-                </span>
+                <span className={cn("text-sm font-medium", !rfWins ? "text-[hsl(var(--tf-transcend-cyan))]" : "text-foreground")}>{m.fmt(nnV)}</span>
               </div>
             </div>
-
-            {/* Description */}
-            <p className="text-xs text-muted-foreground mt-2 truncate">
-              {metric.description}
-            </p>
+            <p className="text-xs text-muted-foreground mt-2 truncate">{m.label}</p>
           </motion.div>
         );
       })}
