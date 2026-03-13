@@ -46,47 +46,10 @@ export function ParcelFiltersPanel({
   loading,
 }: ParcelFiltersProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [neighborhoods, setNeighborhoods] = useState<string[]>([]);
-  const [propertyClasses, setPropertyClasses] = useState<string[]>([]);
-  const [cities, setCities] = useState<string[]>([]);
-
-  // Fetch unique filter values from database
-  useEffect(() => {
-    const fetchFilterOptions = async () => {
-      const [nbhResult, classResult, cityResult] = await Promise.all([
-        supabase
-          .from("parcels")
-          .select("neighborhood_code")
-          .not("neighborhood_code", "is", null)
-          .limit(500),
-        supabase
-          .from("parcels")
-          .select("property_class")
-          .not("property_class", "is", null)
-          .limit(100),
-        supabase
-          .from("parcels")
-          .select("city")
-          .not("city", "is", null)
-          .limit(100),
-      ]);
-
-      if (nbhResult.data) {
-        const unique = [...new Set(nbhResult.data.map((p) => p.neighborhood_code))].filter(Boolean).sort();
-        setNeighborhoods(unique as string[]);
-      }
-      if (classResult.data) {
-        const unique = [...new Set(classResult.data.map((p) => p.property_class))].filter(Boolean).sort();
-        setPropertyClasses(unique as string[]);
-      }
-      if (cityResult.data) {
-        const unique = [...new Set(cityResult.data.map((p) => p.city))].filter(Boolean).sort();
-        setCities(unique as string[]);
-      }
-    };
-
-    fetchFilterOptions();
-  }, []);
+  const { data: distincts } = useParcelFilterDistincts();
+  const neighborhoods = distincts?.neighborhoods || [];
+  const propertyClasses = distincts?.propertyClasses || [];
+  const cities = distincts?.cities || [];
 
   const activeFilterCount = Object.values(filters).filter((v) => v !== undefined && v !== "").length;
 
