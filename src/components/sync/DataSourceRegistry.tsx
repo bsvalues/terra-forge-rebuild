@@ -31,8 +31,7 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
-import { supabase } from "@/integrations/supabase/client";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useDataSourcesList, useAddDataSource, useDeleteDataSource } from "@/hooks/useDataSources";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 
