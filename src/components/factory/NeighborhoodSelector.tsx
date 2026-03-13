@@ -1,6 +1,5 @@
 import { useNeighborhoodYear } from "@/hooks/useNeighborhoodYear";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { useLegacyNeighborhoodCodes } from "@/hooks/useIDSQueries";
 import {
   Select,
   SelectContent,
