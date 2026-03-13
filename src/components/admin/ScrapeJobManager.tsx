@@ -114,6 +114,8 @@ const REGION_COLORS: Record<string, string> = {
 
 export function ScrapeJobManager() {
   const queryClient = useQueryClient();
+  const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; action: string; jobId?: string; selectedRegions?: string[] }>({ open: false, action: "" });
+  const [selectedRegions, setSelectedRegions] = useState<string[]>([]);
 
   // Fetch all jobs
   const { data: jobs = [], isLoading, refetch } = useScrapeJobsList();
