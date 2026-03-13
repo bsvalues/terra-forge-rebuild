@@ -54,23 +54,7 @@ import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 
-interface ScrapeJob {
-  id: string;
-  job_type: string;
-  status: string;
-  counties: unknown;
-  current_county: string | null;
-  counties_completed: number;
-  counties_total: number;
-  parcels_enriched: number;
-  sales_added: number;
-  errors: unknown;
-  started_at: string | null;
-  completed_at: string | null;
-  estimated_completion: string | null;
-  created_at: string;
-  updated_at: string;
-}
+// ScrapeJob type imported from hook
 
 const STATUS_CONFIG: Record<string, { color: string; icon: typeof Clock; label: string; spin?: boolean }> = {
   pending: { 
