@@ -31,7 +31,7 @@ import {
   Ruler,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { supabase } from "@/integrations/supabase/client";
+import { batchInsertParcels } from "@/services/ingestService";
 import { toast } from "sonner";
 
 interface ParcelImportWizardProps {
