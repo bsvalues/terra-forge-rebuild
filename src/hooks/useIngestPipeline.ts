@@ -284,10 +284,26 @@ export function useIngestPipeline() {
     return results;
   }, [schema, holyTrinity, effectiveAliases]);
 
+  // SHA-256 fingerprint for court-ready audit trail
+  const computeSHA256 = useCallback(async (file: File): Promise<string> => {
+    try {
+      const buffer = await file.arrayBuffer();
+      const hashBuffer = await crypto.subtle.digest("SHA-256", buffer);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      return hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
+    } catch {
+      return "";
+    }
+  }, []);
+
   const handleFileUpload = useCallback(async (file: File) => {
     const uploadStart = new Date().toISOString();
     try {
-      const parsed = await parseFile(file);
+      // Parse file + compute SHA-256 in parallel
+      const [parsed, sha256Hash] = await Promise.all([
+        parseFile(file),
+        computeSHA256(file),
+      ]);
       setParsedFile(parsed);
 
       // Upload to storage
@@ -301,7 +317,7 @@ export function useIngestPipeline() {
         // Continue anyway — file is parsed in memory
       }
 
-      // Create ingest job record
+      // Create ingest job record with SHA-256 fingerprint
       const { data: job, error: jobError } = await supabase
         .from("ingest_jobs")
         .insert({
@@ -313,6 +329,7 @@ export function useIngestPipeline() {
           target_table: targetTable,
           status: "uploaded",
           row_count: parsed.rowCount,
+          sha256_hash: sha256Hash || null,
         })
         .select()
         .single();
