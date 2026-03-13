@@ -1,73 +1,11 @@
 // TerraFusion OS — Audit Timeline Sparkline
-// Agent Sentinel: "My cat's breath smells like trace events" 🔥📎
+// Data Constitution compliant — uses useAuditTimeline hook
 
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { Activity, TrendingUp } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-
-interface DayBucket {
-  label: string;
-  count: number;
-  date: string;
-}
-
-function useAuditTimeline() {
-  return useQuery({
-    queryKey: ["audit-timeline-7d"],
-    queryFn: async () => {
-      const now = new Date();
-      const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-
-      const { data, error } = await supabase
-        .from("trace_events" as any)
-        .select("created_at")
-        .gte("created_at", sevenDaysAgo.toISOString())
-        .order("created_at", { ascending: true });
-
-      if (error || !data) return { buckets: [] as DayBucket[], total: 0, trend: 0 };
-
-      // Bucket by day
-      const bucketMap = new Map<string, number>();
-      for (let i = 6; i >= 0; i--) {
-        const d = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
-        const key = d.toISOString().split("T")[0];
-        bucketMap.set(key, 0);
-      }
-
-      for (const row of data as any[]) {
-        const key = new Date(row.created_at).toISOString().split("T")[0];
-        if (bucketMap.has(key)) {
-          bucketMap.set(key, (bucketMap.get(key) || 0) + 1);
-        }
-      }
-
-      const buckets: DayBucket[] = [];
-      for (const [date, count] of bucketMap) {
-        const d = new Date(date);
-        buckets.push({
-          label: d.toLocaleDateString("en-US", { weekday: "short" }),
-          count,
-          date,
-        });
-      }
-
-      const total = (data as any[]).length;
-
-      // Trend: compare last 3 days vs prior 4
-      const last3 = buckets.slice(-3).reduce((s, b) => s + b.count, 0);
-      const prior4 = buckets.slice(0, 4).reduce((s, b) => s + b.count, 0);
-      const avgLast = last3 / 3;
-      const avgPrior = prior4 / 4 || 1;
-      const trend = Math.round(((avgLast - avgPrior) / avgPrior) * 100);
-
-      return { buckets, total, trend };
-    },
-    staleTime: 60_000,
-  });
-}
+import { useAuditTimeline } from "@/hooks/useAuditTimeline";
 
 export function AuditTimelineSparkline() {
   const { data, isLoading } = useAuditTimeline();
@@ -120,7 +58,6 @@ export function AuditTimelineSparkline() {
                     key={bucket.date}
                     className="flex-1 flex flex-col items-center gap-1 group relative"
                   >
-                    {/* Tooltip */}
                     <div className="absolute -top-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
                       <div className="bg-popover border border-border rounded px-2 py-1 shadow-lg whitespace-nowrap">
                         <span className="text-[10px] font-medium text-foreground">{bucket.count} events</span>
