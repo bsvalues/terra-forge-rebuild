@@ -142,6 +142,7 @@ export const LEGACY_REDIRECTS: LegacyRedirect[] = [
   // Factory absorbs these
   { legacyId: "vei", targetModule: "factory", targetView: "vei" },
   { legacyId: "geoequity", targetModule: "factory", targetView: "geoequity" },
+  { legacyId: "avm", targetModule: "factory", targetView: "avm" },
   { legacyId: "analytics", targetModule: "factory", targetView: "analytics" },
   // Workbench absorbs Field
   { legacyId: "field", targetModule: "workbench", targetView: "field" },
