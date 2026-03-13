@@ -15,6 +15,7 @@ import {
   Map,
   Compass,
   TrendingUp,
+  Brain,
   Hexagon,
   type LucideIcon,
 } from "lucide-react";
