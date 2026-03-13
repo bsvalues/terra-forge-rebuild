@@ -4,7 +4,7 @@
 
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { fetchNeighborhoodParcels } from "@/services/ingestService";
 import { batchApplyAdjustments } from "@/services/suites/forgeService";
 import { generateCalibrationNarrative } from "@/services/suites/dossierService";
 import { invalidateFactory, invalidateParcel } from "@/lib/queryInvalidation";
