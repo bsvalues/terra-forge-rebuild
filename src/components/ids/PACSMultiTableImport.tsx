@@ -117,13 +117,12 @@ export function PACSMultiTableImport({ onBack }: PACSMultiTableImportProps) {
     setPublishProgress(0);
     let imported = 0;
     let failed = 0;
-    const BATCH_SIZE = 500;
 
     // Determine progress allocation based on what data exists
     const hasPermits = joinResult.permits.length > 0;
     const hasAssessments = joinResult.assessments.length > 0;
     const hasExemptions = joinResult.exemptions.length > 0;
-    const phases = 1 + (hasPermits ? 1 : 0) + (hasAssessments ? 1 : 0) + (hasExemptions ? 1 : 0) + 1; // +1 for backfill
+    const phases = 1 + (hasPermits ? 1 : 0) + (hasAssessments ? 1 : 0) + (hasExemptions ? 1 : 0) + 1;
     const phaseSize = Math.floor(95 / phases);
     let progressBase = 0;
 
@@ -134,46 +133,20 @@ export function PACSMultiTableImport({ onBack }: PACSMultiTableImportProps) {
     }));
 
     setPublishPhase(`Phase 1/${phases}: Publishing ${parcelRecords.length.toLocaleString()} parcels...`);
-
-    for (let i = 0; i < parcelRecords.length; i += BATCH_SIZE) {
-      const batch = parcelRecords.slice(i, i + BATCH_SIZE);
-      const { error } = await supabase.from("parcels").upsert(batch as any[], {
-        onConflict: "county_id,parcel_number",
-      });
-      if (error) {
-        console.error("Parcel batch error:", error.message);
-        failed += batch.length;
-      } else {
-        imported += batch.length;
-      }
-      setPublishProgress(progressBase + Math.round(((i + batch.length) / parcelRecords.length) * phaseSize));
-    }
+    const parcelResult = await upsertParcels(parcelRecords, 500, (pct) => {
+      setPublishProgress(progressBase + Math.round(pct * phaseSize / 100));
+    });
+    imported += parcelResult.imported;
+    failed += parcelResult.failed;
     progressBase += phaseSize;
 
     // Build parcel ID lookup for downstream phases
-    const parcelLookup: Record<string, string> = {};
-    let offset = 0;
-    let hasMore = true;
     setPublishPhase("Resolving parcel IDs...");
-    while (hasMore) {
-      const { data } = await supabase
-        .from("parcels")
-        .select("id, parcel_number")
-        .eq("county_id", profile.county_id)
-        .range(offset, offset + 999);
-      if (data && data.length > 0) {
-        for (const p of data) parcelLookup[p.parcel_number] = p.id;
-        offset += data.length;
-        hasMore = data.length === 1000;
-      } else {
-        hasMore = false;
-      }
-    }
+    const parcelLookup = await resolveParcelIds(profile.county_id);
 
     // Phase 2: Permits
     if (hasPermits) {
-      const phaseNum = 2;
-      setPublishPhase(`Phase ${phaseNum}/${phases}: Publishing ${joinResult.permits.length.toLocaleString()} permits...`);
+      setPublishPhase(`Phase 2/${phases}: Publishing ${joinResult.permits.length.toLocaleString()} permits...`);
       
       const permitRecords = joinResult.permits
         .map(p => {
@@ -189,23 +162,17 @@ export function PACSMultiTableImport({ onBack }: PACSMultiTableImportProps) {
             estimated_value: p.estimated_value,
           };
         })
-        .filter(Boolean);
+        .filter(Boolean) as Record<string, unknown>[];
 
-      for (let i = 0; i < permitRecords.length; i += BATCH_SIZE) {
-        const batch = permitRecords.slice(i, i + BATCH_SIZE);
-        const { error } = await supabase.from("permits").upsert(batch as any[]);
-        if (error) {
-          console.error("Permit batch error:", error.message);
-          failed += batch.length;
-        } else {
-          imported += batch.length;
-        }
-        setPublishProgress(progressBase + Math.round(((i + batch.length) / permitRecords.length) * phaseSize));
-      }
+      const permitResult = await upsertPermits(permitRecords, 500, (pct) => {
+        setPublishProgress(progressBase + Math.round(pct * phaseSize / 100));
+      });
+      imported += permitResult.imported;
+      failed += permitResult.failed;
       progressBase += phaseSize;
     }
 
-    // Phase 3: Assessments (from roll_value_history)
+    // Phase 3: Assessments
     if (hasAssessments) {
       setPublishPhase(`Publishing ${joinResult.assessments.length.toLocaleString()} assessment records...`);
       
@@ -222,21 +189,13 @@ export function PACSMultiTableImport({ onBack }: PACSMultiTableImportProps) {
             total_value: a.total_value,
           };
         })
-        .filter(Boolean);
+        .filter(Boolean) as Record<string, unknown>[];
 
-      for (let i = 0; i < assessmentRecords.length; i += BATCH_SIZE) {
-        const batch = assessmentRecords.slice(i, i + BATCH_SIZE);
-        const { error } = await supabase.from("assessments").upsert(batch as any[], {
-          onConflict: "parcel_id,tax_year",
-        });
-        if (error) {
-          console.error("Assessment batch error:", error.message);
-          failed += batch.length;
-        } else {
-          imported += batch.length;
-        }
-        setPublishProgress(progressBase + Math.round(((i + batch.length) / assessmentRecords.length) * phaseSize));
-      }
+      const assessResult = await upsertAssessments(assessmentRecords, 500, (pct) => {
+        setPublishProgress(progressBase + Math.round(pct * phaseSize / 100));
+      });
+      imported += assessResult.imported;
+      failed += assessResult.failed;
       progressBase += phaseSize;
     }
 
@@ -256,31 +215,19 @@ export function PACSMultiTableImport({ onBack }: PACSMultiTableImportProps) {
             exemption_percentage: e.exemption_percentage,
           };
         })
-        .filter(Boolean);
+        .filter(Boolean) as Record<string, unknown>[];
 
-      for (let i = 0; i < exemptionRecords.length; i += BATCH_SIZE) {
-        const batch = exemptionRecords.slice(i, i + BATCH_SIZE);
-        const { error } = await supabase.from("exemptions").upsert(batch as any[]);
-        if (error) {
-          console.error("Exemption batch error:", error.message);
-          failed += batch.length;
-        } else {
-          imported += batch.length;
-        }
-        setPublishProgress(progressBase + Math.round(((i + batch.length) / exemptionRecords.length) * phaseSize));
-      }
+      const exResult = await upsertExemptions(exemptionRecords, 500, (pct) => {
+        setPublishProgress(progressBase + Math.round(pct * phaseSize / 100));
+      });
+      imported += exResult.imported;
+      failed += exResult.failed;
       progressBase += phaseSize;
     }
 
     // Final Phase: Backfill assessments
     setPublishPhase("Backfilling assessments for TY 2026...");
-    const { error: backfillError } = await supabase.rpc("backfill_assessments" as any, {
-      p_county_id: profile.county_id,
-      p_tax_year: 2026,
-    });
-    if (backfillError) {
-      console.warn("Assessment backfill skipped:", backfillError.message);
-    }
+    await backfillAssessments(profile.county_id, 2026);
 
     setPublishProgress(100);
     setPublishPhase("Complete!");
