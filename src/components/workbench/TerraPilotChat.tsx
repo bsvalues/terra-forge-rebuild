@@ -94,6 +94,13 @@ const TOOL_LABELS: Record<string, string> = {
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/terrapilot-chat`;
 
+/** Get the current user's auth token for edge function calls */
+async function getAuthToken(): Promise<string> {
+  const { supabase } = await import("@/integrations/supabase/client");
+  const { data } = await supabase.auth.getSession();
+  return data.session?.access_token || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+}
+
 export function TerraPilotChat({ fullscreen = false }: TerraPilotChatProps) {
   const { pilotMode, parcel, studyPeriod, setSystemState, setParcel, setActiveTab } = useWorkbench();
   const { toast } = useToast();
@@ -139,11 +146,12 @@ export function TerraPilotChat({ fullscreen = false }: TerraPilotChatProps) {
     setSystemState("processing");
 
     try {
+      const token = await getAuthToken();
       const resp = await fetch(CHAT_URL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           messages: [],
@@ -211,11 +219,12 @@ export function TerraPilotChat({ fullscreen = false }: TerraPilotChatProps) {
         studyPeriod: studyPeriod.id ? studyPeriod : null,
       };
 
+      const token = await getAuthToken();
       const resp = await fetch(CHAT_URL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           messages: allMessages.map((m) => ({ role: m.role, content: m.content })),

@@ -24,10 +24,18 @@ import {
   Settings,
   Briefcase,
   Search,
-  ArrowRight,
   Keyboard,
+  MapPin,
+  DollarSign,
+  Navigation,
+  FileText,
+  Home,
+  Scale,
+  Loader2,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { useParcelSearch } from "@/hooks/useParcelSearch";
+import { useDebounce } from "@/hooks/useDebounce";
 
 interface CommandPaletteProps {
   open?: boolean;
@@ -61,13 +69,32 @@ const KEYBOARD_SHORTCUTS = [
   { keys: ["Esc"], description: "Close palette" },
 ];
 
+const formatCurrency = (v: number) =>
+  new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(v);
+
 export function CommandPalette({ open: controlledOpen, onOpenChange }: CommandPaletteProps) {
   const [internalOpen, setInternalOpen] = useState(false);
   const [showShortcuts, setShowShortcuts] = useState(false);
-  const { setActiveTab, setWorkMode, activeTab, workMode } = useWorkbench();
+  const [searchValue, setSearchValue] = useState("");
+  const { setActiveTab, setWorkMode, activeTab, workMode, parcel, setParcel } = useWorkbench();
+  const navigate = useNavigate();
 
   const open = controlledOpen ?? internalOpen;
   const setOpen = onOpenChange ?? setInternalOpen;
+
+  // Debounced parcel search
+  const debouncedSearch = useDebounce(searchValue, 250);
+  const { data: parcelResults = [], isLoading: isSearchingParcels } = useParcelSearch(debouncedSearch);
+
+  const hasParcel = parcel.id !== null;
+
+  // Reset search when closing
+  useEffect(() => {
+    if (!open) {
+      setSearchValue("");
+      setShowShortcuts(false);
+    }
+  }, [open]);
 
   // Cmd+K to open
   useEffect(() => {
@@ -77,29 +104,16 @@ export function CommandPalette({ open: controlledOpen, onOpenChange }: CommandPa
         setOpen(!open);
       }
       
-      // Number shortcuts for suites (Cmd+1-6)
       if ((e.metaKey || e.ctrlKey) && !e.shiftKey && ["1", "2", "3", "4", "5", "6"].includes(e.key)) {
         e.preventDefault();
         const index = parseInt(e.key) - 1;
-        if (SUITE_ITEMS[index]) {
-          setActiveTab(SUITE_ITEMS[index].tab);
-        }
+        if (SUITE_ITEMS[index]) setActiveTab(SUITE_ITEMS[index].tab);
       }
       
-      // Mode shortcuts (Cmd+Shift+Letter)
       if ((e.metaKey || e.ctrlKey) && e.shiftKey) {
-        const modeMap: Record<string, WorkMode> = {
-          o: "overview",
-          v: "valuation",
-          m: "mapping",
-          a: "admin",
-          c: "case",
-        };
+        const modeMap: Record<string, WorkMode> = { o: "overview", v: "valuation", m: "mapping", a: "admin", c: "case" };
         const mode = modeMap[e.key.toLowerCase()];
-        if (mode) {
-          e.preventDefault();
-          setWorkMode(mode);
-        }
+        if (mode) { e.preventDefault(); setWorkMode(mode); }
       }
     };
 
@@ -117,11 +131,144 @@ export function CommandPalette({ open: controlledOpen, onOpenChange }: CommandPa
     setOpen(false);
   }, [setWorkMode, setOpen]);
 
+  const handleSelectParcel = useCallback((result: typeof parcelResults[0]) => {
+    setParcel({
+      id: result.id,
+      parcelNumber: result.parcel_number,
+      address: result.address,
+      city: result.city,
+      assessedValue: result.assessed_value,
+      neighborhoodCode: result.neighborhood_code,
+    });
+    setOpen(false);
+  }, [setParcel, setOpen]);
+
   return (
     <CommandDialog open={open} onOpenChange={setOpen}>
-      <CommandInput placeholder="Type a command or search..." />
+      <CommandInput
+        placeholder="Search parcels, suites, or type a command..."
+        value={searchValue}
+        onValueChange={setSearchValue}
+      />
       <CommandList>
         <CommandEmpty>No results found.</CommandEmpty>
+
+        {/* Parcel Search Results — show when user types 2+ chars */}
+        {debouncedSearch.length >= 2 && (
+          <>
+            <CommandGroup heading={isSearchingParcels ? "Searching parcels..." : `Parcels (${parcelResults.length})`}>
+              {isSearchingParcels ? (
+                <div className="flex items-center gap-2 px-2 py-3 text-sm text-muted-foreground">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Searching...
+                </div>
+              ) : parcelResults.length > 0 ? (
+                parcelResults.map((result) => (
+                  <CommandItem
+                    key={result.id}
+                    value={`parcel ${result.parcel_number} ${result.address}`}
+                    onSelect={() => handleSelectParcel(result)}
+                    className="flex items-center gap-3"
+                  >
+                    <MapPin className="w-4 h-4 text-primary" />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-sm truncate">{result.address}</span>
+                        {result.neighborhood_code && (
+                          <Badge variant="outline" className="text-[10px] px-1.5 shrink-0">{result.neighborhood_code}</Badge>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <span className="font-mono">{result.parcel_number}</span>
+                        {result.city && <><span>•</span><span>{result.city}</span></>}
+                        <span>•</span>
+                        <span className="text-chart-5">{formatCurrency(result.assessed_value)}</span>
+                      </div>
+                    </div>
+                  </CommandItem>
+                ))
+              ) : (
+                <div className="px-2 py-3 text-sm text-muted-foreground">No parcels found</div>
+              )}
+            </CommandGroup>
+            <CommandSeparator />
+          </>
+        )}
+
+        {/* Context-Aware Quick Actions — when a parcel is selected */}
+        {hasParcel && (
+          <>
+            <CommandGroup heading={`Actions for ${parcel.parcelNumber}`}>
+              <CommandItem
+                value={`view summary ${parcel.parcelNumber}`}
+                onSelect={() => { setActiveTab("summary"); setOpen(false); }}
+                className="flex items-center gap-3"
+              >
+                <LayoutGrid className="w-4 h-4 text-primary" />
+                <div className="flex-1">
+                  <span>View Summary</span>
+                  <span className="text-xs text-muted-foreground ml-2">Property overview for {parcel.parcelNumber}</span>
+                </div>
+              </CommandItem>
+              <CommandItem
+                value={`locate map ${parcel.parcelNumber}`}
+                onSelect={() => { setActiveTab("atlas"); setOpen(false); }}
+                className="flex items-center gap-3"
+              >
+                <Navigation className="w-4 h-4 text-suite-atlas" />
+                <div className="flex-1">
+                  <span>Locate on Map</span>
+                  <span className="text-xs text-muted-foreground ml-2">Show {parcel.parcelNumber} on atlas</span>
+                </div>
+              </CommandItem>
+              <CommandItem
+                value={`view appeals ${parcel.parcelNumber}`}
+                onSelect={() => { setActiveTab("dais"); setOpen(false); }}
+                className="flex items-center gap-3"
+              >
+                <Scale className="w-4 h-4 text-suite-dais" />
+                <div className="flex-1">
+                  <span>View Workflows</span>
+                  <span className="text-xs text-muted-foreground ml-2">Appeals, permits, exemptions</span>
+                </div>
+              </CommandItem>
+              <CommandItem
+                value={`open documents ${parcel.parcelNumber}`}
+                onSelect={() => { setActiveTab("dossier"); setOpen(false); }}
+                className="flex items-center gap-3"
+              >
+                <FileText className="w-4 h-4 text-suite-dossier" />
+                <div className="flex-1">
+                  <span>Open Dossier</span>
+                  <span className="text-xs text-muted-foreground ml-2">Documents and evidence</span>
+                </div>
+              </CommandItem>
+              <CommandItem
+                value={`ask pilot about ${parcel.parcelNumber}`}
+                onSelect={() => { setActiveTab("pilot"); setOpen(false); }}
+                className="flex items-center gap-3"
+              >
+                <Sparkles className="w-4 h-4 text-primary" />
+                <div className="flex-1">
+                  <span>Ask TerraPilot</span>
+                  <span className="text-xs text-muted-foreground ml-2">AI analysis for this parcel</span>
+                </div>
+              </CommandItem>
+              <CommandItem
+                value={`open property page ${parcel.parcelNumber}`}
+                onSelect={() => { navigate(`/property/${parcel.id}`); setOpen(false); }}
+                className="flex items-center gap-3"
+              >
+                <Home className="w-4 h-4 text-muted-foreground" />
+                <div className="flex-1">
+                  <span>Open Property Page</span>
+                  <span className="text-xs text-muted-foreground ml-2">Full-page detail view</span>
+                </div>
+              </CommandItem>
+            </CommandGroup>
+            <CommandSeparator />
+          </>
+        )}
         
         {/* Suites */}
         <CommandGroup heading="Suites">
@@ -135,10 +282,10 @@ export function CommandPalette({ open: controlledOpen, onOpenChange }: CommandPa
                 onSelect={() => handleSelectSuite(item.tab)}
                 className="flex items-center gap-3"
               >
-                <Icon className="w-4 h-4 text-tf-cyan" />
+                <Icon className="w-4 h-4 text-primary" />
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
-                    <span className={isActive ? "font-medium text-tf-cyan" : ""}>{item.label}</span>
+                    <span className={isActive ? "font-medium text-primary" : ""}>{item.label}</span>
                     {isActive && <Badge variant="outline" className="text-[10px] px-1.5 py-0">Active</Badge>}
                   </div>
                   <span className="text-xs text-muted-foreground">{item.description}</span>
@@ -190,7 +337,6 @@ export function CommandPalette({ open: controlledOpen, onOpenChange }: CommandPa
             value="search parcels"
             onSelect={() => {
               setOpen(false);
-              // Focus search input
               const searchInput = document.querySelector('input[placeholder*="Search"]') as HTMLInputElement;
               searchInput?.focus();
             }}
@@ -198,8 +344,8 @@ export function CommandPalette({ open: controlledOpen, onOpenChange }: CommandPa
           >
             <Search className="w-4 h-4 text-muted-foreground" />
             <div className="flex-1">
-              <span>Search Parcels</span>
-              <span className="text-xs text-muted-foreground ml-2">Find properties by PIN or address</span>
+              <span>Focus Parcel Search</span>
+              <span className="text-xs text-muted-foreground ml-2">Open the ribbon search bar</span>
             </div>
           </CommandItem>
           <CommandItem
@@ -218,7 +364,6 @@ export function CommandPalette({ open: controlledOpen, onOpenChange }: CommandPa
           </CommandItem>
         </CommandGroup>
 
-        {/* Keyboard Shortcuts Panel */}
         {showShortcuts && (
           <>
             <CommandSeparator />
