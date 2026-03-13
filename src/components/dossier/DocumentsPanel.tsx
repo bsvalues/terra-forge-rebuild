@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useDossierDocuments, useDeleteDocument } from "@/hooks/useDossier";
-import { supabase } from "@/integrations/supabase/client";
+import { downloadDossierFile } from "@/services/ingestService";
 import { format } from "date-fns";
 
 interface Props {
