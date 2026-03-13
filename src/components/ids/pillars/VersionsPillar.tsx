@@ -31,18 +31,7 @@ interface VersionsPillarProps {
 }
 
 export function VersionsPillar({ highlightJobId, onJobIdConsumed }: VersionsPillarProps = {}) {
-  // Fetch ingest jobs for run history
-  const { data: ingestJobs } = useQuery({
-    queryKey: ["versions-ingest-jobs"],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("ingest_jobs")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .limit(20);
-      return data || [];
-    },
-  });
+  const { data: ingestJobs } = useIngestJobsHistory(20);
 
   // Scroll to highlighted job
   useEffect(() => {
