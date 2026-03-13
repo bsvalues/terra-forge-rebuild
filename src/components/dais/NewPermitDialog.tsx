@@ -66,21 +66,7 @@ export function NewPermitDialog({ open, onOpenChange }: NewPermitDialogProps) {
     },
   });
 
-  // Search parcels
-  const { data: parcels = [], isLoading: parcelsLoading } = useQuery({
-    queryKey: ["parcels-search", parcelSearch],
-    queryFn: async () => {
-      if (!parcelSearch || parcelSearch.length < 2) return [];
-      const { data, error } = await supabase
-        .from("parcels")
-        .select("id, parcel_number, address, city")
-        .or(`parcel_number.ilike.%${parcelSearch}%,address.ilike.%${parcelSearch}%`)
-        .limit(10);
-      if (error) throw error;
-      return data;
-    },
-    enabled: parcelSearch.length >= 2,
-  });
+  const { data: parcels = [], isLoading: parcelsLoading } = useParcelSearch(parcelSearch);
 
   const createPermit = useMutation({
     mutationFn: async (data: PermitFormData) => {

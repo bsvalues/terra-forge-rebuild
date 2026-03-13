@@ -120,27 +120,7 @@ export function ExemptionsWorkflow() {
     },
   });
 
-  const { data: exemptions = [], isLoading } = useQuery({
-    queryKey: ["exemptions-workflow", statusFilter],
-    queryFn: async () => {
-      let query = supabase
-        .from("exemptions")
-        .select(`
-          *,
-          parcel:parcels!exemptions_parcel_id_fkey(id, parcel_number, address, city, assessed_value)
-        `)
-        .order("application_date", { ascending: false })
-        .limit(100);
-
-      if (statusFilter !== "all") {
-        query = query.eq("status", statusFilter);
-      }
-
-      const { data, error } = await query;
-      if (error) throw error;
-      return data as Exemption[];
-    },
-  });
+  const { data: exemptions = [], isLoading } = useExemptionsWorkflow(statusFilter);
 
   const filteredExemptions = exemptions.filter((exemption) => {
     if (!searchQuery) return true;
