@@ -29,7 +29,7 @@ import {
   Waves,
   Trees,
 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { fetchParcelsForEnrichment, invokeAssessorScrape } from "@/services/ingestService";
 import { toast } from "sonner";
 import { ParcelFiltersPanel, type ParcelFilters } from "./ParcelFilters";
 import { BatchSizeSelector } from "./BatchSizeSelector";
