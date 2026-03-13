@@ -25,7 +25,7 @@ import {
   Info,
 } from "lucide-react";
 import { GISDataSource } from "@/hooks/useGISData";
-import { supabase } from "@/integrations/supabase/client";
+import { invokeArcGISSync } from "@/services/ingestService";
 import { toast } from "sonner";
 
 interface ArcGISImportDialogProps {
