@@ -49,9 +49,9 @@ import {
   ListOrdered,
   X,
 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { useScrapeJobsList, useStartScrapeJob, useCancelScrapeJob, useRetryScrapeJob, type ScrapeJob } from "@/hooks/useScrapeJobs";
 import { toast } from "sonner";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 
 interface ScrapeJob {
