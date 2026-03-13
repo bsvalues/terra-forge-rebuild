@@ -24,7 +24,7 @@ import {
   type SagaExecutionResult,
 } from "@/services/sagaOrchestrator";
 import { runSyncRefresh, runBulkImport, runAssessmentUpdate, runPACSMigration } from "@/services/syncEngine";
-import { supabase } from "@/integrations/supabase/client";
+import { fetchParcelsForSync } from "@/services/ingestService";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
