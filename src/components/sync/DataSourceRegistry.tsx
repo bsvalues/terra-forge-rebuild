@@ -240,7 +240,7 @@ export function DataSourceRegistry() {
           <DialogFooter>
             <Button variant="ghost" onClick={() => setShowAddDialog(false)}>Cancel</Button>
             <Button
-              onClick={() => addMutation.mutate()}
+              onClick={() => handleAdd()}
               disabled={!newSource.name || addMutation.isPending}
               className="gap-1.5"
             >

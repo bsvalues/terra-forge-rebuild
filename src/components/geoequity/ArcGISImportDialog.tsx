@@ -83,6 +83,7 @@ export function ArcGISImportDialog({
         sourceId: mode === "saved" ? selectedSourceId : undefined,
       });
 
+      clearInterval(progressInterval);
       setProgress(100);
       setResult(data as SyncResult);
 

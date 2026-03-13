@@ -44,7 +44,6 @@ export function FieldStudioDashboard() {
     try {
       const parcels = await pullFieldAssignments(20);
 
-      if (error) throw error;
       if (!parcels?.length) {
         toast.info("No parcels available for assignment");
         return;

@@ -92,14 +92,8 @@ export function SagaRunner() {
       result = await runSyncRefresh(
         "parcels",
         "id",
-        async () => {
-          const { data } = await supabase.from("parcels").select("*").limit(200);
-          return (data || []) as Record<string, unknown>[];
-        },
-        async () => {
-          const { data } = await supabase.from("parcels").select("*").limit(200);
-          return (data || []) as Record<string, unknown>[];
-        },
+        async () => fetchParcelsForSync(200),
+        async () => fetchParcelsForSync(200),
         async (deltas) => {
           // In production, this would apply real deltas; for now report what was detected
           return { applied: deltas.totalChanges, errors: [] };
