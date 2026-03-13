@@ -217,3 +217,68 @@ export async function recordModelRun(
 
   return data;
 }
+
+/**
+ * Apply scenario adjustments — batch write value_adjustments + update parcel values.
+ * Routes scenario mutations through the Forge write lane.
+ */
+export async function applyScenarioAdjustments(
+  neighborhoodCode: string,
+  adjustments: Array<{
+    parcelId: string;
+    previousValue: number;
+    newValue: number;
+  }>,
+  reason: string
+): Promise<{ applied: number }> {
+  assertWriteLane("value_adjustments", SOURCE);
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("county_id")
+    .single();
+
+  const countyId = profile?.county_id;
+  if (!countyId) throw new Error("No county assigned to your profile");
+
+  if (adjustments.length === 0) throw new Error("No parcels changed — nothing to apply");
+
+  const records = adjustments.map(adj => ({
+    county_id: countyId,
+    parcel_id: adj.parcelId,
+    previous_value: adj.previousValue,
+    new_value: adj.newValue,
+    adjustment_type: "scenario" as const,
+    adjustment_reason: reason,
+  }));
+
+  // Batch insert value_adjustments in chunks of 100
+  for (let i = 0; i < records.length; i += 100) {
+    const chunk = records.slice(i, i + 100);
+    const { error } = await supabase.from("value_adjustments").insert(chunk);
+    if (error) throw error;
+  }
+
+  // Update parcel assessed_values
+  for (const adj of adjustments) {
+    await supabase
+      .from("parcels")
+      .update({ assessed_value: adj.newValue })
+      .eq("id", adj.parcelId);
+  }
+
+  const correlationId = crypto.randomUUID();
+  await emitTraceEvent({
+    sourceModule: SOURCE,
+    eventType: "batch_adjustment_applied",
+    eventData: {
+      neighborhoodCode,
+      adjustmentType: "scenario",
+      batchSize: adjustments.length,
+      reason,
+    },
+    correlationId,
+  });
+
+  return { applied: adjustments.length };
+}

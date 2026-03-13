@@ -265,3 +265,122 @@ export async function generateNotice(
 
   return { success: true, noticeType };
 }
+
+/**
+ * Certify all parcels in a neighborhood for the current tax year.
+ * Creates assessments where missing, certifies existing ones.
+ */
+export async function certifyNeighborhood(neighborhoodCode: string): Promise<{ certified: number; created: number; total: number }> {
+  assertWriteLane("workflows", SOURCE);
+
+  const currentYear = new Date().getFullYear();
+  const now = new Date().toISOString();
+
+  const { data: parcels } = await supabase
+    .from("parcels")
+    .select("id")
+    .eq("neighborhood_code", neighborhoodCode);
+
+  if (!parcels || parcels.length === 0) throw new Error("No parcels found");
+
+  let certified = 0;
+  let created = 0;
+
+  for (let i = 0; i < parcels.length; i += 50) {
+    const batch = parcels.slice(i, i + 50);
+    const parcelIds = batch.map(p => p.id);
+
+    const { data: existing } = await supabase
+      .from("assessments")
+      .select("id, parcel_id")
+      .eq("tax_year", currentYear)
+      .in("parcel_id", parcelIds);
+
+    const existingIds = new Set((existing || []).map(a => a.parcel_id));
+    const existingAssessmentIds = (existing || []).map(a => a.id);
+
+    if (existingAssessmentIds.length > 0) {
+      await supabase
+        .from("assessments")
+        .update({ certified: true, certified_at: now })
+        .in("id", existingAssessmentIds);
+      certified += existingAssessmentIds.length;
+    }
+
+    const missingParcelIds = parcelIds.filter(id => !existingIds.has(id));
+    if (missingParcelIds.length > 0) {
+      const { data: parcelDetails } = await supabase
+        .from("parcels")
+        .select("id, assessed_value, land_value, improvement_value, county_id")
+        .in("id", missingParcelIds);
+
+      if (parcelDetails && parcelDetails.length > 0) {
+        const inserts = parcelDetails.map(p => ({
+          parcel_id: p.id,
+          tax_year: currentYear,
+          land_value: p.land_value || 0,
+          improvement_value: p.improvement_value || 0,
+          total_value: p.assessed_value,
+          county_id: p.county_id,
+          certified: true,
+          certified_at: now,
+          assessment_reason: `Neighborhood ${neighborhoodCode} batch certification`,
+        }));
+
+        await supabase.from("assessments").insert(inserts as any);
+        created += inserts.length;
+      }
+    }
+  }
+
+  await emitTraceEvent({
+    sourceModule: SOURCE,
+    eventType: "neighborhood_certified",
+    eventData: {
+      neighborhoodCode,
+      taxYear: currentYear,
+      parcelsUpdated: certified,
+      parcelsCreated: created,
+      totalParcels: parcels.length,
+    },
+  });
+
+  return { certified, created, total: parcels.length };
+}
+
+/**
+ * Certify the entire county roll for the current tax year.
+ */
+export async function certifyCountyRoll(): Promise<{ certified: number }> {
+  assertWriteLane("workflows", SOURCE);
+
+  const currentYear = new Date().getFullYear();
+  const now = new Date().toISOString();
+
+  const { data: uncertified } = await supabase
+    .from("assessments")
+    .select("id")
+    .eq("tax_year", currentYear)
+    .eq("certified", false);
+
+  if (uncertified && uncertified.length > 0) {
+    for (let i = 0; i < uncertified.length; i += 100) {
+      const batch = uncertified.slice(i, i + 100).map((a) => a.id);
+      await supabase
+        .from("assessments")
+        .update({ certified: true, certified_at: now })
+        .in("id", batch);
+    }
+  }
+
+  await emitTraceEvent({
+    sourceModule: SOURCE,
+    eventType: "county_roll_certified",
+    eventData: {
+      taxYear: currentYear,
+      assessmentsCertified: uncertified?.length || 0,
+    },
+  });
+
+  return { certified: uncertified?.length || 0 };
+}
