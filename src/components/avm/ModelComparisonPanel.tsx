@@ -1,60 +1,18 @@
-import { useState } from "react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { TreeDeciduous, Brain, Trophy, TrendingUp, Target, Zap } from "lucide-react";
+import { TreeDeciduous, Brain, Trophy, TrendingUp, Zap } from "lucide-react";
+import type { AVMRun } from "@/hooks/useAVMRuns";
 
-interface ModelStats {
-  id: string;
-  name: string;
-  type: "rf" | "nn";
-  icon: typeof TreeDeciduous;
-  r2Score: number;
-  rmse: number;
-  mae: number;
-  mape: number;
-  trainingTime: string;
-  inferenceTime: string;
-  status: "champion" | "challenger" | "training";
+interface ModelComparisonPanelProps {
+  runs: AVMRun[];
 }
 
-export function ModelComparisonPanel() {
-  const [models] = useState<ModelStats[]>([
-    {
-      id: "rf-v3",
-      name: "Random Forest v3.2",
-      type: "rf",
-      icon: TreeDeciduous,
-      r2Score: 0.9247,
-      rmse: 12847,
-      mae: 9234,
-      mape: 4.2,
-      trainingTime: "2m 34s",
-      inferenceTime: "0.8ms",
-      status: "champion",
-    },
-    {
-      id: "nn-v2",
-      name: "Neural Network v2.1",
-      type: "nn",
-      icon: Brain,
-      r2Score: 0.9189,
-      rmse: 13421,
-      mae: 9876,
-      mape: 4.6,
-      trainingTime: "8m 12s",
-      inferenceTime: "1.2ms",
-      status: "challenger",
-    },
-  ]);
-
-  const champion = models.find((m) => m.status === "champion");
-  const challenger = models.find((m) => m.status === "challenger");
-
+export function ModelComparisonPanel({ runs }: ModelComparisonPanelProps) {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      {models.map((model, index) => {
-        const Icon = model.icon;
+      {runs.slice(0, 2).map((model, index) => {
         const isChampion = model.status === "champion";
+        const Icon = model.model_type === "rf" ? TreeDeciduous : Brain;
 
         return (
           <motion.div
@@ -66,17 +24,16 @@ export function ModelComparisonPanel() {
               "relative overflow-hidden rounded-lg border p-6",
               "bg-card/50 backdrop-blur-sm",
               isChampion
-                ? "border-tf-optimized-green/50 shadow-[0_0_30px_hsl(var(--tf-optimized-green)/0.2)]"
-                : "border-tf-cyan/30"
+                ? "border-[hsl(var(--tf-optimized-green)/0.5)] shadow-[0_0_30px_hsl(var(--tf-optimized-green)/0.2)]"
+                : "border-[hsl(var(--tf-transcend-cyan)/0.3)]"
             )}
           >
-            {/* Champion Badge */}
             {isChampion && (
               <div className="absolute top-4 right-4">
                 <motion.div
                   animate={{ scale: [1, 1.1, 1] }}
                   transition={{ duration: 2, repeat: Infinity }}
-                  className="flex items-center gap-1 px-2 py-1 rounded-full bg-tf-optimized-green/20 text-tf-optimized-green text-xs font-medium"
+                  className="flex items-center gap-1 px-2 py-1 rounded-full bg-[hsl(var(--tf-optimized-green)/0.2)] text-[hsl(var(--tf-optimized-green))] text-xs font-medium"
                 >
                   <Trophy className="w-3 h-3" />
                   Champion
@@ -84,87 +41,61 @@ export function ModelComparisonPanel() {
               </div>
             )}
 
-            {/* Header */}
             <div className="flex items-start gap-4 mb-6">
-              <div
-                className={cn(
-                  "p-3 rounded-lg",
-                  isChampion ? "bg-tf-optimized-green/20" : "bg-tf-cyan/20"
-                )}
-              >
-                <Icon
-                  className={cn(
-                    "w-6 h-6",
-                    isChampion ? "text-tf-optimized-green" : "text-tf-cyan"
-                  )}
-                />
+              <div className={cn("p-3 rounded-lg", isChampion ? "bg-[hsl(var(--tf-optimized-green)/0.2)]" : "bg-[hsl(var(--tf-transcend-cyan)/0.2)]")}>
+                <Icon className={cn("w-6 h-6", isChampion ? "text-[hsl(var(--tf-optimized-green))]" : "text-[hsl(var(--tf-transcend-cyan))]")} />
               </div>
               <div>
-                <h3 className="text-lg font-medium text-foreground">{model.name}</h3>
+                <h3 className="text-lg font-medium text-foreground">{model.model_name}</h3>
                 <p className="text-sm text-muted-foreground">
-                  {model.type === "rf" ? "Ensemble Learning" : "Deep Learning"}
+                  {model.model_type === "rf" ? "Ensemble Learning" : "Deep Learning"} • n={model.sample_size ?? 0}
                 </p>
               </div>
             </div>
 
-            {/* Primary Metric */}
             <div className="mb-6">
               <div className="flex items-baseline gap-2">
-                <span
-                  className={cn(
-                    "text-4xl font-light",
-                    isChampion ? "text-tf-optimized-green" : "text-tf-cyan"
-                  )}
-                >
-                  {(model.r2Score * 100).toFixed(2)}%
+                <span className={cn("text-4xl font-light", isChampion ? "text-[hsl(var(--tf-optimized-green))]" : "text-[hsl(var(--tf-transcend-cyan))]")}>
+                  {((model.r_squared ?? 0) * 100).toFixed(2)}%
                 </span>
                 <span className="text-sm text-muted-foreground">R² Score</span>
               </div>
-              <div className="mt-2 h-2 bg-tf-elevated rounded-full overflow-hidden">
+              <div className="mt-2 h-2 bg-[hsl(var(--tf-elevated))] rounded-full overflow-hidden">
                 <motion.div
                   initial={{ width: 0 }}
-                  animate={{ width: `${model.r2Score * 100}%` }}
+                  animate={{ width: `${(model.r_squared ?? 0) * 100}%` }}
                   transition={{ duration: 1, ease: "easeOut" }}
-                  className={cn(
-                    "h-full rounded-full",
-                    isChampion ? "bg-tf-optimized-green" : "bg-tf-cyan"
-                  )}
+                  className={cn("h-full rounded-full", isChampion ? "bg-[hsl(var(--tf-optimized-green))]" : "bg-[hsl(var(--tf-transcend-cyan))]")}
                 />
               </div>
             </div>
 
-            {/* Metrics Grid */}
             <div className="grid grid-cols-3 gap-4 mb-6">
-              <div className="text-center p-3 rounded-lg bg-tf-elevated/50">
-                <p className="text-lg font-light text-foreground">
-                  ${(model.rmse / 1000).toFixed(1)}k
-                </p>
+              <div className="text-center p-3 rounded-lg bg-[hsl(var(--tf-elevated)/0.5)]">
+                <p className="text-lg font-light text-foreground">${((model.rmse ?? 0) / 1000).toFixed(1)}k</p>
                 <p className="text-xs text-muted-foreground">RMSE</p>
               </div>
-              <div className="text-center p-3 rounded-lg bg-tf-elevated/50">
-                <p className="text-lg font-light text-foreground">
-                  ${(model.mae / 1000).toFixed(1)}k
-                </p>
+              <div className="text-center p-3 rounded-lg bg-[hsl(var(--tf-elevated)/0.5)]">
+                <p className="text-lg font-light text-foreground">${((model.mae ?? 0) / 1000).toFixed(1)}k</p>
                 <p className="text-xs text-muted-foreground">MAE</p>
               </div>
-              <div className="text-center p-3 rounded-lg bg-tf-elevated/50">
-                <p className="text-lg font-light text-foreground">{model.mape}%</p>
+              <div className="text-center p-3 rounded-lg bg-[hsl(var(--tf-elevated)/0.5)]">
+                <p className="text-lg font-light text-foreground">{model.mape ?? 0}%</p>
                 <p className="text-xs text-muted-foreground">MAPE</p>
               </div>
             </div>
 
-            {/* Performance */}
             <div className="flex items-center justify-between pt-4 border-t border-border/50">
               <div className="flex items-center gap-2">
                 <TrendingUp className="w-4 h-4 text-muted-foreground" />
                 <span className="text-sm text-muted-foreground">
-                  Train: {model.trainingTime}
+                  Train: {model.training_time_ms ? `${(model.training_time_ms / 1000).toFixed(1)}s` : "—"}
                 </span>
               </div>
               <div className="flex items-center gap-2">
                 <Zap className="w-4 h-4 text-muted-foreground" />
                 <span className="text-sm text-muted-foreground">
-                  Inference: {model.inferenceTime}
+                  {new Date(model.created_at).toLocaleDateString()}
                 </span>
               </div>
             </div>
