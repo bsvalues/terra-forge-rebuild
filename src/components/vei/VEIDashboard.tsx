@@ -20,7 +20,7 @@ import {
 } from "./drilldown";
 import { Activity, TrendingUp, BarChart3, AlertTriangle, Percent, Target, Filter, Info, Compass } from "lucide-react";
 import { ScopeHeader, ProvenanceBadge } from "@/components/trust";
-import { useRatioAnalysis, useTaxYears, type OutlierMethod } from "@/hooks/useRatioAnalysis";
+import { useRatioAnalysis, useTaxYears, useNeighborhoodRatioComparison, type OutlierMethod } from "@/hooks/useRatioAnalysis";
 import { useHistoricalRatioTrend, useAppealsByValueTier } from "@/hooks/useHistoricalRatioTrend";
 import { useFieldCohort } from "@/hooks/useFieldCohort";
 import { Badge } from "@/components/ui/badge";
