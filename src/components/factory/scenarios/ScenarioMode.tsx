@@ -1,6 +1,8 @@
 import { useState, useMemo } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useScenarioParcels, useScenarioSales } from "@/hooks/useScenarioData";
+import { applyScenarioAdjustments } from "@/services/suites/forgeService";
+import { invalidateFactory } from "@/lib/queryInvalidation";
 import { FlaskConical, TrendingUp, TrendingDown, DollarSign, Percent, BarChart3, RefreshCw, Save, CheckCircle2, Loader2, Target, AlertTriangle } from "lucide-react";
 import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
