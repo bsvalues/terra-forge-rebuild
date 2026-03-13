@@ -42,11 +42,7 @@ export function FieldStudioDashboard() {
       return;
     }
     try {
-      const { data: parcels, error } = await supabase
-        .from("parcels")
-        .select("id, parcel_number, address, city, latitude, longitude, assessed_value, property_class")
-        .order("updated_at", { ascending: true })
-        .limit(20);
+      const parcels = await pullFieldAssignments(20);
 
       if (error) throw error;
       if (!parcels?.length) {
