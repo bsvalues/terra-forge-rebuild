@@ -2,9 +2,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Hammer, TrendingUp, Activity, Brain, Layers, Microscope, Compass, Factory as FactoryIcon, ExternalLink } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
+import { useLatestCalibrationRun } from "@/hooks/useFactoryMetrics";
 import { CompsView } from "./CompsView";
 import { VEIDashboard } from "@/components/vei/VEIDashboard";
 import { RegressionStudioDashboard } from "@/components/regression/RegressionStudioDashboard";
@@ -42,19 +41,7 @@ export function ForgeTab() {
   const navigate = useNavigate();
 
   // Latest calibration run for context
-  const { data: latestRun } = useQuery({
-    queryKey: ["latest-calibration-run"],
-    staleTime: 60_000,
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("calibration_runs")
-        .select("id, neighborhood_code, r_squared, sample_size, status, created_at")
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .single();
-      return data;
-    },
-  });
+  const { data: latestRun } = useLatestCalibrationRun();
 
   return (
     <div className="h-full flex flex-col">

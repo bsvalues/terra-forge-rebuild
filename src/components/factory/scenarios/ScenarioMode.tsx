@@ -1,6 +1,8 @@
 import { useState, useMemo } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useScenarioParcels, useScenarioSales } from "@/hooks/useScenarioData";
+import { applyScenarioAdjustments } from "@/services/suites/forgeService";
+import { invalidateFactory } from "@/lib/queryInvalidation";
 import { FlaskConical, TrendingUp, TrendingDown, DollarSign, Percent, BarChart3, RefreshCw, Save, CheckCircle2, Loader2, Target, AlertTriangle } from "lucide-react";
 import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
@@ -42,40 +44,9 @@ export function ScenarioMode({ neighborhoodCode }: ScenarioModeProps) {
   const [scenarioName, setScenarioName] = useState("");
   const queryClient = useQueryClient();
 
-  // Fetch real parcel data for the selected neighborhood
-  const { data: parcels, isLoading } = useQuery({
-    queryKey: ["scenario-parcels", neighborhoodCode],
-    queryFn: async () => {
-      let query = supabase
-        .from("parcels")
-        .select("id, parcel_number, address, assessed_value, land_value, improvement_value, neighborhood_code")
-        .gt("assessed_value", 0);
-      if (neighborhoodCode) {
-        query = query.eq("neighborhood_code", neighborhoodCode);
-      }
-      const { data } = await query.limit(500);
-      return data || [];
-    },
-    staleTime: 120_000,
-  });
-
-  // Fetch sales for VEI ratio preview
-  const { data: sales } = useQuery({
-    queryKey: ["scenario-sales", neighborhoodCode],
-    queryFn: async () => {
-      const twoYearsAgo = new Date();
-      twoYearsAgo.setFullYear(twoYearsAgo.getFullYear() - 2);
-      let query = supabase
-        .from("sales")
-        .select("parcel_id, sale_price")
-        .eq("is_qualified", true)
-        .gt("sale_price", 0)
-        .gte("sale_date", twoYearsAgo.toISOString().split("T")[0]);
-      const { data } = await query.limit(1000);
-      return data || [];
-    },
-    staleTime: 120_000,
-  });
+  // Use extracted hooks (Data Constitution compliance)
+  const { data: parcels, isLoading } = useScenarioParcels(neighborhoodCode);
+  const { data: sales } = useScenarioSales(neighborhoodCode);
 
   // Compute scenario impact
   const impact = useMemo(() => {
@@ -169,51 +140,30 @@ export function ScenarioMode({ neighborhoodCode }: ScenarioModeProps) {
     };
   }, [impact, sales]);
 
-  // Apply scenario — commit adjustments to value_adjustments table
+  // Apply scenario — route through Forge write lane (Data Constitution)
   const applyMutation = useMutation({
     mutationFn: async () => {
       if (!impact || !neighborhoodCode) throw new Error("No scenario to apply");
 
-      const { data: profile } = await supabase.from("profiles").select("county_id").single();
-      const countyId = profile?.county_id;
-      if (!countyId) throw new Error("No county assigned to your profile");
-
       const adjustments = impact.details
         .filter(p => Math.abs(p.change) > 0.5)
         .map(p => ({
-          county_id: countyId,
-          parcel_id: p.id,
-          previous_value: p.assessed_value || 0,
-          new_value: p.proposed,
-          adjustment_type: "scenario" as const,
-          adjustment_reason: `Scenario: Land ${config.landAdjustment > 0 ? "+" : ""}${config.landAdjustment}%, Impr ${config.improvementAdjustment > 0 ? "+" : ""}${config.improvementAdjustment}%, Cap ${config.maxCapPct}%`,
+          parcelId: p.id,
+          previousValue: p.assessed_value || 0,
+          newValue: p.proposed,
         }));
 
       if (adjustments.length === 0) throw new Error("No parcels changed — nothing to apply");
 
-      // Batch insert in chunks of 100
-      for (let i = 0; i < adjustments.length; i += 100) {
-        const chunk = adjustments.slice(i, i + 100);
-        const { error } = await supabase.from("value_adjustments").insert(chunk);
-        if (error) throw error;
-      }
+      const reason = `Scenario: Land ${config.landAdjustment > 0 ? "+" : ""}${config.landAdjustment}%, Impr ${config.improvementAdjustment > 0 ? "+" : ""}${config.improvementAdjustment}%, Cap ${config.maxCapPct}%`;
 
-      // Update parcel assessed_values
-      for (const adj of adjustments) {
-        await supabase
-          .from("parcels")
-          .update({ assessed_value: adj.new_value })
-          .eq("id", adj.parcel_id);
-      }
-
-      return { applied: adjustments.length };
+      return applyScenarioAdjustments(neighborhoodCode, adjustments, reason);
     },
     onSuccess: (data) => {
       toast.success(`Scenario applied to ${data.applied} parcels`, {
         description: "Value adjustments recorded in the ledger",
       });
-      queryClient.invalidateQueries({ queryKey: ["scenario-parcels"] });
-      queryClient.invalidateQueries({ queryKey: ["value-adjustments"] });
+      invalidateFactory(queryClient);
     },
     onError: (err: Error) => toast.error(err.message),
   });
