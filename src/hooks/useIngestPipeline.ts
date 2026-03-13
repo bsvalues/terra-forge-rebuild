@@ -737,6 +737,49 @@ export function useIngestPipeline() {
         artifactRef: parsedFile?.fileName,
         details: { imported, failed, targetTable },
       });
+
+      // ── Pipeline: quality_scored ─────────────────────────────
+      // Compute real quality metrics from validation results
+      const validationScore = validation
+        ? Math.round((validation.validRows / Math.max(validation.totalRows, 1)) * 100)
+        : imported > 0 ? 100 : 0;
+      
+      const fieldCoverageScore = validation?.fieldCompleteness
+        ? Math.round(Object.values(validation.fieldCompleteness).reduce((a, b) => a + b, 0) / Math.max(Object.keys(validation.fieldCompleteness).length, 1))
+        : 0;
+
+      await emitPipelineEvent({
+        countyId: profile.county_id,
+        stage: "quality_scored",
+        status: validationScore >= 90 ? "success" : validationScore >= 70 ? "warning" : "failed",
+        ingestJobId: jobId,
+        rowsAffected: imported,
+        artifactRef: parsedFile?.fileName,
+        details: {
+          validationScore,
+          fieldCoverageScore,
+          validRows: validation?.validRows ?? imported,
+          invalidRows: validation?.invalidRows ?? failed,
+          issueCount: validation?.issues?.length ?? 0,
+          fieldCompleteness: validation?.fieldCompleteness ?? {},
+        },
+      });
+
+      // ── Pipeline: readiness_updated ──────────────────────────
+      await emitPipelineEvent({
+        countyId: profile.county_id,
+        stage: "readiness_updated",
+        status: validationScore >= 80 && imported > 0 ? "success" : "warning",
+        ingestJobId: jobId,
+        rowsAffected: imported,
+        artifactRef: parsedFile?.fileName,
+        details: {
+          dataProduct: targetTable === "combined" ? "parcels+sales" : targetTable,
+          readinessGrade: validationScore >= 90 ? "A" : validationScore >= 80 ? "B" : validationScore >= 70 ? "C" : "D",
+          imported,
+          failed,
+        },
+      });
     }
 
     setPublishProgress(100);
