@@ -2943,6 +2943,35 @@ export type Database = {
         Args: { p_limit?: number; p_mission_id: string; p_offset?: number }
         Returns: Json
       }
+      get_neighborhood_data_quality: {
+        Args: never
+        Returns: {
+          has_assessed_value: number
+          has_building_area: number
+          has_coordinates: number
+          has_year_built: number
+          neighborhood_code: string
+          overall_pct: number
+          total_parcels: number
+        }[]
+      }
+      get_neighborhood_equity_overlays: {
+        Args: { p_study_period_id?: string }
+        Returns: {
+          avg_ratio: number
+          center_lat: number
+          center_lng: number
+          cod: number
+          max_lat: number
+          max_lng: number
+          median_ratio: number
+          min_lat: number
+          min_lng: number
+          neighborhood_code: string
+          parcel_count: number
+          prd: number
+        }[]
+      }
       get_neighborhood_stats: {
         Args: { p_year?: number }
         Returns: {
@@ -2955,6 +2984,20 @@ export type Database = {
           min_assessed_value: number
           parcel_count: number
           total_assessed_value: number
+        }[]
+      }
+      get_parcel_data_quality_stats: {
+        Args: never
+        Returns: {
+          has_assessed_value: number
+          has_bathrooms: number
+          has_bedrooms: number
+          has_building_area: number
+          has_coordinates: number
+          has_land_area: number
+          has_neighborhood: number
+          has_year_built: number
+          total_parcels: number
         }[]
       }
       get_parcel_polygon_link_stats: {
