@@ -43,16 +43,12 @@ export function NarrativeDraftingPanel({ parcelId }: Props) {
     if (!parcelId) return;
     setIsGenerating(true);
     try {
-      const { data, error } = await supabase.functions.invoke("defense-narrative", {
-        body: {
-          parcelNumber: parcel.parcelNumber,
-          address: parcel.address,
-          assessedValue: parcel.assessedValue,
-          ratioStats: { studyPeriod: studyPeriod.name },
-        },
+      const data = await invokeDefenseNarrative({
+        parcelNumber: parcel.parcelNumber,
+        address: parcel.address,
+        assessedValue: parcel.assessedValue,
+        ratioStats: { studyPeriod: studyPeriod.name },
       });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
 
       const typeLabel = NARRATIVE_TYPES.find(t => t.value === narrativeType)?.label || narrativeType;
       setTitle(`${typeLabel} — ${parcel.parcelNumber || "Unknown"}`);

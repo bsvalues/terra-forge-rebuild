@@ -48,14 +48,7 @@ export function BatchApplyPanel({ result, neighborhoodCode, calibrationRunId }: 
   // Step 1: Preview — compute predicted values
   const previewMutation = useMutation({
     mutationFn: async () => {
-      const { data: parcels, error } = await supabase
-        .from("parcels")
-        .select("id, address, assessed_value, building_area, land_area, year_built, bedrooms, bathrooms")
-        .eq("neighborhood_code", neighborhoodCode)
-        .limit(500);
-
-      if (error) throw error;
-      if (!parcels || parcels.length === 0) throw new Error("No parcels in this neighborhood");
+      const parcels = await fetchNeighborhoodParcels(neighborhoodCode);
 
       return parcels.map((p) => {
         const predicted = predictValue(p, result.coefficients);

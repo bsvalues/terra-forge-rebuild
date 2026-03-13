@@ -1,82 +1,40 @@
 // TerraFusion OS — County Switcher (Swarm C: Multi-County Tenancy)
 // Allows users to switch their active county context
 
-import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuthContext } from "@/contexts/AuthContext";
-import { motion, AnimatePresence } from "framer-motion";
-import { Building2, Check, ChevronDown, Plus, Globe } from "lucide-react";
+import { useAllCounties, useCurrentCounty, useSwitchCounty } from "@/hooks/useCountySwitcher";
+import { Building2, Check, ChevronDown, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 
-interface County {
-  id: string;
-  name: string;
-  state: string;
-  fips_code: string;
-}
-
 export function CountySwitcher() {
   const { profile, user } = useAuthContext();
-  const queryClient = useQueryClient();
 
-  const { data: counties = [] } = useQuery({
-    queryKey: ["all-counties"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("counties")
-        .select("id, name, state, fips_code")
-        .order("name");
-      if (error) throw error;
-      return data as County[];
-    },
-    staleTime: 5 * 60 * 1000,
-  });
+  const { data: counties = [] } = useAllCounties();
+  const { data: currentCounty } = useCurrentCounty(profile?.county_id);
+  const switchCounty = useSwitchCounty();
 
-  const { data: currentCounty } = useQuery({
-    queryKey: ["current-county", profile?.county_id],
-    queryFn: async () => {
-      if (!profile?.county_id) return null;
-      const { data } = await supabase
-        .from("counties")
-        .select("id, name, state, fips_code")
-        .eq("id", profile.county_id)
-        .single();
-      return data as County | null;
-    },
-    enabled: !!profile?.county_id,
-  });
-
-  const switchCounty = useMutation({
-    mutationFn: async (countyId: string) => {
-      if (!user) throw new Error("Not authenticated");
-      const { error } = await supabase
-        .from("profiles")
-        .update({ county_id: countyId })
-        .eq("user_id", user.id);
-      if (error) throw error;
-    },
-    onSuccess: (_data, countyId) => {
-      const county = counties.find(c => c.id === countyId);
-      toast.success(`Switched to ${county?.name ?? "new county"}`, {
-        description: "All data will refresh for this county.",
-      });
-      // Invalidate everything — nuclear but correct for tenant switch
-      queryClient.invalidateQueries();
-    },
-    onError: (err: any) => {
-      toast.error("Failed to switch county", { description: err.message });
-    },
-  });
+  const handleSwitch = (countyId: string) => {
+    if (!user) return;
+    const county = counties.find(c => c.id === countyId);
+    switchCounty.mutate(
+      { userId: user.id, countyId },
+      {
+        onSuccess: () => {
+          toast.success(`Switched to ${county?.name ?? "new county"}`, {
+            description: "All data will refresh for this county.",
+          });
+        },
+      }
+    );
+  };
 
   if (counties.length <= 1) {
     return (
@@ -117,7 +75,7 @@ export function CountySwitcher() {
           return (
             <DropdownMenuItem
               key={county.id}
-              onClick={() => !isActive && switchCounty.mutate(county.id)}
+              onClick={() => !isActive && handleSwitch(county.id)}
               className="gap-3 py-2.5"
             >
               <Building2 className={`w-4 h-4 ${isActive ? "text-tf-cyan" : "text-muted-foreground"}`} />

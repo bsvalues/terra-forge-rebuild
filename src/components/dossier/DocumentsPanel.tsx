@@ -22,7 +22,7 @@ export function DocumentsPanel({ parcelId }: Props) {
   const deleteMut = useDeleteDocument(parcelId);
 
   const handleDownload = async (filePath: string, fileName: string) => {
-    const { data } = await supabase.storage.from("dossier-files").download(filePath);
+    const data = await downloadDossierFile(filePath);
     if (!data) return;
     const url = URL.createObjectURL(data);
     const a = document.createElement("a");

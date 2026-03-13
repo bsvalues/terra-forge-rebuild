@@ -81,20 +81,17 @@ export function BatchNoticePanel({ calibrationRunId, neighborhoodCode, rSquared 
 
           if (i < aiLimit) {
             // AI-drafted notice via Muse draft_notice tool
-            const { data: aiData, error: aiError } = await supabase.functions.invoke("draft-notice", {
-              body: {
-                parcelNumber: parcelInfo.parcelNumber,
-                address: parcelInfo.address,
-                previousValue: adj.previous_value,
-                newValue: adj.new_value,
-                neighborhoodCode,
-                rSquared: (rSquared * 100).toFixed(1),
-                method: "OLS Regression",
-                noticeType: "assessment_change",
-              },
+            const aiData = await invokeDraftNotice({
+              parcelNumber: parcelInfo.parcelNumber,
+              address: parcelInfo.address,
+              previousValue: adj.previous_value,
+              newValue: adj.new_value,
+              neighborhoodCode,
+              rSquared: (rSquared * 100).toFixed(1),
+              method: "OLS Regression",
+              noticeType: "assessment_change",
             });
 
-            if (aiError) throw aiError;
             noticeContent = aiData?.notice || generateTemplateNotice(parcelInfo, adj, neighborhoodCode, rSquared);
           } else {
             // Template-based notice for remaining parcels
