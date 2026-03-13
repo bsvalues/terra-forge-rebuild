@@ -68,15 +68,26 @@ interface Parcel {
   longitude: number | null;
 }
 
-export function ParcelSearchPanel() {
+interface ParcelSearchPanelProps {
+  initialNeighborhood?: string | null;
+}
+
+export function ParcelSearchPanel({ initialNeighborhood }: ParcelSearchPanelProps = {}) {
   const [filters, setFilters] = useState<ParcelSearchFilters>({
     address: "",
     minValue: 0,
     maxValue: 5000000,
     propertyClasses: [],
     city: "",
-    neighborhoods: [],
+    neighborhoods: initialNeighborhood ? [initialNeighborhood] : [],
   });
+
+  // Sync neighborhood from heatmap cross-filter
+  useEffect(() => {
+    if (initialNeighborhood) {
+      setFilters((prev) => ({ ...prev, neighborhoods: [initialNeighborhood] }));
+    }
+  }, [initialNeighborhood]);
   const [filtersExpanded, setFiltersExpanded] = useState(true);
   const [valueRange, setValueRange] = useState<[number, number]>([0, 5000000]);
   const [selectedParcel, setSelectedParcel] = useState<Parcel | null>(null);
