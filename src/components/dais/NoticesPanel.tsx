@@ -2,8 +2,8 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { useMutation } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { generateNotice } from "@/services/suites/daisService";
+import { invokeDraftNotice } from "@/services/ingestService";
 import {
   Bell,
   FileText,
