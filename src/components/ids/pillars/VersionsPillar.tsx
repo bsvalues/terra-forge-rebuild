@@ -44,18 +44,7 @@ export function VersionsPillar({ highlightJobId, onJobIdConsumed }: VersionsPill
     }
   }, [highlightJobId, onJobIdConsumed]);
 
-  // Fetch study periods as version snapshots
-  const { data: studyPeriods } = useQuery({
-    queryKey: ["versions-study-periods"],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("study_periods")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .limit(10);
-      return data || [];
-    },
-  });
+  const { data: studyPeriods } = useStudyPeriodSnapshots(10);
 
   return (
     <motion.div
