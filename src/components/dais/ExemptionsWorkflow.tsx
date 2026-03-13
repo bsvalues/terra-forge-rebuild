@@ -50,26 +50,7 @@ import { invalidateWorkflows } from "@/lib/queryInvalidation";
 import { toast } from "@/hooks/use-toast";
 import { showChangeReceipt } from "@/lib/changeReceipt";
 
-interface Exemption {
-  id: string;
-  exemption_type: string;
-  exemption_amount: number | null;
-  exemption_percentage: number | null;
-  status: string;
-  application_date: string;
-  approval_date: string | null;
-  expiration_date: string | null;
-  tax_year: number;
-  applicant_name: string | null;
-  notes: string | null;
-  parcel: {
-    id: string;
-    parcel_number: string;
-    address: string;
-    city: string | null;
-    assessed_value: number;
-  };
-}
+// Exemption type imported from useDaisQueries
 
 const STATUS_CONFIG = {
   pending: {
