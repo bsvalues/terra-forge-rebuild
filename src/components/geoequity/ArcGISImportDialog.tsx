@@ -77,19 +77,11 @@ export function ArcGISImportDialog({
     }, 500);
 
     try {
-      const { data, error } = await supabase.functions.invoke("arcgis-parcel-sync", {
-        body: {
-          arcgisUrl: url,
-          parcelNumberField,
-          sourceId: mode === "saved" ? selectedSourceId : undefined,
-        },
+      const data = await invokeArcGISSync({
+        arcgisUrl: url,
+        parcelNumberField,
+        sourceId: mode === "saved" ? selectedSourceId : undefined,
       });
-
-      clearInterval(progressInterval);
-
-      if (error) {
-        throw new Error(error.message);
-      }
 
       setProgress(100);
       setResult(data as SyncResult);
