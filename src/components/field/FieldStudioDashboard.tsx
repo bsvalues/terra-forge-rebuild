@@ -17,7 +17,7 @@ import {
   type InspectionStatus,
 } from "@/services/fieldStore";
 import { useFieldSync } from "@/hooks/useFieldSync";
-import { supabase } from "@/integrations/supabase/client";
+import { pullFieldAssignments } from "@/services/ingestService";
 import { InspectionPanel } from "./InspectionPanel";
 
 export function FieldStudioDashboard() {
