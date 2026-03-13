@@ -39,8 +39,8 @@ import {
   Shield,
   Users,
 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useExemptionsWorkflow, type Exemption } from "@/hooks/useDaisQueries";
 import { useWorkbench } from "@/components/workbench/WorkbenchContext";
 import { cn } from "@/lib/utils";
 import { NewExemptionDialog } from "./NewExemptionDialog";
