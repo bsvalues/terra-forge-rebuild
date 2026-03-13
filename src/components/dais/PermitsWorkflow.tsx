@@ -36,8 +36,8 @@ import {
   Hammer,
   ClipboardList,
 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { usePermitsWorkflowQuery } from "@/hooks/useDaisWorkflows";
 import { useWorkbench } from "@/components/workbench/WorkbenchContext";
 import { cn } from "@/lib/utils";
 import { NewPermitDialog } from "./NewPermitDialog";
@@ -143,27 +143,7 @@ export function PermitsWorkflow() {
     },
   });
 
-  const { data: permits = [], isLoading } = useQuery({
-    queryKey: ["permits-workflow", statusFilter],
-    queryFn: async () => {
-      let query = supabase
-        .from("permits")
-        .select(`
-          *,
-          parcel:parcels!permits_parcel_id_fkey(id, parcel_number, address, city)
-        `)
-        .order("application_date", { ascending: false })
-        .limit(100);
-
-      if (statusFilter !== "all") {
-        query = query.eq("status", statusFilter);
-      }
-
-      const { data, error } = await query;
-      if (error) throw error;
-      return data as Permit[];
-    },
-  });
+  const { data: permits = [], isLoading } = usePermitsWorkflowQuery(statusFilter);
 
   const filteredPermits = permits.filter((permit) => {
     if (!searchQuery) return true;

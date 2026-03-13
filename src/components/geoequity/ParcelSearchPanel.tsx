@@ -21,8 +21,7 @@ import {
   Eye,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { useParcelSearchQuery, useParcelFilterOptions } from "@/hooks/useParcelSearchFilters";
 import {
   Collapsible,
   CollapsibleContent,
@@ -106,61 +105,13 @@ export function ParcelSearchPanel({ initialNeighborhood }: ParcelSearchPanelProp
     setPage(0);
   }, [filters]);
 
-  // Fetch parcels with filters and pagination
-  const { data: parcelsResult, isLoading } = useQuery({
-    queryKey: ["parcels-search", filters, page],
-    queryFn: async () => {
-      let query = supabase
-        .from("parcels")
-        .select("*", { count: "exact" })
-        .order("assessed_value", { ascending: false })
-        .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
-
-      if (filters.address.trim()) {
-        query = query.ilike("address", `%${filters.address}%`);
-      }
-      if (filters.city.trim()) {
-        query = query.ilike("city", `%${filters.city}%`);
-      }
-      if (filters.minValue > 0) {
-        query = query.gte("assessed_value", filters.minValue);
-      }
-      if (filters.maxValue < 5000000) {
-        query = query.lte("assessed_value", filters.maxValue);
-      }
-      if (filters.propertyClasses.length > 0) {
-        query = query.in("property_class", filters.propertyClasses);
-      }
-      if (filters.neighborhoods.length > 0) {
-        query = query.in("neighborhood_code", filters.neighborhoods);
-      }
-
-      const { data, error, count } = await query;
-      if (error) throw error;
-      return { parcels: (data || []) as Parcel[], totalCount: count || 0 };
-    },
-    staleTime: 30000,
-  });
+  const { data: parcelsResult, isLoading } = useParcelSearchQuery(filters, page, PAGE_SIZE);
 
   const parcels = parcelsResult?.parcels || [];
   const totalCount = parcelsResult?.totalCount || 0;
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
-  // Get unique cities and neighborhoods for filter options
-  const { data: filterOptions } = useQuery({
-    queryKey: ["parcel-filter-options"],
-    queryFn: async () => {
-      const { data: cityData } = await supabase
-        .from("parcels")
-        .select("city")
-        .not("city", "is", null)
-        .limit(1000);
-
-      const cities = [...new Set((cityData || []).map((p) => p.city).filter(Boolean))];
-      return { cities };
-    },
-    staleTime: 60000,
-  });
+  const { data: filterOptions } = useParcelFilterOptions();
 
   const togglePropertyClass = (value: string) => {
     setFilters((prev) => ({

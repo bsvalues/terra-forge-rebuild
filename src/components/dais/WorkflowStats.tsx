@@ -5,13 +5,8 @@ import {
   ClipboardCheck,
   Scale,
   Bell,
-  TrendingUp,
-  Clock,
-  CheckCircle,
-  AlertTriangle,
 } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { useAppealsStats } from "@/hooks/useWorkflowStats";
 
 interface WorkflowStatsProps {
   onSelectCategory: (category: string) => void;
@@ -19,25 +14,7 @@ interface WorkflowStatsProps {
 }
 
 export function WorkflowStats({ onSelectCategory, activeCategory }: WorkflowStatsProps) {
-  // Fetch appeals count
-  const { data: appealsData } = useQuery({
-    queryKey: ["appeals-stats"],
-    queryFn: async () => {
-      const { count: pendingCount } = await supabase
-        .from("appeals")
-        .select("*", { count: "exact", head: true })
-        .in("status", ["pending", "scheduled"]);
-
-      const { count: totalCount } = await supabase
-        .from("appeals")
-        .select("*", { count: "exact", head: true });
-
-      return {
-        pending: pendingCount || 0,
-        total: totalCount || 0,
-      };
-    },
-  });
+  const { data: appealsData } = useAppealsStats();
 
   const stats = [
     {

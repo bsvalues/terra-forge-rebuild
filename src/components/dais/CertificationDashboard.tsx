@@ -1,48 +1,10 @@
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
 import { ShieldCheck, ShieldX, BarChart3, CheckCircle2, AlertTriangle } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCountyVitals } from "@/hooks/useCountyVitals";
 import { ProvenanceBadge } from "@/components/trust";
-
-// Neighborhood breakdown is certification-specific — not in vitals
-function useNeighborhoodCertification() {
-  return useQuery({
-    queryKey: ["certification-neighborhood-breakdown"],
-    queryFn: async () => {
-      const currentYear = new Date().getFullYear();
-
-      const [{ data: parcelsWithNbhd }, { data: assessments }] = await Promise.all([
-        supabase.from("parcels").select("id, neighborhood_code").not("neighborhood_code", "is", null),
-        supabase.from("assessments").select("parcel_id, certified").eq("tax_year", currentYear).eq("certified", true),
-      ]);
-
-      const certifiedIds = new Set((assessments || []).map(a => a.parcel_id));
-      const nbhdMap = new Map<string, { total: number; certified: number }>();
-
-      for (const p of parcelsWithNbhd || []) {
-        const code = p.neighborhood_code || "Unknown";
-        if (!nbhdMap.has(code)) nbhdMap.set(code, { total: 0, certified: 0 });
-        const entry = nbhdMap.get(code)!;
-        entry.total++;
-        if (certifiedIds.has(p.id)) entry.certified++;
-      }
-
-      return Array.from(nbhdMap.entries())
-        .map(([code, stats]) => ({
-          code,
-          total: stats.total,
-          certified: stats.certified,
-          rate: stats.total > 0 ? Math.round((stats.certified / stats.total) * 100) : 0,
-        }))
-        .sort((a, b) => a.rate - b.rate)
-        .slice(0, 15);
-    },
-    staleTime: 60_000,
-  });
-}
+import { useNeighborhoodCertification } from "@/hooks/useDaisWorkflows";
 
 export function CertificationDashboard() {
   const { data: vitals, isLoading: vitalsLoading } = useCountyVitals();

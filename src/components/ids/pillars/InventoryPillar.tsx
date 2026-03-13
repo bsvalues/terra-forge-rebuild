@@ -1,6 +1,4 @@
  import { motion } from "framer-motion";
- import { useQuery } from "@tanstack/react-query";
- import { supabase } from "@/integrations/supabase/client";
  import { 
    Database, 
    Map, 
@@ -14,7 +12,8 @@
  import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
  import { Badge } from "@/components/ui/badge";
  import { Progress } from "@/components/ui/progress";
- import { format, formatDistanceToNow } from "date-fns";
+ import { formatDistanceToNow } from "date-fns";
+ import { useParcelsCount, useSalesCount, useAssessmentsCount, useLatestDataSource } from "@/hooks/useInventoryMetrics";
  
  interface DataProduct {
    id: string;
@@ -29,42 +28,10 @@
  }
  
  export function InventoryPillar() {
-   // Fetch inventory metrics
-   const { data: parcelsCount } = useQuery({
-     queryKey: ["ids-inventory-parcels"],
-     queryFn: async () => {
-       const { count } = await supabase.from("parcels").select("*", { count: "exact", head: true });
-       return count || 0;
-     },
-   });
- 
-   const { data: salesCount } = useQuery({
-     queryKey: ["ids-inventory-sales"],
-     queryFn: async () => {
-       const { count } = await supabase.from("sales").select("*", { count: "exact", head: true });
-       return count || 0;
-     },
-   });
- 
-   const { data: assessmentsCount } = useQuery({
-     queryKey: ["ids-inventory-assessments"],
-     queryFn: async () => {
-       const { count } = await supabase.from("assessments").select("*", { count: "exact", head: true });
-       return count || 0;
-     },
-   });
- 
-   const { data: latestSource } = useQuery({
-     queryKey: ["ids-inventory-sources"],
-     queryFn: async () => {
-       const { data } = await supabase
-         .from("data_sources")
-         .select("*")
-         .order("last_sync_at", { ascending: false })
-         .limit(1);
-       return data?.[0] || null;
-     },
-   });
+   const { data: parcelsCount } = useParcelsCount();
+   const { data: salesCount } = useSalesCount();
+   const { data: assessmentsCount } = useAssessmentsCount();
+   const { data: latestSource } = useLatestDataSource();
  
    const dataProducts: DataProduct[] = [
      {
@@ -126,8 +93,7 @@
        case "critical": return <Badge variant="outline" className="bg-destructive/10 text-destructive border-destructive/30">Critical</Badge>;
      }
    };
- 
-   // Calculate overall health grade
+
    const calculateHealthGrade = () => {
      const freshCount = dataProducts.filter(p => p.status === "fresh").length;
      const ratio = freshCount / dataProducts.length;
@@ -197,13 +163,11 @@
                  </div>
                </CardHeader>
                <CardContent className="space-y-4">
-                 {/* Record Count */}
                  <div className="flex justify-between items-center">
                    <span className="text-sm text-muted-foreground">Records</span>
                    <span className="text-lg font-medium">{product.recordCount.toLocaleString()}</span>
                  </div>
  
-                 {/* Coverage */}
                  <div className="space-y-2">
                    <div className="flex justify-between text-sm">
                      <span className="text-muted-foreground">Coverage</span>
@@ -212,7 +176,6 @@
                    <Progress value={product.coverage} className="h-2" />
                  </div>
  
-                 {/* Last Updated */}
                  <div className="flex items-center justify-between text-sm">
                    <div className="flex items-center gap-2 text-muted-foreground">
                      <Clock className="w-3 h-3" />
@@ -225,7 +188,6 @@
                    </span>
                  </div>
  
-                 {/* Stale Reason */}
                  {product.staleReason && (
                    <div className="flex items-start gap-2 p-2 rounded-lg bg-tf-gold/10 border border-tf-gold/20">
                      <AlertCircle className="w-4 h-4 text-tf-gold mt-0.5 flex-shrink-0" />

@@ -41,8 +41,8 @@ import {
 } from "lucide-react";
 import { AppealTimeline } from "./AppealTimeline";
 import { StatusTransitionDropdown, APPEAL_TRANSITIONS } from "./StatusTransitionDropdown";
-import { supabase } from "@/integrations/supabase/client";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useAppealsWorkflowQuery } from "@/hooks/useDaisWorkflows";
 import { useWorkbench } from "@/components/workbench/WorkbenchContext";
 import { cn } from "@/lib/utils";
 import { updateAppealStatus } from "@/services/suites/daisService";
@@ -135,30 +135,7 @@ export function AppealsWorkflow() {
   });
 
   // Fetch appeals with parcel info
-  const { data: appeals = [], isLoading } = useQuery({
-    queryKey: ["appeals-workflow", statusFilter],
-    queryFn: async () => {
-      let query = supabase
-        .from("appeals")
-        .select(`
-          id, parcel_id, county_id, study_period_id, appeal_date, hearing_date,
-          resolution_date, original_value, requested_value, final_value, tax_year,
-          status, resolution_type, notes, created_at, updated_at,
-          parcel:parcels!appeals_parcel_id_fkey(id, parcel_number, address, city),
-          study_period:study_periods!appeals_study_period_id_fkey(id, name)
-        `)
-        .order("appeal_date", { ascending: false })
-        .limit(100);
-
-      if (statusFilter !== "all") {
-        query = query.eq("status", statusFilter);
-      }
-
-      const { data, error } = await query;
-      if (error) throw error;
-      return data as Appeal[];
-    },
-  });
+  const { data: appeals = [], isLoading } = useAppealsWorkflowQuery(statusFilter);
 
   const filteredAppeals = appeals.filter((appeal) => {
     if (!searchQuery) return true;
