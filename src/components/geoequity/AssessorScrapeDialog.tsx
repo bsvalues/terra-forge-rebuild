@@ -245,8 +245,6 @@ export function AssessorScrapeDialog({
           action,
         });
         results.push({ county, result: data as ScrapeResult });
-          results.push({ county, result: data as ScrapeResult });
-        }
       } catch (error: any) {
         const message = error?.message || "Scrape failed";
         results.push({ county, result: { success: false, error: message } });
