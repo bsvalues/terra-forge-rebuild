@@ -16,7 +16,7 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { ChevronDown, Filter, X } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { useParcelFilterDistincts } from "@/hooks/useParcelSearchFilters";
 
 export interface ParcelFilters {
   neighborhood?: string;

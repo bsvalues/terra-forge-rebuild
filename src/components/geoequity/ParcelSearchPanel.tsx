@@ -21,8 +21,7 @@ import {
   Eye,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { useParcelSearchQuery, useParcelFilterOptions } from "@/hooks/useParcelSearchFilters";
 import {
   Collapsible,
   CollapsibleContent,
