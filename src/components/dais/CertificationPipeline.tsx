@@ -2,9 +2,9 @@
 // County-level roll readiness tracker: COD/PRD compliance, appeals, narratives, permits
 // Constitutional owner: TerraDais (workflow states, certification checklists)
 
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { emitTraceEvent } from "@/services/terraTrace";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useCertificationPipelineData, type NeighborhoodReadiness } from "@/hooks/useCertificationPipeline";
+import { certifyCountyRoll } from "@/services/suites/daisService";
 import { invalidateCertification } from "@/lib/queryInvalidation";
 import { motion } from "framer-motion";
 import { useState } from "react";
