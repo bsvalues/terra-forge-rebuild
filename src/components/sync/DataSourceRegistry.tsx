@@ -56,7 +56,7 @@ const syncStatusBadge = (status?: string | null) => {
 
 export function DataSourceRegistry() {
   const { profile } = useAuthContext();
-  const queryClient = useQueryClient();
+  const [showAddDialog, setShowAddDialog] = useState(false);
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [newSource, setNewSource] = useState({ name: "", source_type: "csv_upload", connection_url: "", description: "" });
 
