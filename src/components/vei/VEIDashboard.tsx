@@ -12,9 +12,6 @@ import { VEIEmptyState } from "./VEIEmptyState";
 import { TaxYearSelector } from "./TaxYearSelector";
 import { SalesWindowSelector } from "./SalesWindowSelector";
 import { NeighborhoodComparisonGrid } from "./NeighborhoodComparisonGrid";
-import { VEIEmptyState } from "./VEIEmptyState";
-import { TaxYearSelector } from "./TaxYearSelector";
-import { SalesWindowSelector } from "./SalesWindowSelector";
 import { 
   PRDDrilldownDialog, 
   CODDrilldownDialog, 
