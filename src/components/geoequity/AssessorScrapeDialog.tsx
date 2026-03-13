@@ -239,17 +239,12 @@ export function AssessorScrapeDialog({
       setProgress(Math.round(((i + 1) / totalCounties) * 100));
 
       try {
-        const { data, error } = await supabase.functions.invoke("assessor-scrape", {
-          body: {
-            assessorUrl,
-            parcelIds: parcelsToEnrich,
-            action,
-          },
+        const data = await invokeAssessorScrape({
+          assessorUrl,
+          parcelIds: parcelsToEnrich,
+          action,
         });
-
-        if (error) {
-          results.push({ county, result: { success: false, error: error.message } });
-        } else {
+        results.push({ county, result: data as ScrapeResult });
           results.push({ county, result: data as ScrapeResult });
         }
       } catch (error) {
