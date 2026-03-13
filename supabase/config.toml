@@ -38,3 +38,6 @@ verify_jwt = false
 
 [functions.defense-narrative]
 verify_jwt = false
+
+[functions.ingest-process]
+verify_jwt = false
