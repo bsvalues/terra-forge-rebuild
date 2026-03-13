@@ -20,8 +20,6 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   useStudyPeriods,
-  useVEIMetrics,
-  useVEIMetricsTrend,
   useAssessmentRatiosByTier,
   useAppealsByTier,
   useSampleSize,

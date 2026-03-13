@@ -442,11 +442,18 @@ export function VEIDashboard() {
         open={activeDrilldown === "prd"}
         onOpenChange={(open) => !open && setActiveDrilldown(null)}
         data={prdTrendData}
+        taxYear={selectedYear}
+        salesStartDate={salesStartStr}
+        salesEndDate={salesEndStr}
       />
       <CODDrilldownDialog
         open={activeDrilldown === "cod"}
         onOpenChange={(open) => !open && setActiveDrilldown(null)}
         data={codTrendData}
+        taxYear={selectedYear}
+        salesStartDate={salesStartStr}
+        salesEndDate={salesEndStr}
+        outlierMethod={outlierMethod}
       />
       <TierSlopeDrilldownDialog
         open={activeDrilldown === "tier"}
