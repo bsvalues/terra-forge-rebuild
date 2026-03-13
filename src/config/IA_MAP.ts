@@ -112,6 +112,7 @@ export const IA_MODULES: ModuleDefinition[] = [
       { id: "calibration", label: "Calibration", icon: Factory, scope: "neighborhood" },
       { id: "vei", label: "Ratio Studies", icon: BarChart3, scope: "run" },
       { id: "geoequity", label: "Spatial Analysis", icon: Map, scope: "neighborhood" },
+      { id: "avm", label: "AVM Studio", icon: Brain, scope: "run" },
       { id: "analytics", label: "Analytics", icon: TrendingUp, scope: "run" },
     ],
   },
