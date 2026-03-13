@@ -3,7 +3,6 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 
 export type StudyPeriod = Tables<"study_periods">;
-export type VEIMetrics = Tables<"vei_metrics">;
 export type AssessmentRatio = Tables<"assessment_ratios">;
 export type Appeal = Tables<"appeals">;
 
@@ -38,53 +37,6 @@ export function useActiveStudyPeriod() {
 
       if (error) throw error;
       return data as StudyPeriod | null;
-    },
-  });
-}
-
-// Fetch VEI metrics for a specific study period
-export function useVEIMetrics(studyPeriodId: string | undefined) {
-  return useQuery({
-    queryKey: ["vei-metrics", studyPeriodId],
-    staleTime: 2 * 60 * 1000,
-    refetchOnWindowFocus: true,
-    queryFn: async () => {
-      if (!studyPeriodId) return null;
-
-      const { data, error } = await supabase
-        .from("vei_metrics")
-        .select("*")
-        .eq("study_period_id", studyPeriodId)
-        .maybeSingle();
-
-      if (error) throw error;
-      return data as VEIMetrics | null;
-    },
-    enabled: !!studyPeriodId,
-  });
-}
-
-// Fetch VEI metrics trend (all study periods with metrics)
-export function useVEIMetricsTrend() {
-  return useQuery({
-    queryKey: ["vei-metrics", "trend"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("vei_metrics")
-        .select(`
-          *,
-          study_periods!inner (
-            id,
-            name,
-            start_date,
-            end_date,
-            status
-          )
-        `)
-        .order("computed_at", { ascending: true });
-
-      if (error) throw error;
-      return data;
     },
   });
 }
@@ -145,7 +97,6 @@ export function useAppealsByTier(studyPeriodId: string | undefined) {
     queryFn: async () => {
       if (!studyPeriodId) return [];
 
-      // Get assessment ratios to determine tier counts
       const { data: ratios, error: ratiosError } = await supabase
         .from("assessment_ratios")
         .select("parcel_id, value_tier")
@@ -153,7 +104,6 @@ export function useAppealsByTier(studyPeriodId: string | undefined) {
 
       if (ratiosError) throw ratiosError;
 
-      // Get appeals for this study period
       const { data: appeals, error: appealsError } = await supabase
         .from("appeals")
         .select("parcel_id")
@@ -161,27 +111,23 @@ export function useAppealsByTier(studyPeriodId: string | undefined) {
 
       if (appealsError) throw appealsError;
 
-      // Create parcel to tier mapping
       const parcelTierMap: Record<string, string> = {};
       (ratios as AssessmentRatio[]).forEach((r) => {
         parcelTierMap[r.parcel_id] = r.value_tier || "Unknown";
       });
 
-      // Count parcels per tier
       const tierCounts: Record<string, number> = {};
       (ratios as AssessmentRatio[]).forEach((r) => {
         const tier = r.value_tier || "Unknown";
         tierCounts[tier] = (tierCounts[tier] || 0) + 1;
       });
 
-      // Count appeals per tier
       const appealCounts: Record<string, number> = {};
       (appeals as Appeal[]).forEach((a) => {
         const tier = parcelTierMap[a.parcel_id] || "Unknown";
         appealCounts[tier] = (appealCounts[tier] || 0) + 1;
       });
 
-      // Calculate appeal rates
       return Object.entries(tierCounts).map(([tier, count]) => ({
         tier,
         count: appealCounts[tier] || 0,
