@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useDossierDocuments, useDeleteDocument } from "@/hooks/useDossier";
-import { supabase } from "@/integrations/supabase/client";
+import { downloadDossierFile } from "@/services/ingestService";
 import { format } from "date-fns";
 
 interface Props {
@@ -22,7 +22,7 @@ export function DocumentsPanel({ parcelId }: Props) {
   const deleteMut = useDeleteDocument(parcelId);
 
   const handleDownload = async (filePath: string, fileName: string) => {
-    const { data } = await supabase.storage.from("dossier-files").download(filePath);
+    const data = await downloadDossierFile(filePath);
     if (!data) return;
     const url = URL.createObjectURL(data);
     const a = document.createElement("a");

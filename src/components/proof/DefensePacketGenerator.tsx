@@ -19,7 +19,7 @@ import {
 import { useWorkbench } from "@/components/workbench/WorkbenchContext";
 import { useAssessmentHistory, useParcelSales, useComparableSales } from "@/hooks/useParcelDetails";
 import { useModelReceipts, useDefenseTraceEvents, useDefenseAppeals } from "@/hooks/useDaisQueries";
-import { supabase } from "@/integrations/supabase/client";
+import { invokeDefenseNarrative } from "@/services/ingestService";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
 import { format } from "date-fns";
@@ -50,29 +50,24 @@ export function DefensePacketGenerator() {
     setStatus("generating");
 
     try {
-      const { data, error } = await supabase.functions.invoke("defense-narrative", {
-        body: {
-          parcelNumber: parcel.parcelNumber,
-          address: parcel.address,
-          assessedValue: parcel.assessedValue,
-          assessmentHistory: assessments?.slice(0, 5),
-          comps: comps?.slice(0, 10)?.map((c: any) => ({
-            parcel_number: c.parcels?.parcel_number,
-            address: c.parcels?.address,
-            sale_price: c.sale_price,
-            sale_date: c.sale_date,
-            ratio: c.parcels?.assessed_value && c.sale_price
-              ? (c.parcels.assessed_value / c.sale_price).toFixed(3)
-              : null,
-          })),
-          ratioStats: {
-            studyPeriod: studyPeriod.name,
-          },
+      const data = await invokeDefenseNarrative({
+        parcelNumber: parcel.parcelNumber,
+        address: parcel.address,
+        assessedValue: parcel.assessedValue,
+        assessmentHistory: assessments?.slice(0, 5),
+        comps: comps?.slice(0, 10)?.map((c: any) => ({
+          parcel_number: c.parcels?.parcel_number,
+          address: c.parcels?.address,
+          sale_price: c.sale_price,
+          sale_date: c.sale_date,
+          ratio: c.parcels?.assessed_value && c.sale_price
+            ? (c.parcels.assessed_value / c.sale_price).toFixed(3)
+            : null,
+        })),
+        ratioStats: {
+          studyPeriod: studyPeriod.name,
         },
       });
-
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
 
       setNarrative(data.narrative);
       setStatus("ready");

@@ -1,0 +1,78 @@
+// TerraFusion OS — Ribbon Search Hook (Constitutional: DB access only in hooks)
+// Used by ContextRibbon for parcel search and study period selection.
+
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+
+export interface RibbonParcelResult {
+  id: string;
+  parcel_number: string;
+  address: string;
+  city: string | null;
+  property_class: string | null;
+  assessed_value: number;
+  latitude: number | null;
+  longitude: number | null;
+  neighborhood_code: string | null;
+}
+
+export interface RibbonStudyPeriod {
+  id: string;
+  name: string;
+  status: string;
+  start_date: string;
+  end_date: string;
+  description: string | null;
+}
+
+export function useRibbonParcelSearch(query: string) {
+  return useQuery({
+    queryKey: ["parcel-search", query],
+    queryFn: async () => {
+      if (!query || query.length < 2) return [];
+      const { data, error } = await supabase
+        .from("parcels")
+        .select("id, parcel_number, address, city, property_class, assessed_value, latitude, longitude, neighborhood_code")
+        .or(`parcel_number.ilike.%${query}%,address.ilike.%${query}%`)
+        .order("assessed_value", { ascending: false })
+        .limit(10);
+      if (error) throw error;
+      return (data || []) as RibbonParcelResult[];
+    },
+    enabled: query.length >= 2,
+    staleTime: 30000,
+  });
+}
+
+export function useRibbonStudyPeriods() {
+  return useQuery({
+    queryKey: ["study-periods-ribbon"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("study_periods")
+        .select("id, name, status, start_date, end_date, description")
+        .order("start_date", { ascending: false })
+        .limit(10);
+      if (error) throw error;
+      return (data || []) as RibbonStudyPeriod[];
+    },
+    staleTime: 60000,
+  });
+}
+
+export function useWorkflowParcelSearch(query: string) {
+  return useQuery({
+    queryKey: ["parcels-search-workflow", query],
+    queryFn: async () => {
+      if (!query || query.length < 2) return [];
+      const { data, error } = await supabase
+        .from("parcels")
+        .select("id, parcel_number, address, city, assessed_value")
+        .or(`parcel_number.ilike.%${query}%,address.ilike.%${query}%`)
+        .limit(10);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: query.length >= 2,
+  });
+}

@@ -10,7 +10,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useDossierNarratives, useSaveNarrative, useDeleteNarrative } from "@/hooks/useDossier";
 import { useWorkbench } from "@/components/workbench/WorkbenchContext";
-import { supabase } from "@/integrations/supabase/client";
+import { invokeDefenseNarrative } from "@/services/ingestService";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
 import { format } from "date-fns";
@@ -43,16 +43,12 @@ export function NarrativeDraftingPanel({ parcelId }: Props) {
     if (!parcelId) return;
     setIsGenerating(true);
     try {
-      const { data, error } = await supabase.functions.invoke("defense-narrative", {
-        body: {
-          parcelNumber: parcel.parcelNumber,
-          address: parcel.address,
-          assessedValue: parcel.assessedValue,
-          ratioStats: { studyPeriod: studyPeriod.name },
-        },
+      const data = await invokeDefenseNarrative({
+        parcelNumber: parcel.parcelNumber,
+        address: parcel.address,
+        assessedValue: parcel.assessedValue,
+        ratioStats: { studyPeriod: studyPeriod.name },
       });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
 
       const typeLabel = NARRATIVE_TYPES.find(t => t.value === narrativeType)?.label || narrativeType;
       setTitle(`${typeLabel} — ${parcel.parcelNumber || "Unknown"}`);

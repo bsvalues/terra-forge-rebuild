@@ -29,7 +29,7 @@ import {
   Waves,
   Trees,
 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { fetchParcelsForEnrichment, invokeAssessorScrape } from "@/services/ingestService";
 import { toast } from "sonner";
 import { ParcelFiltersPanel, type ParcelFilters } from "./ParcelFilters";
 import { BatchSizeSelector } from "./BatchSizeSelector";
@@ -164,26 +164,9 @@ export function AssessorScrapeDialog({
   const fetchParcelsNeedingEnrichment = useCallback(async () => {
     setLoadingParcels(true);
     try {
-      let query = supabase
-        .from("parcels")
-        .select("parcel_number", { count: "exact" })
-        .or("building_area.is.null,year_built.is.null,bedrooms.is.null");
-
-      if (filters.neighborhood) query = query.eq("neighborhood_code", filters.neighborhood);
-      if (filters.city) query = query.eq("city", filters.city);
-      if (filters.propertyClass) query = query.eq("property_class", filters.propertyClass);
-      if (filters.minSqft) query = query.gte("building_area", filters.minSqft);
-      if (filters.maxSqft) query = query.lte("building_area", filters.maxSqft);
-      if (filters.minYear) query = query.gte("year_built", filters.minYear);
-      if (filters.maxYear) query = query.lte("year_built", filters.maxYear);
-      if (filters.minBeds) query = query.gte("bedrooms", filters.minBeds);
-      if (filters.maxBeds) query = query.lte("bedrooms", filters.maxBeds);
-
-      const { data, error, count } = await query.limit(batchSize);
-
-      if (error) throw error;
-      setParcelsToEnrich(data?.map((p) => p.parcel_number) || []);
-      setTotalMatchingParcels(count || 0);
+      const result = await fetchParcelsForEnrichment(filters, batchSize);
+      setParcelsToEnrich(result.parcels);
+      setTotalMatchingParcels(result.total);
     } catch (err) {
       console.error("Error fetching parcels:", err);
     } finally {
@@ -256,21 +239,16 @@ export function AssessorScrapeDialog({
       setProgress(Math.round(((i + 1) / totalCounties) * 100));
 
       try {
-        const { data, error } = await supabase.functions.invoke("assessor-scrape", {
-          body: {
-            assessorUrl,
-            parcelIds: parcelsToEnrich,
-            action,
-          },
+        const data = await invokeAssessorScrape({
+          assessorUrl,
+          parcelIds: parcelsToEnrich,
+          action,
         });
-
-        if (error) {
-          results.push({ county, result: { success: false, error: error.message } });
-        } else {
+        results.push({ county, result: data as ScrapeResult });
           results.push({ county, result: data as ScrapeResult });
         }
-      } catch (error) {
-        const message = error instanceof Error ? error.message : "Scrape failed";
+      } catch (error: any) {
+        const message = error?.message || "Scrape failed";
         results.push({ county, result: { success: false, error: message } });
       }
 

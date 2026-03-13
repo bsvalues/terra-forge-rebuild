@@ -31,8 +31,7 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
-import { supabase } from "@/integrations/supabase/client";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useDataSourcesList, useAddDataSource, useDeleteDataSource } from "@/hooks/useDataSources";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 
@@ -57,55 +56,29 @@ const syncStatusBadge = (status?: string | null) => {
 
 export function DataSourceRegistry() {
   const { profile } = useAuthContext();
-  const queryClient = useQueryClient();
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [newSource, setNewSource] = useState({ name: "", source_type: "csv_upload", connection_url: "", description: "" });
 
-  const { data: sources, isLoading } = useQuery({
-    queryKey: ["data-sources", profile?.county_id],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("data_sources")
-        .select("*")
-        .eq("county_id", profile!.county_id!)
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!profile?.county_id,
-  });
+  const { data: sources, isLoading } = useDataSourcesList(profile?.county_id);
+  const addMutation = useAddDataSource(profile?.county_id);
+  const deleteMutation = useDeleteDataSource();
 
-  const addMutation = useMutation({
-    mutationFn: async () => {
-      const { error } = await supabase.from("data_sources").insert({
-        name: newSource.name,
-        source_type: newSource.source_type,
-        description: newSource.description || null,
-        connection_config: newSource.connection_url ? { url: newSource.connection_url } : null,
-        county_id: profile!.county_id!,
-      });
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["data-sources"] });
-      toast.success(`Data source "${newSource.name}" registered`);
-      setShowAddDialog(false);
-      setNewSource({ name: "", source_type: "csv_upload", connection_url: "", description: "" });
-    },
-    onError: (err: any) => toast.error(err.message),
-  });
+  const handleAdd = () => {
+    addMutation.mutate(
+      { name: newSource.name, source_type: newSource.source_type, description: newSource.description, connection_url: newSource.connection_url },
+      {
+        onSuccess: () => {
+          toast.success(`Data source "${newSource.name}" registered`);
+          setShowAddDialog(false);
+          setNewSource({ name: "", source_type: "csv_upload", connection_url: "", description: "" });
+        },
+      }
+    );
+  };
 
-  const deleteMutation = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from("data_sources").delete().eq("id", id);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["data-sources"] });
-      toast.success("Data source removed");
-    },
-    onError: (err: any) => toast.error(err.message),
-  });
+  const handleDelete = (id: string) => {
+    deleteMutation.mutate(id, { onSuccess: () => toast.success("Data source removed") });
+  };
 
   return (
     <div className="space-y-4">
@@ -200,7 +173,7 @@ export function DataSourceRegistry() {
                           variant="ghost"
                           size="sm"
                           className="h-7 w-7 p-0 text-destructive/70 hover:text-destructive"
-                          onClick={() => deleteMutation.mutate(src.id)}
+                          onClick={() => handleDelete(src.id)}
                         >
                           <Trash2 className="w-3 h-3" />
                         </Button>
@@ -267,7 +240,7 @@ export function DataSourceRegistry() {
           <DialogFooter>
             <Button variant="ghost" onClick={() => setShowAddDialog(false)}>Cancel</Button>
             <Button
-              onClick={() => addMutation.mutate()}
+              onClick={() => handleAdd()}
               disabled={!newSource.name || addMutation.isPending}
               className="gap-1.5"
             >
