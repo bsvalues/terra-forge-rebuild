@@ -173,7 +173,7 @@ export function DataSourceRegistry() {
                           variant="ghost"
                           size="sm"
                           className="h-7 w-7 p-0 text-destructive/70 hover:text-destructive"
-                          onClick={() => deleteMutation.mutate(src.id)}
+                          onClick={() => handleDelete(src.id)}
                         >
                           <Trash2 className="w-3 h-3" />
                         </Button>
