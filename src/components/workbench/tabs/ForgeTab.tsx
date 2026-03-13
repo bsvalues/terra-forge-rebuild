@@ -41,19 +41,7 @@ export function ForgeTab() {
   const navigate = useNavigate();
 
   // Latest calibration run for context
-  const { data: latestRun } = useQuery({
-    queryKey: ["latest-calibration-run"],
-    staleTime: 60_000,
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("calibration_runs")
-        .select("id, neighborhood_code, r_squared, sample_size, status, created_at")
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .single();
-      return data;
-    },
-  });
+  const { data: latestRun } = useLatestCalibrationRun();
 
   return (
     <div className="h-full flex flex-col">

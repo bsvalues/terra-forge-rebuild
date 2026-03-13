@@ -120,72 +120,17 @@ const MODULE_FILTER_OPTIONS = [
 ];
 
 export function TerraTraceActivityFeed({ parcelId, limit = 20, moduleFilter: externalFilter }: TerraTraceActivityFeedProps) {
-  const queryClient = useQueryClient();
   const [internalFilter, setInternalFilter] = useState<string>("all");
   const activeFilter = externalFilter ?? internalFilter;
 
   // Realtime subscription for live trace events
-  useEffect(() => {
-    const channel = supabase
-      .channel("trace-realtime")
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "trace_events",
-          ...(parcelId ? { filter: `parcel_id=eq.${parcelId}` } : {}),
-        },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ["terra-trace-feed", parcelId, limit] });
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [parcelId, limit, queryClient]);
+  useTraceRealtimeSubscription(parcelId, limit);
 
   // Query trace_events
-  const { data: traceEvents = [], isLoading: loadingTrace } = useQuery({
-    queryKey: ["terra-trace-feed", parcelId, limit],
-    queryFn: async () => {
-      let query = supabase
-        .from("trace_events" as any)
-        .select("*")
-        .order("created_at", { ascending: false })
-        .limit(limit);
-
-      if (parcelId) {
-        query = query.eq("parcel_id", parcelId);
-      }
-
-      const { data, error } = await query;
-      if (error) throw error;
-      return (data || []) as any[];
-    },
-  });
+  const { data: traceEvents = [], isLoading: loadingTrace } = useTraceEvents(parcelId, limit);
 
   // Legacy fallback: query model_receipts
-  const { data: receipts = [], isLoading: loadingReceipts } = useQuery({
-    queryKey: ["terra-trace-legacy", parcelId, limit],
-    queryFn: async () => {
-      let query = supabase
-        .from("model_receipts")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .limit(limit);
-
-      if (parcelId) {
-        query = query.eq("parcel_id", parcelId);
-      }
-
-      const { data, error } = await query;
-      if (error) throw error;
-      return data || [];
-    },
-  });
+  const { data: receipts = [], isLoading: loadingReceipts } = useLegacyModelReceipts(parcelId, limit);
 
   const isLoading = loadingTrace || loadingReceipts;
 

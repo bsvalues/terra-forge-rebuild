@@ -1,43 +1,17 @@
 // TerraFusion OS — Factory Dashboard Header
 // Uses useCountyVitals for baseline counts; only runs factory-specific queries locally.
 
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Factory, BarChart3, ShieldCheck, Layers, TrendingUp, AlertTriangle } from "lucide-react";
 import { useCountyVitals } from "@/hooks/useCountyVitals";
+import { useActiveAdjustmentsCount, useNeighborhoodCount } from "@/hooks/useFactoryMetrics";
 import { ProvenanceNumber } from "@/components/trust";
 
 export function FactoryDashboardHeader() {
   const { data: vitals, isLoading: vitalsLoading } = useCountyVitals();
-
-  // Factory-specific: active adjustments count (not in vitals)
-  const { data: adjustmentsCount } = useQuery({
-    queryKey: ["factory", "active-adjustments"],
-    queryFn: async () => {
-      const { count } = await supabase
-        .from("value_adjustments")
-        .select("*", { count: "exact", head: true })
-        .is("rolled_back_at", null);
-      return count || 0;
-    },
-    staleTime: 120_000,
-  });
-
-  // Factory-specific: neighborhood count from parcels
-  const { data: neighborhoodCount } = useQuery({
-    queryKey: ["factory", "neighborhoods"],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("parcels")
-        .select("neighborhood_code")
-        .not("neighborhood_code", "is", null)
-        .limit(1000);
-      return new Set((data || []).map(p => p.neighborhood_code)).size;
-    },
-    staleTime: 120_000,
-  });
+  const { data: adjustmentsCount } = useActiveAdjustmentsCount();
+  const { data: neighborhoodCount } = useNeighborhoodCount();
 
   if (vitalsLoading) {
     return (
