@@ -164,26 +164,9 @@ export function AssessorScrapeDialog({
   const fetchParcelsNeedingEnrichment = useCallback(async () => {
     setLoadingParcels(true);
     try {
-      let query = supabase
-        .from("parcels")
-        .select("parcel_number", { count: "exact" })
-        .or("building_area.is.null,year_built.is.null,bedrooms.is.null");
-
-      if (filters.neighborhood) query = query.eq("neighborhood_code", filters.neighborhood);
-      if (filters.city) query = query.eq("city", filters.city);
-      if (filters.propertyClass) query = query.eq("property_class", filters.propertyClass);
-      if (filters.minSqft) query = query.gte("building_area", filters.minSqft);
-      if (filters.maxSqft) query = query.lte("building_area", filters.maxSqft);
-      if (filters.minYear) query = query.gte("year_built", filters.minYear);
-      if (filters.maxYear) query = query.lte("year_built", filters.maxYear);
-      if (filters.minBeds) query = query.gte("bedrooms", filters.minBeds);
-      if (filters.maxBeds) query = query.lte("bedrooms", filters.maxBeds);
-
-      const { data, error, count } = await query.limit(batchSize);
-
-      if (error) throw error;
-      setParcelsToEnrich(data?.map((p) => p.parcel_number) || []);
-      setTotalMatchingParcels(count || 0);
+      const result = await fetchParcelsForEnrichment(filters, batchSize);
+      setParcelsToEnrich(result.parcels);
+      setTotalMatchingParcels(result.total);
     } catch (err) {
       console.error("Error fetching parcels:", err);
     } finally {
