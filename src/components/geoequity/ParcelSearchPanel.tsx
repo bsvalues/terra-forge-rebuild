@@ -131,6 +131,9 @@ export function ParcelSearchPanel({ initialNeighborhood }: ParcelSearchPanelProp
       if (filters.propertyClasses.length > 0) {
         query = query.in("property_class", filters.propertyClasses);
       }
+      if (filters.neighborhoods.length > 0) {
+        query = query.in("neighborhood_code", filters.neighborhoods);
+      }
 
       const { data, error, count } = await query;
       if (error) throw error;
