@@ -4,7 +4,8 @@ import { FileText, Image, File, Trash2, Download, ExternalLink } from "lucide-re
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useDossierDocuments, useDeleteDocument, useDownloadDocument } from "@/hooks/useDossier";
+import { useDossierDocuments, useDeleteDocument } from "@/hooks/useDossier";
+import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 
 interface Props {
