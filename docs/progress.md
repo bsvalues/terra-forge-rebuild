@@ -30,8 +30,35 @@
 | 33 | Security Hardening | ✅ COMPLETE | 5/5 | npm audit fix, RLS county-scope on notices/cert_events, broken RLS fix on 5 tables, has_role() RBAC, privilege escalation fix |
 | 34 | Batch Notice Generation | ✅ COMPLETE | 5/5 | batch_notice_jobs table, useBatchNotices hook, BatchNoticeDashboard, Factory DB persistence, Notice Center route |
 | 35 | Dossier Evidence Pipeline | ✅ COMPLETE | 4/4 | Multi-type AI narratives, dossier-files storage bucket, packet finalization workflow, evidence synthesis |
+| 36 | User & Role Management | ✅ COMPLETE | 4/4 | admin-manage-users edge function, useUserManagement hook, UserManagementPanel UI, AdminDashboard wiring |
 
-## Phase 35 Dossier Evidence Pipeline Log (2026-03-14)
+## Phase 36 User & Role Management Log (2026-03-14)
+
+### 36.1 admin-manage-users Edge Function ✅
+- Admin-only edge function with `requireAdmin` gate
+- Actions: `list_users` (profiles + roles + auth emails), `assign_role`, `revoke_role`, `update_county`
+- County isolation: only manages users within admin's county
+- Self-protection: prevents admin from revoking their own admin role
+- Uses service-role client to bypass RLS for role/county operations
+
+### 36.2 useUserManagement Hook ✅
+- `useUserList`: fetches merged user data (profile + roles + email + lastSignIn) via edge function
+- `useAssignRole`: mutate to add role to user via edge function
+- `useRevokeRole`: mutate to remove role from user via edge function
+- `useUpdateUserCounty`: mutate to change user's county assignment
+- All mutations invalidate `admin-users` query cache
+
+### 36.3 UserManagementPanel UI ✅
+- Stats row: total users, admins, analysts, no-role counts
+- User cards with avatar, display name, email, role badges
+- Inline role management: removable role badges + "Add Role" dropdown
+- Expandable details: join date, last sign-in, user ID
+- Admin access gate: shows error card for non-admin users
+- Mobile-responsive with role badges in expanded section on small screens
+
+### 36.4 AdminDashboard Integration ✅
+- Replaced "coming soon" placeholder in Users tab with UserManagementPanel
+- Imported UserManagementPanel component
 
 ### 35.1 Storage & Schema ✅
 - Verified `dossier-files` storage bucket with RLS policies for authenticated users
