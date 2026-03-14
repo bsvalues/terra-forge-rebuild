@@ -9,9 +9,9 @@
 
 ## Current State Summary
 
-**Active Phase**: Phase 26 — Segment-Driven Revaluation (COMPLETE)  
-**Last Completed Task**: 26.5 — Route wiring and docs  
-**Next Task**: Phase 27 planning  
+**Active Phase**: Phase 27 — Cost Approach Engine (COMPLETE)  
+**Last Completed Task**: 27.5 — CostMode integration and docs  
+**Next Task**: Phase 28 planning  
 **Blockers**: None
 
 ---
