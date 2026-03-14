@@ -119,6 +119,32 @@ export function GlobalCommandPalette({
           </>
         )}
 
+        {/* Recent Parcels (show when no search query) */}
+        {!searchValue && recents.length > 0 && (
+          <>
+            <CommandGroup heading="Recent Parcels">
+              {recents.slice(0, 5).map((r) => (
+                <CommandItem
+                  key={r.id}
+                  value={`recent ${r.parcelNumber} ${r.address}`}
+                  onSelect={() => handleSelectParcel({ id: r.id, parcel_number: r.parcelNumber, address: r.address, assessed_value: r.assessedValue } as any)}
+                  className="flex items-center gap-3"
+                >
+                  <Clock className="w-4 h-4 text-muted-foreground" />
+                  <div className="flex-1">
+                    <span className="font-medium">{r.parcelNumber}</span>
+                    <span className="text-xs text-muted-foreground ml-2">{r.address}</span>
+                  </div>
+                  <span className="text-xs text-muted-foreground">
+                    ${r.assessedValue?.toLocaleString() || "—"}
+                  </span>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+            <CommandSeparator />
+          </>
+        )}
+
         {/* Primary Modules */}
         <CommandGroup heading="Modules">
           {IA_MODULES.map((mod) => {
