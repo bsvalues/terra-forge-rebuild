@@ -9,9 +9,9 @@
 
 ## Current State Summary
 
-**Active Phase**: Phase 34 — Batch Notice Generation (COMPLETE)  
-**Last Completed Task**: 34.5 — Route wiring and progress update  
-**Next Task**: Phase 35 planning  
+**Active Phase**: Phase 36 — User & Role Management (COMPLETE)  
+**Last Completed Task**: 36.4 — AdminDashboard wiring  
+**Next Task**: Phase 37 planning  
 **Blockers**: None
 
 ---
