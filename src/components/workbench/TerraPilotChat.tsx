@@ -69,6 +69,8 @@ const TOOL_ICONS: Record<string, typeof Search> = {
   assign_task: Briefcase,
   create_workflow: Activity,
   escalate_task: AlertTriangle,
+  generate_notice: FileText,
+  run_model: BarChart3,
 };
 
 const TOOL_LABELS: Record<string, string> = {
@@ -90,6 +92,8 @@ const TOOL_LABELS: Record<string, string> = {
   assign_task: "Assigning task",
   create_workflow: "Creating workflow",
   escalate_task: "Escalating task",
+  generate_notice: "Generating notice",
+  run_model: "Running model",
 };
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/terrapilot-chat`;

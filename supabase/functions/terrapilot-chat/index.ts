@@ -526,7 +526,9 @@ async function executeTool(
       case "update_parcel_class":
       case "assign_task":
       case "create_workflow":
-      case "escalate_task": {
+      case "escalate_task":
+      case "generate_notice":
+      case "run_model": {
         // Fetch parcel context for the confirmation card (if parcel_id provided)
         const pid = args.parcel_id ? String(args.parcel_id) : null;
         let parcel = null;
