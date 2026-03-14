@@ -18,6 +18,8 @@ import {
   Brain,
   Hexagon,
   Radar,
+  Layers,
+  type LucideIcon,
   type LucideIcon,
 } from "lucide-react";
 
