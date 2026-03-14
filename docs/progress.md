@@ -20,6 +20,7 @@
 | 23 | Route Consolidation Audit | ✅ COMPLETE | 2/2 | Orphan TerraFusionLayout deleted, 4-module IA_MAP verified |
 | 24 | Trust OS Provenance Coverage | ✅ COMPLETE | 5/5 | Every key metric wrapped with ProvenanceNumber |
 | 25 | Advanced Analytics | ✅ COMPLETE | 5/5 | Ratio trends, forecasting, outlier detection, neighborhood clustering |
+| 26 | Segment-Driven Revaluation | ✅ COMPLETE | 5/5 | Segment definitions, per-segment calibration, equity rebalancing |
 
 ## Phase 25 Advanced Analytics Log (2026-03-14)
 
