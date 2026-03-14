@@ -41,6 +41,26 @@
 | 44 | Parcel Watchlist & Favorites | ✅ COMPLETE | 3/3 | parcel_watchlist table (RLS, priority, notes), useParcelWatchlist hooks (CRUD, toggle, isWatched), WatchlistPanel UI (search, filter, priority stats, navigate-to-parcel), Star toggle in SummaryTab header |
 | 45 | Recent Parcels & Navigation History | ✅ COMPLETE | 3/3 | useRecentParcels hook (localStorage, max 20, dedup), RecentParcelsPanel UI (search, navigate, clear), Command Palette recents section, auto-track on parcel load |
 
+## Phase 45 Recent Parcels & Navigation History Log (2026-03-14)
+
+### 45.1 useRecentParcels Hook ✅
+- localStorage-persisted, max 20 items, automatic deduplication
+- Global shared state via listener pattern (same as preferences/notifications)
+- `addRecent`, `removeRecent`, `clearRecents` operations
+
+### 45.2 RecentParcelsPanel UI ✅
+- Full panel with search filter, navigate-to-parcel, individual removal
+- Empty state with guidance text
+- Clear History button for bulk removal
+- Animated card layout with time-ago display
+
+### 45.3 Integration & Wiring ✅
+- `recents` view registered in Home module in IA_MAP with Clock icon
+- Legacy redirect added for `recents` → `home:recents`
+- Lazy-loaded RecentParcelsPanel in AppLayout
+- Auto-tracking: `addRecent` called when parcel loads in PropertyWorkbench
+- Command Palette shows top 5 recent parcels when no search query is entered
+
 ## Phase 44 Parcel Watchlist & Favorites Log (2026-03-14)
 
 ### 44.1 parcel_watchlist Table ✅
