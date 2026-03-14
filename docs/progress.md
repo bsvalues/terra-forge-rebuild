@@ -9,9 +9,9 @@
 
 ## Current State Summary
 
-**Active Phase**: Phase 40 — Production Readiness (COMPLETE)  
-**Last Completed Task**: 40.4 — Global error toast handler  
-**Next Task**: Phase 41 planning  
+**Active Phase**: Phase 41 — Data Export & Reporting (COMPLETE)  
+**Last Completed Task**: 41.3 — IA_MAP + AppLayout wiring  
+**Next Task**: Phase 42 planning  
 **Blockers**: None
 
 ---
