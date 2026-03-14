@@ -34,6 +34,7 @@ export function GlobalCommandPalette({
 }: GlobalCommandPaletteProps) {
   const [searchValue, setSearchValue] = useState("");
   const parcelResults = useParcelLookup(open ? searchValue : "");
+  const { recents } = useRecentParcels();
 
   // Keyboard shortcuts for module switching (⌘1–4)
   useEffect(() => {
