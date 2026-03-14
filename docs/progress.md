@@ -9,9 +9,9 @@
 
 ## Current State Summary
 
-**Active Phase**: Phase 24 — Trust OS Provenance Coverage (COMPLETE)  
-**Last Completed Task**: 24.5 — DataQuality + RollReadiness provenance  
-**Next Task**: Phase 25 planning  
+**Active Phase**: Phase 25 — Advanced Analytics (COMPLETE)  
+**Last Completed Task**: 25.5 — Route wiring and navigation  
+**Next Task**: Phase 26 planning  
 **Blockers**: None
 
 ---
