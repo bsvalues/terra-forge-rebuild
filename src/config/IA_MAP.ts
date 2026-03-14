@@ -19,6 +19,7 @@ import {
   Hexagon,
   Radar,
   Layers,
+  Mail,
   type LucideIcon,
 } from "lucide-react";
 
