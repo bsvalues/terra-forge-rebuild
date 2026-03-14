@@ -116,6 +116,7 @@ export const IA_MODULES: ModuleDefinition[] = [
       { id: "avm", label: "AVM Studio", icon: Brain, scope: "run" },
       { id: "analytics", label: "Analytics", icon: TrendingUp, scope: "run" },
       { id: "advanced-analytics", label: "Advanced Analytics", icon: Radar, scope: "run" },
+      { id: "segments", label: "Segments", icon: Layers, scope: "neighborhood" },
     ],
   },
   {
