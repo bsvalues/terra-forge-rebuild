@@ -21,6 +21,39 @@
 | 24 | Trust OS Provenance Coverage | ✅ COMPLETE | 5/5 | Every key metric wrapped with ProvenanceNumber |
 | 25 | Advanced Analytics | ✅ COMPLETE | 5/5 | Ratio trends, forecasting, outlier detection, neighborhood clustering |
 
+## Phase 25 Advanced Analytics Log (2026-03-14)
+
+### 25.1 Ratio Trend Sparklines ✅
+- `RatioTrendSparklines` component: 3 mini line charts (Median Ratio, COD, PRD) over 6 years
+- Trend badges (Improving/Stable/Declining) based on movement toward IAAO targets
+- ProvenanceNumber wrapping on all values (source: `ratio-trend`)
+
+### 25.2 Assessment Value Forecast ✅
+- `ForecastPanel` with linear regression + 95% confidence intervals
+- Historical data plotted with forecast extension (gold dots)
+- Summary cards: current avg value, projected growth, forecast year value
+- Visual confidence bands on chart
+
+### 25.3 Automated Outlier Detection ✅
+- `OutlierDetectionPanel` with dual detection (Z-score + IQR)
+- Adjustable Z-score threshold slider (1.5σ–4.0σ)
+- Distribution stats (Q1, Median, Q3, IQR)
+- Z-score bar chart with color-coded severity
+- Flagged parcels table with method/reason columns
+
+### 25.4 Neighborhood Clustering ✅
+- `ClusteringPanel` with K-means (k=3) on [avgValue, avgSqft, avgAge]
+- Feature normalization for scale-invariant clustering
+- Cluster summary cards with centroid statistics
+- Scatter plot (Value vs Sqft) colored by cluster assignment
+- Full neighborhood assignment table with distance-to-centroid
+
+### 25.5 Route & Navigation Wiring ✅
+- Added `advanced-analytics` view to IA_MAP Factory module
+- Lazy-loaded `AdvancedAnalyticsDashboard` in AppLayout
+- Legacy redirect registered for deep-linking
+- Hook: `useAdvancedAnalytics.ts` with 4 specialized queries
+
 ## Phase 24 Trust OS Provenance Coverage Log (2026-03-14)
 
 ### 24.1 VEIMetricCard Provenance ✅
