@@ -2,10 +2,12 @@ import { motion } from "framer-motion";
 import { TrendingUp, Target, Activity, Percent } from "lucide-react";
 import { RegressionResult } from "@/hooks/useRegressionAnalysis";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ProvenanceNumber } from "@/components/trust";
 
 interface RegressionSummaryCardsProps {
   result: RegressionResult | undefined;
   isLoading: boolean;
+  fetchedAt?: string | null;
 }
 
 interface SummaryCardProps {
