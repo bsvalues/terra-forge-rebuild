@@ -26,8 +26,8 @@ export function DockLauncher({ activeModule, onModuleChange }: DockLauncherProps
   }, []);
 
   return (
-    <div className="dock-launcher material-shell">
-      <nav className="flex items-center gap-0.5 sm:gap-1">
+    <div className="dock-launcher material-shell safe-area-bottom">
+      <nav className="flex items-center gap-0.5 sm:gap-1 px-1">
         {IA_MODULES.map((mod) => {
           const Icon = mod.icon;
           const isActive = activeModule === mod.id;
