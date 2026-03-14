@@ -58,7 +58,9 @@ export function invalidateFactory(qc: QueryClient) {
 export function invalidateCertification(qc: QueryClient) {
   qc.invalidateQueries({ queryKey: ["certification-pipeline"] });
   qc.invalidateQueries({ queryKey: ["certification-stats"] });
+  qc.invalidateQueries({ queryKey: ["certification-events"] });
   qc.invalidateQueries({ queryKey: ["roll-readiness"] });
+  qc.invalidateQueries({ queryKey: ["roll-readiness-command"] });
   qc.invalidateQueries({ queryKey: ["assessments"] });
   invalidateCounty(qc);
 }
