@@ -9,9 +9,9 @@
 
 ## Current State Summary
 
-**Active Phase**: Phase 31 — TerraPilot Tool Execution (COMPLETE)  
-**Last Completed Task**: 31.4 — Inline tool result cards  
-**Next Task**: Phase 32 planning  
+**Active Phase**: Phase 32 — Roll Certification Pipeline (COMPLETE)  
+**Last Completed Task**: 32.4 — State roll export  
+**Next Task**: Phase 33 planning  
 **Blockers**: None
 
 ---
