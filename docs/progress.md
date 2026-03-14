@@ -36,6 +36,28 @@
 | 39 | Performance & Testing | ✅ COMPLETE | 3/3 | Lazy-loaded routes (React.lazy+Suspense), writeLane+terraTrace Vitest suites (18 tests), Vite vendor chunking (react, query, ui, charts, maps, motion, three) |
 | 40 | Production Readiness | ✅ COMPLETE | 4/4 | ErrorBoundary (route+module level), global error toast handler, SkipToContent WCAG link, ARIA landmarks on main |
 | 41 | Data Export & Reporting | ✅ COMPLETE | 3/3 | ExportService (CSV/JSON, 7 datasets, filters, audit trail), ExportCenter UI (dataset picker, format toggle, history), IA_MAP + AppLayout wiring |
+| 42 | User Preferences & Settings | ✅ COMPLETE | 3/3 | useUserPreferences hook (6 prefs, localStorage, global sync), useProfileUpdate (governed name edit), Enhanced ControlCenter (profile editor, prefs toggles, sign out, compact/reduced-motion CSS) |
+
+## Phase 42 User Preferences & Settings Log (2026-03-14)
+
+### 42.1 Preference & Profile Hooks ✅
+- `useUserPreferences`: 6 persisted preferences (compactMode, reducedMotion, showMapLayers, trustModeDefault, notificationSound, autoSync)
+- Global state shared across all hook instances via listener pattern
+- Side effects: applies `compact` and `reduce-motion` CSS classes to document root
+- `resetPrefs()` restores defaults
+- `useProfileUpdate`: governed mutation for display_name via profiles table, emits trace event
+
+### 42.2 Enhanced ControlCenter ✅
+- Profile section: avatar placeholder, inline display name editing with save
+- Governance section: Trust Mode toggle, Auto Sync toggle
+- Display section: Compact Mode, Reduced Motion, Map Layers, Notification Sound toggles
+- System section: version display, county ID badge, Reset Prefs and Sign Out buttons
+- Replaces previous minimal ControlCenter with full settings experience
+
+### 42.3 Compact Mode & Reduced Motion CSS ✅
+- `.compact` class reduces padding (p-4→0.75rem, p-6→1rem), gaps, and spacing globally
+- `.reduce-motion` class forces all animations and transitions to near-zero duration
+- Both applied/removed via document.documentElement.classList toggle
 
 ## Phase 41 Data Export & Reporting Log (2026-03-14)
 
