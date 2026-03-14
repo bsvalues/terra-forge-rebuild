@@ -9,9 +9,9 @@
 
 ## Current State Summary
 
-**Active Phase**: Phase 42 — User Preferences & Settings (COMPLETE)  
-**Last Completed Task**: 42.3 — Compact mode + reduced motion CSS  
-**Next Task**: Phase 43 planning  
+**Active Phase**: Phase 43 — Parcel Comparison Tool (COMPLETE)  
+**Last Completed Task**: 43.3 — IA_MAP + AppLayout wiring  
+**Next Task**: Phase 44 planning  
 **Blockers**: None
 
 ---
@@ -37,6 +37,29 @@
 | 40 | Production Readiness | ✅ COMPLETE | 4/4 | ErrorBoundary (route+module level), global error toast handler, SkipToContent WCAG link, ARIA landmarks on main |
 | 41 | Data Export & Reporting | ✅ COMPLETE | 3/3 | ExportService (CSV/JSON, 7 datasets, filters, audit trail), ExportCenter UI (dataset picker, format toggle, history), IA_MAP + AppLayout wiring |
 | 42 | User Preferences & Settings | ✅ COMPLETE | 3/3 | useUserPreferences hook (6 prefs, localStorage, global sync), useProfileUpdate (governed name edit), Enhanced ControlCenter (profile editor, prefs toggles, sign out, compact/reduced-motion CSS) |
+| 43 | Parcel Comparison Tool | ✅ COMPLETE | 3/3 | useParcelComparison hook (add/remove/clear, max 4), ParcelComparisonPanel (side-by-side table, delta highlighting, $/sqft derived row, inline search), IA_MAP + AppLayout wiring |
+
+## Phase 43 Parcel Comparison Tool Log (2026-03-14)
+
+### 43.1 useParcelComparison Hook ✅
+- Manages array of up to 4 ComparisonParcel objects
+- `addParcel(id)`: fetches full parcel data from DB, prevents duplicates, enforces max 4
+- `removeParcel(id)` and `clearAll()` for management
+- COMPARISON_FIELDS constant defines 10 comparable attributes with format metadata
+
+### 43.2 ParcelComparisonPanel UI ✅
+- Side-by-side table layout comparing 2-4 parcels
+- Inline parcel search using existing useParcelLookup (constitutional — no direct DB calls in component)
+- Delta highlighting: highest numeric values in primary color, lowest in destructive
+- Derived $/sqft row calculated from assessed_value / building_area
+- Add/remove parcels with animated search panel (AnimatePresence)
+- Empty state with call-to-action
+- Responsive with horizontal scroll on narrow viewports
+
+### 43.3 Navigation Wiring ✅
+- Added `compare` view to Workbench module in IA_MAP with GitCompareArrows icon
+- Added `compare` legacy redirect
+- Lazy-loaded ParcelComparisonPanel in AppLayout with code-splitting
 
 ## Phase 42 User Preferences & Settings Log (2026-03-14)
 

@@ -21,6 +21,7 @@ import {
   Layers,
   Mail,
   Download,
+  GitCompareArrows,
   type LucideIcon,
 } from "lucide-react";
 
@@ -104,6 +105,7 @@ export const IA_MODULES: ModuleDefinition[] = [
     views: [
       { id: "property", label: "Property 360", icon: Search, scope: "parcel" },
       { id: "field", label: "Field Studio", icon: Compass, scope: "parcel" },
+      { id: "compare", label: "Compare", icon: GitCompareArrows, scope: "parcel" },
     ],
   },
   {
@@ -158,6 +160,7 @@ export const LEGACY_REDIRECTS: LegacyRedirect[] = [
   { legacyId: "segments", targetModule: "factory", targetView: "segments" },
   // Workbench absorbs Field
   { legacyId: "field", targetModule: "workbench", targetView: "field" },
+  { legacyId: "compare", targetModule: "workbench", targetView: "compare" },
   // Registry absorbs Trust
   { legacyId: "trust", targetModule: "registry", targetView: "trust" },
 ];
