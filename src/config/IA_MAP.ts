@@ -22,6 +22,7 @@ import {
   Mail,
   Download,
   GitCompareArrows,
+  Clock,
   type LucideIcon,
 } from "lucide-react";
 
