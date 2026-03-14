@@ -12,6 +12,7 @@ import { SuiteTabNavigation } from "./SuiteTabNavigation";
 import { TerraPilotPanel } from "./TerraPilotPanel";
 import { SuiteTab } from "./types";
 import { useScrapeJobNotifications } from "@/hooks/useScrapeJobNotifications";
+import { useRecentParcels } from "@/hooks/useRecentParcels";
 
 // Suite Content Components
 import { SummaryTab } from "./tabs/SummaryTab";
