@@ -202,7 +202,7 @@ export function ParcelComparisonPanel() {
                     <tr key={field.key} className="border-b border-border/20 hover:bg-muted/20 transition-colors">
                       <td className="p-3 text-xs font-medium text-muted-foreground">{field.label}</td>
                       {parcels.map((p, i) => {
-                        const val = (p as Record<string, unknown>)[field.key];
+                        const val = (p as unknown as Record<string, unknown>)[field.key];
                         const deltaClass = isNumeric ? getDeltaClass(values, i) : "";
                         return (
                           <td key={p.id} className={`p-3 text-sm ${deltaClass}`}>
