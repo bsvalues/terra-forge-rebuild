@@ -19,6 +19,7 @@ import { ScheduledScrapeManager } from "./ScheduledScrapeManager";
 import { IDSCommandCenter } from "@/components/ids";
 import { UserManagementPanel } from "./UserManagementPanel";
 import { AppealAuditLog } from "@/components/dais/AppealAuditLog";
+import { SecurityAuditDashboard } from "./SecurityAuditDashboard";
 
 export function AdminDashboard() {
    const [activeTab, setActiveTab] = useState("ids");
@@ -143,15 +144,7 @@ export function AdminDashboard() {
             animate={{ opacity: 1, y: 0 }}
             className="material-bento rounded-2xl p-6"
           >
-            <h3 className="text-lg font-medium text-foreground mb-4 flex items-center gap-2">
-              <Shield className="w-5 h-5 text-destructive" />
-              Security & Audit
-            </h3>
-            <div className="text-center py-12 text-muted-foreground">
-              <Shield className="w-12 h-12 mx-auto mb-4 opacity-30" />
-              <p>Security dashboard coming soon</p>
-              <p className="text-sm mt-1">Audit logs, access monitoring, and compliance tracking</p>
-            </div>
+            <SecurityAuditDashboard />
           </motion.div>
         </TabsContent>
       </Tabs>
