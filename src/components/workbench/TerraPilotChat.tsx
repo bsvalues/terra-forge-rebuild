@@ -125,10 +125,14 @@ export function TerraPilotChat({ fullscreen = false }: TerraPilotChatProps) {
 
   const handleNavigationAction = useCallback((result: Record<string, unknown>) => {
     if (result.action === "navigate" && result.parcel_id) {
-      navigate(`/property/${result.parcel_id}`);
+      // Update workbench context instead of router navigation
+      setParcel({
+        id: String(result.parcel_id),
+      });
       if (result.tab) setActiveTab(result.tab as any);
+      toast({ title: "Navigating", description: `Opening parcel ${result.parcel_id}` });
     }
-  }, [navigate, setActiveTab]);
+  }, [setParcel, setActiveTab, toast]);
 
   // ── HitL Confirmation Handler ──
   const handleConfirmAction = useCallback(async (messageId: string, payload: ConfirmationPayload, approved: boolean) => {
