@@ -82,8 +82,9 @@ describe("assertWriteLane", () => {
     expect(() => assertWriteLane("appeals", "field")).toThrow(/FIELD GUARDRAIL/);
   });
 
-  it("allows field module to write trace_events (via os ownership check)", () => {
-    // field writing trace_events hits the owner check (os !== field), not the field guardrail
-    expect(() => assertWriteLane("trace_events", "field")).not.toThrow();
+  it("allows field module to bypass field guardrail for trace_events but still fails owner check", () => {
+    // field + trace_events skips the field guardrail (domain === "trace_events")
+    // but still fails because os !== field — this is correct behavior
+    expect(() => assertWriteLane("trace_events", "field")).toThrow(/VIOLATION/);
   });
 });
