@@ -39,6 +39,7 @@
 | 42 | User Preferences & Settings | ✅ COMPLETE | 3/3 | useUserPreferences hook (6 prefs, localStorage, global sync), useProfileUpdate (governed name edit), Enhanced ControlCenter (profile editor, prefs toggles, sign out, compact/reduced-motion CSS) |
 | 43 | Parcel Comparison Tool | ✅ COMPLETE | 3/3 | useParcelComparison hook (add/remove/clear, max 4), ParcelComparisonPanel (side-by-side table, delta highlighting, $/sqft derived row, inline search), IA_MAP + AppLayout wiring |
 | 44 | Parcel Watchlist & Favorites | ✅ COMPLETE | 3/3 | parcel_watchlist table (RLS, priority, notes), useParcelWatchlist hooks (CRUD, toggle, isWatched), WatchlistPanel UI (search, filter, priority stats, navigate-to-parcel), Star toggle in SummaryTab header |
+| 45 | Recent Parcels & Navigation History | ✅ COMPLETE | 3/3 | useRecentParcels hook (localStorage, max 20, dedup), RecentParcelsPanel UI (search, navigate, clear), Command Palette recents section, auto-track on parcel load |
 
 ## Phase 44 Parcel Watchlist & Favorites Log (2026-03-14)
 
