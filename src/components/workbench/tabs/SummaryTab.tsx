@@ -32,7 +32,9 @@ import { TerraTraceActivityFeed } from "@/components/proof/TerraTraceActivityFee
 import { ParcelDetailEditor } from "../ParcelDetailEditor";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import type { DomainLoadState } from "@/types/parcel360";
+import { useIsWatched, useToggleWatchlist } from "@/hooks/useParcelWatchlist";
 
 export function SummaryTab() {
   const { parcel } = useWorkbench();
