@@ -9,9 +9,9 @@
 
 ## Current State Summary
 
-**Active Phase**: Phase 28 — Income Approach Engine (COMPLETE)  
-**Last Completed Task**: 28.4 — IncomeMode wired into Factory  
-**Next Task**: Phase 29 planning  
+**Active Phase**: Phase 29 — DAIS Workflow Engine (COMPLETE)  
+**Last Completed Task**: 29.4 — NoticesPanel DB persistence  
+**Next Task**: Phase 30 planning  
 **Blockers**: None
 
 ---
