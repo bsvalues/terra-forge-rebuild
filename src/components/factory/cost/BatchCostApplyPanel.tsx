@@ -149,8 +149,8 @@ export function BatchCostApplyPanel({ neighborhoodCode }: BatchCostApplyPanelPro
                       {r.ratio ? r.ratio.toFixed(3) : "—"}
                     </TableCell>
                     <TableCell>
-                      {v === "pass" && <CheckCircle className="w-3 h-3 text-emerald-400" />}
-                      {v === "warn" && <AlertTriangle className="w-3 h-3 text-amber-400" />}
+                      {v === "pass" && <CheckCircle className="w-3 h-3 text-primary" />}
+                      {v === "warn" && <AlertTriangle className="w-3 h-3 text-accent-foreground" />}
                       {v === "fail" && <AlertTriangle className="w-3 h-3 text-destructive" />}
                     </TableCell>
                   </TableRow>

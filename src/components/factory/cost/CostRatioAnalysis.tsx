@@ -129,8 +129,8 @@ function MetricCard({ label, value, verdict, target }: { label: string; value: s
   return (
     <div className="bg-background p-3 text-center">
       <div className="flex items-center justify-center gap-1 mb-1">
-        {verdict === "pass" && <CheckCircle className="w-3 h-3 text-emerald-400" />}
-        {verdict === "warn" && <AlertTriangle className="w-3 h-3 text-amber-400" />}
+      {verdict === "pass" && <CheckCircle className="w-3 h-3 text-primary" />}
+        {verdict === "warn" && <AlertTriangle className="w-3 h-3 text-accent-foreground" />}
         {verdict === "fail" && <AlertTriangle className="w-3 h-3 text-destructive" />}
         <span className="text-[10px] text-muted-foreground">{label}</span>
       </div>
