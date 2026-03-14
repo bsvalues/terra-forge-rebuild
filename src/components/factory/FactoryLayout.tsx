@@ -5,14 +5,15 @@ import { NeighborhoodSelector } from "./NeighborhoodSelector";
 import { FactoryDashboardHeader } from "./FactoryDashboardHeader";
 import { RegressionMode } from "./regression/RegressionMode";
 import { CostMode } from "./cost/CostMode";
+import { IncomeMode } from "./income/IncomeMode";
 import { CompMode } from "./comps/CompMode";
 import { ScenarioMode } from "./scenarios/ScenarioMode";
 import { AdjustmentLedger } from "./AdjustmentLedger";
-import { BarChart3, DollarSign, Grid3X3, FlaskConical, Factory as FactoryIcon } from "lucide-react";
+import { BarChart3, DollarSign, Building2, Grid3X3, FlaskConical, Factory as FactoryIcon } from "lucide-react";
 import { ScopeHeader } from "@/components/trust";
 import { useCountyVitals } from "@/hooks/useCountyVitals";
 
-export type FactoryMode = "regression" | "cost" | "comps" | "scenarios";
+export type FactoryMode = "regression" | "cost" | "income" | "comps" | "scenarios";
 
 interface FactoryLayoutProps {
   initialMode?: string;
@@ -21,11 +22,12 @@ interface FactoryLayoutProps {
 const MODE_META: Record<FactoryMode, { label: string; icon: React.ElementType; description: string }> = {
   regression: { label: "Regression", icon: BarChart3, description: "Neighborhood OLS calibration" },
   cost:       { label: "Cost Tables", icon: DollarSign, description: "Marshall & Swift cost approach" },
+  income:     { label: "Income", icon: Building2, description: "Cap rate & GRM valuation" },
   comps:      { label: "Comp Review", icon: Grid3X3, description: "Batch ratio review & adjustments" },
   scenarios:  { label: "Scenarios", icon: FlaskConical, description: "What-if impact analysis" },
 };
 
-const MODES: FactoryMode[] = ["regression", "cost", "comps", "scenarios"];
+const MODES: FactoryMode[] = ["regression", "cost", "income", "comps", "scenarios"];
 
 export function FactoryLayout({ initialMode }: FactoryLayoutProps) {
   const [activeMode, setActiveMode] = useState<FactoryMode>(
