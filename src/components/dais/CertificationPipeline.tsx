@@ -53,6 +53,9 @@ export function CertificationPipeline() {
   const queryClient = useQueryClient();
   const [expandedNbhd, setExpandedNbhd] = useState<string | null>(null);
   const [showCountyCertify, setShowCountyCertify] = useState(false);
+  const [certifyingNbhd, setCertifyingNbhd] = useState<string | null>(null);
+  const recordCertEvent = useRecordCertificationEvent();
+  const { exportRoll, isExporting } = useRollExport();
 
   // County-level certification mutation — routed through daisService
   const countyCertifyMutation = useMutation({
@@ -61,10 +64,41 @@ export function CertificationPipeline() {
       toast.success("County roll certified", {
         description: `${result.certified} assessments certified for TY ${new Date().getFullYear()}`,
       });
+      recordCertEvent.mutate({
+        event_type: "county_roll_certified",
+        parcels_certified: result.certified,
+        parcels_created: 0,
+        total_parcels: data?.totalParcels || 0,
+        notes: `County-wide roll certification for TY ${new Date().getFullYear()}`,
+      });
       invalidateCertification(queryClient);
     },
     onError: (err: Error) => {
       toast.error("Certification failed", { description: err.message });
+    },
+  });
+
+  // Neighborhood-level certification mutation
+  const nbhdCertifyMutation = useMutation({
+    mutationFn: (code: string) => certifyNeighborhood(code),
+    onMutate: (code) => setCertifyingNbhd(code),
+    onSuccess: (result, code) => {
+      toast.success(`Neighborhood ${code} certified`, {
+        description: `${result.certified} updated, ${result.created} created (${result.total} total)`,
+      });
+      recordCertEvent.mutate({
+        event_type: "neighborhood_certified",
+        neighborhood_code: code,
+        parcels_certified: result.certified,
+        parcels_created: result.created,
+        total_parcels: result.total,
+      });
+      invalidateCertification(queryClient);
+      setCertifyingNbhd(null);
+    },
+    onError: (err: Error) => {
+      toast.error("Neighborhood certification failed", { description: err.message });
+      setCertifyingNbhd(null);
     },
   });
 
