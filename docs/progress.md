@@ -9,9 +9,9 @@
 
 ## Current State Summary
 
-**Active Phase**: Phase 38 — County Onboarding Wizard (COMPLETE)  
-**Last Completed Task**: 38.4 — Index.tsx onboarding gate  
-**Next Task**: Phase 39 planning  
+**Active Phase**: Phase 39 — Performance & Testing (COMPLETE)  
+**Last Completed Task**: 39.3 — Vite vendor chunking  
+**Next Task**: Phase 40 planning  
 **Blockers**: None
 
 ---
