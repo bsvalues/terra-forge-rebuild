@@ -85,7 +85,7 @@ export function useRollExport() {
               const p = allParcels[a.parcel_id] || {};
               return [
                 p.parcel_number || "",
-                p.situs_address || "",
+                p.address || "",
                 p.city || "",
                 p.property_class || "",
                 p.neighborhood_code || "",

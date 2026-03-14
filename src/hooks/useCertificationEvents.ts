@@ -32,7 +32,7 @@ export function useCertificationEvents(taxYear?: number) {
         .eq("tax_year", year)
         .order("certified_at", { ascending: false });
       if (error) throw error;
-      return (data || []) as CertificationEvent[];
+      return (data || []) as unknown as CertificationEvent[];
     },
     staleTime: 30_000,
   });
