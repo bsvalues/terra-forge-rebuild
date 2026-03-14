@@ -27,6 +27,7 @@ const ExportCenter = lazy(() => import("@/components/exports").then(m => ({ defa
 // Workbench views
 const PropertyWorkbench = lazy(() => import("@/components/workbench").then(m => ({ default: m.PropertyWorkbench })));
 const FieldStudioDashboard = lazy(() => import("@/components/field").then(m => ({ default: m.FieldStudioDashboard })));
+const ParcelComparisonPanel = lazy(() => import("@/components/comparison").then(m => ({ default: m.ParcelComparisonPanel })));
 
 // Factory views
 const FactoryLayout = lazy(() => import("@/components/factory/FactoryLayout").then(m => ({ default: m.FactoryLayout })));
