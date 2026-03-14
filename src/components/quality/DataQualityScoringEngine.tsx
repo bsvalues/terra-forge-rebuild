@@ -343,7 +343,9 @@ export function DataQualityScoringEngine() {
             </div>
           </div>
           <div className="text-right">
-            <div className={cn("text-4xl font-light", cfg.color)}>{data.avgScore}%</div>
+            <ProvenanceNumber source="data-quality" cachePolicy="cached 60s">
+              <span className={cn("text-4xl font-light", cfg.color)}>{data.avgScore}%</span>
+            </ProvenanceNumber>
             <div className="text-xs text-muted-foreground">weighted avg</div>
           </div>
         </div>
