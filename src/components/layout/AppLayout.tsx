@@ -224,6 +224,8 @@ export function AppLayout({ initialParcel: routeParcel, initialModule, initialFa
             );
           case "geometry":
             return <GeometryHealthDashboard />;
+          case "notices":
+            return <BatchNoticeDashboard />;
           case "sync":
             return (
               <div className="p-6 max-w-7xl mx-auto">
