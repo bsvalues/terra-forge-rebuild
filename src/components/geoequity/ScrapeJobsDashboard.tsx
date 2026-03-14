@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -22,9 +22,9 @@ import {
   BarChart3,
 } from "lucide-react";
 import { toast } from "sonner";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
 import { CountyDataQualityReport } from "./CountyDataQualityReport";
+import { useScrapeJobsRealtime, useStartScrapeJob, useCancelScrapeJob } from "@/hooks/useScrapeJobs";
 
 interface ScrapeJob {
   id: string;
@@ -64,43 +64,9 @@ const STATUS_ICONS: Record<string, React.ReactNode> = {
 export function ScrapeJobsDashboard() {
   const queryClient = useQueryClient();
 
-  // Fetch all jobs
-  const { data: jobs = [], isLoading } = useQuery({
-    queryKey: ["scrape-jobs"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("scrape_jobs")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .limit(20);
-
-      if (error) throw error;
-      return data as ScrapeJob[];
-    },
-    refetchInterval: 5000, // Poll every 5 seconds
-  });
-
-  // Subscribe to realtime updates for running jobs
-  useEffect(() => {
-    const channel = supabase
-      .channel("scrape-jobs-realtime")
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "scrape_jobs",
-        },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ["scrape-jobs"] });
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [queryClient]);
+  const { data: jobs = [], isLoading } = useScrapeJobsRealtime();
+  const startJobMutation = useStartScrapeJob();
+  const cancelJobMutation = useCancelScrapeJob();
 
   // Start statewide scrape
   const startJobMutation = useMutation({
