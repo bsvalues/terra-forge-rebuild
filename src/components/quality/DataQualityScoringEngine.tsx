@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { useDataQualityScoring, type NeighborhoodQuality, type StaleAlert, type ParcelScore } from "@/hooks/useDataQualityScoring";
 import { cn } from "@/lib/utils";
-import { ScopeHeader, ProvenanceBadge } from "@/components/trust";
+import { ScopeHeader, ProvenanceBadge, ProvenanceNumber } from "@/components/trust";
 
 // ── Grade Config ───────────────────────────────────────────────
 
