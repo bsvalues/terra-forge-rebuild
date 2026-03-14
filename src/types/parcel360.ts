@@ -56,7 +56,8 @@ export type ArtifactType =
   | "document"
   | "narrative"
   | "packet"
-  | "model_receipt";
+  | "model_receipt"
+  | "notice";
 
 // ============================================================
 // TraceEvent — what gets written to trace_events table
