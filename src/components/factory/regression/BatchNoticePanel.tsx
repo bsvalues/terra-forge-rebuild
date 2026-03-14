@@ -61,7 +61,7 @@ export function BatchNoticePanel({ calibrationRunId, neighborhoodCode, rSquared 
       const parcels = await fetchParcelDetails(parcelIds);
 
       const parcelMap = new Map(
-        (parcels || []).map(p => [p.id, { parcelNumber: p.parcel_number, address: p.address }])
+        (parcels || []).map(p => [p.id, { parcelNumber: p.parcel_number, address: p.address, countyId: p.county_id }])
       );
 
       let generated = 0;
