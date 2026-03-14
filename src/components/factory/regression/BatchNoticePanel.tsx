@@ -47,6 +47,7 @@ export function BatchNoticePanel({ calibrationRunId, neighborhoodCode, rSquared 
   const [progress, setProgress] = useState(0);
   const [useAI, setUseAI] = useState(true);
   const [previewNotice, setPreviewNotice] = useState<GeneratedNotice | null>(null);
+  const createNotice = useCreateNotice();
 
   const noticeMutation = useMutation({
     mutationFn: async (): Promise<NoticeResult> => {
