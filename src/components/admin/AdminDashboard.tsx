@@ -17,6 +17,7 @@ import { ScrapeJobManager } from "./ScrapeJobManager";
 import { DataQualityDashboard } from "./DataQualityDashboard";
 import { ScheduledScrapeManager } from "./ScheduledScrapeManager";
 import { IDSCommandCenter } from "@/components/ids";
+import { UserManagementPanel } from "./UserManagementPanel";
 import { AppealAuditLog } from "@/components/dais/AppealAuditLog";
 
 export function AdminDashboard() {
