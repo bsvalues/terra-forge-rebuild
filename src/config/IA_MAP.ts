@@ -148,6 +148,7 @@ export const LEGACY_REDIRECTS: LegacyRedirect[] = [
   // Home absorbs these
   { legacyId: "dashboard", targetModule: "home", targetView: "dashboard" },
   { legacyId: "watchlist", targetModule: "home", targetView: "watchlist" },
+  { legacyId: "recents", targetModule: "home", targetView: "recents" },
   { legacyId: "ids", targetModule: "home", targetView: "ids" },
   { legacyId: "quality", targetModule: "home", targetView: "quality" },
   { legacyId: "readiness", targetModule: "home", targetView: "readiness" },

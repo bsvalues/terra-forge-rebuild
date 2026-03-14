@@ -54,6 +54,7 @@ function WorkbenchContent({ initialParcel, onParcelConsumed, initialTab, onTabCo
   const { activeTab, pilotMode, workMode, setParcel, setActiveTab } = useWorkbench();
   const [daisCategory, setDaisCategory] = useState<string | null>(null);
   const [pilotPanelOpen, setPilotPanelOpen] = useState(true);
+  const { addRecent } = useRecentParcels();
 
   // Enable global scrape job notifications
   useScrapeJobNotifications();
@@ -67,9 +68,11 @@ function WorkbenchContent({ initialParcel, onParcelConsumed, initialTab, onTabCo
         address: initialParcel.address,
         assessedValue: initialParcel.assessedValue,
       });
+      // Track in recent parcels
+      addRecent(initialParcel);
       onParcelConsumed?.();
     }
-  }, [initialParcel, setParcel, onParcelConsumed]);
+  }, [initialParcel, setParcel, onParcelConsumed, addRecent]);
 
   // Handle initial tab deep-link from CommandBriefing
   useEffect(() => {
