@@ -8,7 +8,8 @@ import { useMutation } from "@tanstack/react-query";
 import { generateNotice } from "@/services/suites/daisService";
 import { invokeDraftNotice } from "@/services/ingestService";
 import { useNotices, useCreateNotice, useUpdateNoticeStatus } from "@/hooks/useNotices";
-import { useCountyMeta } from "@/hooks/useCountyMeta";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Bell, FileText, Send, Download, Loader2, Home, Scale,
   ClipboardCheck, Calendar, Sparkles, Filter,
