@@ -17,6 +17,7 @@ import {
   TrendingUp,
   Brain,
   Hexagon,
+  Radar,
   type LucideIcon,
 } from "lucide-react";
 
