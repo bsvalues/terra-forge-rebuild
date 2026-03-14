@@ -474,10 +474,14 @@ function NeighborhoodRow({
   nbhd,
   expanded,
   onToggle,
+  onCertify,
+  isCertifying,
 }: {
   nbhd: NeighborhoodReadiness;
   expanded: boolean;
   onToggle: () => void;
+  onCertify: () => void;
+  isCertifying: boolean;
 }) {
   const statusColors = {
     ready:
