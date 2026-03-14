@@ -273,6 +273,41 @@ const WRITE_TOOLS = [
       },
     },
   },
+  {
+    type: "function" as const,
+    function: {
+      name: "generate_notice",
+      description: "Generate and persist an official notice to the database for a parcel. REQUIRES USER CONFIRMATION. This is a high-impact action that creates a formal record.",
+      parameters: {
+        type: "object",
+        properties: {
+          parcel_id: { type: "string", description: "UUID of the parcel" },
+          notice_type: { type: "string", enum: ["assessment_change", "hearing", "exemption_decision", "general"], description: "Type of notice" },
+          subject: { type: "string", description: "Notice subject line" },
+          body: { type: "string", description: "Notice body text" },
+          recipient_name: { type: "string", description: "Recipient name" },
+          recipient_address: { type: "string", description: "Recipient mailing address" },
+        },
+        required: ["parcel_id", "notice_type", "subject", "body"],
+      },
+    },
+  },
+  {
+    type: "function" as const,
+    function: {
+      name: "run_model",
+      description: "Trigger a valuation model run (calibration) for a neighborhood. REQUIRES USER CONFIRMATION.",
+      parameters: {
+        type: "object",
+        properties: {
+          neighborhood_code: { type: "string", description: "Neighborhood code to calibrate" },
+          model_type: { type: "string", enum: ["linear", "multiple"], description: "Regression model type" },
+          variables: { type: "array", items: { type: "string" }, description: "Variables to include (e.g. building_area, year_built)" },
+        },
+        required: ["neighborhood_code"],
+      },
+    },
+  },
 ];
 
 // Muse-specific drafting tools
@@ -348,6 +383,8 @@ const WRITE_TOOL_RISK: Record<string, "medium" | "high"> = {
   assign_task: "medium",
   create_workflow: "medium",
   escalate_task: "medium",
+  generate_notice: "high",
+  run_model: "medium",
 };
 
 const WRITE_TOOL_NAMES = new Set(Object.keys(WRITE_TOOL_RISK));
@@ -489,7 +526,9 @@ async function executeTool(
       case "update_parcel_class":
       case "assign_task":
       case "create_workflow":
-      case "escalate_task": {
+      case "escalate_task":
+      case "generate_notice":
+      case "run_model": {
         // Fetch parcel context for the confirmation card (if parcel_id provided)
         const pid = args.parcel_id ? String(args.parcel_id) : null;
         let parcel = null;
@@ -580,7 +619,7 @@ function getWriteDescription(
   args: Record<string, unknown>,
   parcel: { parcel_number: string; address: string; assessed_value?: number } | null
 ): string {
-  const addr = parcel ? `${parcel.parcel_number} (${parcel.address})` : String(args.parcel_id);
+  const addr = parcel ? `${parcel.parcel_number} (${parcel.address})` : String(args.parcel_id || "N/A");
   switch (toolName) {
     case "create_exemption":
       return `Create ${args.exemption_type || "homestead"} exemption for ${addr}`;
@@ -596,6 +635,10 @@ function getWriteDescription(
       return `Create ${args.workflow_type} workflow: "${args.title}"${args.parcel_id ? ` for ${addr}` : ""}`;
     case "escalate_task":
       return `Escalate task ${String(args.task_id).slice(0, 8)}… to ${args.new_priority || "urgent"}: ${args.reason}`;
+    case "generate_notice":
+      return `Generate ${args.notice_type} notice for ${addr} — "${args.subject}" — HIGH IMPACT`;
+    case "run_model":
+      return `Run ${args.model_type || "linear"} calibration for neighborhood ${args.neighborhood_code}`;
     default:
       return `Execute ${toolName} on ${addr}`;
   }
@@ -769,6 +812,53 @@ async function executeConfirmedWrite(
           event_data: { task_id: taskId, old_priority: existing.priority, new_priority: newPriority, reason: args.reason, via: "pilot_hitl" },
         });
         return JSON.stringify({ success: true, message: `Task "${existing.title}" escalated to ${newPriority}.` });
+      }
+
+      case "generate_notice": {
+        const { data, error } = await serviceClient.from("notices").insert({
+          parcel_id: String(args.parcel_id),
+          county_id: countyId,
+          notice_type: String(args.notice_type || "general"),
+          subject: String(args.subject),
+          body: String(args.body),
+          recipient_name: args.recipient_name ? String(args.recipient_name) : null,
+          recipient_address: args.recipient_address ? String(args.recipient_address) : null,
+          status: "draft",
+          ai_drafted: true,
+          generated_by: userId,
+        }).select().single();
+        if (error) return JSON.stringify({ success: false, error: error.message });
+        await serviceClient.from("trace_events").insert({
+          county_id: countyId,
+          parcel_id: String(args.parcel_id),
+          actor_id: userId,
+          source_module: "terrapilot",
+          event_type: "notice_created",
+          event_data: { notice_id: data.id, notice_type: args.notice_type, ai_drafted: true, via: "pilot_hitl" },
+        });
+        return JSON.stringify({ success: true, notice_id: data.id, message: `Notice "${args.subject}" created as draft.` });
+      }
+
+      case "run_model": {
+        const { data, error } = await serviceClient.from("calibration_runs").insert({
+          county_id: countyId,
+          neighborhood_code: String(args.neighborhood_code),
+          model_type: String(args.model_type || "linear"),
+          variables: (args.variables as string[]) || ["building_area", "year_built"],
+          created_by: userId,
+          status: "queued",
+          coefficients: {},
+          diagnostics: {},
+        }).select().single();
+        if (error) return JSON.stringify({ success: false, error: error.message });
+        await serviceClient.from("trace_events").insert({
+          county_id: countyId,
+          actor_id: userId,
+          source_module: "terrapilot",
+          event_type: "model_run_started",
+          event_data: { run_id: data.id, neighborhood: args.neighborhood_code, model_type: args.model_type, via: "pilot_hitl" },
+        });
+        return JSON.stringify({ success: true, run_id: data.id, message: `Calibration run queued for neighborhood ${args.neighborhood_code}.` });
       }
 
       default:
