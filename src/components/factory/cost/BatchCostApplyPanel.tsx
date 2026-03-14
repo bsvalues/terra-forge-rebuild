@@ -105,16 +105,16 @@ export function BatchCostApplyPanel({ neighborhoodCode }: BatchCostApplyPanelPro
         <div className="grid grid-cols-4 gap-px bg-border">
           <StatCell label="Parcels" value={stats.processed.toString()} />
           <StatCell label="With Sales" value={stats.matched.toString()} />
-          <StatCell
+        <StatCell
             label="Median Ratio"
             value={stats.median ? (
-              <ProvenanceNumber value={stats.median} format="ratio" source="cost-approach" status={ratioVerdict(stats.median) === "pass" ? "published" : "draft"} />
+              <ProvenanceNumber source="cost-approach">{stats.median.toFixed(3)}</ProvenanceNumber>
             ) : "—"}
           />
           <StatCell
             label="COD"
             value={stats.cod ? (
-              <ProvenanceNumber value={stats.cod} format="percent" source="cost-approach" status={stats.cod <= 15 ? "published" : "draft"} />
+              <ProvenanceNumber source="cost-approach">{stats.cod.toFixed(1)}%</ProvenanceNumber>
             ) : "—"}
           />
         </div>
