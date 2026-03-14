@@ -309,6 +309,7 @@ export function AppLayout({ initialParcel: routeParcel, initialModule, initialFa
         <TopSystemBar
           onOpenCommandPalette={() => setCommandPaletteOpen(true)}
           onOpenControlCenter={() => setControlCenterOpen(true)}
+          onOpenMobileNav={() => setMobileNavOpen(true)}
         />
 
         <ModuleViewBar
@@ -334,6 +335,15 @@ export function AppLayout({ initialParcel: routeParcel, initialModule, initialFa
         </main>
 
         <DockLauncher activeModule={activeModule} onModuleChange={handleModuleChange} />
+
+        <InstallPrompt />
+
+        <MobileNavDrawer
+          open={mobileNavOpen}
+          onOpenChange={setMobileNavOpen}
+          activeModule={activeModule}
+          onModuleChange={handleModuleChange}
+        />
 
         <GlobalCommandPalette
           open={commandPaletteOpen}
