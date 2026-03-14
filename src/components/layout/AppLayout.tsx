@@ -1,4 +1,5 @@
 import { useState, useCallback, lazy, Suspense } from "react";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { motion, AnimatePresence } from "framer-motion";
 import { TopSystemBar } from "@/components/navigation/TopSystemBar";
 import { DockLauncher } from "@/components/navigation/DockLauncher";
