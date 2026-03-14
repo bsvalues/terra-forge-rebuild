@@ -145,23 +145,40 @@ export function CertificationPipeline() {
           </div>
         </div>
 
-        {/* County Certify button */}
-        <CommitmentButton
-          onClick={() => setShowCountyCertify(true)}
-          disabled={countyCertifyMutation.isPending || data.certRate === 100}
-          variant="gold"
-        >
-          {countyCertifyMutation.isPending ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
-          ) : (
-            <Stamp className="w-4 h-4" />
-          )}
-          {data.certRate === 100
-            ? "Roll Certified"
-            : countyCertifyMutation.isPending
-              ? "Certifying…"
-              : "Certify County Roll"}
-        </CommitmentButton>
+        <div className="flex items-center gap-2">
+          {/* Export Roll button */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => exportRoll("xlsx")}
+            disabled={isExporting || data.certRate === 0}
+          >
+            {isExporting ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" />
+            ) : (
+              <Download className="w-3.5 h-3.5 mr-1.5" />
+            )}
+            Export Roll
+          </Button>
+
+          {/* County Certify button */}
+          <CommitmentButton
+            onClick={() => setShowCountyCertify(true)}
+            disabled={countyCertifyMutation.isPending || data.certRate === 100}
+            variant="gold"
+          >
+            {countyCertifyMutation.isPending ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Stamp className="w-4 h-4" />
+            )}
+            {data.certRate === 100
+              ? "Roll Certified"
+              : countyCertifyMutation.isPending
+                ? "Certifying…"
+                : "Certify County Roll"}
+          </CommitmentButton>
+        </div>
       </motion.div>
 
       {/* Overall Progress */}
