@@ -20,6 +20,7 @@ import {
   Radar,
   Layers,
   Mail,
+  Download,
   type LucideIcon,
 } from "lucide-react";
 
@@ -88,6 +89,7 @@ export const IA_MODULES: ModuleDefinition[] = [
       { id: "readiness", label: "Roll Readiness", icon: ShieldCheck, scope: "county" },
       { id: "geometry", label: "Geometry Health", icon: Hexagon, scope: "county" },
       { id: "notices", label: "Notice Center", icon: Mail, scope: "county" },
+      { id: "exports", label: "Export Center", icon: Download, scope: "county" },
       { id: "sync", label: "Sync Engine", icon: Shield, scope: "county" },
     ],
   },
@@ -145,6 +147,7 @@ export const LEGACY_REDIRECTS: LegacyRedirect[] = [
   { legacyId: "readiness", targetModule: "home", targetView: "readiness" },
   { legacyId: "geometry", targetModule: "home", targetView: "geometry" },
   { legacyId: "notices", targetModule: "home", targetView: "notices" },
+  { legacyId: "exports", targetModule: "home", targetView: "exports" },
   { legacyId: "sync", targetModule: "home", targetView: "sync" },
   // Factory absorbs these
   { legacyId: "vei", targetModule: "factory", targetView: "vei" },

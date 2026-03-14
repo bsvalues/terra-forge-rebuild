@@ -48,7 +48,8 @@ export type TraceEventType =
   | "notice_created"
   | "appeal_created"
   | "batch_notices_generated"
-  | "batch_notices_status_changed";
+  | "batch_notices_status_changed"
+  | "data_exported";
 
 export type ArtifactType =
   | "assessment"

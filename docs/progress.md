@@ -9,9 +9,9 @@
 
 ## Current State Summary
 
-**Active Phase**: Phase 40 — Production Readiness (COMPLETE)  
-**Last Completed Task**: 40.4 — Global error toast handler  
-**Next Task**: Phase 41 planning  
+**Active Phase**: Phase 41 — Data Export & Reporting (COMPLETE)  
+**Last Completed Task**: 41.3 — IA_MAP + AppLayout wiring  
+**Next Task**: Phase 42 planning  
 **Blockers**: None
 
 ---
@@ -35,8 +35,29 @@
 | 38 | County Onboarding Wizard | ✅ COMPLETE | 4/4 | county-setup edge function, useOnboardingStatus hook, OnboardingWizard UI, Index.tsx gate |
 | 39 | Performance & Testing | ✅ COMPLETE | 3/3 | Lazy-loaded routes (React.lazy+Suspense), writeLane+terraTrace Vitest suites (18 tests), Vite vendor chunking (react, query, ui, charts, maps, motion, three) |
 | 40 | Production Readiness | ✅ COMPLETE | 4/4 | ErrorBoundary (route+module level), global error toast handler, SkipToContent WCAG link, ARIA landmarks on main |
+| 41 | Data Export & Reporting | ✅ COMPLETE | 3/3 | ExportService (CSV/JSON, 7 datasets, filters, audit trail), ExportCenter UI (dataset picker, format toggle, history), IA_MAP + AppLayout wiring |
 
-## Phase 40 Production Readiness Log (2026-03-14)
+## Phase 41 Data Export & Reporting Log (2026-03-14)
+
+### 41.1 Export Service ✅
+- `exportService.ts`: typed query builders for 7 datasets (parcels, assessments, sales, appeals, exemptions, notices, model_receipts)
+- CSV serializer with proper escaping, JSON pretty-print
+- Configurable filters: taxYear, neighborhoodCode, propertyClass
+- Row limit selector (500–10,000)
+- `downloadBlob()` utility for browser file download
+- `data_exported` trace event emitted on every export for audit trail
+
+### 41.2 Export Center UI ✅
+- Dataset selection grid with 7 options and active state highlighting
+- Context-sensitive filter panel (tax year for assessments/appeals/exemptions, neighborhood/class for parcels)
+- Format toggle: CSV or JSON with icon buttons
+- Export history sidebar tracking last 10 exports with re-download
+- Tips card with RLS scope and audit trail reminders
+
+### 41.3 Navigation Wiring ✅
+- Added `exports` view to Home module in IA_MAP with Download icon
+- Added `exports` legacy redirect
+- Lazy-loaded ExportCenter in AppLayout with code-splitting
 
 ### 40.1 ErrorBoundary Component ✅
 - Class-based React ErrorBoundary with branded fallback UI
