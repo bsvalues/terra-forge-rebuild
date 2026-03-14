@@ -112,6 +112,19 @@ export function BatchNoticePanel({ calibrationRunId, neighborhoodCode, rSquared 
             neighborhoodCode,
           });
 
+          // Persist to DB
+          if (parcelInfo.countyId) {
+            await createNotice.mutateAsync({
+              parcel_id: adj.parcel_id,
+              county_id: parcelInfo.countyId,
+              notice_type: "assessment_change",
+              subject: `Notice of Assessment Change — ${parcelInfo.parcelNumber}`,
+              body: noticeContent,
+              ai_drafted: i < aiLimit,
+              calibration_run_id: calibrationRunId || undefined,
+            });
+          }
+
           notices.push({
             parcelNumber: parcelInfo.parcelNumber,
             address: parcelInfo.address,
