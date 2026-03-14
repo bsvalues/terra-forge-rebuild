@@ -1,4 +1,5 @@
 import { Badge } from "@/components/ui/badge";
+import { ProvenanceNumber } from "@/components/trust";
 
 interface CalibrationDiagnosticsProps {
   diagnostics: {
