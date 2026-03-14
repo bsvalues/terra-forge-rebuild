@@ -33,8 +33,24 @@
 | 36 | User & Role Management | ✅ COMPLETE | 4/4 | admin-manage-users edge function, useUserManagement hook, UserManagementPanel UI, AdminDashboard wiring |
 | 37 | Security & Audit Dashboard | ✅ COMPLETE | 3/3 | useSecurityAudit hook, SecurityAuditDashboard UI, AdminDashboard wiring |
 | 38 | County Onboarding Wizard | ✅ COMPLETE | 4/4 | county-setup edge function, useOnboardingStatus hook, OnboardingWizard UI, Index.tsx gate |
+| 39 | Performance & Testing | ✅ COMPLETE | 3/3 | Lazy-loaded routes (React.lazy+Suspense), writeLane+terraTrace Vitest suites (18 tests), Vite vendor chunking (react, query, ui, charts, maps, motion, three) |
 
-## Phase 38 County Onboarding Wizard Log (2026-03-14)
+## Phase 39 Performance & Testing Log (2026-03-14)
+
+### 39.1 Lazy-Loaded Route Components ✅
+- All 5 page components (Index, Auth, NotFound, Property, Factory) converted to React.lazy() imports
+- Wrapped Routes in Suspense with branded RouteFallback spinner
+- Enables automatic code-splitting per route — Factory/Property bundles only load when navigated to
+
+### 39.2 WriteLane + TerraTrace Test Suites ✅
+- writeLane.test.ts: 12 tests covering matrix completeness, resolveWriteLane, assertWriteLane violations, field guardrail
+- terraTrace.test.ts: 6 tests covering computeDiff (changed keys, empty, null, added keys, precision)
+- Total project test count: 106 tests, all passing
+
+### 39.3 Vite Vendor Chunking ✅
+- Added manual chunks: vendor-react, vendor-query, vendor-ui (Radix primitives)
+- Existing chunks retained: vendor-three, vendor-maps, vendor-charts, vendor-motion
+- Better long-term caching — vendor chunks rarely change between deploys
 
 ### 38.1 county-setup Edge Function ✅
 - Three actions: `create_county` (creates county + assigns user + grants admin), `join_county` (assigns user + grants viewer), `list_counties`
