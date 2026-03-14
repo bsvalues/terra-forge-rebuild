@@ -23,6 +23,7 @@ const SyncDashboard = lazy(() => import("@/components/sync/SyncDashboard").then(
 const GeometryHealthDashboard = lazy(() => import("@/components/geometry").then(m => ({ default: m.GeometryHealthDashboard })));
 const BatchNoticeDashboard = lazy(() => import("@/components/dais/BatchNoticeDashboard").then(m => ({ default: m.BatchNoticeDashboard })));
 const ExportCenter = lazy(() => import("@/components/exports").then(m => ({ default: m.ExportCenter })));
+const WatchlistPanel = lazy(() => import("@/components/watchlist").then(m => ({ default: m.WatchlistPanel })));
 
 // Workbench views
 const PropertyWorkbench = lazy(() => import("@/components/workbench").then(m => ({ default: m.PropertyWorkbench })));
