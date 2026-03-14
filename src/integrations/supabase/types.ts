@@ -355,6 +355,75 @@ export type Database = {
           },
         ]
       }
+      batch_notice_jobs: {
+        Row: {
+          ai_drafted_count: number
+          calibration_run_id: string | null
+          completed_at: string | null
+          county_id: string
+          created_at: string
+          created_by: string
+          filters: Json
+          id: string
+          neighborhood_code: string | null
+          notices_failed: number
+          notices_generated: number
+          property_class: string | null
+          status: string
+          total_parcels: number
+          updated_at: string
+        }
+        Insert: {
+          ai_drafted_count?: number
+          calibration_run_id?: string | null
+          completed_at?: string | null
+          county_id: string
+          created_at?: string
+          created_by?: string
+          filters?: Json
+          id?: string
+          neighborhood_code?: string | null
+          notices_failed?: number
+          notices_generated?: number
+          property_class?: string | null
+          status?: string
+          total_parcels?: number
+          updated_at?: string
+        }
+        Update: {
+          ai_drafted_count?: number
+          calibration_run_id?: string | null
+          completed_at?: string | null
+          county_id?: string
+          created_at?: string
+          created_by?: string
+          filters?: Json
+          id?: string
+          neighborhood_code?: string | null
+          notices_failed?: number
+          notices_generated?: number
+          property_class?: string | null
+          status?: string
+          total_parcels?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "batch_notice_jobs_calibration_run_id_fkey"
+            columns: ["calibration_run_id"]
+            isOneToOne: false
+            referencedRelation: "calibration_runs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "batch_notice_jobs_county_id_fkey"
+            columns: ["county_id"]
+            isOneToOne: false
+            referencedRelation: "counties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       calibration_runs: {
         Row: {
           coefficients: Json
@@ -1696,6 +1765,7 @@ export type Database = {
       notices: {
         Row: {
           ai_drafted: boolean
+          batch_job_id: string | null
           body: string
           calibration_run_id: string | null
           county_id: string
@@ -1713,6 +1783,7 @@ export type Database = {
         }
         Insert: {
           ai_drafted?: boolean
+          batch_job_id?: string | null
           body: string
           calibration_run_id?: string | null
           county_id: string
@@ -1730,6 +1801,7 @@ export type Database = {
         }
         Update: {
           ai_drafted?: boolean
+          batch_job_id?: string | null
           body?: string
           calibration_run_id?: string | null
           county_id?: string
@@ -1746,6 +1818,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "notices_batch_job_id_fkey"
+            columns: ["batch_job_id"]
+            isOneToOne: false
+            referencedRelation: "batch_notice_jobs"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "notices_county_id_fkey"
             columns: ["county_id"]
