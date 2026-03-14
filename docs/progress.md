@@ -9,9 +9,9 @@
 
 ## Current State Summary
 
-**Active Phase**: Phase 44 — Parcel Watchlist & Favorites (COMPLETE)  
-**Last Completed Task**: 44.3 — Star toggle + navigation wiring  
-**Next Task**: Phase 45 planning  
+**Active Phase**: Phase 45 — Recent Parcels & Navigation History (COMPLETE)  
+**Last Completed Task**: 45.3 — IA_MAP + Command Palette integration  
+**Next Task**: Phase 46 planning  
 **Blockers**: None
 
 ---
