@@ -247,6 +247,9 @@ export function AppLayout({ initialParcel: routeParcel, initialModule, initialFa
         if (view === "field") {
           return <FieldStudioDashboard />;
         }
+        if (view === "compare") {
+          return <ParcelComparisonPanel />;
+        }
         return (
           <PropertyWorkbench
             initialParcel={pendingParcel}
