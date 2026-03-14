@@ -559,6 +559,107 @@ export function TerraPilotChat({ fullscreen = false }: TerraPilotChatProps) {
   );
 }
 
+// ── Inline Tool Result Cards ──
+function ToolResultCards({ toolCalls }: { toolCalls: ToolCallResult[] }) {
+  const cards: React.ReactNode[] = [];
+
+  for (const tc of toolCalls) {
+    const r = tc.result as Record<string, unknown>;
+    if (r.requires_confirmation) continue; // HitL card rendered separately
+
+    if (tc.tool_name === "search_parcels" && Array.isArray(r.parcels) && r.parcels.length > 0) {
+      cards.push(
+        <div key={tc.tool_call_id} className="rounded-lg border border-border/50 bg-card/50 p-2 space-y-1 max-h-40 overflow-y-auto">
+          <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium mb-1">
+            {(r.count as number) || r.parcels.length} parcels found
+          </p>
+          {(r.parcels as any[]).slice(0, 5).map((p: any, i: number) => (
+            <div key={i} className="flex items-center justify-between gap-2 text-xs py-1 border-b border-border/20 last:border-0">
+              <div className="flex items-center gap-1.5 min-w-0">
+                <MapPin className="w-3 h-3 text-tf-cyan shrink-0" />
+                <span className="text-foreground font-medium truncate">{p.parcel_number}</span>
+                <span className="text-muted-foreground truncate">{p.address}</span>
+              </div>
+              {p.assessed_value && (
+                <span className="text-tf-green text-[10px] font-mono shrink-0">
+                  ${Number(p.assessed_value).toLocaleString()}
+                </span>
+              )}
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    if (tc.tool_name === "fetch_comps" && Array.isArray(r.comparables) && r.comparables.length > 0) {
+      cards.push(
+        <div key={tc.tool_call_id} className="rounded-lg border border-border/50 bg-card/50 p-2 space-y-1 max-h-40 overflow-y-auto">
+          <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium mb-1">
+            {(r.count as number)} comparable sales
+          </p>
+          {(r.comparables as any[]).slice(0, 5).map((c: any, i: number) => (
+            <div key={i} className="flex items-center justify-between gap-2 text-xs py-1 border-b border-border/20 last:border-0">
+              <div className="flex items-center gap-1.5 min-w-0">
+                <BarChart3 className="w-3 h-3 text-tf-gold shrink-0" />
+                <span className="text-foreground truncate">{c.parcels?.address || "—"}</span>
+              </div>
+              <span className="text-tf-green text-[10px] font-mono shrink-0">
+                ${Number(c.sale_price).toLocaleString()}
+              </span>
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    if (tc.tool_name === "get_workflow_summary") {
+      const permits = r.permits as any;
+      const appeals = r.appeals as any;
+      const exemptions = r.exemptions as any;
+      if (permits || appeals || exemptions) {
+        cards.push(
+          <div key={tc.tool_call_id} className="rounded-lg border border-border/50 bg-card/50 p-2">
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium mb-1.5">Workflow Summary</p>
+            <div className="grid grid-cols-3 gap-2">
+              <div className="text-center">
+                <p className="text-lg font-bold text-tf-green">{permits?.count ?? 0}</p>
+                <p className="text-[10px] text-muted-foreground">Permits</p>
+              </div>
+              <div className="text-center">
+                <p className="text-lg font-bold text-tf-amber">{appeals?.count ?? 0}</p>
+                <p className="text-[10px] text-muted-foreground">Appeals</p>
+              </div>
+              <div className="text-center">
+                <p className="text-lg font-bold text-tf-gold">{exemptions?.count ?? 0}</p>
+                <p className="text-[10px] text-muted-foreground">Exemptions</p>
+              </div>
+            </div>
+          </div>
+        );
+      }
+    }
+
+    if (tc.tool_name === "get_neighborhood_stats" && r.neighborhood_code) {
+      cards.push(
+        <div key={tc.tool_call_id} className="rounded-lg border border-border/50 bg-card/50 p-2">
+          <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium mb-1.5">
+            Neighborhood {r.neighborhood_code as string}
+          </p>
+          <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+            <div className="flex justify-between"><span className="text-muted-foreground">Parcels</span><span className="font-medium">{(r.parcel_count as number)?.toLocaleString()}</span></div>
+            <div className="flex justify-between"><span className="text-muted-foreground">Median</span><span className="font-medium text-tf-green">${(r.median_value as number)?.toLocaleString()}</span></div>
+            <div className="flex justify-between"><span className="text-muted-foreground">Average</span><span className="font-medium">${(r.average_value as number)?.toLocaleString()}</span></div>
+            <div className="flex justify-between"><span className="text-muted-foreground">Avg Area</span><span className="font-medium">{r.avg_building_area ? `${(r.avg_building_area as number).toLocaleString()} sqft` : "—"}</span></div>
+          </div>
+        </div>
+      );
+    }
+  }
+
+  if (cards.length === 0) return null;
+  return <div className="space-y-2">{cards}</div>;
+}
+
 // ── HitL Confirmation Card Component ──
 // "The confirmation button told me it's afraid of commitment." — Ralph, UX therapist
 function ConfirmationCard({
