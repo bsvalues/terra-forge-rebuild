@@ -454,6 +454,11 @@ export function TerraPilotChat({ fullscreen = false }: TerraPilotChatProps) {
                       </div>
                     )}
 
+                    {/* Inline tool result cards */}
+                    {message.toolCalls && message.toolCalls.length > 0 && (
+                      <ToolResultCards toolCalls={message.toolCalls} />
+                    )}
+
                     {/* Message content */}
                     <div className={`rounded-2xl px-4 py-2.5 ${
                       message.role === "user" ? "bg-tf-elevated text-foreground" : "glass-subtle text-foreground"
