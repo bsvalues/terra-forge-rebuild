@@ -4,12 +4,15 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCertificationPipelineData, type NeighborhoodReadiness } from "@/hooks/useCertificationPipeline";
-import { certifyCountyRoll } from "@/services/suites/daisService";
+import { certifyCountyRoll, certifyNeighborhood } from "@/services/suites/daisService";
 import { invalidateCertification } from "@/lib/queryInvalidation";
+import { useRecordCertificationEvent } from "@/hooks/useCertificationEvents";
+import { useRollExport } from "@/hooks/useRollExport";
 import { motion } from "framer-motion";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CommitmentButton } from "@/components/ui/commitment-button";
@@ -38,6 +41,7 @@ import {
   Loader2,
   ChevronDown,
   ChevronRight,
+  Download,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -50,6 +54,9 @@ export function CertificationPipeline() {
   const queryClient = useQueryClient();
   const [expandedNbhd, setExpandedNbhd] = useState<string | null>(null);
   const [showCountyCertify, setShowCountyCertify] = useState(false);
+  const [certifyingNbhd, setCertifyingNbhd] = useState<string | null>(null);
+  const recordCertEvent = useRecordCertificationEvent();
+  const { exportRoll, isExporting } = useRollExport();
 
   // County-level certification mutation — routed through daisService
   const countyCertifyMutation = useMutation({
@@ -58,10 +65,41 @@ export function CertificationPipeline() {
       toast.success("County roll certified", {
         description: `${result.certified} assessments certified for TY ${new Date().getFullYear()}`,
       });
+      recordCertEvent.mutate({
+        event_type: "county_roll_certified",
+        parcels_certified: result.certified,
+        parcels_created: 0,
+        total_parcels: data?.totalParcels || 0,
+        notes: `County-wide roll certification for TY ${new Date().getFullYear()}`,
+      });
       invalidateCertification(queryClient);
     },
     onError: (err: Error) => {
       toast.error("Certification failed", { description: err.message });
+    },
+  });
+
+  // Neighborhood-level certification mutation
+  const nbhdCertifyMutation = useMutation({
+    mutationFn: (code: string) => certifyNeighborhood(code),
+    onMutate: (code) => setCertifyingNbhd(code),
+    onSuccess: (result, code) => {
+      toast.success(`Neighborhood ${code} certified`, {
+        description: `${result.certified} updated, ${result.created} created (${result.total} total)`,
+      });
+      recordCertEvent.mutate({
+        event_type: "neighborhood_certified",
+        neighborhood_code: code,
+        parcels_certified: result.certified,
+        parcels_created: result.created,
+        total_parcels: result.total,
+      });
+      invalidateCertification(queryClient);
+      setCertifyingNbhd(null);
+    },
+    onError: (err: Error) => {
+      toast.error("Neighborhood certification failed", { description: err.message });
+      setCertifyingNbhd(null);
     },
   });
 
@@ -108,23 +146,40 @@ export function CertificationPipeline() {
           </div>
         </div>
 
-        {/* County Certify button */}
-        <CommitmentButton
-          onClick={() => setShowCountyCertify(true)}
-          disabled={countyCertifyMutation.isPending || data.certRate === 100}
-          variant="gold"
-        >
-          {countyCertifyMutation.isPending ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
-          ) : (
-            <Stamp className="w-4 h-4" />
-          )}
-          {data.certRate === 100
-            ? "Roll Certified"
-            : countyCertifyMutation.isPending
-              ? "Certifying…"
-              : "Certify County Roll"}
-        </CommitmentButton>
+        <div className="flex items-center gap-2">
+          {/* Export Roll button */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => exportRoll("xlsx")}
+            disabled={isExporting || data.certRate === 0}
+          >
+            {isExporting ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" />
+            ) : (
+              <Download className="w-3.5 h-3.5 mr-1.5" />
+            )}
+            Export Roll
+          </Button>
+
+          {/* County Certify button */}
+          <CommitmentButton
+            onClick={() => setShowCountyCertify(true)}
+            disabled={countyCertifyMutation.isPending || data.certRate === 100}
+            variant="gold"
+          >
+            {countyCertifyMutation.isPending ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Stamp className="w-4 h-4" />
+            )}
+            {data.certRate === 100
+              ? "Roll Certified"
+              : countyCertifyMutation.isPending
+                ? "Certifying…"
+                : "Certify County Roll"}
+          </CommitmentButton>
+        </div>
       </motion.div>
 
       {/* Overall Progress */}
@@ -276,6 +331,8 @@ export function CertificationPipeline() {
                   expandedNbhd === nbhd.code ? null : nbhd.code
                 )
               }
+              onCertify={() => nbhdCertifyMutation.mutate(nbhd.code)}
+              isCertifying={certifyingNbhd === nbhd.code}
             />
           ))}
         </div>
@@ -417,10 +474,14 @@ function NeighborhoodRow({
   nbhd,
   expanded,
   onToggle,
+  onCertify,
+  isCertifying,
 }: {
   nbhd: NeighborhoodReadiness;
   expanded: boolean;
   onToggle: () => void;
+  onCertify: () => void;
+  isCertifying: boolean;
 }) {
   const statusColors = {
     ready:
@@ -529,6 +590,25 @@ function NeighborhoodRow({
               alert={nbhd.unsignedNarratives > 0}
             />
           </div>
+
+          {/* Certify Neighborhood Action */}
+          {nbhd.certRate < 100 && (
+            <div className="flex justify-end pt-3">
+              <CommitmentButton
+                onClick={onCertify}
+                disabled={isCertifying}
+                variant="gold"
+                className="text-xs"
+              >
+                {isCertifying ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <Stamp className="w-3.5 h-3.5" />
+                )}
+                {isCertifying ? "Certifying…" : `Certify ${nbhd.code}`}
+              </CommitmentButton>
+            </div>
+          )}
         </motion.div>
       )}
     </div>

@@ -9,9 +9,9 @@
 
 ## Current State Summary
 
-**Active Phase**: Phase 31 — TerraPilot Tool Execution (COMPLETE)  
-**Last Completed Task**: 31.4 — Inline tool result cards  
-**Next Task**: Phase 32 planning  
+**Active Phase**: Phase 32 — Roll Certification Pipeline (COMPLETE)  
+**Last Completed Task**: 32.4 — State roll export  
+**Next Task**: Phase 33 planning  
 **Blockers**: None
 
 ---
@@ -26,6 +26,31 @@
 | 29 | DAIS Workflow Engine | ✅ COMPLETE | 4/4 | Notices table, NewAppealDialog, useNotices hook, DB-persisted NoticesPanel |
 | 30 | Mobile & PWA Polish | ✅ COMPLETE | 4/4 | PWA meta tags, install prompt, mobile nav drawer, touch-friendly audit |
 | 31 | TerraPilot Tool Execution | ✅ COMPLETE | 4/4 | generate_notice + run_model tools, navigation fix, inline result cards |
+| 32 | Roll Certification Pipeline | ✅ COMPLETE | 4/4 | certification_events table, value lock trigger, certify neighborhood UI, state roll export |
+
+## Phase 32 Roll Certification Pipeline Log (2026-03-14)
+
+### 32.1 certification_events Table ✅
+- Created `certification_events` table with county FK, event_type, tax_year, neighborhood_code, parcel counts, readiness_score, blocker_snapshot
+- RLS policies for authenticated read/write
+- Created `useCertificationEvents` and `useRecordCertificationEvent` hooks
+
+### 32.2 Value Lock Trigger ✅
+- Created `prevent_certified_assessment_update()` trigger function on assessments
+- Prevents modification of land_value, improvement_value, or total_value on certified assessments
+- Must uncertify first (set certified=false) before value changes are allowed
+
+### 32.3 Certify Neighborhood UI ✅
+- Added `certifyNeighborhood` mutation to CertificationPipeline with per-row Certify button
+- CommitmentButton with gold variant appears in expanded neighborhood detail when certRate < 100%
+- Records certification_event on success with neighborhood code, parcel counts
+- County-level certification also records certification_event
+
+### 32.4 State Roll Export ✅
+- Created `useRollExport` hook generating CSV/XLSX of certified roll
+- Multi-sheet export: Certified Roll (parcel-level) + Summary by Class (aggregated)
+- Metadata sheet with report type, tax year, record count, generation timestamp
+- Export button integrated into CertificationPipeline header
 
 ## Phase 31 TerraPilot Tool Execution Log (2026-03-14)
 
