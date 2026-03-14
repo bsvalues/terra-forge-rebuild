@@ -7,7 +7,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { assertWriteLane } from "@/services/writeLane";
 import { emitTraceEvent } from "@/services/terraTrace";
 import { invokeDraftNotice } from "@/services/ingestService";
-import { invalidateNotices } from "@/lib/queryInvalidation";
 
 export interface BatchNoticeJob {
   id: string;
