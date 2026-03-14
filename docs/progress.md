@@ -9,9 +9,9 @@
 
 ## Current State Summary
 
-**Active Phase**: Phase 26 — Segment-Driven Revaluation (COMPLETE)  
-**Last Completed Task**: 26.5 — Route wiring and docs  
-**Next Task**: Phase 27 planning  
+**Active Phase**: Phase 27 — Cost Approach Engine (COMPLETE)  
+**Last Completed Task**: 27.5 — CostMode integration and docs  
+**Next Task**: Phase 28 planning  
 **Blockers**: None
 
 ---
@@ -21,8 +21,34 @@
 | 24 | Trust OS Provenance Coverage | ✅ COMPLETE | 5/5 | Every key metric wrapped with ProvenanceNumber |
 | 25 | Advanced Analytics | ✅ COMPLETE | 5/5 | Ratio trends, forecasting, outlier detection, neighborhood clustering |
 | 26 | Segment-Driven Revaluation | ✅ COMPLETE | 5/5 | Segment definitions, per-segment calibration, equity rebalancing |
+| 27 | Cost Approach Engine | ✅ COMPLETE | 5/5 | Depreciation CRUD, batch cost apply, cost ratio analysis, CostMode tabs |
 
-## Phase 26 Segment-Driven Revaluation Log (2026-03-14)
+## Phase 27 Cost Approach Engine Log (2026-03-14)
+
+### 27.1 Database Schema ✅
+- Created `cost_approach_runs` table (county-scoped, links to cost_schedules)
+- Full RLS: county-isolated CRUD policies
+
+### 27.2 Depreciation Row Editor ✅
+- `DepreciationRowEditor`: CRUD for depreciation rows per cost schedule
+- Auto-advancing new row defaults (age ranges, depreciation %)
+
+### 27.3 Batch Cost Apply Panel ✅
+- `BatchCostApplyPanel`: Applies cost approach to all parcels in a neighborhood
+- Fetches parcels + qualified sales, computes RCNLD for each
+- Stats summary: parcels processed, with sales, median ratio, COD
+- Result table with per-parcel RCN, cost value, sale price, ratio, and verdict icons
+
+### 27.4 Cost Ratio Analysis ✅
+- `CostRatioAnalysis`: Compares cost-indicated values against sale prices
+- IAAO metrics: median ratio, mean ratio, COD, PRD with pass/warn/fail verdicts
+- Ratio distribution bar chart with target range reference
+
+### 27.5 CostMode Integration ✅
+- Restructured `CostMode` with tabbed layout: Schedules & Calculator, Depreciation Tables, Batch Apply
+- Side-by-side depreciation editor + curve visualization
+- Batch apply + ratio analysis in grid layout
+
 
 ### 26.1 Database Schema ✅
 - Created `segment_definitions` table (county-scoped, factor/ranges JSONB, source tracking)

@@ -1,32 +1,66 @@
+import { useState } from "react";
 import { CostScheduleEditor } from "./CostScheduleEditor";
 import { DepreciationCurveEditor } from "./DepreciationCurveEditor";
+import { DepreciationRowEditor } from "./DepreciationRowEditor";
 import { CostApproachCalculator } from "./CostApproachCalculator";
-import { DollarSign } from "lucide-react";
+import { BatchCostApplyPanel } from "./BatchCostApplyPanel";
+import { CostRatioAnalysis } from "./CostRatioAnalysis";
+import { useBatchCostApply, type BatchCostResult } from "@/hooks/useCostBatchApply";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { DollarSign, Ruler, Play, TrendingUp } from "lucide-react";
 
 interface CostModeProps {
   neighborhoodCode: string | null;
 }
 
 export function CostMode({ neighborhoodCode }: CostModeProps) {
-  return (
-    <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-6">
-      {/* Left: Schedule editor + depreciation */}
-      <div className="space-y-6">
-        <CostScheduleEditor />
-        <DepreciationCurveEditor />
-      </div>
+  const [batchResults, setBatchResults] = useState<BatchCostResult[] | null>(null);
 
-      {/* Right: Calculator */}
-      <div className="space-y-4">
-        <CostApproachCalculator />
-        {neighborhoodCode && (
-          <div className="material-bento p-4">
-            <p className="text-xs text-muted-foreground">
-              Batch cost apply for <span className="text-foreground font-medium">{neighborhoodCode}</span> — coming in Phase 6.3.4
-            </p>
+  return (
+    <div className="space-y-6">
+      <Tabs defaultValue="schedules" className="space-y-4">
+        <TabsList className="bg-[hsl(var(--tf-elevated)/0.5)]">
+          <TabsTrigger value="schedules" className="text-xs gap-1.5">
+            <DollarSign className="w-3.5 h-3.5" />
+            Schedules & Calculator
+          </TabsTrigger>
+          <TabsTrigger value="depreciation" className="text-xs gap-1.5">
+            <Ruler className="w-3.5 h-3.5" />
+            Depreciation Tables
+          </TabsTrigger>
+          <TabsTrigger value="batch" className="text-xs gap-1.5">
+            <Play className="w-3.5 h-3.5" />
+            Batch Apply
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="schedules">
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-6">
+            <div className="space-y-6">
+              <CostScheduleEditor />
+            </div>
+            <div>
+              <CostApproachCalculator />
+            </div>
           </div>
-        )}
-      </div>
+        </TabsContent>
+
+        <TabsContent value="depreciation">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <DepreciationRowEditor />
+            <DepreciationCurveEditor />
+          </div>
+        </TabsContent>
+
+        <TabsContent value="batch">
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+            <BatchCostApplyPanel neighborhoodCode={neighborhoodCode} />
+            {batchResults && batchResults.length > 0 && (
+              <CostRatioAnalysis results={batchResults} />
+            )}
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
