@@ -9,9 +9,9 @@
 
 ## Current State Summary
 
-**Active Phase**: Phase 32 — Roll Certification Pipeline (COMPLETE)  
-**Last Completed Task**: 32.4 — State roll export  
-**Next Task**: Phase 33 planning  
+**Active Phase**: Phase 33 — Security Hardening (COMPLETE)  
+**Last Completed Task**: 33.5 — Privilege escalation fix  
+**Next Task**: Phase 34 planning  
 **Blockers**: None
 
 ---
@@ -27,6 +27,34 @@
 | 30 | Mobile & PWA Polish | ✅ COMPLETE | 4/4 | PWA meta tags, install prompt, mobile nav drawer, touch-friendly audit |
 | 31 | TerraPilot Tool Execution | ✅ COMPLETE | 4/4 | generate_notice + run_model tools, navigation fix, inline result cards |
 | 32 | Roll Certification Pipeline | ✅ COMPLETE | 4/4 | certification_events table, value lock trigger, certify neighborhood UI, state roll export |
+| 33 | Security Hardening | ✅ COMPLETE | 5/5 | npm audit fix, RLS county-scope on notices/cert_events, broken RLS fix on 5 tables, has_role() RBAC, privilege escalation fix |
+
+## Phase 33 Security Hardening Log (2026-03-14)
+
+### 33.1 npm Vulnerability Fix ✅
+- Updated serialize-javascript to 6.0.2 fixing high-severity CVE
+- Resolved transitive vulnerability across @rollup/plugin-terser, vite-plugin-pwa, workbox-build
+
+### 33.2 RLS County-Scope: notices & certification_events ✅
+- Dropped 3 bare `true` policies on notices, replaced with `county_id = get_user_county_id()`
+- Dropped 2 bare `true` policies on certification_events, replaced with county-scoped equivalents
+- PII (recipient_name, recipient_address) now county-isolated
+
+### 33.3 Broken RLS Fix: 5 Tables ✅
+- Fixed `profiles.id = auth.uid()` → `get_user_county_id()` on:
+  segment_definitions (4 policies), segment_calibration_runs (2), cost_approach_runs (3),
+  income_properties (4), income_approach_runs (3)
+- Total: 16 policies replaced — non-admin access was completely broken before
+
+### 33.4 RBAC has_role() Function ✅
+- Created `has_role(_user_id, _role)` security definer function with `SET search_path = public`
+- Recreated `get_user_county_id()` and `is_admin()` with `SET search_path = public` to fix linter warnings
+- user_roles table already existed with proper RLS
+
+### 33.5 Privilege Escalation Fix ✅
+- **CRITICAL**: Profiles UPDATE policy now prevents county_id changes via WITH CHECK constraint
+- Users can update display_name, avatar_url but cannot change their county assignment
+- Prevents cross-county data access attack via self-modification of county_id
 
 ## Phase 32 Roll Certification Pipeline Log (2026-03-14)
 
