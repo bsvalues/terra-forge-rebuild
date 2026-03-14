@@ -114,6 +114,7 @@ export function AppealsWorkflow() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [selectedAppeal, setSelectedAppeal] = useState<Appeal | null>(null);
+  const [showNewDialog, setShowNewDialog] = useState(false);
 
   const changeStatus = useMutation({
     mutationFn: async ({ appeal, newStatus, reason }: { appeal: Appeal; newStatus: string; reason?: string }) => {
