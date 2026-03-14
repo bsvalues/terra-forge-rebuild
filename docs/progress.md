@@ -9,9 +9,9 @@
 
 ## Current State Summary
 
-**Active Phase**: Phase 30 — Mobile & PWA Polish (COMPLETE)  
-**Last Completed Task**: 30.4 — Touch-friendly responsive audit  
-**Next Task**: Phase 31 planning  
+**Active Phase**: Phase 31 — TerraPilot Tool Execution (COMPLETE)  
+**Last Completed Task**: 31.4 — Inline tool result cards  
+**Next Task**: Phase 32 planning  
 **Blockers**: None
 
 ---
@@ -25,6 +25,31 @@
 | 28 | Income Approach Engine | ✅ COMPLETE | 4/4 | Income CRUD, cap rate/GRM calculator, batch apply, IncomeMode in Factory |
 | 29 | DAIS Workflow Engine | ✅ COMPLETE | 4/4 | Notices table, NewAppealDialog, useNotices hook, DB-persisted NoticesPanel |
 | 30 | Mobile & PWA Polish | ✅ COMPLETE | 4/4 | PWA meta tags, install prompt, mobile nav drawer, touch-friendly audit |
+| 31 | TerraPilot Tool Execution | ✅ COMPLETE | 4/4 | generate_notice + run_model tools, navigation fix, inline result cards |
+
+## Phase 31 TerraPilot Tool Execution Log (2026-03-14)
+
+### 31.1 Missing Pilot Write Tools ✅
+- Added `generate_notice` write tool: creates DB notice with ai_drafted=true, HitL confirmation, TerraTrace audit
+- Added `run_model` write tool: queues calibration_run for neighborhood, HitL gated, TerraTrace audit
+- Updated WRITE_TOOL_RISK map: generate_notice=high, run_model=medium
+- Updated getWriteDescription for both new tools
+
+### 31.2 Client-Side Navigation Fix ✅
+- `navigate_to_parcel` now updates WorkbenchContext.setParcel instead of react-router navigate
+- Keeps user in the SPA workbench flow instead of hard page navigation
+- Shows toast notification on navigation
+
+### 31.3 Tool Icon/Label Registry ✅
+- Added `generate_notice` and `run_model` to TOOL_ICONS and TOOL_LABELS maps
+- Client-side rendering now shows proper badges for all 19 tools
+
+### 31.4 Inline Tool Result Cards ✅
+- `ToolResultCards` component renders structured data cards inside chat messages
+- Parcel search results: mini-list with address, parcel number, assessed value
+- Comparable sales: comp grid with sale prices
+- Workflow summary: 3-column grid (permits/appeals/exemptions counts)
+- Neighborhood stats: 2x2 grid with median, average, parcel count, avg area
 
 ## Phase 30 Mobile & PWA Polish Log (2026-03-14)
 
