@@ -206,7 +206,7 @@ export function AppealsWorkflow() {
             </p>
           </div>
         </div>
-        <Button className="gap-2 bg-suite-dais hover:bg-suite-dais/90">
+        <Button className="gap-2 bg-suite-dais hover:bg-suite-dais/90" onClick={() => setShowNewDialog(true)}>
           <Plus className="w-4 h-4" />
           New Appeal
         </Button>
