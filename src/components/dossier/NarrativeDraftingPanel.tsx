@@ -48,6 +48,7 @@ export function NarrativeDraftingPanel({ parcelId }: Props) {
         address: parcel.address,
         assessedValue: parcel.assessedValue,
         ratioStats: { studyPeriod: studyPeriod.name },
+        narrativeType,
       });
 
       const typeLabel = NARRATIVE_TYPES.find(t => t.value === narrativeType)?.label || narrativeType;

@@ -260,3 +260,82 @@ export function useAssemblePacket(parcelId: string | null) {
     onError: (err: any) => toast.error(err.message || "Failed to assemble packet"),
   });
 }
+
+export function useFinalizePacket(parcelId: string | null) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (packetId: string) => {
+      if (!parcelId) throw new Error("No parcel selected");
+      const { data, error } = await supabase
+        .from("dossier_packets" as any)
+        .update({
+          status: "finalized",
+          finalized_at: new Date().toISOString(),
+        } as any)
+        .eq("id", packetId)
+        .select()
+        .single();
+      if (error) throw error;
+
+      emitTraceEventAsync({
+        parcelId,
+        sourceModule: "dossier",
+        eventType: "evidence_attached",
+        eventData: { action: "packet_finalized", packetId },
+        artifactType: "packet",
+        artifactId: packetId,
+      });
+
+      return data;
+    },
+    onSuccess: () => {
+      invalidateDossier(qc, parcelId!);
+      showChangeReceipt({
+        entity: "Evidence Packet",
+        action: "Packet finalized",
+        impact: "parcel",
+        reason: "Ready for hearing / export",
+      });
+    },
+    onError: (err: any) => toast.error(err.message || "Finalization failed"),
+  });
+}
+
+export function usePacketContents(packet: any | null) {
+  const docIds: string[] = packet?.document_ids || [];
+  const narIds: string[] = packet?.narrative_ids || [];
+
+  const docsQuery = useQuery({
+    queryKey: ["packet-docs", packet?.id],
+    queryFn: async () => {
+      if (!docIds.length) return [];
+      const { data, error } = await supabase
+        .from("dossier_documents" as any)
+        .select("*")
+        .in("id", docIds);
+      if (error) throw error;
+      return data as any[];
+    },
+    enabled: !!packet && docIds.length > 0,
+  });
+
+  const narrativesQuery = useQuery({
+    queryKey: ["packet-narratives", packet?.id],
+    queryFn: async () => {
+      if (!narIds.length) return [];
+      const { data, error } = await supabase
+        .from("dossier_narratives" as any)
+        .select("*")
+        .in("id", narIds);
+      if (error) throw error;
+      return data as any[];
+    },
+    enabled: !!packet && narIds.length > 0,
+  });
+
+  return {
+    documents: docsQuery.data || [],
+    narratives: narrativesQuery.data || [],
+    isLoading: docsQuery.isLoading || narrativesQuery.isLoading,
+  };
+}

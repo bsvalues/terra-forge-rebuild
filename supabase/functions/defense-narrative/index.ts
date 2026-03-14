@@ -3,14 +3,61 @@ import { requireAuth, createServiceClient } from "../_shared/auth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+};
+
+const NARRATIVE_PROMPTS: Record<string, { system: string; userPrefix: string }> = {
+  defense: {
+    system: `You are a property assessment defense analyst. Generate a professional narrative for a Board of Equalization (BOE) defense packet. The narrative must:
+1. Summarize the subject property and its current assessed value
+2. Reference comparable sales with ratios
+3. Cite IAAO ratio study statistics (COD, PRD, tier analysis)
+4. Provide a conclusion supporting the assessed value
+Keep the tone professional, factual, and defensible. Use specific numbers. Format in markdown.`,
+    userPrefix: "Generate a BOE defense narrative for:",
+  },
+  value_change: {
+    system: `You are a property assessment analyst explaining value changes to property owners. Generate a clear, transparent explanation that:
+1. States the previous and new assessed values
+2. Explains the market factors driving the change
+3. References comparable sales supporting the new value
+4. Notes any property characteristic changes (permits, improvements)
+Keep the tone respectful, transparent, and educational. Format in markdown.`,
+    userPrefix: "Explain the value change for:",
+  },
+  appeal_response: {
+    system: `You are a county assessor drafting a formal response to a property tax appeal. Generate a professional response that:
+1. Acknowledges the property owner's concerns
+2. Presents the evidence supporting the current assessment
+3. References comparable sales and ratio study statistics
+4. Provides a clear recommendation (sustain, reduce, or modify)
+Keep the tone formal, objective, and legally defensible. Format in markdown.`,
+    userPrefix: "Draft an appeal response for:",
+  },
+  exemption_letter: {
+    system: `You are a county assessor drafting an exemption decision letter. Generate a professional letter that:
+1. References the specific exemption type requested
+2. States whether the exemption is approved, denied, or modified
+3. Cites the applicable statutory authority
+4. Provides clear reasoning for the decision
+Keep the tone formal and cite relevant legal standards. Format in markdown.`,
+    userPrefix: "Draft an exemption decision letter for:",
+  },
+  evidence_synthesis: {
+    system: `You are a property assessment evidence analyst. Synthesize all provided evidence into a cohesive summary that:
+1. Summarizes each piece of evidence (documents, narratives, assessment data)
+2. Identifies key themes and supporting data points
+3. Notes any conflicts or gaps in the evidence
+4. Provides a synthesis conclusion
+Keep the tone analytical and objective. Format in markdown with clear sections.`,
+    userPrefix: "Synthesize the evidence for:",
+  },
 };
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    // Authenticate the user
     let auth;
     try {
       auth = await requireAuth(req);
@@ -19,26 +66,31 @@ serve(async (req) => {
       throw res;
     }
 
-    const { parcelNumber, address, assessedValue, assessmentHistory, salesHistory, comps, ratioStats } = await req.json();
+    const body = await req.json();
+    const {
+      parcelNumber,
+      address,
+      assessedValue,
+      assessmentHistory,
+      salesHistory,
+      comps,
+      ratioStats,
+      narrativeType = "defense",
+      additionalContext,
+    } = body;
 
-    // Input validation
     if (parcelNumber && typeof parcelNumber !== "string") {
       return new Response(JSON.stringify({ error: "Invalid parcelNumber" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
+    const promptConfig = NARRATIVE_PROMPTS[narrativeType] || NARRATIVE_PROMPTS.defense;
+
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
-    const systemPrompt = `You are a property assessment defense analyst. Generate a professional narrative for a Board of Equalization (BOE) defense packet. The narrative must:
-1. Summarize the subject property and its current assessed value
-2. Reference comparable sales with ratios
-3. Cite IAAO ratio study statistics (COD, PRD, tier analysis)
-4. Provide a conclusion supporting the assessed value
-Keep the tone professional, factual, and defensible. Use specific numbers. Format in markdown.`;
-
-    const userPrompt = `Generate a defense narrative for:
+    const userPrompt = `${promptConfig.userPrefix}
 - Parcel: ${parcelNumber}
 - Address: ${address}
 - Current Assessed Value: $${assessedValue?.toLocaleString() || 'N/A'}
@@ -50,7 +102,8 @@ Recent Comparable Sales:
 ${JSON.stringify(comps || [], null, 2)}
 
 Ratio Study Statistics:
-${JSON.stringify(ratioStats || {}, null, 2)}`;
+${JSON.stringify(ratioStats || {}, null, 2)}
+${additionalContext ? `\nAdditional Context:\n${additionalContext}` : ""}`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -61,7 +114,7 @@ ${JSON.stringify(ratioStats || {}, null, 2)}`;
       body: JSON.stringify({
         model: "google/gemini-3-flash-preview",
         messages: [
-          { role: "system", content: systemPrompt },
+          { role: "system", content: promptConfig.system },
           { role: "user", content: userPrompt },
         ],
         stream: false,
@@ -89,7 +142,7 @@ ${JSON.stringify(ratioStats || {}, null, 2)}`;
     const data = await response.json();
     const narrative = data.choices?.[0]?.message?.content || "Unable to generate narrative.";
 
-    return new Response(JSON.stringify({ narrative }), {
+    return new Response(JSON.stringify({ narrative, narrativeType }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {

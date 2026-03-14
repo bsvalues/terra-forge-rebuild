@@ -925,6 +925,8 @@ export type Database = {
           county_id: string
           created_at: string
           document_ids: string[]
+          finalized_at: string | null
+          finalized_by: string | null
           id: string
           metadata: Json | null
           narrative_ids: string[]
@@ -939,6 +941,8 @@ export type Database = {
           county_id?: string
           created_at?: string
           document_ids?: string[]
+          finalized_at?: string | null
+          finalized_by?: string | null
           id?: string
           metadata?: Json | null
           narrative_ids?: string[]
@@ -953,6 +957,8 @@ export type Database = {
           county_id?: string
           created_at?: string
           document_ids?: string[]
+          finalized_at?: string | null
+          finalized_by?: string | null
           id?: string
           metadata?: Json | null
           narrative_ids?: string[]

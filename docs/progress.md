@@ -29,6 +29,31 @@
 | 32 | Roll Certification Pipeline | ✅ COMPLETE | 4/4 | certification_events table, value lock trigger, certify neighborhood UI, state roll export |
 | 33 | Security Hardening | ✅ COMPLETE | 5/5 | npm audit fix, RLS county-scope on notices/cert_events, broken RLS fix on 5 tables, has_role() RBAC, privilege escalation fix |
 | 34 | Batch Notice Generation | ✅ COMPLETE | 5/5 | batch_notice_jobs table, useBatchNotices hook, BatchNoticeDashboard, Factory DB persistence, Notice Center route |
+| 35 | Dossier Evidence Pipeline | ✅ COMPLETE | 4/4 | Multi-type AI narratives, dossier-files storage bucket, packet finalization workflow, evidence synthesis |
+
+## Phase 35 Dossier Evidence Pipeline Log (2026-03-14)
+
+### 35.1 Storage & Schema ✅
+- Verified `dossier-files` storage bucket with RLS policies for authenticated users
+- Added `finalized_at` and `finalized_by` columns to `dossier_packets` table
+
+### 35.2 Multi-Type AI Narratives ✅
+- Enhanced `defense-narrative` edge function with 5 narrative type prompts: defense, value_change, appeal_response, exemption_letter, evidence_synthesis
+- Each type has tailored system prompt and user prefix for contextually appropriate output
+- NarrativeDraftingPanel now passes `narrativeType` to edge function for type-specific generation
+- Added `invokeSynthesizeEvidence` service function for evidence synthesis
+
+### 35.3 Packet Finalization & Evidence Synthesis ✅
+- `useFinalizePacket` hook: transitions packet status from draft → finalized with TerraTrace emission
+- `usePacketContents` hook: fetches documents and narratives by IDs for packet detail view
+- `PacketDetailView` component: expandable packet contents showing docs + narratives
+- Synthesize button: calls evidence_synthesis narrative type, saves result as new narrative
+- Finalize button: locks packet with status badge and trace event
+
+### 35.4 UI Enhancements ✅
+- Expandable packet cards with chevron animation (AnimatePresence)
+- Finalized packets show lock icon + green status badge
+- Inline document/narrative preview within packet detail view
 
 ## Phase 34 Batch Notice Generation Log (2026-03-14)
 
