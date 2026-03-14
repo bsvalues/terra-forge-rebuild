@@ -1942,6 +1942,47 @@ export type Database = {
           },
         ]
       }
+      parcel_watchlist: {
+        Row: {
+          county_id: string
+          created_at: string
+          id: string
+          note: string | null
+          parcel_id: string
+          priority: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          county_id?: string
+          created_at?: string
+          id?: string
+          note?: string | null
+          parcel_id: string
+          priority?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Update: {
+          county_id?: string
+          created_at?: string
+          id?: string
+          note?: string | null
+          parcel_id?: string
+          priority?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "parcel_watchlist_parcel_id_fkey"
+            columns: ["parcel_id"]
+            isOneToOne: false
+            referencedRelation: "parcels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       parcels: {
         Row: {
           address: string

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import {
   TrendingUp,
@@ -21,6 +22,7 @@ import {
   RefreshCw,
   BookOpen,
 } from "lucide-react";
+import { Star } from "lucide-react";
 import { useWorkbench } from "../WorkbenchContext";
 import { useParcel360 } from "@/hooks/useParcel360";
 import { useParcelAdjustments } from "@/hooks/useValueAdjustments";
@@ -30,7 +32,9 @@ import { TerraTraceActivityFeed } from "@/components/proof/TerraTraceActivityFee
 import { ParcelDetailEditor } from "../ParcelDetailEditor";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import type { DomainLoadState } from "@/types/parcel360";
+import { useIsWatched, useToggleWatchlist } from "@/hooks/useParcelWatchlist";
 
 export function SummaryTab() {
   const { parcel } = useWorkbench();
@@ -182,6 +186,8 @@ function OperationalBlockers({ snapshot }: { snapshot: NonNullable<ReturnType<ty
 function ParcelSummaryContent() {
   const { parcel } = useWorkbench();
   const snapshot = useParcel360(parcel.id);
+  const { isWatched, watchItem } = useIsWatched(parcel.id);
+  const { toggle: toggleWatch, isPending: watchPending } = useToggleWatchlist();
 
   const fmt = (v: number | null | undefined) =>
     v != null
@@ -210,6 +216,16 @@ function ParcelSummaryContent() {
             <div className="flex items-center gap-2 text-primary text-sm font-medium mb-1">
               <MapPin className="w-4 h-4" />
               {snapshot.identity.parcelNumber}
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6 ml-1"
+                disabled={watchPending}
+                onClick={() => parcel.id && toggleWatch(parcel.id, watchItem)}
+                title={isWatched ? "Remove from watchlist" : "Add to watchlist"}
+              >
+                <Star className={cn("w-4 h-4", isWatched ? "fill-amber-400 text-amber-400" : "text-muted-foreground")} />
+              </Button>
             </div>
             <h1 className="text-2xl font-light text-foreground mb-1">{snapshot.identity.address || "Address Not Available"}</h1>
             <p className="text-muted-foreground">

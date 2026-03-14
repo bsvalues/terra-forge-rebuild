@@ -9,9 +9,9 @@
 
 ## Current State Summary
 
-**Active Phase**: Phase 43 — Parcel Comparison Tool (COMPLETE)  
-**Last Completed Task**: 43.3 — IA_MAP + AppLayout wiring  
-**Next Task**: Phase 44 planning  
+**Active Phase**: Phase 44 — Parcel Watchlist & Favorites (COMPLETE)  
+**Last Completed Task**: 44.3 — Star toggle + navigation wiring  
+**Next Task**: Phase 45 planning  
 **Blockers**: None
 
 ---
@@ -38,8 +38,31 @@
 | 41 | Data Export & Reporting | ✅ COMPLETE | 3/3 | ExportService (CSV/JSON, 7 datasets, filters, audit trail), ExportCenter UI (dataset picker, format toggle, history), IA_MAP + AppLayout wiring |
 | 42 | User Preferences & Settings | ✅ COMPLETE | 3/3 | useUserPreferences hook (6 prefs, localStorage, global sync), useProfileUpdate (governed name edit), Enhanced ControlCenter (profile editor, prefs toggles, sign out, compact/reduced-motion CSS) |
 | 43 | Parcel Comparison Tool | ✅ COMPLETE | 3/3 | useParcelComparison hook (add/remove/clear, max 4), ParcelComparisonPanel (side-by-side table, delta highlighting, $/sqft derived row, inline search), IA_MAP + AppLayout wiring |
+| 44 | Parcel Watchlist & Favorites | ✅ COMPLETE | 3/3 | parcel_watchlist table (RLS, priority, notes), useParcelWatchlist hooks (CRUD, toggle, isWatched), WatchlistPanel UI (search, filter, priority stats, navigate-to-parcel), Star toggle in SummaryTab header |
 
-## Phase 43 Parcel Comparison Tool Log (2026-03-14)
+## Phase 44 Parcel Watchlist & Favorites Log (2026-03-14)
+
+### 44.1 parcel_watchlist Table ✅
+- Created `parcel_watchlist` with user_id, parcel_id, county_id, note, priority (low/normal/high/critical)
+- Unique constraint on (user_id, parcel_id) prevents duplicates
+- Full RLS: users can only CRUD their own watchlist items
+- Indexes on user_id+created_at and parcel_id for fast lookups
+
+### 44.2 useParcelWatchlist Hooks ✅
+- `useWatchlist`: fetches all items with joined parcel data (number, address, value, class)
+- `useIsWatched(parcelId)`: checks if specific parcel is starred
+- `useAddToWatchlist` / `useRemoveFromWatchlist`: governed mutations with TerraTrace events
+- `useUpdateWatchlistItem`: edit note and priority
+- `useToggleWatchlist`: convenience toggle (add/remove in one call)
+
+### 44.3 WatchlistPanel UI + Navigation ✅
+- Full management panel with search, priority filter, priority count stats
+- WatchlistCard: star icon, parcel info, note display, inline edit panel (note + priority)
+- Navigate-to-parcel button opens parcel in Workbench
+- Star toggle button added to SummaryTab parcel header (filled amber when watched)
+- Registered `watchlist` view in Home module in IA_MAP
+- Lazy-loaded in AppLayout with code-splitting
+
 
 ### 43.1 useParcelComparison Hook ✅
 - Manages array of up to 4 ComparisonParcel objects
