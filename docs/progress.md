@@ -26,6 +26,7 @@
 | 29 | DAIS Workflow Engine | ✅ COMPLETE | 4/4 | Notices table, NewAppealDialog, useNotices hook, DB-persisted NoticesPanel |
 | 30 | Mobile & PWA Polish | ✅ COMPLETE | 4/4 | PWA meta tags, install prompt, mobile nav drawer, touch-friendly audit |
 | 31 | TerraPilot Tool Execution | ✅ COMPLETE | 4/4 | generate_notice + run_model tools, navigation fix, inline result cards |
+| 32 | Roll Certification Pipeline | ✅ COMPLETE | 4/4 | certification_events table, value lock trigger, certify neighborhood UI, state roll export |
 
 ## Phase 31 TerraPilot Tool Execution Log (2026-03-14)
 
