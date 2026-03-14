@@ -40,6 +40,7 @@ import {
   History,
 } from "lucide-react";
 import { AppealTimeline } from "./AppealTimeline";
+import { NewAppealDialog } from "./NewAppealDialog";
 import { StatusTransitionDropdown, APPEAL_TRANSITIONS } from "./StatusTransitionDropdown";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAppealsWorkflowQuery } from "@/hooks/useDaisWorkflows";
