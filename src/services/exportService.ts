@@ -13,7 +13,6 @@ export type ExportDataset =
   | "sales"
   | "appeals"
   | "exemptions"
-  | "permits"
   | "notices"
   | "model_receipts";
 
@@ -24,8 +23,6 @@ export interface ExportConfig {
     taxYear?: number;
     neighborhoodCode?: string;
     propertyClass?: string;
-    dateFrom?: string;
-    dateTo?: string;
   };
   limit?: number;
 }
@@ -39,61 +36,73 @@ export interface ExportResult {
 }
 
 // ── Dataset Metadata ──────────────────────────────────────────────
-export const DATASET_META: Record<ExportDataset, { label: string; description: string; table: string }> = {
-  parcels: { label: "Parcels", description: "All parcel records with characteristics", table: "parcels" },
-  assessments: { label: "Assessments", description: "Assessment values by tax year", table: "assessments" },
-  sales: { label: "Sales", description: "Qualified and unqualified sales", table: "sales" },
-  appeals: { label: "Appeals", description: "Appeal records with status history", table: "appeals" },
-  exemptions: { label: "Exemptions", description: "Active and historical exemptions", table: "exemptions" },
-  permits: { label: "Permits", description: "Building permits and status", table: "permits" },
-  notices: { label: "Notices", description: "Generated assessment notices", table: "notices" },
-  model_receipts: { label: "Model Receipts", description: "AVM and calibration model outputs", table: "model_receipts" },
+export const DATASET_META: Record<ExportDataset, { label: string; description: string }> = {
+  parcels: { label: "Parcels", description: "All parcel records with characteristics" },
+  assessments: { label: "Assessments", description: "Assessment values by tax year" },
+  sales: { label: "Sales", description: "Qualified and unqualified sales" },
+  appeals: { label: "Appeals", description: "Appeal records with status history" },
+  exemptions: { label: "Exemptions", description: "Active and historical exemptions" },
+  notices: { label: "Notices", description: "Generated assessment notices" },
+  model_receipts: { label: "Model Receipts", description: "AVM and calibration model outputs" },
 };
 
-// ── Column Selectors ──────────────────────────────────────────────
-const DATASET_COLUMNS: Record<ExportDataset, string> = {
-  parcels: "id, parcel_number, address, city, state, zip_code, property_class, neighborhood_code, year_built, bedrooms, bathrooms, building_area, land_area, assessed_value, land_value, improvement_value, latitude, longitude, created_at, updated_at",
-  assessments: "id, parcel_id, tax_year, land_value, improvement_value, total_value, certified, assessment_date, assessment_reason, notes, created_at",
-  sales: "id, parcel_id, sale_date, sale_price, sale_type, grantor, grantee, instrument_number, qualified, created_at",
-  appeals: "id, parcel_id, status, appeal_date, original_value, requested_value, final_value, hearing_date, resolution_type, resolution_date, tax_year, notes, created_at",
-  exemptions: "id, parcel_id, exemption_type, status, application_date, approval_date, expiration_date, exemption_amount, exemption_percentage, applicant_name, tax_year, notes, created_at",
-  permits: "id, parcel_id, permit_number, permit_type, status, issue_date, completion_date, estimated_cost, description, created_at",
-  notices: "id, parcel_id, notice_type, subject, status, ai_drafted, recipient_name, created_at",
-  model_receipts: "id, parcel_id, model_type, model_version, operator_id, inputs, outputs, created_at",
+// ── Typed Query Builders ──────────────────────────────────────────
+async function queryParcels(filters?: ExportConfig["filters"], limit = 5000) {
+  let q = supabase.from("parcels").select("id, parcel_number, address, city, state, zip_code, property_class, neighborhood_code, year_built, bedrooms, bathrooms, building_area, land_area, assessed_value, land_value, improvement_value, latitude, longitude, created_at, updated_at");
+  if (filters?.neighborhoodCode) q = q.eq("neighborhood_code", filters.neighborhoodCode);
+  if (filters?.propertyClass) q = q.eq("property_class", filters.propertyClass);
+  return q.order("created_at", { ascending: false }).limit(limit);
+}
+
+async function queryAssessments(filters?: ExportConfig["filters"], limit = 5000) {
+  let q = supabase.from("assessments").select("id, parcel_id, tax_year, land_value, improvement_value, total_value, certified, assessment_date, assessment_reason, notes, created_at");
+  if (filters?.taxYear) q = q.eq("tax_year", filters.taxYear);
+  return q.order("created_at", { ascending: false }).limit(limit);
+}
+
+async function querySales(filters?: ExportConfig["filters"], limit = 5000) {
+  return supabase.from("sales").select("id, parcel_id, sale_date, sale_price, sale_type, grantor, grantee, instrument_number, qualified, created_at").order("created_at", { ascending: false }).limit(limit);
+}
+
+async function queryAppeals(filters?: ExportConfig["filters"], limit = 5000) {
+  let q = supabase.from("appeals").select("id, parcel_id, status, appeal_date, original_value, requested_value, final_value, hearing_date, resolution_type, resolution_date, tax_year, notes, created_at");
+  if (filters?.taxYear) q = q.eq("tax_year", filters.taxYear);
+  return q.order("created_at", { ascending: false }).limit(limit);
+}
+
+async function queryExemptions(filters?: ExportConfig["filters"], limit = 5000) {
+  let q = supabase.from("exemptions").select("id, parcel_id, exemption_type, status, application_date, approval_date, expiration_date, exemption_amount, exemption_percentage, applicant_name, tax_year, notes, created_at");
+  if (filters?.taxYear) q = q.eq("tax_year", filters.taxYear);
+  return q.order("created_at", { ascending: false }).limit(limit);
+}
+
+async function queryNotices(_filters?: ExportConfig["filters"], limit = 5000) {
+  return supabase.from("notices").select("id, parcel_id, notice_type, subject, status, ai_drafted, recipient_name, created_at").order("created_at", { ascending: false }).limit(limit);
+}
+
+async function queryModelReceipts(_filters?: ExportConfig["filters"], limit = 5000) {
+  return supabase.from("model_receipts").select("id, parcel_id, model_type, model_version, operator_id, created_at").order("created_at", { ascending: false }).limit(limit);
+}
+
+const QUERY_MAP: Record<ExportDataset, (filters?: ExportConfig["filters"], limit?: number) => ReturnType<typeof queryParcels>> = {
+  parcels: queryParcels,
+  assessments: queryAssessments,
+  sales: querySales,
+  appeals: queryAppeals,
+  exemptions: queryExemptions,
+  notices: queryNotices,
+  model_receipts: queryModelReceipts,
 };
 
 // ── Core Export Function ──────────────────────────────────────────
 export async function generateExport(config: ExportConfig): Promise<ExportResult> {
   const { dataset, format, filters, limit } = config;
-  const columns = DATASET_COLUMNS[dataset];
-  const table = DATASET_META[dataset].table;
+  const queryFn = QUERY_MAP[dataset];
+  const { data, error } = await queryFn(filters, limit || 5000);
 
-  // Build query
-  let query = supabase.from(table).select(columns);
-
-  // Apply filters where applicable
-  if (filters?.taxYear && ["assessments", "appeals", "exemptions"].includes(dataset)) {
-    query = query.eq("tax_year", filters.taxYear);
-  }
-  if (filters?.neighborhoodCode && dataset === "parcels") {
-    query = query.eq("neighborhood_code", filters.neighborhoodCode);
-  }
-  if (filters?.propertyClass && dataset === "parcels") {
-    query = query.eq("property_class", filters.propertyClass);
-  }
-  if (filters?.dateFrom) {
-    query = query.gte("created_at", filters.dateFrom);
-  }
-  if (filters?.dateTo) {
-    query = query.lte("created_at", filters.dateTo);
-  }
-
-  query = query.order("created_at", { ascending: false }).limit(limit || 5000);
-
-  const { data, error } = await query;
   if (error) throw new Error(`Export query failed: ${error.message}`);
 
-  const rows = (data || []) as Record<string, unknown>[];
+  const rows = (data || []) as unknown as Record<string, unknown>[];
   const timestamp = new Date().toISOString().slice(0, 10);
   const fileName = `terrafusion_${dataset}_${timestamp}.${format}`;
 
@@ -104,17 +113,12 @@ export async function generateExport(config: ExportConfig): Promise<ExportResult
     blob = new Blob([toCsv(rows)], { type: "text/csv" });
   }
 
-  // Emit trace event
-  await emitTraceEvent({
+  // Emit trace event (non-blocking)
+  emitTraceEvent({
     eventType: "data_exported",
     sourceModule: "os",
-    eventData: {
-      dataset,
-      format,
-      rowCount: rows.length,
-      filters: filters || {},
-    },
-  }).catch(() => {}); // non-blocking
+    eventData: { dataset, format, rowCount: rows.length, filters: filters || {} },
+  }).catch(() => {});
 
   return { dataset, format, rowCount: rows.length, fileName, blob };
 }
@@ -125,9 +129,7 @@ function toCsv(rows: Record<string, unknown>[]): string {
   const headers = Object.keys(rows[0]);
   const lines = [
     headers.map(escCsv).join(","),
-    ...rows.map((row) =>
-      headers.map((h) => escCsv(String(row[h] ?? ""))).join(",")
-    ),
+    ...rows.map((row) => headers.map((h) => escCsv(String(row[h] ?? ""))).join(",")),
   ];
   return lines.join("\n");
 }
