@@ -30,7 +30,7 @@ export function ModuleViewBar({ moduleId, activeView, onViewChange }: ModuleView
                 key={view.id}
                 onClick={() => onViewChange(view.id)}
                 className={cn(
-                  "flex items-center gap-1.5 px-3 py-2.5 text-xs font-medium border-b-2 transition-colors whitespace-nowrap",
+                  "flex items-center gap-1.5 px-3 py-2.5 text-xs font-medium border-b-2 transition-colors whitespace-nowrap touch-manipulation min-h-[44px]",
                   isActive
                     ? "border-primary text-foreground"
                     : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"
