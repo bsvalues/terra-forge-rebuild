@@ -22,6 +22,7 @@ import {
   RefreshCw,
   BookOpen,
 } from "lucide-react";
+import { Star } from "lucide-react";
 import { useWorkbench } from "../WorkbenchContext";
 import { useParcel360 } from "@/hooks/useParcel360";
 import { useParcelAdjustments } from "@/hooks/useValueAdjustments";
