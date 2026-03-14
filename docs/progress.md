@@ -9,9 +9,9 @@
 
 ## Current State Summary
 
-**Active Phase**: Phase 27 — Cost Approach Engine (COMPLETE)  
-**Last Completed Task**: 27.5 — CostMode integration and docs  
-**Next Task**: Phase 28 planning  
+**Active Phase**: Phase 28 — Income Approach Engine (COMPLETE)  
+**Last Completed Task**: 28.4 — IncomeMode wired into Factory  
+**Next Task**: Phase 29 planning  
 **Blockers**: None
 
 ---
