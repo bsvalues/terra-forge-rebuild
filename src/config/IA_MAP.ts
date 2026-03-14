@@ -145,6 +145,7 @@ export const IA_MODULES: ModuleDefinition[] = [
 export const LEGACY_REDIRECTS: LegacyRedirect[] = [
   // Home absorbs these
   { legacyId: "dashboard", targetModule: "home", targetView: "dashboard" },
+  { legacyId: "watchlist", targetModule: "home", targetView: "watchlist" },
   { legacyId: "ids", targetModule: "home", targetView: "ids" },
   { legacyId: "quality", targetModule: "home", targetView: "quality" },
   { legacyId: "readiness", targetModule: "home", targetView: "readiness" },
