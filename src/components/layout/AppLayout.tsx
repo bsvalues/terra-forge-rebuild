@@ -28,6 +28,7 @@ const FactoryLayout = lazy(() => import("@/components/factory/FactoryLayout").th
 const VEIDashboard = lazy(() => import("@/components/vei/VEIDashboard").then(m => ({ default: m.VEIDashboard })));
 const GeoEquityDashboard = lazy(() => import("@/components/geoequity/GeoEquityDashboard").then(m => ({ default: m.GeoEquityDashboard })));
 const AnalyticsDashboard = lazy(() => import("@/components/analytics/AnalyticsDashboard").then(m => ({ default: m.AnalyticsDashboard })));
+const AdvancedAnalyticsDashboard = lazy(() => import("@/components/analytics/AdvancedAnalyticsDashboard").then(m => ({ default: m.AdvancedAnalyticsDashboard })));
 const AVMStudioDashboard = lazy(() => import("@/components/avm/AVMStudioDashboard").then(m => ({ default: m.AVMStudioDashboard })));
 
 // Registry views
@@ -269,6 +270,12 @@ export function AppLayout({ initialParcel: routeParcel, initialModule, initialFa
             );
           case "analytics":
             return <AnalyticsDashboard />;
+          case "advanced-analytics":
+            return (
+              <div className="p-6 max-w-7xl mx-auto">
+                <AdvancedAnalyticsDashboard />
+              </div>
+            );
           default:
             // "calibration" or null → FactoryLayout
             return <FactoryLayout initialMode={initialFactoryMode} />;

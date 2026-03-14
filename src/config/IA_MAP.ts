@@ -17,6 +17,7 @@ import {
   TrendingUp,
   Brain,
   Hexagon,
+  Radar,
   type LucideIcon,
 } from "lucide-react";
 
@@ -114,6 +115,7 @@ export const IA_MODULES: ModuleDefinition[] = [
       { id: "geoequity", label: "Spatial Analysis", icon: Map, scope: "neighborhood" },
       { id: "avm", label: "AVM Studio", icon: Brain, scope: "run" },
       { id: "analytics", label: "Analytics", icon: TrendingUp, scope: "run" },
+      { id: "advanced-analytics", label: "Advanced Analytics", icon: Radar, scope: "run" },
     ],
   },
   {
@@ -144,6 +146,7 @@ export const LEGACY_REDIRECTS: LegacyRedirect[] = [
   { legacyId: "geoequity", targetModule: "factory", targetView: "geoequity" },
   { legacyId: "avm", targetModule: "factory", targetView: "avm" },
   { legacyId: "analytics", targetModule: "factory", targetView: "analytics" },
+  { legacyId: "advanced-analytics", targetModule: "factory", targetView: "advanced-analytics" },
   // Workbench absorbs Field
   { legacyId: "field", targetModule: "workbench", targetView: "field" },
   // Registry absorbs Trust
