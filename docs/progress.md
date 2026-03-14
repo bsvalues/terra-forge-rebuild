@@ -9,9 +9,9 @@
 
 ## Current State Summary
 
-**Active Phase**: Phase 33 — Security Hardening (COMPLETE)  
-**Last Completed Task**: 33.5 — Privilege escalation fix  
-**Next Task**: Phase 34 planning  
+**Active Phase**: Phase 34 — Batch Notice Generation (COMPLETE)  
+**Last Completed Task**: 34.5 — Route wiring and progress update  
+**Next Task**: Phase 35 planning  
 **Blockers**: None
 
 ---
@@ -28,6 +28,42 @@
 | 31 | TerraPilot Tool Execution | ✅ COMPLETE | 4/4 | generate_notice + run_model tools, navigation fix, inline result cards |
 | 32 | Roll Certification Pipeline | ✅ COMPLETE | 4/4 | certification_events table, value lock trigger, certify neighborhood UI, state roll export |
 | 33 | Security Hardening | ✅ COMPLETE | 5/5 | npm audit fix, RLS county-scope on notices/cert_events, broken RLS fix on 5 tables, has_role() RBAC, privilege escalation fix |
+| 34 | Batch Notice Generation | ✅ COMPLETE | 5/5 | batch_notice_jobs table, useBatchNotices hook, BatchNoticeDashboard, Factory DB persistence, Notice Center route |
+
+## Phase 34 Batch Notice Generation Log (2026-03-14)
+
+### 34.1 batch_notice_jobs Table ✅
+- Created `batch_notice_jobs` table with county FK, neighborhood_code, property_class, filters JSONB
+- Tracks total_parcels, notices_generated, notices_failed, ai_drafted_count, status
+- County-scoped RLS policies for SELECT/INSERT/UPDATE
+- Added `batch_job_id` FK column to notices table for batch linkage
+
+### 34.2 useBatchNotices Hook ✅
+- `useBatchNoticeJobs`: query batch jobs with status filter
+- `useBatchNoticesByJob`: fetch all notices linked to a specific batch job
+- `useCreateBatchNoticeJob`: full pipeline — fetch parcels, create job, generate notices (AI + template), persist to DB, update job stats
+- `useBulkUpdateNoticeStatus`: batch-approve or batch-send all draft notices in a job
+- Added `batch_notices_generated` and `batch_notices_status_changed` to TraceEventType
+
+### 34.3 BatchNoticeDashboard UI ✅
+- County-scoped Notice Center with 3-column layout: Generate Panel + Batch Jobs list
+- Neighborhood selector from live data, property class filter, AI toggle with configurable limit
+- Batch job cards with status icons, stats (generated/failed/AI-drafted), and inline actions
+- Expandable review panel showing individual notices with status badges
+- Bulk Approve All and Mark Sent actions for streamlined pipeline
+- Notice preview dialog with AI badge
+- Download All button for batch export
+
+### 34.4 Factory BatchNoticePanel DB Persistence ✅
+- Updated Factory regression BatchNoticePanel to persist each generated notice to `notices` table via `useCreateNotice`
+- Added county_id to `fetchParcelDetails` select for proper notice creation
+- Notices now linked to calibration_run_id for traceability
+
+### 34.5 Route & Navigation Wiring ✅
+- Added `notices` view to Home module in IA_MAP with Mail icon
+- Lazy-loaded `BatchNoticeDashboard` in AppLayout
+- Legacy redirect registered for deep-linking
+- Added `invalidateNotices()` to queryInvalidation registry
 
 ## Phase 33 Security Hardening Log (2026-03-14)
 
