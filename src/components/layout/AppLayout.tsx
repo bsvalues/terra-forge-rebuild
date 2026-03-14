@@ -270,6 +270,12 @@ export function AppLayout({ initialParcel: routeParcel, initialModule, initialFa
             );
           case "analytics":
             return <AnalyticsDashboard />;
+          case "advanced-analytics":
+            return (
+              <div className="p-6 max-w-7xl mx-auto">
+                <AdvancedAnalyticsDashboard />
+              </div>
+            );
           default:
             // "calibration" or null → FactoryLayout
             return <FactoryLayout initialMode={initialFactoryMode} />;
