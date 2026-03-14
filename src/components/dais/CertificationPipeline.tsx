@@ -590,6 +590,25 @@ function NeighborhoodRow({
               alert={nbhd.unsignedNarratives > 0}
             />
           </div>
+
+          {/* Certify Neighborhood Action */}
+          {nbhd.certRate < 100 && (
+            <div className="flex justify-end pt-3">
+              <CommitmentButton
+                onClick={onCertify}
+                disabled={isCertifying}
+                variant="gold"
+                className="text-xs"
+              >
+                {isCertifying ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <Stamp className="w-3.5 h-3.5" />
+                )}
+                {isCertifying ? "Certifying…" : `Certify ${nbhd.code}`}
+              </CommitmentButton>
+            </div>
+          )}
         </motion.div>
       )}
     </div>
