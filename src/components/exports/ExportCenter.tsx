@@ -274,7 +274,7 @@ export function ExportCenter() {
           <Card className="border-border/60 mt-4">
             <CardContent className="pt-5">
               <div className="flex items-start gap-2">
-                <AlertTriangle className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" />
+                <AlertTriangle className="w-4 h-4 text-destructive mt-0.5 shrink-0" />
                 <div className="text-xs text-muted-foreground space-y-1">
                   <p className="font-medium text-foreground">Export Tips</p>
                   <p>• Exports are scoped to your county via row-level security</p>
