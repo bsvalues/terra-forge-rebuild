@@ -267,6 +267,49 @@ export async function generateNotice(
 }
 
 /**
+ * Create a new appeal with trace emission.
+ */
+export async function createAppealRecord(params: {
+  parcel_id: string;
+  original_value: number;
+  requested_value?: number;
+  notes?: string;
+  tax_year?: number;
+}) {
+  assertWriteLane("appeals", SOURCE);
+
+  const { data, error } = await supabase
+    .from("appeals")
+    .insert({
+      parcel_id: params.parcel_id,
+      original_value: params.original_value,
+      requested_value: params.requested_value || null,
+      notes: params.notes || null,
+      status: "pending",
+      appeal_date: new Date().toISOString().split("T")[0],
+      tax_year: params.tax_year || new Date().getFullYear(),
+    })
+    .select()
+    .single();
+
+  if (error) throw error;
+
+  await emitTraceEvent({
+    parcelId: params.parcel_id,
+    sourceModule: SOURCE,
+    eventType: "appeal_created",
+    eventData: {
+      original_value: params.original_value,
+      requested_value: params.requested_value,
+    },
+    artifactType: "appeal",
+    artifactId: data.id,
+  });
+
+  return data;
+}
+
+/**
  * Certify all parcels in a neighborhood for the current tax year.
  * Creates assessments where missing, certifies existing ones.
  */
