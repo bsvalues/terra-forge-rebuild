@@ -65,7 +65,7 @@ export function NoticesPanel() {
   const generateMutation = useMutation({
     mutationFn: async () => {
       if (!selectedTemplate) throw new Error("Select a notice type");
-      if (!parcel.id || !county?.id) throw new Error("No parcel selected");
+      if (!parcel.id || !countyId) throw new Error("No parcel selected");
 
       let noticeContent: string;
       let aiDrafted = false;
