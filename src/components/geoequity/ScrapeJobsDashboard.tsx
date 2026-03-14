@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -21,10 +21,10 @@ import {
   Zap,
   BarChart3,
 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { CountyDataQualityReport } from "./CountyDataQualityReport";
+import { useScrapeJobsRealtime, useStartScrapeJob, useCancelScrapeJob } from "@/hooks/useScrapeJobs";
 
 interface ScrapeJob {
   id: string;
@@ -64,80 +64,9 @@ const STATUS_ICONS: Record<string, React.ReactNode> = {
 export function ScrapeJobsDashboard() {
   const queryClient = useQueryClient();
 
-  // Fetch all jobs
-  const { data: jobs = [], isLoading } = useQuery({
-    queryKey: ["scrape-jobs"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("scrape_jobs")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .limit(20);
-
-      if (error) throw error;
-      return data as ScrapeJob[];
-    },
-    refetchInterval: 5000, // Poll every 5 seconds
-  });
-
-  // Subscribe to realtime updates for running jobs
-  useEffect(() => {
-    const channel = supabase
-      .channel("scrape-jobs-realtime")
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "scrape_jobs",
-        },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ["scrape-jobs"] });
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [queryClient]);
-
-  // Start statewide scrape
-  const startJobMutation = useMutation({
-    mutationFn: async (jobType: "statewide" | "scheduled") => {
-      const { data, error } = await supabase.functions.invoke("statewide-scrape", {
-        body: { action: "start", jobType },
-      });
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: (data) => {
-      toast.success(`Started ${data.message}`);
-      queryClient.invalidateQueries({ queryKey: ["scrape-jobs"] });
-    },
-    onError: (error) => {
-      toast.error(`Failed to start job: ${error.message}`);
-    },
-  });
-
-  // Cancel job
-  const cancelJobMutation = useMutation({
-    mutationFn: async (jobId: string) => {
-      const { data, error } = await supabase.functions.invoke("statewide-scrape", {
-        body: { action: "cancel", jobId },
-      });
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      toast.info("Job cancelled");
-      queryClient.invalidateQueries({ queryKey: ["scrape-jobs"] });
-    },
-    onError: (error) => {
-      toast.error(`Failed to cancel: ${error.message}`);
-    },
-  });
-
+  const { data: jobs = [], isLoading } = useScrapeJobsRealtime();
+  const startJobMutation = useStartScrapeJob();
+  const cancelJobMutation = useCancelScrapeJob();
   const activeJob = jobs.find((j) => j.status === "running" || j.status === "pending");
   const completedJobs = jobs.filter((j) => j.status === "completed" || j.status === "failed");
 
@@ -190,7 +119,7 @@ export function ScrapeJobsDashboard() {
             Refresh
           </Button>
           <Button
-            onClick={() => startJobMutation.mutate("statewide")}
+            onClick={() => startJobMutation.mutate({ jobType: "statewide" })}
             disabled={!!activeJob || startJobMutation.isPending}
             className="gap-2 bg-tf-cyan hover:bg-tf-cyan/90"
           >

@@ -1,5 +1,6 @@
 // TerraFusion OS — Scrape Jobs Hook (Constitutional: DB access only in hooks)
 
+import { useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -20,6 +21,7 @@ export interface ScrapeJob {
   estimated_completion: string | null;
   created_at: string;
   updated_at: string;
+  created_by?: string | null;
 }
 
 export function useScrapeJobsList() {
@@ -36,6 +38,44 @@ export function useScrapeJobsList() {
     },
     refetchInterval: 3000,
   });
+}
+
+/** Dashboard-facing hook: fetches jobs + subscribes to realtime updates */
+export function useScrapeJobsRealtime() {
+  const queryClient = useQueryClient();
+
+  const query = useQuery({
+    queryKey: ["scrape-jobs"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("scrape_jobs")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(20);
+      if (error) throw error;
+      return data as ScrapeJob[];
+    },
+    refetchInterval: 5000,
+  });
+
+  useEffect(() => {
+    const channel = supabase
+      .channel("scrape-jobs-realtime")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "scrape_jobs" },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["scrape-jobs"] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
+
+  return query;
 }
 
 export function useStartScrapeJob() {
@@ -55,6 +95,7 @@ export function useStartScrapeJob() {
         toast.success("Scrape job started successfully");
       }
       queryClient.invalidateQueries({ queryKey: ["admin-scrape-jobs"] });
+      queryClient.invalidateQueries({ queryKey: ["scrape-jobs"] });
     },
     onError: (error) => toast.error(`Failed to start job: ${error.message}`),
   });
@@ -73,6 +114,7 @@ export function useCancelScrapeJob() {
     onSuccess: () => {
       toast.info("Job cancelled");
       queryClient.invalidateQueries({ queryKey: ["admin-scrape-jobs"] });
+      queryClient.invalidateQueries({ queryKey: ["scrape-jobs"] });
     },
     onError: (error) => toast.error(`Failed to cancel job: ${error.message}`),
   });
@@ -91,6 +133,7 @@ export function useRetryScrapeJob() {
     onSuccess: () => {
       toast.success("Retrying failed counties");
       queryClient.invalidateQueries({ queryKey: ["admin-scrape-jobs"] });
+      queryClient.invalidateQueries({ queryKey: ["scrape-jobs"] });
     },
     onError: (error) => toast.error(`Failed to retry: ${error.message}`),
   });

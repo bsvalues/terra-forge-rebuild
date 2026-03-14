@@ -2,8 +2,8 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { useMutation } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { generateNotice } from "@/services/suites/daisService";
+import { invokeDraftNotice } from "@/services/ingestService";
 import {
   Bell,
   FileText,
@@ -99,21 +99,17 @@ export function NoticesPanel() {
       // Use AI drafting for assessment_change notices when parcel context is available
       if (selectedTemplate === "assessment_change" && parcel.id) {
         try {
-          const { data, error } = await supabase.functions.invoke("draft-notice", {
-            body: {
-              parcelNumber: parcel.parcelNumber || "N/A",
-              address: parcel.address || "N/A",
-              previousValue: parcel.assessedValue || 0,
-              newValue: parcel.assessedValue || 0,
-              neighborhoodCode: parcel.neighborhoodCode || "N/A",
-              rSquared: "N/A",
-              method: "Manual Review",
-              noticeType: "assessment_change",
-              recipientName: recipientName || "Property Owner",
-            },
+          const data = await invokeDraftNotice({
+            parcelNumber: parcel.parcelNumber || "N/A",
+            address: parcel.address || "N/A",
+            previousValue: parcel.assessedValue || 0,
+            newValue: parcel.assessedValue || 0,
+            neighborhoodCode: parcel.neighborhoodCode || "N/A",
+            rSquared: "N/A",
+            method: "Manual Review",
+            noticeType: "assessment_change",
+            recipientName: recipientName || "Property Owner",
           });
-
-          if (error) throw error;
           noticeContent = data?.notice || "";
           aiDrafted = true;
         } catch {
