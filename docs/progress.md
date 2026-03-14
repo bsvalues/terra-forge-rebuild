@@ -9,9 +9,9 @@
 
 ## Current State Summary
 
-**Active Phase**: Phase 37 — Security & Audit Dashboard (COMPLETE)  
-**Last Completed Task**: 37.3 — AdminDashboard wiring  
-**Next Task**: Phase 38 planning  
+**Active Phase**: Phase 38 — County Onboarding Wizard (COMPLETE)  
+**Last Completed Task**: 38.4 — Index.tsx onboarding gate  
+**Next Task**: Phase 39 planning  
 **Blockers**: None
 
 ---
@@ -32,6 +32,35 @@
 | 35 | Dossier Evidence Pipeline | ✅ COMPLETE | 4/4 | Multi-type AI narratives, dossier-files storage bucket, packet finalization workflow, evidence synthesis |
 | 36 | User & Role Management | ✅ COMPLETE | 4/4 | admin-manage-users edge function, useUserManagement hook, UserManagementPanel UI, AdminDashboard wiring |
 | 37 | Security & Audit Dashboard | ✅ COMPLETE | 3/3 | useSecurityAudit hook, SecurityAuditDashboard UI, AdminDashboard wiring |
+| 38 | County Onboarding Wizard | ✅ COMPLETE | 4/4 | county-setup edge function, useOnboardingStatus hook, OnboardingWizard UI, Index.tsx gate |
+
+## Phase 38 County Onboarding Wizard Log (2026-03-14)
+
+### 38.1 county-setup Edge Function ✅
+- Three actions: `create_county` (creates county + assigns user + grants admin), `join_county` (assigns user + grants viewer), `list_counties`
+- First user in a county automatically gets admin role
+- Joining users get viewer role by default
+- FIPS code deduplication: if county with same FIPS exists, user joins it instead of creating duplicate
+- Uses service-role client to bypass county_id WITH CHECK constraint on profiles
+
+### 38.2 useOnboardingStatus Hook ✅
+- `useOnboardingStatus`: checks if user has county, parcels, and study periods
+- `useListCounties`: fetches all available counties via edge function
+- `useCreateCounty`: creates county + assigns user, reloads page on success
+- `useJoinCounty`: joins existing county, reloads page on success
+
+### 38.3 OnboardingWizard UI ✅
+- Multi-step wizard: Welcome → Choose (create/join) → Create County form / Join County selector → Complete
+- Welcome step: animated logo, feature chips (Smart Ingestion, Spatial Analysis, AI Copilot)
+- Create step: county name, FIPS code, state selector (all 50 US states)
+- Join step: scrollable county list with selection highlight
+- Progress dots, step transitions with AnimatePresence
+- Full responsive design
+
+### 38.4 Index.tsx Onboarding Gate ✅
+- Checks `profile.county_id` after auth loading completes
+- Shows OnboardingWizard if no county assigned
+- Otherwise renders normal AppLayout
 
 ## Phase 37 Security & Audit Dashboard Log (2026-03-14)
 
