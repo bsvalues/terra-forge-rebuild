@@ -40,6 +40,7 @@ import {
   Loader2,
   ChevronDown,
   ChevronRight,
+  Download,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
