@@ -247,7 +247,7 @@ export function ExportCenter() {
                         animate={{ opacity: 1, y: 0 }}
                         className="flex items-center gap-2 p-2.5 rounded-lg bg-muted/30 border border-border/30"
                       >
-                        <CheckCircle2 className="w-4 h-4 text-green-500 shrink-0" />
+                        <CheckCircle2 className="w-4 h-4 text-primary shrink-0" />
                         <div className="flex-1 min-w-0">
                           <p className="text-xs font-medium truncate">{item.fileName}</p>
                           <p className="text-[10px] text-muted-foreground">
