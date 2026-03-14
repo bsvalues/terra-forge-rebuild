@@ -11,10 +11,11 @@ import {
   CommandList,
   CommandSeparator,
 } from "@/components/ui/command";
-import { Search } from "lucide-react";
+import { Search, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { IA_MODULES, type PrimaryModuleId } from "@/config/IA_MAP";
 import { useParcelLookup } from "@/hooks/useParcelLookup";
+import { useRecentParcels } from "@/hooks/useRecentParcels";
 
 interface GlobalCommandPaletteProps {
   open: boolean;
