@@ -2102,6 +2102,132 @@ export type Database = {
         }
         Relationships: []
       }
+      segment_calibration_runs: {
+        Row: {
+          calibration_run_id: string | null
+          cod: number | null
+          county_id: string
+          created_at: string
+          created_by: string
+          id: string
+          median_ratio: number | null
+          parcel_ids: string[] | null
+          prd: number | null
+          r_squared: number | null
+          sample_size: number | null
+          segment_id: string
+          status: string | null
+        }
+        Insert: {
+          calibration_run_id?: string | null
+          cod?: number | null
+          county_id: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          median_ratio?: number | null
+          parcel_ids?: string[] | null
+          prd?: number | null
+          r_squared?: number | null
+          sample_size?: number | null
+          segment_id: string
+          status?: string | null
+        }
+        Update: {
+          calibration_run_id?: string | null
+          cod?: number | null
+          county_id?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          median_ratio?: number | null
+          parcel_ids?: string[] | null
+          prd?: number | null
+          r_squared?: number | null
+          sample_size?: number | null
+          segment_id?: string
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "segment_calibration_runs_calibration_run_id_fkey"
+            columns: ["calibration_run_id"]
+            isOneToOne: false
+            referencedRelation: "calibration_runs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "segment_calibration_runs_county_id_fkey"
+            columns: ["county_id"]
+            isOneToOne: false
+            referencedRelation: "counties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "segment_calibration_runs_segment_id_fkey"
+            columns: ["segment_id"]
+            isOneToOne: false
+            referencedRelation: "segment_definitions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      segment_definitions: {
+        Row: {
+          cluster_id: number | null
+          county_id: string
+          created_at: string
+          created_by: string
+          description: string | null
+          factor: string
+          id: string
+          importance: number | null
+          is_active: boolean | null
+          name: string
+          ranges: Json
+          source: string | null
+          updated_at: string
+        }
+        Insert: {
+          cluster_id?: number | null
+          county_id: string
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          factor: string
+          id?: string
+          importance?: number | null
+          is_active?: boolean | null
+          name: string
+          ranges?: Json
+          source?: string | null
+          updated_at?: string
+        }
+        Update: {
+          cluster_id?: number | null
+          county_id?: string
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          factor?: string
+          id?: string
+          importance?: number | null
+          is_active?: boolean | null
+          name?: string
+          ranges?: Json
+          source?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "segment_definitions_county_id_fkey"
+            columns: ["county_id"]
+            isOneToOne: false
+            referencedRelation: "counties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       spatial_ref_sys: {
         Row: {
           auth_name: string | null

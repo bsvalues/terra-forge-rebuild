@@ -30,7 +30,7 @@ const GeoEquityDashboard = lazy(() => import("@/components/geoequity/GeoEquityDa
 const AnalyticsDashboard = lazy(() => import("@/components/analytics/AnalyticsDashboard").then(m => ({ default: m.AnalyticsDashboard })));
 const AdvancedAnalyticsDashboard = lazy(() => import("@/components/analytics/AdvancedAnalyticsDashboard").then(m => ({ default: m.AdvancedAnalyticsDashboard })));
 const AVMStudioDashboard = lazy(() => import("@/components/avm/AVMStudioDashboard").then(m => ({ default: m.AVMStudioDashboard })));
-
+const SegmentRevaluationDashboard = lazy(() => import("@/components/revaluation/SegmentRevaluationDashboard").then(m => ({ default: m.SegmentRevaluationDashboard })));
 // Registry views
 const TrustRegistryPage = lazy(() => import("@/components/trust").then(m => ({ default: m.TrustRegistryPage })));
 
@@ -274,6 +274,12 @@ export function AppLayout({ initialParcel: routeParcel, initialModule, initialFa
             return (
               <div className="p-6 max-w-7xl mx-auto">
                 <AdvancedAnalyticsDashboard />
+              </div>
+            );
+          case "segments":
+            return (
+              <div className="p-6 max-w-7xl mx-auto">
+                <SegmentRevaluationDashboard />
               </div>
             );
           default:
