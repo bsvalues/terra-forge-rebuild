@@ -25,7 +25,7 @@ interface TopSystemBarProps {
   onOpenMobileNav?: () => void;
 }
 
-export function TopSystemBar({ onOpenCommandPalette, onOpenControlCenter }: TopSystemBarProps) {
+export function TopSystemBar({ onOpenCommandPalette, onOpenControlCenter, onOpenMobileNav }: TopSystemBarProps) {
   const { profile } = useAuthContext();
   const { data: vitals } = useCountyVitals();
   const parcelsCount = vitals?.parcels.total ?? 0;
