@@ -9,7 +9,7 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
-import { ScopeHeader, ProvenanceBadge } from "@/components/trust";
+import { ScopeHeader, ProvenanceBadge, ProvenanceNumber } from "@/components/trust";
 import {
   ShieldCheck,
   ShieldAlert,
@@ -89,7 +89,9 @@ function VerdictBanner({ score, verdict }: { score: number; verdict: "GO" | "CAU
             />
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className={cn("text-3xl font-light", config.scoreColor)}>{score}</span>
+            <ProvenanceNumber source="roll-readiness" cachePolicy="cached 60s">
+              <span className={cn("text-3xl font-light", config.scoreColor)}>{score}</span>
+            </ProvenanceNumber>
             <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Score</span>
           </div>
         </div>

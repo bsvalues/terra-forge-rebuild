@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { useDataQualityScoring, type NeighborhoodQuality, type StaleAlert, type ParcelScore } from "@/hooks/useDataQualityScoring";
 import { cn } from "@/lib/utils";
-import { ScopeHeader, ProvenanceBadge } from "@/components/trust";
+import { ScopeHeader, ProvenanceBadge, ProvenanceNumber } from "@/components/trust";
 
 // ── Grade Config ───────────────────────────────────────────────
 
@@ -343,7 +343,9 @@ export function DataQualityScoringEngine() {
             </div>
           </div>
           <div className="text-right">
-            <div className={cn("text-4xl font-light", cfg.color)}>{data.avgScore}%</div>
+            <ProvenanceNumber source="data-quality" cachePolicy="cached 60s">
+              <span className={cn("text-4xl font-light", cfg.color)}>{data.avgScore}%</span>
+            </ProvenanceNumber>
             <div className="text-xs text-muted-foreground">weighted avg</div>
           </div>
         </div>

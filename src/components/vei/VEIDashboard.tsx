@@ -303,6 +303,7 @@ export function VEIDashboard() {
             statusLabel={medianStatus.label}
             icon={Target}
             target="1.000"
+            source="ratio-analysis"
             onClick={() => setActiveDrilldown("tier")}
           />
           <VEIMetricCard
@@ -313,6 +314,7 @@ export function VEIDashboard() {
             statusLabel={codStatus.label}
             icon={Activity}
             target="≤15%"
+            source="ratio-analysis"
             onClick={() => setActiveDrilldown("cod")}
           />
           <VEIMetricCard
@@ -323,6 +325,7 @@ export function VEIDashboard() {
             statusLabel={prdStatus.label}
             icon={TrendingUp}
             target="0.98–1.03"
+            source="ratio-analysis"
             onClick={() => setActiveDrilldown("prd")}
           />
           <VEIMetricCard
@@ -333,6 +336,7 @@ export function VEIDashboard() {
             statusLabel={prbStatus.label}
             icon={Percent}
             target="±0.05"
+            source="ratio-analysis"
           />
           <VEIMetricCard
             title="Tier Slope"
@@ -342,6 +346,7 @@ export function VEIDashboard() {
             statusLabel={tierSlopeStatus.label}
             icon={BarChart3}
             target="~0.00"
+            source="ratio-analysis"
             onClick={() => setActiveDrilldown("tier")}
           />
           <VEIMetricCard
@@ -352,6 +357,7 @@ export function VEIDashboard() {
             statusLabel={appealsStatus.label}
             icon={AlertTriangle}
             target="<5%"
+            source="appeals-by-tier"
             onClick={() => setActiveDrilldown("appeals")}
           />
         </motion.div>

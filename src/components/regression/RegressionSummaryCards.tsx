@@ -2,10 +2,12 @@ import { motion } from "framer-motion";
 import { TrendingUp, Target, Activity, Percent } from "lucide-react";
 import { RegressionResult } from "@/hooks/useRegressionAnalysis";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ProvenanceNumber } from "@/components/trust";
 
 interface RegressionSummaryCardsProps {
   result: RegressionResult | undefined;
   isLoading: boolean;
+  fetchedAt?: string | null;
 }
 
 interface SummaryCardProps {
@@ -34,7 +36,9 @@ function SummaryCard({ icon, label, value, subValue, color, delay }: SummaryCard
         )}
       </div>
       <div className="mt-3">
-        <p className="text-2xl font-semibold">{value}</p>
+        <ProvenanceNumber source="regression-analysis" cachePolicy="cached 120s">
+          <span className="text-2xl font-semibold">{value}</span>
+        </ProvenanceNumber>
         <p className="text-sm text-muted-foreground">{label}</p>
       </div>
     </motion.div>

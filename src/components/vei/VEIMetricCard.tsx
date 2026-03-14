@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ProvenanceNumber } from "@/components/trust";
 
 interface VEIMetricCardProps {
   title: string;
@@ -11,6 +12,10 @@ interface VEIMetricCardProps {
   icon: LucideIcon;
   target: string;
   onClick?: () => void;
+  /** Provenance source label */
+  source?: string;
+  /** ISO timestamp for provenance freshness */
+  fetchedAt?: string | null;
 }
 
 const statusConfig = {
@@ -49,6 +54,8 @@ export function VEIMetricCard({
   icon: Icon,
   target,
   onClick,
+  source = "ratio-analysis",
+  fetchedAt,
 }: VEIMetricCardProps) {
   const config = statusConfig[status];
 
@@ -88,9 +95,11 @@ export function VEIMetricCard({
             <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
               {title}
             </p>
-            <p className={cn("text-3xl font-light tracking-tight", config.text)}>
-              {value}
-            </p>
+            <ProvenanceNumber source={source} fetchedAt={fetchedAt} cachePolicy="cached 120s">
+              <span className={cn("text-3xl font-light tracking-tight", config.text)}>
+                {value}
+              </span>
+            </ProvenanceNumber>
           </div>
           <div className={cn("p-2 rounded-full", config.bg)}>
             <Icon className={cn("w-5 h-5", config.text)} />
