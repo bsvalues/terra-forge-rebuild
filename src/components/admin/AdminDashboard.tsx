@@ -19,6 +19,7 @@ import { ScheduledScrapeManager } from "./ScheduledScrapeManager";
 import { IDSCommandCenter } from "@/components/ids";
 import { UserManagementPanel } from "./UserManagementPanel";
 import { AppealAuditLog } from "@/components/dais/AppealAuditLog";
+import { SecurityAuditDashboard } from "./SecurityAuditDashboard";
 
 export function AdminDashboard() {
    const [activeTab, setActiveTab] = useState("ids");
