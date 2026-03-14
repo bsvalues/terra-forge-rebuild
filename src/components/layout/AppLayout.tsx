@@ -322,20 +322,22 @@ export function AppLayout({ initialParcel: routeParcel, initialModule, initialFa
           onViewChange={handleViewChange}
         />
 
-        <main className="flex-1 overflow-auto pb-20 sm:pb-16">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={`${activeModule}-${activeView}`}
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.2 }}
-            >
-              <Suspense fallback={<StageFallback />}>
-                {renderStage()}
-              </Suspense>
-            </motion.div>
-          </AnimatePresence>
+        <main id="main-content" role="main" className="flex-1 overflow-auto pb-20 sm:pb-16">
+          <ErrorBoundary fallbackTitle={`${activeModule} module encountered an error`}>
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={`${activeModule}-${activeView}`}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.2 }}
+              >
+                <Suspense fallback={<StageFallback />}>
+                  {renderStage()}
+                </Suspense>
+              </motion.div>
+            </AnimatePresence>
+          </ErrorBoundary>
         </main>
 
         <DockLauncher activeModule={activeModule} onModuleChange={handleModuleChange} />
