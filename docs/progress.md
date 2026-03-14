@@ -9,9 +9,9 @@
 
 ## Current State Summary
 
-**Active Phase**: Phase 29 — DAIS Workflow Engine (COMPLETE)  
-**Last Completed Task**: 29.4 — NoticesPanel DB persistence  
-**Next Task**: Phase 30 planning  
+**Active Phase**: Phase 30 — Mobile & PWA Polish (COMPLETE)  
+**Last Completed Task**: 30.4 — Touch-friendly responsive audit  
+**Next Task**: Phase 31 planning  
 **Blockers**: None
 
 ---
@@ -24,6 +24,33 @@
 | 27 | Cost Approach Engine | ✅ COMPLETE | 5/5 | Depreciation CRUD, batch cost apply, cost ratio analysis, CostMode tabs |
 | 28 | Income Approach Engine | ✅ COMPLETE | 4/4 | Income CRUD, cap rate/GRM calculator, batch apply, IncomeMode in Factory |
 | 29 | DAIS Workflow Engine | ✅ COMPLETE | 4/4 | Notices table, NewAppealDialog, useNotices hook, DB-persisted NoticesPanel |
+| 30 | Mobile & PWA Polish | ✅ COMPLETE | 4/4 | PWA meta tags, install prompt, mobile nav drawer, touch-friendly audit |
+
+## Phase 30 Mobile & PWA Polish Log (2026-03-14)
+
+### 30.1 PWA Mobile Meta Tags ✅
+- Added `apple-mobile-web-app-capable`, `apple-mobile-web-app-status-bar-style`, `apple-touch-icon`
+- Added `theme-color`, `format-detection`, `mobile-web-app-capable` meta tags
+- Updated viewport to `viewport-fit=cover` with `user-scalable=no` for native feel
+- Improved SEO: title under 60 chars, description under 160 chars with keywords
+
+### 30.2 PWA Install Prompt ✅
+- Created `InstallPrompt.tsx` with `beforeinstallprompt` event capture
+- iOS detection with Share → Add to Home Screen guidance
+- Dismissable with localStorage persistence
+- Styled with sovereign gradient and glass card aesthetic
+
+### 30.3 Mobile Navigation Drawer ✅
+- Created `MobileNavDrawer.tsx` using Sheet component (slide from left)
+- Hamburger menu button in TopSystemBar (visible on mobile only)
+- 48px minimum touch targets on all nav items
+- Auto-closes on module selection
+
+### 30.4 Touch-Friendly Responsive Audit ✅
+- DockLauncher: 44px min touch targets, safe-area-inset-bottom padding
+- ModuleViewBar: 44px min-height touch targets, `-webkit-overflow-scrolling: touch`
+- TopSystemBar: mobile-first padding (px-3 → px-4), hamburger with 44px tap zone
+- Added `.safe-area-bottom` CSS utility for notch-aware layouts
 
 ## Phase 29 DAIS Workflow Engine Log (2026-03-14)
 

@@ -17,13 +17,15 @@ import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useCountyVitals } from "@/hooks/useCountyVitals";
 import { ProvenanceNumber } from "@/components/trust";
+import { Menu } from "lucide-react";
 
 interface TopSystemBarProps {
   onOpenCommandPalette: () => void;
   onOpenControlCenter: () => void;
+  onOpenMobileNav?: () => void;
 }
 
-export function TopSystemBar({ onOpenCommandPalette, onOpenControlCenter }: TopSystemBarProps) {
+export function TopSystemBar({ onOpenCommandPalette, onOpenControlCenter, onOpenMobileNav }: TopSystemBarProps) {
   const { profile } = useAuthContext();
   const { data: vitals } = useCountyVitals();
   const parcelsCount = vitals?.parcels.total ?? 0;
@@ -31,9 +33,19 @@ export function TopSystemBar({ onOpenCommandPalette, onOpenControlCenter }: TopS
   const currentYear = new Date().getFullYear();
 
   return (
-    <header className="sticky top-0 z-50 h-12 flex items-center justify-between px-4 material-shell border-b border-border/30">
-      {/* Left: County Switcher + Year */}
-      <div className="flex items-center gap-3">
+    <header className="sticky top-0 z-50 h-12 flex items-center justify-between px-3 sm:px-4 material-shell border-b border-border/30">
+      {/* Left: Hamburger (mobile) + County Switcher + Year */}
+      <div className="flex items-center gap-2 sm:gap-3">
+        {/* Mobile hamburger */}
+        {onOpenMobileNav && (
+          <button
+            onClick={onOpenMobileNav}
+            className="sm:hidden p-1.5 rounded-lg hover:bg-muted/40 transition-colors touch-manipulation min-w-[44px] min-h-[44px] flex items-center justify-center"
+            aria-label="Open navigation menu"
+          >
+            <Menu className="w-5 h-5 text-muted-foreground" />
+          </button>
+        )}
         <motion.div
           className="w-7 h-7 rounded-lg bg-gradient-to-br from-tf-cyan to-tf-green flex items-center justify-center"
           animate={{ scale: [1, 1.03, 1] }}

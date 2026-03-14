@@ -5,6 +5,8 @@ import { DockLauncher } from "@/components/navigation/DockLauncher";
 import { ModuleViewBar } from "@/components/navigation/ModuleViewBar";
 import { GlobalCommandPalette } from "@/components/navigation/GlobalCommandPalette";
 import { ControlCenter } from "@/components/navigation/ControlCenter";
+import { InstallPrompt } from "@/components/navigation/InstallPrompt";
+import { MobileNavDrawer } from "@/components/navigation/MobileNavDrawer";
 import { TrustModeProvider } from "@/contexts/TrustModeContext";
 import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
 import { resolveLegacyId, type PrimaryModuleId } from "@/config/IA_MAP";
@@ -82,6 +84,7 @@ export function AppLayout({ initialParcel: routeParcel, initialModule, initialFa
   const [pendingIdsJobId, setPendingIdsJobId] = useState<string | null>(null);
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const [controlCenterOpen, setControlCenterOpen] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   const handleNavigate = useCallback((target: string) => {
     // Log every navigation attempt for Constitution Gate #3 Health Panel
@@ -306,6 +309,7 @@ export function AppLayout({ initialParcel: routeParcel, initialModule, initialFa
         <TopSystemBar
           onOpenCommandPalette={() => setCommandPaletteOpen(true)}
           onOpenControlCenter={() => setControlCenterOpen(true)}
+          onOpenMobileNav={() => setMobileNavOpen(true)}
         />
 
         <ModuleViewBar
@@ -331,6 +335,15 @@ export function AppLayout({ initialParcel: routeParcel, initialModule, initialFa
         </main>
 
         <DockLauncher activeModule={activeModule} onModuleChange={handleModuleChange} />
+
+        <InstallPrompt />
+
+        <MobileNavDrawer
+          open={mobileNavOpen}
+          onOpenChange={setMobileNavOpen}
+          activeModule={activeModule}
+          onModuleChange={handleModuleChange}
+        />
 
         <GlobalCommandPalette
           open={commandPaletteOpen}

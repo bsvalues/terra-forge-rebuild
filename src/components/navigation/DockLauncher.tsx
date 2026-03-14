@@ -26,8 +26,8 @@ export function DockLauncher({ activeModule, onModuleChange }: DockLauncherProps
   }, []);
 
   return (
-    <div className="dock-launcher material-shell">
-      <nav className="flex items-center gap-0.5 sm:gap-1">
+    <div className="dock-launcher material-shell safe-area-bottom">
+      <nav className="flex items-center gap-0.5 sm:gap-1 px-1">
         {IA_MODULES.map((mod) => {
           const Icon = mod.icon;
           const isActive = activeModule === mod.id;
@@ -38,7 +38,7 @@ export function DockLauncher({ activeModule, onModuleChange }: DockLauncherProps
               <TooltipTrigger asChild>
                 <motion.button
                   onClick={() => onModuleChange(mod.id)}
-                  className="dock-item px-2 sm:px-3 relative"
+                  className="dock-item px-2 sm:px-3 relative touch-manipulation min-w-[44px] min-h-[44px] flex flex-col items-center justify-center"
                   data-active={isActive}
                   whileHover={{ y: -6, scale: 1.1 }}
                   whileTap={{ scale: 0.95 }}
