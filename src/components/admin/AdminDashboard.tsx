@@ -17,6 +17,7 @@ import { ScrapeJobManager } from "./ScrapeJobManager";
 import { DataQualityDashboard } from "./DataQualityDashboard";
 import { ScheduledScrapeManager } from "./ScheduledScrapeManager";
 import { IDSCommandCenter } from "@/components/ids";
+import { UserManagementPanel } from "./UserManagementPanel";
 import { AppealAuditLog } from "@/components/dais/AppealAuditLog";
 
 export function AdminDashboard() {
@@ -128,15 +129,7 @@ export function AdminDashboard() {
             animate={{ opacity: 1, y: 0 }}
             className="material-bento rounded-2xl p-6"
           >
-            <h3 className="text-lg font-medium text-foreground mb-4 flex items-center gap-2">
-              <Users className="w-5 h-5 text-tf-green" />
-              User Management
-            </h3>
-            <div className="text-center py-12 text-muted-foreground">
-              <Users className="w-12 h-12 mx-auto mb-4 opacity-30" />
-              <p>User management coming soon</p>
-              <p className="text-sm mt-1">Manage roles, permissions, and access controls</p>
-            </div>
+            <UserManagementPanel />
           </motion.div>
         </TabsContent>
 
