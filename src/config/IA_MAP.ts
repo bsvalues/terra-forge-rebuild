@@ -22,6 +22,7 @@ import {
   Mail,
   Download,
   GitCompareArrows,
+  Clock,
   type LucideIcon,
 } from "lucide-react";
 
@@ -86,6 +87,7 @@ export const IA_MODULES: ModuleDefinition[] = [
     views: [
       { id: "dashboard", label: "Command Briefing", icon: Home, scope: "county" },
       { id: "watchlist", label: "Watchlist", icon: Target, scope: "county" },
+      { id: "recents", label: "Recent Parcels", icon: Clock, scope: "county" },
       { id: "ids", label: "Data Ingestion", icon: Database, scope: "county" },
       { id: "quality", label: "Data Quality", icon: Target, scope: "county" },
       { id: "readiness", label: "Roll Readiness", icon: ShieldCheck, scope: "county" },
@@ -146,6 +148,7 @@ export const LEGACY_REDIRECTS: LegacyRedirect[] = [
   // Home absorbs these
   { legacyId: "dashboard", targetModule: "home", targetView: "dashboard" },
   { legacyId: "watchlist", targetModule: "home", targetView: "watchlist" },
+  { legacyId: "recents", targetModule: "home", targetView: "recents" },
   { legacyId: "ids", targetModule: "home", targetView: "ids" },
   { legacyId: "quality", targetModule: "home", targetView: "quality" },
   { legacyId: "readiness", targetModule: "home", targetView: "readiness" },

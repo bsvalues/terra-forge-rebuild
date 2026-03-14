@@ -1,0 +1,1 @@
+export { RecentParcelsPanel } from "./RecentParcelsPanel";

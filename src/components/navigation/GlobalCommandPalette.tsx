@@ -11,10 +11,11 @@ import {
   CommandList,
   CommandSeparator,
 } from "@/components/ui/command";
-import { Search } from "lucide-react";
+import { Search, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { IA_MODULES, type PrimaryModuleId } from "@/config/IA_MAP";
 import { useParcelLookup } from "@/hooks/useParcelLookup";
+import { useRecentParcels } from "@/hooks/useRecentParcels";
 
 interface GlobalCommandPaletteProps {
   open: boolean;
@@ -33,6 +34,7 @@ export function GlobalCommandPalette({
 }: GlobalCommandPaletteProps) {
   const [searchValue, setSearchValue] = useState("");
   const parcelResults = useParcelLookup(open ? searchValue : "");
+  const { recents } = useRecentParcels();
 
   // Keyboard shortcuts for module switching (⌘1–4)
   useEffect(() => {
@@ -109,6 +111,32 @@ export function GlobalCommandPalette({
                   </div>
                   <span className="text-xs text-muted-foreground">
                     ${p.assessed_value?.toLocaleString() || "—"}
+                  </span>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+            <CommandSeparator />
+          </>
+        )}
+
+        {/* Recent Parcels (show when no search query) */}
+        {!searchValue && recents.length > 0 && (
+          <>
+            <CommandGroup heading="Recent Parcels">
+              {recents.slice(0, 5).map((r) => (
+                <CommandItem
+                  key={r.id}
+                  value={`recent ${r.parcelNumber} ${r.address}`}
+                  onSelect={() => handleSelectParcel({ id: r.id, parcel_number: r.parcelNumber, address: r.address, assessed_value: r.assessedValue } as any)}
+                  className="flex items-center gap-3"
+                >
+                  <Clock className="w-4 h-4 text-muted-foreground" />
+                  <div className="flex-1">
+                    <span className="font-medium">{r.parcelNumber}</span>
+                    <span className="text-xs text-muted-foreground ml-2">{r.address}</span>
+                  </div>
+                  <span className="text-xs text-muted-foreground">
+                    ${r.assessedValue?.toLocaleString() || "—"}
                   </span>
                 </CommandItem>
               ))}
