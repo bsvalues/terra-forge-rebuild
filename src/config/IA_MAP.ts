@@ -21,6 +21,7 @@ import {
   Layers,
   Mail,
   Download,
+  GitCompareArrows,
   type LucideIcon,
 } from "lucide-react";
 
