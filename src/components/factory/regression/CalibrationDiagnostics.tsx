@@ -33,11 +33,13 @@ export function CalibrationDiagnostics({ diagnostics }: CalibrationDiagnosticsPr
       {cards.map((card) => (
         <div key={card.label} className="material-bento p-4 text-center">
           <p className="text-xs text-muted-foreground mb-1">{card.label}</p>
-          {card.badgeClass ? (
-            <Badge className={`text-lg font-mono ${card.badgeClass}`}>{card.value}</Badge>
-          ) : (
-            <p className="text-lg font-mono text-foreground">{card.value}</p>
-          )}
+          <ProvenanceNumber source="calibration-run" cachePolicy="cached 120s">
+            {card.badgeClass ? (
+              <Badge className={`text-lg font-mono ${card.badgeClass}`}>{card.value}</Badge>
+            ) : (
+              <span className="text-lg font-mono text-foreground">{card.value}</span>
+            )}
+          </ProvenanceNumber>
         </div>
       ))}
     </div>

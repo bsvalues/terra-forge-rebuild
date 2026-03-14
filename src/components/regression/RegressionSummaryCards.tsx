@@ -36,7 +36,9 @@ function SummaryCard({ icon, label, value, subValue, color, delay }: SummaryCard
         )}
       </div>
       <div className="mt-3">
-        <p className="text-2xl font-semibold">{value}</p>
+        <ProvenanceNumber source="regression-analysis" cachePolicy="cached 120s">
+          <span className="text-2xl font-semibold">{value}</span>
+        </ProvenanceNumber>
         <p className="text-sm text-muted-foreground">{label}</p>
       </div>
     </motion.div>
