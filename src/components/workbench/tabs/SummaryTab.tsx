@@ -216,6 +216,16 @@ function ParcelSummaryContent() {
             <div className="flex items-center gap-2 text-primary text-sm font-medium mb-1">
               <MapPin className="w-4 h-4" />
               {snapshot.identity.parcelNumber}
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6 ml-1"
+                disabled={watchPending}
+                onClick={() => parcel.id && toggleWatch(parcel.id, watchItem)}
+                title={isWatched ? "Remove from watchlist" : "Add to watchlist"}
+              >
+                <Star className={cn("w-4 h-4", isWatched ? "fill-amber-400 text-amber-400" : "text-muted-foreground")} />
+              </Button>
             </div>
             <h1 className="text-2xl font-light text-foreground mb-1">{snapshot.identity.address || "Address Not Available"}</h1>
             <p className="text-muted-foreground">
