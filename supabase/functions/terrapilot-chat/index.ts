@@ -273,6 +273,41 @@ const WRITE_TOOLS = [
       },
     },
   },
+  {
+    type: "function" as const,
+    function: {
+      name: "generate_notice",
+      description: "Generate and persist an official notice to the database for a parcel. REQUIRES USER CONFIRMATION. This is a high-impact action that creates a formal record.",
+      parameters: {
+        type: "object",
+        properties: {
+          parcel_id: { type: "string", description: "UUID of the parcel" },
+          notice_type: { type: "string", enum: ["assessment_change", "hearing", "exemption_decision", "general"], description: "Type of notice" },
+          subject: { type: "string", description: "Notice subject line" },
+          body: { type: "string", description: "Notice body text" },
+          recipient_name: { type: "string", description: "Recipient name" },
+          recipient_address: { type: "string", description: "Recipient mailing address" },
+        },
+        required: ["parcel_id", "notice_type", "subject", "body"],
+      },
+    },
+  },
+  {
+    type: "function" as const,
+    function: {
+      name: "run_model",
+      description: "Trigger a valuation model run (calibration) for a neighborhood. REQUIRES USER CONFIRMATION.",
+      parameters: {
+        type: "object",
+        properties: {
+          neighborhood_code: { type: "string", description: "Neighborhood code to calibrate" },
+          model_type: { type: "string", enum: ["linear", "multiple"], description: "Regression model type" },
+          variables: { type: "array", items: { type: "string" }, description: "Variables to include (e.g. building_area, year_built)" },
+        },
+        required: ["neighborhood_code"],
+      },
+    },
+  },
 ];
 
 // Muse-specific drafting tools
