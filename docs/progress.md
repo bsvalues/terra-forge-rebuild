@@ -22,6 +22,40 @@
 | 25 | Advanced Analytics | ✅ COMPLETE | 5/5 | Ratio trends, forecasting, outlier detection, neighborhood clustering |
 | 26 | Segment-Driven Revaluation | ✅ COMPLETE | 5/5 | Segment definitions, per-segment calibration, equity rebalancing |
 
+## Phase 26 Segment-Driven Revaluation Log (2026-03-14)
+
+### 26.1 Database Schema ✅
+- Created `segment_definitions` table (county-scoped, factor/ranges JSONB, source tracking)
+- Created `segment_calibration_runs` table (links segments to calibration runs with equity metrics)
+- Full RLS: county-isolated CRUD policies on both tables
+
+### 26.2 Segment Manager UI ✅
+- `SegmentManagerPanel`: create/toggle/delete segments with factor selection
+- Range parser for comma-separated numeric ranges (e.g. "0-1500, 1500-2500, 2500+")
+- "Import from Clusters" — auto-generates neighborhood segments from Phase 25 K-means results
+- Expandable segment cards with inline equity metrics per range (median ratio, COD)
+- ProvenanceNumber wrapping on all ratio/COD values
+
+### 26.3 Segment Calibration Panel ✅
+- `SegmentCalibrationPanel`: per-segment ratio bar charts with IAAO target reference lines
+- Color-coded bars: green (0.95–1.05), gold (0.90–1.10), red (outside)
+- Range detail grid with verdict icons (CheckCircle/AlertTriangle/XCircle)
+- Aggregate COD badge per segment
+
+### 26.4 Equity Rebalancing Workflow ✅
+- `EquityRebalancingPanel`: identifies segments outside ±3% ratio tolerance
+- Generates rebalancing proposals with adjustment factors (target/current ratio)
+- Priority-sorted by severity (largest deviation first)
+- Direction indicators (increase/decrease) with estimated % impact
+- "Queue All Proposals" action for Factory integration
+- "All Segments in Balance" success state
+
+### 26.5 Route & Navigation Wiring ✅
+- Added `segments` view to IA_MAP Factory module
+- Lazy-loaded `SegmentRevaluationDashboard` in AppLayout
+- Legacy redirect registered for deep-linking
+- Hook: `useSegmentDefinitions.ts` (CRUD + equity metrics)
+
 ## Phase 25 Advanced Analytics Log (2026-03-14)
 
 ### 25.1 Ratio Trend Sparklines ✅
