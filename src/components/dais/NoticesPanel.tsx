@@ -39,7 +39,14 @@ const NOTICE_TEMPLATES = [
 
 export function NoticesPanel() {
   const { parcel } = useWorkbench();
-  const { data: county } = useCountyMeta();
+  const { data: countyId } = useQuery({
+    queryKey: ["county-id-for-notices"],
+    queryFn: async () => {
+      const { data } = await supabase.from("counties").select("id").limit(1).maybeSingle();
+      return data?.id as string | null;
+    },
+    staleTime: 5 * 60_000,
+  });
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState("all");
