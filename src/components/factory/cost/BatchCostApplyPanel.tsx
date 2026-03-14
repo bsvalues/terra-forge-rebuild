@@ -71,12 +71,11 @@ export function BatchCostApplyPanel({ neighborhoodCode }: BatchCostApplyPanelPro
           </div>
           <div className="flex items-center gap-2">
             {stats && (
-              <CommitmentButton size="sm" variant="outline" onClick={handleSave} className="h-7 text-xs gap-1">
+              <Button size="sm" variant="outline" onClick={handleSave} className="h-7 text-xs gap-1">
                 <Save className="w-3 h-3" /> Save Run
-              </CommitmentButton>
+              </Button>
             )}
             <CommitmentButton
-              size="sm"
               onClick={handleRun}
               disabled={!selectedScheduleId || batchApply.isPending}
               className="h-7 text-xs gap-1"
