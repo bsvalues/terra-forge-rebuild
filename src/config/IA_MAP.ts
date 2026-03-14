@@ -20,7 +20,6 @@ import {
   Radar,
   Layers,
   type LucideIcon,
-  type LucideIcon,
 } from "lucide-react";
 
 // ── Scopes ────────────────────────────────────────────────────────
