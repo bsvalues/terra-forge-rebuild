@@ -476,6 +476,9 @@ export function AppealsWorkflow() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* New Appeal Dialog */}
+      <NewAppealDialog open={showNewDialog} onOpenChange={setShowNewDialog} />
     </div>
   );
 }
