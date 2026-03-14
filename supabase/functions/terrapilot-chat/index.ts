@@ -812,6 +812,53 @@ async function executeConfirmedWrite(
         return JSON.stringify({ success: true, message: `Task "${existing.title}" escalated to ${newPriority}.` });
       }
 
+      case "generate_notice": {
+        const { data, error } = await serviceClient.from("notices").insert({
+          parcel_id: String(args.parcel_id),
+          county_id: countyId,
+          notice_type: String(args.notice_type || "general"),
+          subject: String(args.subject),
+          body: String(args.body),
+          recipient_name: args.recipient_name ? String(args.recipient_name) : null,
+          recipient_address: args.recipient_address ? String(args.recipient_address) : null,
+          status: "draft",
+          ai_drafted: true,
+          generated_by: userId,
+        }).select().single();
+        if (error) return JSON.stringify({ success: false, error: error.message });
+        await serviceClient.from("trace_events").insert({
+          county_id: countyId,
+          parcel_id: String(args.parcel_id),
+          actor_id: userId,
+          source_module: "terrapilot",
+          event_type: "notice_created",
+          event_data: { notice_id: data.id, notice_type: args.notice_type, ai_drafted: true, via: "pilot_hitl" },
+        });
+        return JSON.stringify({ success: true, notice_id: data.id, message: `Notice "${args.subject}" created as draft.` });
+      }
+
+      case "run_model": {
+        const { data, error } = await serviceClient.from("calibration_runs").insert({
+          county_id: countyId,
+          neighborhood_code: String(args.neighborhood_code),
+          model_type: String(args.model_type || "linear"),
+          variables: (args.variables as string[]) || ["building_area", "year_built"],
+          created_by: userId,
+          status: "queued",
+          coefficients: {},
+          diagnostics: {},
+        }).select().single();
+        if (error) return JSON.stringify({ success: false, error: error.message });
+        await serviceClient.from("trace_events").insert({
+          county_id: countyId,
+          actor_id: userId,
+          source_module: "terrapilot",
+          event_type: "model_run_started",
+          event_data: { run_id: data.id, neighborhood: args.neighborhood_code, model_type: args.model_type, via: "pilot_hitl" },
+        });
+        return JSON.stringify({ success: true, run_id: data.id, message: `Calibration run queued for neighborhood ${args.neighborhood_code}.` });
+      }
+
       default:
         return JSON.stringify({ success: false, error: `Unknown write tool: ${toolName}` });
     }
