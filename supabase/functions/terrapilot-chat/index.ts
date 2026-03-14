@@ -383,6 +383,8 @@ const WRITE_TOOL_RISK: Record<string, "medium" | "high"> = {
   assign_task: "medium",
   create_workflow: "medium",
   escalate_task: "medium",
+  generate_notice: "high",
+  run_model: "medium",
 };
 
 const WRITE_TOOL_NAMES = new Set(Object.keys(WRITE_TOOL_RISK));
