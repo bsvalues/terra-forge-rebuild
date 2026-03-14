@@ -276,6 +276,12 @@ export function AppLayout({ initialParcel: routeParcel, initialModule, initialFa
                 <AdvancedAnalyticsDashboard />
               </div>
             );
+          case "segments":
+            return (
+              <div className="p-6 max-w-7xl mx-auto">
+                <SegmentRevaluationDashboard />
+              </div>
+            );
           default:
             // "calibration" or null → FactoryLayout
             return <FactoryLayout initialMode={initialFactoryMode} />;
