@@ -232,6 +232,8 @@ export function AppLayout({ initialParcel: routeParcel, initialModule, initialFa
             return <BatchNoticeDashboard />;
           case "exports":
             return <ExportCenter />;
+          case "watchlist":
+            return <WatchlistPanel onNavigateToParcel={handleParcelNavigate} />;
           case "sync":
             return (
               <div className="p-6 max-w-7xl mx-auto">
