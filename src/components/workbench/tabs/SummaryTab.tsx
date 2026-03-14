@@ -186,6 +186,8 @@ function OperationalBlockers({ snapshot }: { snapshot: NonNullable<ReturnType<ty
 function ParcelSummaryContent() {
   const { parcel } = useWorkbench();
   const snapshot = useParcel360(parcel.id);
+  const { isWatched, watchItem } = useIsWatched(parcel.id);
+  const { toggle: toggleWatch, isPending: watchPending } = useToggleWatchlist();
 
   const fmt = (v: number | null | undefined) =>
     v != null
