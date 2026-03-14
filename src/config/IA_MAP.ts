@@ -114,6 +114,7 @@ export const IA_MODULES: ModuleDefinition[] = [
       { id: "geoequity", label: "Spatial Analysis", icon: Map, scope: "neighborhood" },
       { id: "avm", label: "AVM Studio", icon: Brain, scope: "run" },
       { id: "analytics", label: "Analytics", icon: TrendingUp, scope: "run" },
+      { id: "advanced-analytics", label: "Advanced Analytics", icon: Radar, scope: "run" },
     ],
   },
   {
