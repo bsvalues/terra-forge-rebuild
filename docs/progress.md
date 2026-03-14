@@ -34,6 +34,7 @@
 | 37 | Security & Audit Dashboard | ✅ COMPLETE | 3/3 | useSecurityAudit hook, SecurityAuditDashboard UI, AdminDashboard wiring |
 | 38 | County Onboarding Wizard | ✅ COMPLETE | 4/4 | county-setup edge function, useOnboardingStatus hook, OnboardingWizard UI, Index.tsx gate |
 | 39 | Performance & Testing | ✅ COMPLETE | 3/3 | Lazy-loaded routes (React.lazy+Suspense), writeLane+terraTrace Vitest suites (18 tests), Vite vendor chunking (react, query, ui, charts, maps, motion, three) |
+| 40 | Production Readiness | ✅ COMPLETE | 4/4 | ErrorBoundary (route+module level), global error toast handler, SkipToContent WCAG link, ARIA landmarks on main |
 
 ## Phase 39 Performance & Testing Log (2026-03-14)
 
