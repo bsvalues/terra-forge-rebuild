@@ -31,6 +31,29 @@
 | 34 | Batch Notice Generation | ✅ COMPLETE | 5/5 | batch_notice_jobs table, useBatchNotices hook, BatchNoticeDashboard, Factory DB persistence, Notice Center route |
 | 35 | Dossier Evidence Pipeline | ✅ COMPLETE | 4/4 | Multi-type AI narratives, dossier-files storage bucket, packet finalization workflow, evidence synthesis |
 | 36 | User & Role Management | ✅ COMPLETE | 4/4 | admin-manage-users edge function, useUserManagement hook, UserManagementPanel UI, AdminDashboard wiring |
+| 37 | Security & Audit Dashboard | ✅ COMPLETE | 3/3 | useSecurityAudit hook, SecurityAuditDashboard UI, AdminDashboard wiring |
+
+## Phase 37 Security & Audit Dashboard Log (2026-03-14)
+
+### 37.1 useSecurityAudit Hook ✅
+- Queries trace_events for last 7 days with 1000-row window
+- Computes: totalEvents24h/7d, writeEvents24h, highRiskEvents24h, activeActors24h
+- Module breakdown and event type breakdown with sorted counts
+- Filters write-relevant events for audit trail (50 most recent)
+- Classifies events by risk level: HIGH (value overrides, certifications, notices), MEDIUM (appeals, workflows), LOW (updates)
+- Auto-refresh every 120s
+
+### 37.2 SecurityAuditDashboard UI ✅
+- Threat level banner: quiet/normal/elevated based on high-risk event count
+- 4 stat cards: Events 24h, Events 7d, Write Ops 24h, High Risk 24h
+- Module activity chart: progress bars showing 7-day activity by suite (forge, dais, atlas, etc.)
+- Event type distribution: scrollable list with risk level badges
+- Compliance checklist: 8 security controls with pass/fail status (RLS, RBAC, privilege escalation, etc.)
+- Write audit trail: scrollable feed of security-relevant events with actor IDs, timestamps, risk badges
+
+### 37.3 AdminDashboard Integration ✅
+- Replaced "coming soon" Security tab placeholder with SecurityAuditDashboard
+- No more placeholder tabs in AdminDashboard — all tabs fully functional
 
 ## Phase 36 User & Role Management Log (2026-03-14)
 
