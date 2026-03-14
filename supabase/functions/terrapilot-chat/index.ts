@@ -617,7 +617,7 @@ function getWriteDescription(
   args: Record<string, unknown>,
   parcel: { parcel_number: string; address: string; assessed_value?: number } | null
 ): string {
-  const addr = parcel ? `${parcel.parcel_number} (${parcel.address})` : String(args.parcel_id);
+  const addr = parcel ? `${parcel.parcel_number} (${parcel.address})` : String(args.parcel_id || "N/A");
   switch (toolName) {
     case "create_exemption":
       return `Create ${args.exemption_type || "homestead"} exemption for ${addr}`;
@@ -633,6 +633,10 @@ function getWriteDescription(
       return `Create ${args.workflow_type} workflow: "${args.title}"${args.parcel_id ? ` for ${addr}` : ""}`;
     case "escalate_task":
       return `Escalate task ${String(args.task_id).slice(0, 8)}… to ${args.new_priority || "urgent"}: ${args.reason}`;
+    case "generate_notice":
+      return `Generate ${args.notice_type} notice for ${addr} — "${args.subject}" — HIGH IMPACT`;
+    case "run_model":
+      return `Run ${args.model_type || "linear"} calibration for neighborhood ${args.neighborhood_code}`;
     default:
       return `Execute ${toolName} on ${addr}`;
   }
