@@ -91,7 +91,6 @@ export function useRollExport() {
                 a.land_value ?? 0,
                 a.improvement_value ?? 0,
                 a.total_value ?? 0,
-                p.acres ?? "",
                 a.tax_year,
                 a.certified_at ? new Date(a.certified_at).toLocaleDateString() : "",
                 a.assessment_reason || "",
