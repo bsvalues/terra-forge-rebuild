@@ -46,7 +46,7 @@ export function useRollExport() {
         const batch = parcelIds.slice(i, i + batchSize);
         const { data: parcels } = await supabase
           .from("parcels")
-          .select("id, parcel_number, address, city, property_class, neighborhood_code, acres, county_id")
+          .select("id, parcel_number, address, city, property_class, neighborhood_code, county_id")
           .in("id", batch);
 
         for (const p of parcels || []) {
