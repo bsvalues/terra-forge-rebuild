@@ -40,6 +40,7 @@ import {
   History,
 } from "lucide-react";
 import { AppealTimeline } from "./AppealTimeline";
+import { NewAppealDialog } from "./NewAppealDialog";
 import { StatusTransitionDropdown, APPEAL_TRANSITIONS } from "./StatusTransitionDropdown";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAppealsWorkflowQuery } from "@/hooks/useDaisWorkflows";
@@ -113,6 +114,7 @@ export function AppealsWorkflow() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [selectedAppeal, setSelectedAppeal] = useState<Appeal | null>(null);
+  const [showNewDialog, setShowNewDialog] = useState(false);
 
   const changeStatus = useMutation({
     mutationFn: async ({ appeal, newStatus, reason }: { appeal: Appeal; newStatus: string; reason?: string }) => {
@@ -204,7 +206,7 @@ export function AppealsWorkflow() {
             </p>
           </div>
         </div>
-        <Button className="gap-2 bg-suite-dais hover:bg-suite-dais/90">
+        <Button className="gap-2 bg-suite-dais hover:bg-suite-dais/90" onClick={() => setShowNewDialog(true)}>
           <Plus className="w-4 h-4" />
           New Appeal
         </Button>
@@ -474,6 +476,9 @@ export function AppealsWorkflow() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* New Appeal Dialog */}
+      <NewAppealDialog open={showNewDialog} onOpenChange={setShowNewDialog} />
     </div>
   );
 }

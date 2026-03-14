@@ -44,7 +44,9 @@ export type TraceEventType =
   | "saga_failed"
   | "saga_compensating"
   | "saga_compensated"
-  | "saga_compensation_failed";
+  | "saga_compensation_failed"
+  | "notice_created"
+  | "appeal_created";
 
 export type ArtifactType =
   | "assessment"
@@ -54,7 +56,8 @@ export type ArtifactType =
   | "document"
   | "narrative"
   | "packet"
-  | "model_receipt";
+  | "model_receipt"
+  | "notice";
 
 // ============================================================
 // TraceEvent — what gets written to trace_events table

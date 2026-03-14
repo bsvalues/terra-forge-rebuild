@@ -1637,6 +1637,75 @@ export type Database = {
           },
         ]
       }
+      notices: {
+        Row: {
+          ai_drafted: boolean
+          body: string
+          calibration_run_id: string | null
+          county_id: string
+          created_at: string
+          generated_by: string | null
+          id: string
+          metadata: Json | null
+          notice_type: string
+          parcel_id: string
+          recipient_address: string | null
+          recipient_name: string | null
+          status: string
+          subject: string
+          updated_at: string
+        }
+        Insert: {
+          ai_drafted?: boolean
+          body: string
+          calibration_run_id?: string | null
+          county_id: string
+          created_at?: string
+          generated_by?: string | null
+          id?: string
+          metadata?: Json | null
+          notice_type?: string
+          parcel_id: string
+          recipient_address?: string | null
+          recipient_name?: string | null
+          status?: string
+          subject: string
+          updated_at?: string
+        }
+        Update: {
+          ai_drafted?: boolean
+          body?: string
+          calibration_run_id?: string | null
+          county_id?: string
+          created_at?: string
+          generated_by?: string | null
+          id?: string
+          metadata?: Json | null
+          notice_type?: string
+          parcel_id?: string
+          recipient_address?: string | null
+          recipient_name?: string | null
+          status?: string
+          subject?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notices_county_id_fkey"
+            columns: ["county_id"]
+            isOneToOne: false
+            referencedRelation: "counties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notices_parcel_id_fkey"
+            columns: ["parcel_id"]
+            isOneToOne: false
+            referencedRelation: "parcels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pacs_schema_registry: {
         Row: {
           actual_columns: Json | null
