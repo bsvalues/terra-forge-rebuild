@@ -264,14 +264,30 @@ export async function invokeAssessorScrape(params: {
   return data;
 }
 
-/** Invoke defense narrative edge function */
+/** Invoke defense narrative edge function (supports multiple narrative types) */
 export async function invokeDefenseNarrative(body: Record<string, unknown>) {
   const { data, error } = await supabase.functions.invoke("defense-narrative", {
     body,
   });
   if (error) throw error;
   if (data?.error) throw new Error(data.error);
-  return data;
+  return data as { narrative: string; narrativeType?: string };
+}
+
+/** Synthesize evidence for a packet — calls defense-narrative with evidence_synthesis type */
+export async function invokeSynthesizeEvidence(body: {
+  parcelNumber: string;
+  address: string;
+  assessedValue: number;
+  documents: { fileName: string; documentType: string }[];
+  narratives: { title: string; contentPreview: string }[];
+  ratioStats?: Record<string, unknown>;
+}) {
+  return invokeDefenseNarrative({
+    ...body,
+    narrativeType: "evidence_synthesis",
+    additionalContext: `Documents: ${JSON.stringify(body.documents)}\nNarratives: ${JSON.stringify(body.narratives)}`,
+  });
 }
 
 /** Invoke draft notice edge function */
