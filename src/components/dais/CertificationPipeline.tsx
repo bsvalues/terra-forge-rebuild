@@ -331,6 +331,8 @@ export function CertificationPipeline() {
                   expandedNbhd === nbhd.code ? null : nbhd.code
                 )
               }
+              onCertify={() => nbhdCertifyMutation.mutate(nbhd.code)}
+              isCertifying={certifyingNbhd === nbhd.code}
             />
           ))}
         </div>
