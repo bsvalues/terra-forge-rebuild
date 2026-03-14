@@ -9,9 +9,9 @@
 
 ## Current State Summary
 
-**Active Phase**: Phase 32 — Roll Certification Pipeline (COMPLETE)  
-**Last Completed Task**: 32.4 — State roll export  
-**Next Task**: Phase 33 planning  
+**Active Phase**: Phase 33 — Security Hardening (COMPLETE)  
+**Last Completed Task**: 33.5 — Privilege escalation fix  
+**Next Task**: Phase 34 planning  
 **Blockers**: None
 
 ---
