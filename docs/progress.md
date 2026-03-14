@@ -9,9 +9,9 @@
 
 ## Current State Summary
 
-**Active Phase**: Phase 42 — User Preferences & Settings (COMPLETE)  
-**Last Completed Task**: 42.3 — Compact mode + reduced motion CSS  
-**Next Task**: Phase 43 planning  
+**Active Phase**: Phase 43 — Parcel Comparison Tool (COMPLETE)  
+**Last Completed Task**: 43.3 — IA_MAP + AppLayout wiring  
+**Next Task**: Phase 44 planning  
 **Blockers**: None
 
 ---
