@@ -22,6 +22,27 @@
 | 25 | Advanced Analytics | ✅ COMPLETE | 5/5 | Ratio trends, forecasting, outlier detection, neighborhood clustering |
 | 26 | Segment-Driven Revaluation | ✅ COMPLETE | 5/5 | Segment definitions, per-segment calibration, equity rebalancing |
 | 27 | Cost Approach Engine | ✅ COMPLETE | 5/5 | Depreciation CRUD, batch cost apply, cost ratio analysis, CostMode tabs |
+| 28 | Income Approach Engine | ✅ COMPLETE | 4/4 | Income CRUD, cap rate/GRM calculator, batch apply, IncomeMode in Factory |
+
+## Phase 28 Income Approach Engine Log (2026-03-14)
+
+### 28.1 Database Schema ✅
+- Created `income_properties` table with computed NOI column, cap_rate, GRM, county-scoped RLS
+- Created `income_approach_runs` table for batch run tracking with full RLS
+
+### 28.2 Income Approach Hook ✅
+- `useIncomeApproach.ts`: CRUD for income properties, batch apply with cap rate & GRM methods
+- Pure `computeIncomeApproach()` function for single-parcel calculation
+- Reconciliation logic: averages cap rate value and GRM value when both available
+
+### 28.3 Income UI Panels ✅
+- `IncomeApproachCalculator`: interactive NOI/cap rate/GRM calculator with reconciled value
+- `IncomeDataManager`: CRUD table for per-parcel rental income, expenses, vacancy, cap rate, GRM
+- `BatchIncomeApplyPanel`: batch apply with default parameters, stats summary, result table with ratio verdicts
+
+### 28.4 Factory Integration ✅
+- Added `IncomeMode` as new Factory tab between Cost and Comp Review
+- Three sub-tabs: Income Data, Calculator, Batch Apply
 
 ## Phase 27 Cost Approach Engine Log (2026-03-14)
 

@@ -107,6 +107,8 @@ export function FactoryLayout({ initialMode }: FactoryLayoutProps) {
                   <RegressionMode neighborhoodCode={neighborhood} />
                 ) : mode === "cost" ? (
                   <CostMode neighborhoodCode={neighborhood} />
+                ) : mode === "income" ? (
+                  <IncomeMode neighborhoodCode={neighborhood} />
                 ) : mode === "comps" ? (
                   <CompMode neighborhoodCode={neighborhood} />
                 ) : (
