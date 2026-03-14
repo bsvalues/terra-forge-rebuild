@@ -84,6 +84,7 @@ export function AppLayout({ initialParcel: routeParcel, initialModule, initialFa
   const [pendingIdsJobId, setPendingIdsJobId] = useState<string | null>(null);
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const [controlCenterOpen, setControlCenterOpen] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   const handleNavigate = useCallback((target: string) => {
     // Log every navigation attempt for Constitution Gate #3 Health Panel
