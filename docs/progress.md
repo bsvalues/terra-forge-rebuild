@@ -23,6 +23,31 @@
 | 26 | Segment-Driven Revaluation | ✅ COMPLETE | 5/5 | Segment definitions, per-segment calibration, equity rebalancing |
 | 27 | Cost Approach Engine | ✅ COMPLETE | 5/5 | Depreciation CRUD, batch cost apply, cost ratio analysis, CostMode tabs |
 | 28 | Income Approach Engine | ✅ COMPLETE | 4/4 | Income CRUD, cap rate/GRM calculator, batch apply, IncomeMode in Factory |
+| 29 | DAIS Workflow Engine | ✅ COMPLETE | 4/4 | Notices table, NewAppealDialog, useNotices hook, DB-persisted NoticesPanel |
+
+## Phase 29 DAIS Workflow Engine Log (2026-03-14)
+
+### 29.1 Database Schema ✅
+- Created `notices` table with parcel FK, county FK, notice_type, subject, body, status, ai_drafted
+- Full RLS policies for authenticated users, indexes on parcel/status/county
+- Enabled realtime via supabase_realtime publication
+
+### 29.2 NewAppealDialog + createAppealRecord ✅
+- `NewAppealDialog`: parcel search, value inputs, reduction preview, write-lane governed creation
+- `createAppealRecord` added to daisService with TerraTrace emission
+- Added `appeal_created` and `notice_created` to TraceEventType, `notice` to ArtifactType
+- Wired into AppealsWorkflow "New Appeal" button
+
+### 29.3 useNotices Hook ✅
+- `useNotices`: query notices with parcel join, optional status filter
+- `useCreateNotice`: DB insert with write-lane assertion + trace event
+- `useUpdateNoticeStatus`: status transition mutation
+
+### 29.4 NoticesPanel DB Persistence ✅
+- Replaced in-memory notice state with DB-backed queries/mutations
+- Status filter (All/Drafts/Sent) with counts
+- Download, mark-sent actions persist to DB
+- AI-drafted notices flagged with Sparkles badge
 
 ## Phase 28 Income Approach Engine Log (2026-03-14)
 
