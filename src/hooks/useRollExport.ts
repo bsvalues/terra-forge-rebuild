@@ -76,7 +76,6 @@ export function useRollExport() {
               "Land Value",
               "Improvement Value",
               "Total Value",
-              "Acres",
               "Tax Year",
               "Certified At",
               "Assessment Reason",
