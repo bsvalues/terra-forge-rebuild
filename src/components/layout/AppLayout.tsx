@@ -5,6 +5,8 @@ import { DockLauncher } from "@/components/navigation/DockLauncher";
 import { ModuleViewBar } from "@/components/navigation/ModuleViewBar";
 import { GlobalCommandPalette } from "@/components/navigation/GlobalCommandPalette";
 import { ControlCenter } from "@/components/navigation/ControlCenter";
+import { InstallPrompt } from "@/components/navigation/InstallPrompt";
+import { MobileNavDrawer } from "@/components/navigation/MobileNavDrawer";
 import { TrustModeProvider } from "@/contexts/TrustModeContext";
 import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
 import { resolveLegacyId, type PrimaryModuleId } from "@/config/IA_MAP";
