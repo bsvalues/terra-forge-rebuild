@@ -105,6 +105,7 @@ export const IA_MODULES: ModuleDefinition[] = [
     views: [
       { id: "property", label: "Property 360", icon: Search, scope: "parcel" },
       { id: "field", label: "Field Studio", icon: Compass, scope: "parcel" },
+      { id: "compare", label: "Compare", icon: GitCompareArrows, scope: "parcel" },
     ],
   },
   {
