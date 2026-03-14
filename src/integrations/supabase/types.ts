@@ -414,6 +414,62 @@ export type Database = {
           },
         ]
       }
+      certification_events: {
+        Row: {
+          blocker_snapshot: Json | null
+          certified_at: string
+          certified_by: string
+          county_id: string
+          event_type: string
+          id: string
+          neighborhood_code: string | null
+          notes: string | null
+          parcels_certified: number
+          parcels_created: number
+          readiness_score: number | null
+          tax_year: number
+          total_parcels: number
+        }
+        Insert: {
+          blocker_snapshot?: Json | null
+          certified_at?: string
+          certified_by?: string
+          county_id: string
+          event_type?: string
+          id?: string
+          neighborhood_code?: string | null
+          notes?: string | null
+          parcels_certified?: number
+          parcels_created?: number
+          readiness_score?: number | null
+          tax_year?: number
+          total_parcels?: number
+        }
+        Update: {
+          blocker_snapshot?: Json | null
+          certified_at?: string
+          certified_by?: string
+          county_id?: string
+          event_type?: string
+          id?: string
+          neighborhood_code?: string | null
+          notes?: string | null
+          parcels_certified?: number
+          parcels_created?: number
+          readiness_score?: number | null
+          tax_year?: number
+          total_parcels?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "certification_events_county_id_fkey"
+            columns: ["county_id"]
+            isOneToOne: false
+            referencedRelation: "counties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       comp_grids: {
         Row: {
           county_id: string
