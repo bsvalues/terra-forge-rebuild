@@ -9,9 +9,9 @@
 
 ## Current State Summary
 
-**Active Phase**: Phase 41 — Data Export & Reporting (COMPLETE)  
-**Last Completed Task**: 41.3 — IA_MAP + AppLayout wiring  
-**Next Task**: Phase 42 planning  
+**Active Phase**: Phase 42 — User Preferences & Settings (COMPLETE)  
+**Last Completed Task**: 42.3 — Compact mode + reduced motion CSS  
+**Next Task**: Phase 43 planning  
 **Blockers**: None
 
 ---
