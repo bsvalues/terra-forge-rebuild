@@ -17,10 +17,12 @@ import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useCountyVitals } from "@/hooks/useCountyVitals";
 import { ProvenanceNumber } from "@/components/trust";
+import { Menu } from "lucide-react";
 
 interface TopSystemBarProps {
   onOpenCommandPalette: () => void;
   onOpenControlCenter: () => void;
+  onOpenMobileNav?: () => void;
 }
 
 export function TopSystemBar({ onOpenCommandPalette, onOpenControlCenter }: TopSystemBarProps) {
