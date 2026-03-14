@@ -1225,6 +1225,131 @@ export type Database = {
           },
         ]
       }
+      income_approach_runs: {
+        Row: {
+          cod: number | null
+          county_id: string
+          created_at: string
+          created_by: string
+          id: string
+          median_cap_rate: number | null
+          median_grm: number | null
+          median_ratio: number | null
+          neighborhood_code: string
+          parcels_processed: number
+          parcels_with_income: number
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          cod?: number | null
+          county_id: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          median_cap_rate?: number | null
+          median_grm?: number | null
+          median_ratio?: number | null
+          neighborhood_code: string
+          parcels_processed?: number
+          parcels_with_income?: number
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          cod?: number | null
+          county_id?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          median_cap_rate?: number | null
+          median_grm?: number | null
+          median_ratio?: number | null
+          neighborhood_code?: string
+          parcels_processed?: number
+          parcels_with_income?: number
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "income_approach_runs_county_id_fkey"
+            columns: ["county_id"]
+            isOneToOne: false
+            referencedRelation: "counties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      income_properties: {
+        Row: {
+          cap_rate: number | null
+          county_id: string
+          created_at: string
+          created_by: string
+          grm: number | null
+          gross_rental_income: number
+          id: string
+          income_year: number
+          net_operating_income: number | null
+          notes: string | null
+          operating_expenses: number
+          parcel_id: string
+          property_type: string
+          updated_at: string
+          vacancy_rate: number
+        }
+        Insert: {
+          cap_rate?: number | null
+          county_id: string
+          created_at?: string
+          created_by?: string
+          grm?: number | null
+          gross_rental_income?: number
+          id?: string
+          income_year?: number
+          net_operating_income?: number | null
+          notes?: string | null
+          operating_expenses?: number
+          parcel_id: string
+          property_type?: string
+          updated_at?: string
+          vacancy_rate?: number
+        }
+        Update: {
+          cap_rate?: number | null
+          county_id?: string
+          created_at?: string
+          created_by?: string
+          grm?: number | null
+          gross_rental_income?: number
+          id?: string
+          income_year?: number
+          net_operating_income?: number | null
+          notes?: string | null
+          operating_expenses?: number
+          parcel_id?: string
+          property_type?: string
+          updated_at?: string
+          vacancy_rate?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "income_properties_county_id_fkey"
+            columns: ["county_id"]
+            isOneToOne: false
+            referencedRelation: "counties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "income_properties_parcel_id_fkey"
+            columns: ["parcel_id"]
+            isOneToOne: false
+            referencedRelation: "parcels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ingest_jobs: {
         Row: {
           column_mapping: Json | null
