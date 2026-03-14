@@ -119,7 +119,7 @@ export function ScrapeJobsDashboard() {
             Refresh
           </Button>
           <Button
-            onClick={() => startJobMutation.mutate("statewide")}
+            onClick={() => startJobMutation.mutate({ jobType: "statewide" })}
             disabled={!!activeJob || startJobMutation.isPending}
             className="gap-2 bg-tf-cyan hover:bg-tf-cyan/90"
           >
