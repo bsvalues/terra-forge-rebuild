@@ -235,6 +235,8 @@ export function AppLayout({ initialParcel: routeParcel, initialModule, initialFa
             return <ExportCenter />;
           case "watchlist":
             return <WatchlistPanel onNavigateToParcel={handleParcelNavigate} />;
+          case "recents":
+            return <RecentParcelsPanel onNavigateToParcel={handleParcelNavigate} />;
           case "sync":
             return (
               <div className="p-6 max-w-7xl mx-auto">
