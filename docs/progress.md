@@ -9,14 +9,15 @@
 
 ## Current State Summary
 
-**Active Phase**: Phase 21 — Trust OS Hardening  
-**Last Completed Task**: 21.4 — ProvenanceBadge on all dashboards  
-**Next Task**: New feature discovery  
+**Active Phase**: Phase 23 — Route Consolidation Audit (COMPLETE)  
+**Last Completed Task**: 23.2 — Orphan layout deleted  
+**Next Task**: Phase 24 planning  
 **Blockers**: None
 
 ---
 
-| 21 | Trust OS Hardening | ✅ COMPLETE | 4/4 | Constitutional fix, ChangeReceipt wiring, ProvenanceBadge expansion, Trust Mode verified |
+| 22 | Data Constitution Enforcement | ✅ COMPLETE | — | Zero direct supabase imports in components, all routed through hooks/services |
+| 23 | Route Consolidation Audit | ✅ COMPLETE | 2/2 | Orphan TerraFusionLayout deleted, 4-module IA_MAP verified |
 
 ## Phase Progress
 
