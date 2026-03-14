@@ -36,6 +36,31 @@
 | 39 | Performance & Testing | ✅ COMPLETE | 3/3 | Lazy-loaded routes (React.lazy+Suspense), writeLane+terraTrace Vitest suites (18 tests), Vite vendor chunking (react, query, ui, charts, maps, motion, three) |
 | 40 | Production Readiness | ✅ COMPLETE | 4/4 | ErrorBoundary (route+module level), global error toast handler, SkipToContent WCAG link, ARIA landmarks on main |
 
+## Phase 40 Production Readiness Log (2026-03-14)
+
+### 40.1 ErrorBoundary Component ✅
+- Class-based React ErrorBoundary with branded fallback UI
+- Shows alert icon, friendly message, expandable technical details (error + component stack)
+- Retry button (resets error state) and Dashboard button (hard nav to /)
+- Accepts `fallbackTitle` prop for context-specific messaging
+
+### 40.2 Route & Module Error Boundaries ✅
+- Top-level ErrorBoundary wraps entire App (catches provider failures)
+- Per-route ErrorBoundary on Index, Property, Factory routes with contextual titles
+- Module-level ErrorBoundary in AppLayout wraps renderStage() with dynamic module name
+- Nested hierarchy: App → Route → Module for granular error isolation
+
+### 40.3 WCAG 2.1 AA Accessibility ✅
+- SkipToContent component: sr-only link visible on focus, jumps to #main-content
+- Added `id="main-content"` and `role="main"` ARIA landmark to AppLayout main element
+- Focus-visible styling uses design system tokens (primary, ring)
+
+### 40.4 Global Error Toast Handler ✅
+- `useGlobalErrorHandler` hook catches unhandledrejection and window.error events
+- Shows user-friendly toast with truncated error message (120 char limit)
+- Filters benign errors: ResizeObserver loops, AbortError/signal cancellations
+- Auto-dismiss after 6 seconds
+
 ## Phase 39 Performance & Testing Log (2026-03-14)
 
 ### 39.1 Lazy-Loaded Route Components ✅
