@@ -195,7 +195,7 @@ export function ParcelComparisonPanel() {
               {/* Comparison Rows */}
               <tbody>
                 {COMPARISON_FIELDS.map((field) => {
-                  const values = parcels.map((p) => (p as Record<string, unknown>)[field.key] as number | null);
+                  const values = parcels.map((p) => (p as unknown as Record<string, unknown>)[field.key] as number | null);
                   const isNumeric = ["currency", "sqft", "number"].includes(field.format);
 
                   return (
