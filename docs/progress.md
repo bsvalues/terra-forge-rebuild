@@ -29,6 +29,7 @@
 | 32 | Roll Certification Pipeline | ✅ COMPLETE | 4/4 | certification_events table, value lock trigger, certify neighborhood UI, state roll export |
 | 33 | Security Hardening | ✅ COMPLETE | 5/5 | npm audit fix, RLS county-scope on notices/cert_events, broken RLS fix on 5 tables, has_role() RBAC, privilege escalation fix |
 | 34 | Batch Notice Generation | ✅ COMPLETE | 5/5 | batch_notice_jobs table, useBatchNotices hook, BatchNoticeDashboard, Factory DB persistence, Notice Center route |
+| 35 | Dossier Evidence Pipeline | ✅ COMPLETE | 4/4 | Multi-type AI narratives, dossier-files storage bucket, packet finalization workflow, evidence synthesis |
 
 ## Phase 34 Batch Notice Generation Log (2026-03-14)
 
