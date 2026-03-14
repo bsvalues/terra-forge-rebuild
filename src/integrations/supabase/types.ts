@@ -452,6 +452,69 @@ export type Database = {
           },
         ]
       }
+      cost_approach_runs: {
+        Row: {
+          cod: number | null
+          county_id: string
+          created_at: string
+          created_by: string
+          id: string
+          mean_ratio: number | null
+          median_ratio: number | null
+          neighborhood_code: string
+          parcels_matched: number
+          parcels_processed: number
+          schedule_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          cod?: number | null
+          county_id: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          mean_ratio?: number | null
+          median_ratio?: number | null
+          neighborhood_code: string
+          parcels_matched?: number
+          parcels_processed?: number
+          schedule_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          cod?: number | null
+          county_id?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          mean_ratio?: number | null
+          median_ratio?: number | null
+          neighborhood_code?: string
+          parcels_matched?: number
+          parcels_processed?: number
+          schedule_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cost_approach_runs_county_id_fkey"
+            columns: ["county_id"]
+            isOneToOne: false
+            referencedRelation: "counties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cost_approach_runs_schedule_id_fkey"
+            columns: ["schedule_id"]
+            isOneToOne: false
+            referencedRelation: "cost_schedules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cost_depreciation: {
         Row: {
           age_from: number
