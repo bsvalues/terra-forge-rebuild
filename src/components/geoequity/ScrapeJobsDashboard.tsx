@@ -67,43 +67,6 @@ export function ScrapeJobsDashboard() {
   const { data: jobs = [], isLoading } = useScrapeJobsRealtime();
   const startJobMutation = useStartScrapeJob();
   const cancelJobMutation = useCancelScrapeJob();
-
-  // Start statewide scrape
-  const startJobMutation = useMutation({
-    mutationFn: async (jobType: "statewide" | "scheduled") => {
-      const { data, error } = await supabase.functions.invoke("statewide-scrape", {
-        body: { action: "start", jobType },
-      });
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: (data) => {
-      toast.success(`Started ${data.message}`);
-      queryClient.invalidateQueries({ queryKey: ["scrape-jobs"] });
-    },
-    onError: (error) => {
-      toast.error(`Failed to start job: ${error.message}`);
-    },
-  });
-
-  // Cancel job
-  const cancelJobMutation = useMutation({
-    mutationFn: async (jobId: string) => {
-      const { data, error } = await supabase.functions.invoke("statewide-scrape", {
-        body: { action: "cancel", jobId },
-      });
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      toast.info("Job cancelled");
-      queryClient.invalidateQueries({ queryKey: ["scrape-jobs"] });
-    },
-    onError: (error) => {
-      toast.error(`Failed to cancel: ${error.message}`);
-    },
-  });
-
   const activeJob = jobs.find((j) => j.status === "running" || j.status === "pending");
   const completedJobs = jobs.filter((j) => j.status === "completed" || j.status === "failed");
 
