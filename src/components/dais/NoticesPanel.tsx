@@ -112,7 +112,7 @@ export function NoticesPanel() {
       // Persist to DB
       return createNotice.mutateAsync({
         parcel_id: parcel.id,
-        county_id: county.id,
+        county_id: countyId!,
         notice_type: selectedTemplate,
         recipient_name: recipientName || "Property Owner",
         recipient_address: recipientAddress || undefined,
