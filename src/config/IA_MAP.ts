@@ -146,6 +146,7 @@ export const LEGACY_REDIRECTS: LegacyRedirect[] = [
   { legacyId: "geoequity", targetModule: "factory", targetView: "geoequity" },
   { legacyId: "avm", targetModule: "factory", targetView: "avm" },
   { legacyId: "analytics", targetModule: "factory", targetView: "analytics" },
+  { legacyId: "advanced-analytics", targetModule: "factory", targetView: "advanced-analytics" },
   // Workbench absorbs Field
   { legacyId: "field", targetModule: "workbench", targetView: "field" },
   // Registry absorbs Trust
