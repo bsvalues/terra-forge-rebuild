@@ -20,6 +20,7 @@ const DataQualityScoringEngine = lazy(() => import("@/components/quality/DataQua
 const RollReadinessDashboard = lazy(() => import("@/components/certification").then(m => ({ default: m.RollReadinessDashboard })));
 const SyncDashboard = lazy(() => import("@/components/sync/SyncDashboard").then(m => ({ default: m.SyncDashboard })));
 const GeometryHealthDashboard = lazy(() => import("@/components/geometry").then(m => ({ default: m.GeometryHealthDashboard })));
+const BatchNoticeDashboard = lazy(() => import("@/components/dais/BatchNoticeDashboard").then(m => ({ default: m.BatchNoticeDashboard })));
 
 // Workbench views
 const PropertyWorkbench = lazy(() => import("@/components/workbench").then(m => ({ default: m.PropertyWorkbench })));
@@ -223,6 +224,8 @@ export function AppLayout({ initialParcel: routeParcel, initialModule, initialFa
             );
           case "geometry":
             return <GeometryHealthDashboard />;
+          case "notices":
+            return <BatchNoticeDashboard />;
           case "sync":
             return (
               <div className="p-6 max-w-7xl mx-auto">

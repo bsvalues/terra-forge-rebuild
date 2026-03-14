@@ -204,7 +204,7 @@ export async function fetchActiveAdjustments(calibrationRunId: string) {
 export async function fetchParcelDetails(parcelIds: string[]) {
   const { data } = await supabase
     .from("parcels")
-    .select("id, parcel_number, address")
+    .select("id, parcel_number, address, county_id")
     .in("id", parcelIds.slice(0, 500));
   return data || [];
 }

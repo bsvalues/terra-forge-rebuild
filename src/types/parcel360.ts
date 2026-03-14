@@ -46,7 +46,9 @@ export type TraceEventType =
   | "saga_compensated"
   | "saga_compensation_failed"
   | "notice_created"
-  | "appeal_created";
+  | "appeal_created"
+  | "batch_notices_generated"
+  | "batch_notices_status_changed";
 
 export type ArtifactType =
   | "assessment"

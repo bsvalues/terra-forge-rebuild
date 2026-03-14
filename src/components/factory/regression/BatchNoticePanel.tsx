@@ -6,6 +6,7 @@ import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { fetchActiveAdjustments, fetchParcelDetails, invokeDraftNotice } from "@/services/ingestService";
 import { generateNotice } from "@/services/suites/daisService";
+import { useCreateNotice } from "@/hooks/useNotices";
 import { CommitmentButton } from "@/components/ui/commitment-button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -46,6 +47,7 @@ export function BatchNoticePanel({ calibrationRunId, neighborhoodCode, rSquared 
   const [progress, setProgress] = useState(0);
   const [useAI, setUseAI] = useState(true);
   const [previewNotice, setPreviewNotice] = useState<GeneratedNotice | null>(null);
+  const createNotice = useCreateNotice();
 
   const noticeMutation = useMutation({
     mutationFn: async (): Promise<NoticeResult> => {
@@ -59,7 +61,7 @@ export function BatchNoticePanel({ calibrationRunId, neighborhoodCode, rSquared 
       const parcels = await fetchParcelDetails(parcelIds);
 
       const parcelMap = new Map(
-        (parcels || []).map(p => [p.id, { parcelNumber: p.parcel_number, address: p.address }])
+        (parcels || []).map(p => [p.id, { parcelNumber: p.parcel_number, address: p.address, countyId: p.county_id }])
       );
 
       let generated = 0;
@@ -109,6 +111,19 @@ export function BatchNoticePanel({ calibrationRunId, neighborhoodCode, rSquared 
             calibrationRunId,
             neighborhoodCode,
           });
+
+          // Persist to DB
+          if (parcelInfo.countyId) {
+            await createNotice.mutateAsync({
+              parcel_id: adj.parcel_id,
+              county_id: parcelInfo.countyId,
+              notice_type: "assessment_change",
+              subject: `Notice of Assessment Change — ${parcelInfo.parcelNumber}`,
+              body: noticeContent,
+              ai_drafted: i < aiLimit,
+              calibration_run_id: calibrationRunId || undefined,
+            });
+          }
 
           notices.push({
             parcelNumber: parcelInfo.parcelNumber,

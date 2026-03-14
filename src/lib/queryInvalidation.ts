@@ -71,3 +71,10 @@ export function invalidateDossier(qc: QueryClient, parcelId: string) {
   qc.invalidateQueries({ queryKey: ["dossier-narratives", parcelId] });
   qc.invalidateQueries({ queryKey: ["dossier-packets", parcelId] });
 }
+
+/** Invalidate notice and batch notice caches */
+export function invalidateNotices(qc: QueryClient) {
+  qc.invalidateQueries({ queryKey: ["notices"] });
+  qc.invalidateQueries({ queryKey: ["batch-notice-jobs"] });
+  qc.invalidateQueries({ queryKey: ["notices-by-batch"] });
+}
