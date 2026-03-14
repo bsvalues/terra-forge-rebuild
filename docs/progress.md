@@ -9,9 +9,9 @@
 
 ## Current State Summary
 
-**Active Phase**: Phase 43 — Parcel Comparison Tool (COMPLETE)  
-**Last Completed Task**: 43.3 — IA_MAP + AppLayout wiring  
-**Next Task**: Phase 44 planning  
+**Active Phase**: Phase 44 — Parcel Watchlist & Favorites (COMPLETE)  
+**Last Completed Task**: 44.3 — Star toggle + navigation wiring  
+**Next Task**: Phase 45 planning  
 **Blockers**: None
 
 ---
