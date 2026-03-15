@@ -25,6 +25,7 @@ const BatchNoticeDashboard = lazy(() => import("@/components/dais/BatchNoticeDas
 const ExportCenter = lazy(() => import("@/components/exports").then(m => ({ default: m.ExportCenter })));
 const WatchlistPanel = lazy(() => import("@/components/watchlist").then(m => ({ default: m.WatchlistPanel })));
 const RecentParcelsPanel = lazy(() => import("@/components/recent").then(m => ({ default: m.RecentParcelsPanel })));
+const SavedFiltersPanel = lazy(() => import("@/components/filters").then(m => ({ default: m.SavedFiltersPanel })));
 
 // Workbench views
 const PropertyWorkbench = lazy(() => import("@/components/workbench").then(m => ({ default: m.PropertyWorkbench })));
