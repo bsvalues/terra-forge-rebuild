@@ -16,6 +16,7 @@
 
 ---
 
+| 49 | Scheduled Tasks & Automation | ✅ COMPLETE | 4/4 | scheduled_tasks table (RLS, user-scoped), useScheduledTasks hooks (CRUD, toggle, execute, next-run calc), SchedulerDashboard UI (create dialog, active/paused list, run-now, overdue badges), IA_MAP + AppLayout wiring |
 | 48 | Advanced Reporting | ✅ COMPLETE | 4/4 | report_templates + report_runs tables (RLS, seeded 6 system templates), useReporting hooks (CRUD, run engine, aggregation), ReportingDashboard UI (template gallery, run history, result dialog with grouped table), IA_MAP + AppLayout wiring |
 | 47 | Bulk Parcel Operations | ✅ COMPLETE | 3/3 | useBulkOperations hooks (selection, search, batch mutations), BulkOperationsPanel UI (multi-select table, 5 batch actions, CSV export), IA_MAP + AppLayout wiring |
 | 22 | Data Constitution Enforcement | ✅ COMPLETE | — | Zero direct supabase imports in components, all routed through hooks/services |

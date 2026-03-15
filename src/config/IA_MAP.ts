@@ -163,6 +163,7 @@ export const LEGACY_REDIRECTS: LegacyRedirect[] = [
   { legacyId: "reports", targetModule: "home", targetView: "reports" },
   { legacyId: "smart-views", targetModule: "home", targetView: "smart-views" },
   { legacyId: "bulk-ops", targetModule: "home", targetView: "bulk-ops" },
+  { legacyId: "scheduler", targetModule: "home", targetView: "scheduler" },
   { legacyId: "sync", targetModule: "home", targetView: "sync" },
   // Factory absorbs these
   { legacyId: "vei", targetModule: "factory", targetView: "vei" },
