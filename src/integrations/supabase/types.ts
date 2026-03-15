@@ -2259,6 +2259,116 @@ export type Database = {
           },
         ]
       }
+      report_runs: {
+        Row: {
+          county_id: string | null
+          created_at: string
+          executed_at: string
+          executed_by: string
+          id: string
+          parameters: Json
+          report_name: string
+          report_type: string
+          result_summary: Json | null
+          row_count: number | null
+          status: string
+          template_id: string | null
+        }
+        Insert: {
+          county_id?: string | null
+          created_at?: string
+          executed_at?: string
+          executed_by?: string
+          id?: string
+          parameters?: Json
+          report_name: string
+          report_type?: string
+          result_summary?: Json | null
+          row_count?: number | null
+          status?: string
+          template_id?: string | null
+        }
+        Update: {
+          county_id?: string | null
+          created_at?: string
+          executed_at?: string
+          executed_by?: string
+          id?: string
+          parameters?: Json
+          report_name?: string
+          report_type?: string
+          result_summary?: Json | null
+          row_count?: number | null
+          status?: string
+          template_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_runs_county_id_fkey"
+            columns: ["county_id"]
+            isOneToOne: false
+            referencedRelation: "counties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "report_runs_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "report_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      report_templates: {
+        Row: {
+          county_id: string | null
+          created_at: string
+          created_by: string
+          dataset: string
+          description: string | null
+          id: string
+          is_system: boolean
+          name: string
+          report_type: string
+          template_config: Json
+          updated_at: string
+        }
+        Insert: {
+          county_id?: string | null
+          created_at?: string
+          created_by?: string
+          dataset?: string
+          description?: string | null
+          id?: string
+          is_system?: boolean
+          name: string
+          report_type?: string
+          template_config?: Json
+          updated_at?: string
+        }
+        Update: {
+          county_id?: string | null
+          created_at?: string
+          created_by?: string
+          dataset?: string
+          description?: string | null
+          id?: string
+          is_system?: boolean
+          name?: string
+          report_type?: string
+          template_config?: Json
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_templates_county_id_fkey"
+            columns: ["county_id"]
+            isOneToOne: false
+            referencedRelation: "counties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       review_queue_items: {
         Row: {
           created_at: string
