@@ -247,6 +247,8 @@ export function AppLayout({ initialParcel: routeParcel, initialModule, initialFa
             return <BulkOperationsPanel />;
           case "reports":
             return <ReportingDashboard />;
+          case "scheduler":
+            return <SchedulerDashboard />;
           case "sync":
             return (
               <div className="p-6 max-w-7xl mx-auto">

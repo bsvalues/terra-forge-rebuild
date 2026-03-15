@@ -98,6 +98,7 @@ export const IA_MODULES: ModuleDefinition[] = [
       { id: "bulk-ops", label: "Bulk Operations", icon: Layers, scope: "county" },
       { id: "exports", label: "Export Center", icon: Download, scope: "county" },
       { id: "reports", label: "Advanced Reports", icon: BarChart3, scope: "county" },
+      { id: "scheduler", label: "Task Scheduler", icon: Clock, scope: "county" },
       { id: "sync", label: "Sync Engine", icon: Shield, scope: "county" },
     ],
   },
