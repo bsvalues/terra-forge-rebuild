@@ -28,6 +28,7 @@ const RecentParcelsPanel = lazy(() => import("@/components/recent").then(m => ({
 const SavedFiltersPanel = lazy(() => import("@/components/filters").then(m => ({ default: m.SavedFiltersPanel })));
 const BulkOperationsPanel = lazy(() => import("@/components/bulk").then(m => ({ default: m.BulkOperationsPanel })));
 const ReportingDashboard = lazy(() => import("@/components/reporting").then(m => ({ default: m.ReportingDashboard })));
+const SchedulerDashboard = lazy(() => import("@/components/scheduler").then(m => ({ default: m.SchedulerDashboard })));
 
 // Workbench views
 const PropertyWorkbench = lazy(() => import("@/components/workbench").then(m => ({ default: m.PropertyWorkbench })));
