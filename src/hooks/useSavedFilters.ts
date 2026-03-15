@@ -147,7 +147,7 @@ export function useUpdateFilter() {
       if (updates.name !== undefined) payload.name = updates.name;
       if (updates.description !== undefined) payload.description = updates.description;
       if (updates.target_dataset !== undefined) payload.target_dataset = updates.target_dataset;
-      if (updates.filter_config !== undefined) payload.filter_config = updates.filter_config as unknown as Record<string, unknown>;
+      if (updates.filter_config !== undefined) payload.filter_config = JSON.parse(JSON.stringify(updates.filter_config));
       if (updates.is_pinned !== undefined) payload.is_pinned = updates.is_pinned;
 
       const { error } = await supabase.from("saved_filters").update(payload).eq("id", id);
