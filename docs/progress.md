@@ -9,13 +9,14 @@
 
 ## Current State Summary
 
-**Active Phase**: Phase 46 — Saved Filters & Smart Views (COMPLETE)  
-**Last Completed Task**: 46.3 — IA_MAP + AppLayout wiring  
-**Next Task**: Phase 47 planning  
+**Active Phase**: Phase 47 — Bulk Parcel Operations (COMPLETE)  
+**Last Completed Task**: 47.3 — IA_MAP + AppLayout wiring  
+**Next Task**: Phase 48 planning  
 **Blockers**: None
 
 ---
 
+| 47 | Bulk Parcel Operations | ✅ COMPLETE | 3/3 | useBulkOperations hooks (selection, search, batch mutations), BulkOperationsPanel UI (multi-select table, 5 batch actions, CSV export), IA_MAP + AppLayout wiring |
 | 22 | Data Constitution Enforcement | ✅ COMPLETE | — | Zero direct supabase imports in components, all routed through hooks/services |
 | 23 | Route Consolidation Audit | ✅ COMPLETE | 2/2 | Orphan TerraFusionLayout deleted, 4-module IA_MAP verified |
 | 24 | Trust OS Provenance Coverage | ✅ COMPLETE | 5/5 | Every key metric wrapped with ProvenanceNumber |
