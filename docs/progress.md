@@ -16,6 +16,7 @@
 
 ---
 
+| 47 | Bulk Parcel Operations | ✅ COMPLETE | 3/3 | useBulkOperations hooks (selection, search, batch mutations), BulkOperationsPanel UI (multi-select table, 5 batch actions, CSV export), IA_MAP + AppLayout wiring |
 | 22 | Data Constitution Enforcement | ✅ COMPLETE | — | Zero direct supabase imports in components, all routed through hooks/services |
 | 23 | Route Consolidation Audit | ✅ COMPLETE | 2/2 | Orphan TerraFusionLayout deleted, 4-module IA_MAP verified |
 | 24 | Trust OS Provenance Coverage | ✅ COMPLETE | 5/5 | Every key metric wrapped with ProvenanceNumber |
