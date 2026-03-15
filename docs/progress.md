@@ -9,9 +9,9 @@
 
 ## Current State Summary
 
-**Active Phase**: Phase 45 — Recent Parcels & Navigation History (COMPLETE)  
-**Last Completed Task**: 45.3 — IA_MAP + Command Palette integration  
-**Next Task**: Phase 46 planning  
+**Active Phase**: Phase 46 — Saved Filters & Smart Views (COMPLETE)  
+**Last Completed Task**: 46.3 — IA_MAP + AppLayout wiring  
+**Next Task**: Phase 47 planning  
 **Blockers**: None
 
 ---
