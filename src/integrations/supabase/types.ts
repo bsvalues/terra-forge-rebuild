@@ -2442,6 +2442,59 @@ export type Database = {
           },
         ]
       }
+      saved_filters: {
+        Row: {
+          county_id: string
+          created_at: string
+          description: string | null
+          filter_config: Json
+          id: string
+          is_pinned: boolean
+          last_used_at: string | null
+          name: string
+          result_count: number | null
+          target_dataset: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          county_id?: string
+          created_at?: string
+          description?: string | null
+          filter_config?: Json
+          id?: string
+          is_pinned?: boolean
+          last_used_at?: string | null
+          name: string
+          result_count?: number | null
+          target_dataset?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Update: {
+          county_id?: string
+          created_at?: string
+          description?: string | null
+          filter_config?: Json
+          id?: string
+          is_pinned?: boolean
+          last_used_at?: string | null
+          name?: string
+          result_count?: number | null
+          target_dataset?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saved_filters_county_id_fkey"
+            columns: ["county_id"]
+            isOneToOne: false
+            referencedRelation: "counties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       scheduled_scrapes: {
         Row: {
           batch_size: number
