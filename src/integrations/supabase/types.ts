@@ -2647,6 +2647,71 @@ export type Database = {
         }
         Relationships: []
       }
+      scheduled_tasks: {
+        Row: {
+          county_id: string | null
+          created_at: string
+          created_by: string
+          description: string | null
+          frequency: string
+          id: string
+          is_active: boolean
+          last_run_at: string | null
+          last_run_status: string | null
+          last_run_summary: Json | null
+          name: string
+          next_run_at: string | null
+          run_count: number
+          task_config: Json
+          task_type: string
+          updated_at: string
+        }
+        Insert: {
+          county_id?: string | null
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          frequency?: string
+          id?: string
+          is_active?: boolean
+          last_run_at?: string | null
+          last_run_status?: string | null
+          last_run_summary?: Json | null
+          name: string
+          next_run_at?: string | null
+          run_count?: number
+          task_config?: Json
+          task_type?: string
+          updated_at?: string
+        }
+        Update: {
+          county_id?: string | null
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          frequency?: string
+          id?: string
+          is_active?: boolean
+          last_run_at?: string | null
+          last_run_status?: string | null
+          last_run_summary?: Json | null
+          name?: string
+          next_run_at?: string | null
+          run_count?: number
+          task_config?: Json
+          task_type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scheduled_tasks_county_id_fkey"
+            columns: ["county_id"]
+            isOneToOne: false
+            referencedRelation: "counties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       scrape_jobs: {
         Row: {
           completed_at: string | null
