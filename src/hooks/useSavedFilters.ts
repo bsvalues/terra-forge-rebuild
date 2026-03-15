@@ -116,7 +116,7 @@ export function useCreateFilter() {
         name: input.name,
         description: input.description ?? null,
         target_dataset: input.target_dataset ?? "parcels",
-        filter_config: input.filter_config as unknown as Record<string, unknown>,
+        filter_config: JSON.parse(JSON.stringify(input.filter_config)),
         is_pinned: input.is_pinned ?? false,
       };
       const { data, error } = await supabase
