@@ -112,15 +112,16 @@ export function useCreateFilter() {
 
   return useMutation({
     mutationFn: async (input: SavedFilterInsert) => {
+      const row = {
+        name: input.name,
+        description: input.description ?? null,
+        target_dataset: input.target_dataset ?? "parcels",
+        filter_config: input.filter_config as unknown as Record<string, unknown>,
+        is_pinned: input.is_pinned ?? false,
+      };
       const { data, error } = await supabase
         .from("saved_filters")
-        .insert({
-          name: input.name,
-          description: input.description ?? null,
-          target_dataset: input.target_dataset ?? "parcels",
-          filter_config: input.filter_config as unknown as Record<string, unknown>,
-          is_pinned: input.is_pinned ?? false,
-        })
+        .insert([row])
         .select()
         .single();
       if (error) throw error;
