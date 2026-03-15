@@ -40,8 +40,30 @@
 | 43 | Parcel Comparison Tool | ✅ COMPLETE | 3/3 | useParcelComparison hook (add/remove/clear, max 4), ParcelComparisonPanel (side-by-side table, delta highlighting, $/sqft derived row, inline search), IA_MAP + AppLayout wiring |
 | 44 | Parcel Watchlist & Favorites | ✅ COMPLETE | 3/3 | parcel_watchlist table (RLS, priority, notes), useParcelWatchlist hooks (CRUD, toggle, isWatched), WatchlistPanel UI (search, filter, priority stats, navigate-to-parcel), Star toggle in SummaryTab header |
 | 45 | Recent Parcels & Navigation History | ✅ COMPLETE | 3/3 | useRecentParcels hook (localStorage, max 20, dedup), RecentParcelsPanel UI (search, navigate, clear), Command Palette recents section, auto-track on parcel load |
+| 46 | Saved Filters & Smart Views | ✅ COMPLETE | 3/3 | saved_filters table (RLS, user-scoped, JSONB config), useSavedFilters hooks (CRUD, pin, mark-used), SavedFiltersPanel UI (filter builder dialog, condition editor, pin/apply/delete), IA_MAP + AppLayout wiring |
 
-## Phase 45 Recent Parcels & Navigation History Log (2026-03-14)
+## Phase 46 Saved Filters & Smart Views Log (2026-03-15)
+
+### 46.1 Database Migration ✅
+- `saved_filters` table with user-scoped RLS (SELECT/INSERT/UPDATE/DELETE)
+- JSONB `filter_config` for flexible condition storage
+- `is_pinned`, `last_used_at`, `result_count` fields
+- Composite index on (user_id, is_pinned, updated_at)
+
+### 46.2 useSavedFilters Hook ✅
+- `useSavedFilters` — fetch all user filters ordered by pin + recency
+- `useCreateFilter` / `useUpdateFilter` / `useDeleteFilter` — full CRUD
+- `useMarkFilterUsed` — track last-used timestamp and result counts
+- `FILTER_FIELDS` config for parcels, sales, appeals datasets
+- `OPERATOR_LABELS` for 10 comparison operators
+
+### 46.3 SavedFiltersPanel UI + Routing ✅
+- Filter builder dialog with dynamic condition rows (field, operator, value)
+- Dataset selector (parcels, sales, appeals)
+- Pin toggle, edit, delete, apply actions
+- Stats cards (total views, pinned, datasets)
+- Registered as "Smart Views" under Home module in IA_MAP
+- Lazy-loaded in AppLayout, legacy redirect configured
 
 ### 45.1 useRecentParcels Hook ✅
 - localStorage-persisted, max 20 items, automatic deduplication
