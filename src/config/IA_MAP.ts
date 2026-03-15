@@ -93,6 +93,7 @@ export const IA_MODULES: ModuleDefinition[] = [
       { id: "readiness", label: "Roll Readiness", icon: ShieldCheck, scope: "county" },
       { id: "geometry", label: "Geometry Health", icon: Hexagon, scope: "county" },
       { id: "notices", label: "Notice Center", icon: Mail, scope: "county" },
+      { id: "smart-views", label: "Smart Views", icon: Filter, scope: "county" },
       { id: "exports", label: "Export Center", icon: Download, scope: "county" },
       { id: "sync", label: "Sync Engine", icon: Shield, scope: "county" },
     ],
