@@ -98,6 +98,7 @@ export const IA_MODULES: ModuleDefinition[] = [
       { id: "bulk-ops", label: "Bulk Operations", icon: Layers, scope: "county" },
       { id: "exports", label: "Export Center", icon: Download, scope: "county" },
       { id: "reports", label: "Advanced Reports", icon: BarChart3, scope: "county" },
+      { id: "scheduler", label: "Task Scheduler", icon: Clock, scope: "county" },
       { id: "sync", label: "Sync Engine", icon: Shield, scope: "county" },
     ],
   },
@@ -162,6 +163,7 @@ export const LEGACY_REDIRECTS: LegacyRedirect[] = [
   { legacyId: "reports", targetModule: "home", targetView: "reports" },
   { legacyId: "smart-views", targetModule: "home", targetView: "smart-views" },
   { legacyId: "bulk-ops", targetModule: "home", targetView: "bulk-ops" },
+  { legacyId: "scheduler", targetModule: "home", targetView: "scheduler" },
   { legacyId: "sync", targetModule: "home", targetView: "sync" },
   // Factory absorbs these
   { legacyId: "vei", targetModule: "factory", targetView: "vei" },
