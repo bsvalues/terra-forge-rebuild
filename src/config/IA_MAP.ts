@@ -159,6 +159,7 @@ export const LEGACY_REDIRECTS: LegacyRedirect[] = [
   { legacyId: "geometry", targetModule: "home", targetView: "geometry" },
   { legacyId: "notices", targetModule: "home", targetView: "notices" },
   { legacyId: "exports", targetModule: "home", targetView: "exports" },
+  { legacyId: "reports", targetModule: "home", targetView: "reports" },
   { legacyId: "smart-views", targetModule: "home", targetView: "smart-views" },
   { legacyId: "bulk-ops", targetModule: "home", targetView: "bulk-ops" },
   { legacyId: "sync", targetModule: "home", targetView: "sync" },

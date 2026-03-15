@@ -244,6 +244,8 @@ export function AppLayout({ initialParcel: routeParcel, initialModule, initialFa
             return <SavedFiltersPanel />;
           case "bulk-ops":
             return <BulkOperationsPanel />;
+          case "reports":
+            return <ReportingDashboard />;
           case "sync":
             return (
               <div className="p-6 max-w-7xl mx-auto">
