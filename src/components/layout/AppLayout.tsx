@@ -27,6 +27,7 @@ const WatchlistPanel = lazy(() => import("@/components/watchlist").then(m => ({ 
 const RecentParcelsPanel = lazy(() => import("@/components/recent").then(m => ({ default: m.RecentParcelsPanel })));
 const SavedFiltersPanel = lazy(() => import("@/components/filters").then(m => ({ default: m.SavedFiltersPanel })));
 const BulkOperationsPanel = lazy(() => import("@/components/bulk").then(m => ({ default: m.BulkOperationsPanel })));
+const ReportingDashboard = lazy(() => import("@/components/reporting").then(m => ({ default: m.ReportingDashboard })));
 
 // Workbench views
 const PropertyWorkbench = lazy(() => import("@/components/workbench").then(m => ({ default: m.PropertyWorkbench })));
@@ -243,6 +244,8 @@ export function AppLayout({ initialParcel: routeParcel, initialModule, initialFa
             return <SavedFiltersPanel />;
           case "bulk-ops":
             return <BulkOperationsPanel />;
+          case "reports":
+            return <ReportingDashboard />;
           case "sync":
             return (
               <div className="p-6 max-w-7xl mx-auto">
