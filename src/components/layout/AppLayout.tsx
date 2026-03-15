@@ -241,6 +241,8 @@ export function AppLayout({ initialParcel: routeParcel, initialModule, initialFa
             return <RecentParcelsPanel onNavigateToParcel={handleParcelNavigate} />;
           case "smart-views":
             return <SavedFiltersPanel />;
+          case "bulk-ops":
+            return <BulkOperationsPanel />;
           case "sync":
             return (
               <div className="p-6 max-w-7xl mx-auto">
