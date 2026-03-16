@@ -31,6 +31,7 @@ const ReportingDashboard = lazy(() => import("@/components/reporting").then(m =>
 const SchedulerDashboard = lazy(() => import("@/components/scheduler").then(m => ({ default: m.SchedulerDashboard })));
 const NotificationCenterPanel = lazy(() => import("@/components/notifications").then(m => ({ default: m.NotificationCenterPanel })));
 const DataValidationPanel = lazy(() => import("@/components/validation").then(m => ({ default: m.DataValidationPanel })));
+const NeighborhoodDirectoryPanel = lazy(() => import("@/components/neighborhoods").then(m => ({ default: m.NeighborhoodDirectoryPanel })));
 
 // Workbench views
 const PropertyWorkbench = lazy(() => import("@/components/workbench").then(m => ({ default: m.PropertyWorkbench })));
