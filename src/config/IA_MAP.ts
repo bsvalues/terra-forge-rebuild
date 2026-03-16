@@ -190,6 +190,7 @@ export const LEGACY_REDIRECTS: LegacyRedirect[] = [
   { legacyId: "trust", targetModule: "registry", targetView: "trust" },
   { legacyId: "ledger", targetModule: "registry", targetView: "ledger" },
   { legacyId: "catalog", targetModule: "registry", targetView: "catalog" },
+  { legacyId: "models", targetModule: "registry", targetView: "models" },
 ];
 
 // ── Helpers ───────────────────────────────────────────────────────

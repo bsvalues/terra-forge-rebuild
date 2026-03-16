@@ -16,6 +16,7 @@
 
 ---
 
+| 56 | Model Registry | ✅ COMPLETE | 3/3 | useModelRegistry hook (parallel queries across calibration_runs, avm_runs, cost_approach_runs, income_approach_runs with unified ModelRunRecord type, computeModelStats aggregation), ModelRegistryPanel UI (stats cards, approach filter badges, sortable table with R²/RMSE/COD/Median Ratio metrics, status badges, 100-row pagination), IA_MAP + AppLayout wiring (Registry models view) |
 | 55 | Data Catalog | ✅ COMPLETE | 3/3 | useDataCatalog hook (parallel row counts + freshness queries across 11 tables, Write-Lane Matrix codified as static domain registry), DataCatalogPanel UI (stats cards, owner filter badges, expandable domain cards with field list, scope/table metadata), IA_MAP + AppLayout wiring (Registry catalog view) |
 | 54 | Value Adjustment Ledger | ✅ COMPLETE | 3/3 | useValueAdjustmentLedger hook (query with parcel joins, filters, stats aggregation), ValueAdjustmentLedger UI (search, type filter, date range, rolled-back toggle, delta table with color-coded changes, type breakdown badges), IA_MAP + AppLayout wiring (Registry ledger view) |
 | 53 | County Configuration Panel | ✅ COMPLETE | 3/3 | useCountyConfig hooks (read/update meta, read/update JSONB config, merge defaults, TerraTrace audit), CountyConfigPanel UI (4-tab: Identity, Assessment Cycle, Module Toggles, Display Prefs), IA_MAP + AppLayout wiring |

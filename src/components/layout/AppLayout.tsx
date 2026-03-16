@@ -342,6 +342,9 @@ export function AppLayout({ initialParcel: routeParcel, initialModule, initialFa
         if (view === "catalog") {
           return <DataCatalogPanel />;
         }
+        if (view === "models") {
+          return <ModelRegistryPanel />;
+        }
         return (
           <div className="p-0">
             <TrustRegistryPage onNavigate={handleNavigate} />
