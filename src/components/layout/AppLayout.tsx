@@ -30,6 +30,7 @@ const BulkOperationsPanel = lazy(() => import("@/components/bulk").then(m => ({ 
 const ReportingDashboard = lazy(() => import("@/components/reporting").then(m => ({ default: m.ReportingDashboard })));
 const SchedulerDashboard = lazy(() => import("@/components/scheduler").then(m => ({ default: m.SchedulerDashboard })));
 const NotificationCenterPanel = lazy(() => import("@/components/notifications").then(m => ({ default: m.NotificationCenterPanel })));
+const DataValidationPanel = lazy(() => import("@/components/validation").then(m => ({ default: m.DataValidationPanel })));
 
 // Workbench views
 const PropertyWorkbench = lazy(() => import("@/components/workbench").then(m => ({ default: m.PropertyWorkbench })));
@@ -252,6 +253,8 @@ export function AppLayout({ initialParcel: routeParcel, initialModule, initialFa
             return <SchedulerDashboard />;
           case "activity":
             return <NotificationCenterPanel />;
+          case "validation":
+            return <DataValidationPanel />;
           case "sync":
             return (
               <div className="p-6 max-w-7xl mx-auto">

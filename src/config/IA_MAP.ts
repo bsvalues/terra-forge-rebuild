@@ -101,6 +101,7 @@ export const IA_MODULES: ModuleDefinition[] = [
       { id: "scheduler", label: "Task Scheduler", icon: Clock, scope: "county" },
       { id: "sync", label: "Sync Engine", icon: Shield, scope: "county" },
       { id: "activity", label: "Activity Feed", icon: Radar, scope: "county" },
+      { id: "validation", label: "Validation Rules", icon: ShieldCheck, scope: "county" },
     ],
   },
   {
@@ -167,6 +168,7 @@ export const LEGACY_REDIRECTS: LegacyRedirect[] = [
   { legacyId: "scheduler", targetModule: "home", targetView: "scheduler" },
   { legacyId: "sync", targetModule: "home", targetView: "sync" },
   { legacyId: "activity", targetModule: "home", targetView: "activity" },
+  { legacyId: "validation", targetModule: "home", targetView: "validation" },
   // Factory absorbs these
   { legacyId: "vei", targetModule: "factory", targetView: "vei" },
   { legacyId: "geoequity", targetModule: "factory", targetView: "geoequity" },

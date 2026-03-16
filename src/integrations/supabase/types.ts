@@ -3109,6 +3109,68 @@ export type Database = {
         }
         Relationships: []
       }
+      validation_rules: {
+        Row: {
+          county_id: string
+          created_at: string
+          created_by: string
+          description: string | null
+          id: string
+          is_active: boolean
+          last_run_at: string | null
+          last_run_fail_count: number | null
+          last_run_pass_count: number | null
+          name: string
+          operator: string
+          severity: string
+          target_field: string
+          threshold_value: string | null
+          updated_at: string
+        }
+        Insert: {
+          county_id?: string
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          last_run_at?: string | null
+          last_run_fail_count?: number | null
+          last_run_pass_count?: number | null
+          name: string
+          operator?: string
+          severity?: string
+          target_field: string
+          threshold_value?: string | null
+          updated_at?: string
+        }
+        Update: {
+          county_id?: string
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          last_run_at?: string | null
+          last_run_fail_count?: number | null
+          last_run_pass_count?: number | null
+          name?: string
+          operator?: string
+          severity?: string
+          target_field?: string
+          threshold_value?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "validation_rules_county_id_fkey"
+            columns: ["county_id"]
+            isOneToOne: false
+            referencedRelation: "counties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       value_adjustments: {
         Row: {
           adjustment_reason: string | null
