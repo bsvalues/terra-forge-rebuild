@@ -101,6 +101,7 @@ export const IA_MODULES: ModuleDefinition[] = [
       { id: "scheduler", label: "Task Scheduler", icon: Clock, scope: "county" },
       { id: "sync", label: "Sync Engine", icon: Shield, scope: "county" },
       { id: "activity", label: "Activity Feed", icon: Radar, scope: "county" },
+      { id: "validation", label: "Validation Rules", icon: ShieldCheck, scope: "county" },
     ],
   },
   {
