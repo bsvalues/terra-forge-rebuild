@@ -259,6 +259,8 @@ export function AppLayout({ initialParcel: routeParcel, initialModule, initialFa
             return <DataValidationPanel />;
           case "neighborhoods":
             return <NeighborhoodDirectoryPanel />;
+          case "settings":
+            return <CountyConfigPanel />;
           case "sync":
             return (
               <div className="p-6 max-w-7xl mx-auto">
