@@ -250,6 +250,8 @@ export function AppLayout({ initialParcel: routeParcel, initialModule, initialFa
             return <ReportingDashboard />;
           case "scheduler":
             return <SchedulerDashboard />;
+          case "activity":
+            return <NotificationCenterPanel />;
           case "sync":
             return (
               <div className="p-6 max-w-7xl mx-auto">
