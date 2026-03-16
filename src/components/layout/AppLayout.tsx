@@ -49,6 +49,7 @@ const AVMStudioDashboard = lazy(() => import("@/components/avm/AVMStudioDashboar
 const SegmentRevaluationDashboard = lazy(() => import("@/components/revaluation/SegmentRevaluationDashboard").then(m => ({ default: m.SegmentRevaluationDashboard })));
 // Registry views
 const TrustRegistryPage = lazy(() => import("@/components/trust").then(m => ({ default: m.TrustRegistryPage })));
+const ValueAdjustmentLedger = lazy(() => import("@/components/ledger").then(m => ({ default: m.ValueAdjustmentLedger })));
 
 // ── Loading fallback ───────────────────────────────────────────────
 function StageFallback() {

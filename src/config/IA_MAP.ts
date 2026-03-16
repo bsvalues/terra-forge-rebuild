@@ -148,6 +148,7 @@ export const IA_MODULES: ModuleDefinition[] = [
     allowedSuites: ["Registry"],
     views: [
       { id: "trust", label: "Audit Log", icon: BookOpen, scope: "run" },
+      { id: "ledger", label: "Value Ledger", icon: GitCompareArrows, scope: "run" },
     ],
   },
 ];
