@@ -263,6 +263,8 @@ export function AppLayout({ initialParcel: routeParcel, initialModule, initialFa
             return <DataValidationPanel />;
           case "neighborhoods":
             return <NeighborhoodDirectoryPanel />;
+          case "appeal-insights":
+            return <AppealInsightsDashboard />;
           case "settings":
             return <CountyConfigPanel />;
           case "sync":

@@ -176,6 +176,7 @@ export const LEGACY_REDIRECTS: LegacyRedirect[] = [
   { legacyId: "activity", targetModule: "home", targetView: "activity" },
   { legacyId: "validation", targetModule: "home", targetView: "validation" },
   { legacyId: "neighborhoods", targetModule: "home", targetView: "neighborhoods" },
+  { legacyId: "appeal-insights", targetModule: "home", targetView: "appeal-insights" },
   { legacyId: "settings", targetModule: "home", targetView: "settings" },
   // Factory absorbs these
   { legacyId: "vei", targetModule: "factory", targetView: "vei" },
