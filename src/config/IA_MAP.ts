@@ -103,6 +103,7 @@ export const IA_MODULES: ModuleDefinition[] = [
       { id: "activity", label: "Activity Feed", icon: Radar, scope: "county" },
       { id: "validation", label: "Validation Rules", icon: ShieldCheck, scope: "county" },
       { id: "neighborhoods", label: "Neighborhoods", icon: Map, scope: "county" },
+      { id: "appeal-insights", label: "Appeal Insights", icon: TrendingUp, scope: "county" },
       { id: "settings", label: "Settings", icon: Target, scope: "county" },
     ],
   },
