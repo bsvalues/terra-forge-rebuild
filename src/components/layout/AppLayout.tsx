@@ -334,6 +334,9 @@ export function AppLayout({ initialParcel: routeParcel, initialModule, initialFa
 
       // ── REGISTRY: Governance Spine ───────────────────────────
       case "registry":
+        if (view === "ledger") {
+          return <ValueAdjustmentLedger />;
+        }
         return (
           <div className="p-0">
             <TrustRegistryPage onNavigate={handleNavigate} />
