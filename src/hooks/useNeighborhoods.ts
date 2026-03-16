@@ -125,8 +125,8 @@ export function useCreateNeighborhood() {
       if (error) throw error;
       await emitTraceEventAsync({
         sourceModule: "atlas",
-        eventType: "neighborhood_created",
-        eventData: { hood_cd: input.hood_cd, hood_name: input.hood_name, year: input.year },
+        eventType: "neighborhood_certified",
+        eventData: { action: "created", hood_cd: input.hood_cd, hood_name: input.hood_name, year: input.year },
       });
       return data;
     },

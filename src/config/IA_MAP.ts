@@ -102,6 +102,7 @@ export const IA_MODULES: ModuleDefinition[] = [
       { id: "sync", label: "Sync Engine", icon: Shield, scope: "county" },
       { id: "activity", label: "Activity Feed", icon: Radar, scope: "county" },
       { id: "validation", label: "Validation Rules", icon: ShieldCheck, scope: "county" },
+      { id: "neighborhoods", label: "Neighborhoods", icon: Map, scope: "county" },
     ],
   },
   {
