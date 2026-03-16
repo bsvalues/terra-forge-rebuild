@@ -188,6 +188,7 @@ export const LEGACY_REDIRECTS: LegacyRedirect[] = [
   // Registry absorbs Trust
   { legacyId: "trust", targetModule: "registry", targetView: "trust" },
   { legacyId: "ledger", targetModule: "registry", targetView: "ledger" },
+  { legacyId: "catalog", targetModule: "registry", targetView: "catalog" },
 ];
 
 // ── Helpers ───────────────────────────────────────────────────────

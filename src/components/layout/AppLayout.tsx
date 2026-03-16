@@ -338,6 +338,9 @@ export function AppLayout({ initialParcel: routeParcel, initialModule, initialFa
         if (view === "ledger") {
           return <ValueAdjustmentLedger />;
         }
+        if (view === "catalog") {
+          return <DataCatalogPanel />;
+        }
         return (
           <div className="p-0">
             <TrustRegistryPage onNavigate={handleNavigate} />
