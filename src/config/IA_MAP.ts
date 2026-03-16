@@ -148,6 +148,7 @@ export const IA_MODULES: ModuleDefinition[] = [
     allowedSuites: ["Registry"],
     views: [
       { id: "trust", label: "Audit Log", icon: BookOpen, scope: "run" },
+      { id: "ledger", label: "Value Ledger", icon: GitCompareArrows, scope: "run" },
     ],
   },
 ];
@@ -185,6 +186,7 @@ export const LEGACY_REDIRECTS: LegacyRedirect[] = [
   { legacyId: "compare", targetModule: "workbench", targetView: "compare" },
   // Registry absorbs Trust
   { legacyId: "trust", targetModule: "registry", targetView: "trust" },
+  { legacyId: "ledger", targetModule: "registry", targetView: "ledger" },
 ];
 
 // ── Helpers ───────────────────────────────────────────────────────
