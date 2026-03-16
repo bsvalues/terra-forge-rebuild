@@ -29,6 +29,7 @@ const SavedFiltersPanel = lazy(() => import("@/components/filters").then(m => ({
 const BulkOperationsPanel = lazy(() => import("@/components/bulk").then(m => ({ default: m.BulkOperationsPanel })));
 const ReportingDashboard = lazy(() => import("@/components/reporting").then(m => ({ default: m.ReportingDashboard })));
 const SchedulerDashboard = lazy(() => import("@/components/scheduler").then(m => ({ default: m.SchedulerDashboard })));
+const NotificationCenterPanel = lazy(() => import("@/components/notifications").then(m => ({ default: m.NotificationCenterPanel })));
 
 // Workbench views
 const PropertyWorkbench = lazy(() => import("@/components/workbench").then(m => ({ default: m.PropertyWorkbench })));
@@ -249,6 +250,8 @@ export function AppLayout({ initialParcel: routeParcel, initialModule, initialFa
             return <ReportingDashboard />;
           case "scheduler":
             return <SchedulerDashboard />;
+          case "activity":
+            return <NotificationCenterPanel />;
           case "sync":
             return (
               <div className="p-6 max-w-7xl mx-auto">
