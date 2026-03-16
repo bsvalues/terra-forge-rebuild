@@ -33,6 +33,7 @@ const NotificationCenterPanel = lazy(() => import("@/components/notifications").
 const DataValidationPanel = lazy(() => import("@/components/validation").then(m => ({ default: m.DataValidationPanel })));
 const NeighborhoodDirectoryPanel = lazy(() => import("@/components/neighborhoods").then(m => ({ default: m.NeighborhoodDirectoryPanel })));
 const CountyConfigPanel = lazy(() => import("@/components/settings").then(m => ({ default: m.CountyConfigPanel })));
+const AppealInsightsDashboard = lazy(() => import("@/components/appeal-insights").then(m => ({ default: m.AppealInsightsDashboard })));
 
 // Workbench views
 const PropertyWorkbench = lazy(() => import("@/components/workbench").then(m => ({ default: m.PropertyWorkbench })));
