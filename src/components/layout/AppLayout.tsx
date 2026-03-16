@@ -51,6 +51,7 @@ const SegmentRevaluationDashboard = lazy(() => import("@/components/revaluation/
 const TrustRegistryPage = lazy(() => import("@/components/trust").then(m => ({ default: m.TrustRegistryPage })));
 const ValueAdjustmentLedger = lazy(() => import("@/components/ledger").then(m => ({ default: m.ValueAdjustmentLedger })));
 const DataCatalogPanel = lazy(() => import("@/components/catalog").then(m => ({ default: m.DataCatalogPanel })));
+const ModelRegistryPanel = lazy(() => import("@/components/models").then(m => ({ default: m.ModelRegistryPanel })));
 
 // ── Loading fallback ───────────────────────────────────────────────
 function StageFallback() {
