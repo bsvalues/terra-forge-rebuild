@@ -32,6 +32,7 @@ const SchedulerDashboard = lazy(() => import("@/components/scheduler").then(m =>
 const NotificationCenterPanel = lazy(() => import("@/components/notifications").then(m => ({ default: m.NotificationCenterPanel })));
 const DataValidationPanel = lazy(() => import("@/components/validation").then(m => ({ default: m.DataValidationPanel })));
 const NeighborhoodDirectoryPanel = lazy(() => import("@/components/neighborhoods").then(m => ({ default: m.NeighborhoodDirectoryPanel })));
+const CountyConfigPanel = lazy(() => import("@/components/settings").then(m => ({ default: m.CountyConfigPanel })));
 
 // Workbench views
 const PropertyWorkbench = lazy(() => import("@/components/workbench").then(m => ({ default: m.PropertyWorkbench })));
@@ -258,6 +259,8 @@ export function AppLayout({ initialParcel: routeParcel, initialModule, initialFa
             return <DataValidationPanel />;
           case "neighborhoods":
             return <NeighborhoodDirectoryPanel />;
+          case "settings":
+            return <CountyConfigPanel />;
           case "sync":
             return (
               <div className="p-6 max-w-7xl mx-auto">
