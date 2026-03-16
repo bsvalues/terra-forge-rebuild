@@ -150,6 +150,7 @@ export const IA_MODULES: ModuleDefinition[] = [
       { id: "trust", label: "Audit Log", icon: BookOpen, scope: "run" },
       { id: "ledger", label: "Value Ledger", icon: GitCompareArrows, scope: "run" },
       { id: "catalog", label: "Data Catalog", icon: Database, scope: "county" },
+      { id: "models", label: "Model Registry", icon: TrendingUp, scope: "run" },
     ],
   },
 ];
@@ -189,6 +190,7 @@ export const LEGACY_REDIRECTS: LegacyRedirect[] = [
   { legacyId: "trust", targetModule: "registry", targetView: "trust" },
   { legacyId: "ledger", targetModule: "registry", targetView: "ledger" },
   { legacyId: "catalog", targetModule: "registry", targetView: "catalog" },
+  { legacyId: "models", targetModule: "registry", targetView: "models" },
 ];
 
 // ── Helpers ───────────────────────────────────────────────────────
