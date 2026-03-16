@@ -9,13 +9,14 @@
 
 ## Current State Summary
 
-**Active Phase**: Phase 56 — Model Registry (COMPLETE)  
-**Last Completed Task**: 56.3 — IA_MAP + AppLayout wiring  
-**Next Task**: Phase 57 planning  
+**Active Phase**: Phase 57 — Appeal Insights Dashboard (COMPLETE)  
+**Last Completed Task**: 57.3 — IA_MAP + AppLayout wiring  
+**Next Task**: Phase 58 planning  
 **Blockers**: None
 
 ---
 
+| 57 | Appeal Insights Dashboard | ✅ COMPLETE | 3/3 | useAppealAnalytics hook (appeals+parcels join, computeStats aggregation for win rate/reductions/monthly trends/hotspots), AppealInsightsDashboard UI (4 stat cards, monthly filing trend bars, neighborhood hotspot ranking, resolution breakdown, searchable/filterable records table with value deltas), IA_MAP + AppLayout wiring (Home appeal-insights view) |
 | 56 | Model Registry | ✅ COMPLETE | 3/3 | useModelRegistry hook (parallel queries across calibration_runs, avm_runs, cost_approach_runs, income_approach_runs with unified ModelRunRecord type, computeModelStats aggregation), ModelRegistryPanel UI (stats cards, approach filter badges, sortable table with R²/RMSE/COD/Median Ratio metrics, status badges, 100-row pagination), IA_MAP + AppLayout wiring (Registry models view) |
 | 55 | Data Catalog | ✅ COMPLETE | 3/3 | useDataCatalog hook (parallel row counts + freshness queries across 11 tables, Write-Lane Matrix codified as static domain registry), DataCatalogPanel UI (stats cards, owner filter badges, expandable domain cards with field list, scope/table metadata), IA_MAP + AppLayout wiring (Registry catalog view) |
 | 54 | Value Adjustment Ledger | ✅ COMPLETE | 3/3 | useValueAdjustmentLedger hook (query with parcel joins, filters, stats aggregation), ValueAdjustmentLedger UI (search, type filter, date range, rolled-back toggle, delta table with color-coded changes, type breakdown badges), IA_MAP + AppLayout wiring (Registry ledger view) |
