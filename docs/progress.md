@@ -9,13 +9,14 @@
 
 ## Current State Summary
 
-**Active Phase**: Phase 51 — Data Validation Rules Engine (COMPLETE)  
-**Last Completed Task**: 51.4 — IA_MAP + AppLayout wiring  
-**Next Task**: Phase 52 planning  
+**Active Phase**: Phase 52 — Neighborhood Directory & Analytics (COMPLETE)  
+**Last Completed Task**: 52.3 — IA_MAP + AppLayout wiring  
+**Next Task**: Phase 53 planning  
 **Blockers**: None
 
 ---
 
+| 52 | Neighborhood Directory & Analytics | ✅ COMPLETE | 3/3 | useNeighborhoods hooks (CRUD, stats aggregation from parcels, TerraTrace audit), NeighborhoodDirectoryPanel UI (stats cards, search, card grid with median/total/avgSF/avgYr, create/edit/delete dialog), IA_MAP + AppLayout wiring |
 | 51 | Data Validation Rules Engine | ✅ COMPLETE | 4/4 | validation_rules table (RLS, user-scoped), useValidationRules hooks (CRUD, toggle, execution engine with 8 operators), DataValidationPanel UI (rule builder dialog, run-all, results with pass/fail bars + failed parcel preview), IA_MAP + AppLayout wiring |
 | 50 | Notification Center & Activity Feed | ✅ COMPLETE | 3/3 | useActivityFeed hook (trace_events query, module filter, stats), NotificationCenterPanel UI (notifications tab with read/clear, activity feed with module filter, stats cards), IA_MAP + AppLayout wiring |
 | 49 | Scheduled Tasks & Automation | ✅ COMPLETE | 4/4 | scheduled_tasks table (RLS, user-scoped), useScheduledTasks hooks (CRUD, toggle, execute, next-run calc), SchedulerDashboard UI (create dialog, active/paused list, run-now, overdue badges), IA_MAP + AppLayout wiring |
