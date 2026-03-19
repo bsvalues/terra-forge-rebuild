@@ -373,10 +373,10 @@ export function SLCODemoLanding({ onNavigate }: SLCODemoLandingProps) {
                               className="mt-2 text-xs w-full gap-1"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                if (t.id === "annual-reval") onNavigate("dashboard");
-                                else if (t.id === "appeal-defense") onNavigate("appeal-insights");
-                                else if (t.id === "data-onboard") onNavigate("slco-pipeline");
-                                else onNavigate("nbhd-review");
+                                 if (t.id === "annual-reval") onNavigate("dashboard");
+                                 else if (t.id === "appeal-defense") onNavigate("appeal-risk");
+                                 else if (t.id === "data-onboard") onNavigate("slco-pipeline");
+                                 else onNavigate("nbhd-review");
                               }}
                             >
                               Launch Template
