@@ -293,6 +293,26 @@ function ParcelSummaryContent() {
         <QuickStat icon={FileText} label="Open Permits" value={snapshot.workflows.openPermits.length} />
       </motion.div>
 
+      {/* AI Value Change Explainer */}
+      {snapshot.valuation.history.length >= 2 && (
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 }}>
+          <ValueChangeExplainer
+            parcelNumber={snapshot.identity.parcelNumber}
+            address={snapshot.identity.address}
+            propertyClass={snapshot.identity.propertyClass}
+            currentValue={snapshot.valuation.assessedValue ?? 0}
+            priorValue={
+              snapshot.valuation.history.length >= 2
+                ? (snapshot.valuation.history[1].totalValue ?? snapshot.valuation.history[1].landValue + snapshot.valuation.history[1].improvementValue)
+                : null
+            }
+            landValue={snapshot.valuation.landValue}
+            improvementValue={snapshot.valuation.improvementValue}
+            neighborhoodCode={snapshot.identity.neighborhoodCode}
+          />
+        </motion.div>
+      )}
+
       {/* Trust OS: Chain Integrity */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
         <h3 className="text-sm font-medium text-foreground mb-2 flex items-center gap-1.5">
