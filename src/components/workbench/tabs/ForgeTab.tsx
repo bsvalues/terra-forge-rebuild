@@ -131,6 +131,7 @@ export function ForgeTab() {
         {activeView === "avmrun" && <AvmRunPanel />}
         {activeView === "cost" && <CostApproachPanel />}
         {activeView === "ratio" && <RatioStudyPanel />}
+        {activeView === "compare" && <div className="p-6"><ParcelComparisonView /></div>}
       </div>
     </div>
   );
