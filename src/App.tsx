@@ -84,6 +84,7 @@ function AppShell() {
                 </ProtectedRoute>
               }
             />
+            <Route path="/portal" element={<OwnerPortal />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
