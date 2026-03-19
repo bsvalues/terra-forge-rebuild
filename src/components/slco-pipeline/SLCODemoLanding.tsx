@@ -402,6 +402,7 @@ export function SLCODemoLanding({ onNavigate }: SLCODemoLandingProps) {
           { icon: Scale, label: "Appeal Insights", view: "appeal-insights", desc: "Filing trends & defense" },
           { icon: Rocket, label: "Launch Reval", view: "launch-reval", desc: "Start revaluation cycle" },
           { icon: TrendingUp, label: "Reval Progress", view: "reval-progress", desc: "Track cycle progress" },
+          { icon: FileText, label: "Reval Report", view: "reval-report", desc: "Value change summaries" },
           { icon: Activity, label: "Activity Feed", view: "activity", desc: "Real-time audit trail" },
         ].map((nav) => (
           <Card

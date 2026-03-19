@@ -282,6 +282,8 @@ export function AppLayout({ initialParcel: routeParcel, initialModule, initialFa
             return <RevaluationLaunchPanel />;
           case "reval-progress":
             return <RevaluationProgressTracker onNavigate={handleNavigate} />;
+          case "reval-report":
+            return <RevaluationReportDashboard onNavigate={handleNavigate} />;
           case "webhooks":
             return (
               <div className="p-6 max-w-7xl mx-auto">
