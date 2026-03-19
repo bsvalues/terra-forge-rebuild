@@ -39,6 +39,9 @@ export function ForgeTab() {
     { id: "segments", label: "Segments", icon: Layers },
     { id: "anatomy", label: "Anatomy", icon: Compass },
     { id: "comps", label: "Comparables", icon: TrendingUp },
+    { id: "avmrun", label: "AVM Pipeline", icon: FlaskConical },
+    { id: "cost", label: "Cost Approach", icon: DollarSign },
+    { id: "ratio", label: "Ratio Study", icon: BarChart3 },
   ];
 
   const navigate = useNavigate();
