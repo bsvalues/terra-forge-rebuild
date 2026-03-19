@@ -383,8 +383,7 @@ function ReviewWorkspace({ reviewId, onBack }: { reviewId: string; onBack: () =>
                     <CommitmentButton
                       onClick={handleAdvance}
                       disabled={!canAdvance || advanceMut.isPending || completeMut.isPending}
-                      className="gap-2 text-xs"
-                      size="sm"
+                      className="gap-2 text-xs h-8 px-3"
                     >
                       {advanceMut.isPending || completeMut.isPending ? (
                         <Loader2 className="h-3.5 w-3.5 animate-spin" />
