@@ -1,4 +1,4 @@
-// TerraFusion OS — SLCo Demo Landing Dashboard (Phase 63)
+// TerraFusion OS — SLCo Demo Landing Dashboard (Phase 63 + Phase 69 Defensibility)
 // Executive-grade overview for Salt Lake County assessors.
 
 import { useState } from "react";
@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { useCountyVitals } from "@/hooks/useCountyVitals";
+import { DefensibilityScoreCard } from "@/components/analytics/DefensibilityScoreCard";
 
 // ── Quick-start template definitions ───────────────────────────────
 const QUICK_START_TEMPLATES = [
@@ -139,6 +140,7 @@ export function SLCODemoLanding({ onNavigate }: SLCODemoLandingProps) {
 
   const totalParcels = vitals?.parcels?.total || 0;
   const qualityScore = vitals?.quality?.overall || 0;
+  const defensibility = vitals?.defensibility;
 
   // Determine onboarding state
   const hasData = totalParcels > 0;
@@ -204,9 +206,10 @@ export function SLCODemoLanding({ onNavigate }: SLCODemoLandingProps) {
             {[
               { label: "Parcels Loaded", value: totalParcels.toLocaleString(), icon: Database },
               { label: "Data Quality", value: `${qualityScore}%`, icon: Shield },
+              { label: "Defensibility", value: `${defensibility?.overall ?? 0}`, icon: Shield },
               { label: "Onboarding", value: `${onboardingProgress}%`, icon: Rocket },
             ].map((stat) => (
-              <div key={stat.label} className="p-3 rounded-xl bg-card/80 border border-border/30 min-w-[120px] text-center">
+              <div key={stat.label} className="p-3 rounded-xl bg-card/80 border border-border/30 min-w-[110px] text-center">
                 <stat.icon className="h-4 w-4 text-primary mx-auto mb-1" />
                 <div className="text-lg font-bold font-mono">{stat.value}</div>
                 <span className="text-[9px] text-muted-foreground uppercase tracking-wider">{stat.label}</span>
@@ -261,6 +264,15 @@ export function SLCODemoLanding({ onNavigate }: SLCODemoLandingProps) {
           ))}
         </CardContent>
       </Card>
+
+      {/* ── Defensibility Score ────────────────────────────────────── */}
+      {defensibility && (
+        <DefensibilityScoreCard
+          defensibility={defensibility}
+          dataQuality={vitals?.dataQuality}
+          onNavigate={onNavigate}
+        />
+      )}
 
       {/* ── Jurisdiction Map (Interactive Grid) ───────────────────── */}
       <Card className="border-border/50 bg-card/80">
