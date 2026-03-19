@@ -206,9 +206,10 @@ export function SLCODemoLanding({ onNavigate }: SLCODemoLandingProps) {
             {[
               { label: "Parcels Loaded", value: totalParcels.toLocaleString(), icon: Database },
               { label: "Data Quality", value: `${qualityScore}%`, icon: Shield },
+              { label: "Defensibility", value: `${defensibility?.overall ?? 0}`, icon: Shield },
               { label: "Onboarding", value: `${onboardingProgress}%`, icon: Rocket },
             ].map((stat) => (
-              <div key={stat.label} className="p-3 rounded-xl bg-card/80 border border-border/30 min-w-[120px] text-center">
+              <div key={stat.label} className="p-3 rounded-xl bg-card/80 border border-border/30 min-w-[110px] text-center">
                 <stat.icon className="h-4 w-4 text-primary mx-auto mb-1" />
                 <div className="text-lg font-bold font-mono">{stat.value}</div>
                 <span className="text-[9px] text-muted-foreground uppercase tracking-wider">{stat.label}</span>
