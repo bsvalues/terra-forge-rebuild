@@ -305,6 +305,12 @@ export function TerraPilotChat({ fullscreen = false }: TerraPilotChatProps) {
           try {
             const parsed = JSON.parse(jsonStr);
             
+            // Swarm phase events (Phase 80)
+            if (parsed.swarm_phase) {
+              setSwarmPhase(parsed.swarm_phase as SwarmPhase);
+              continue;
+            }
+            
             if (parsed.tool_calls) {
               capturedToolCalls = parsed.tool_calls as ToolCallResult[];
               setActiveTools(capturedToolCalls.map(tc => tc.tool_name));
