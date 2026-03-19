@@ -65,8 +65,11 @@ export function SummaryTab() {
           </p>
           <p className="text-xs text-muted-foreground">"One parcel, one screen, every role"</p>
         </motion.div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <WatchlistPanel />
+          <TraceActivityFeed />
+        </div>
         <ExecutiveKpiCards />
-        <TraceActivityFeed />
       </div>
     );
   }
