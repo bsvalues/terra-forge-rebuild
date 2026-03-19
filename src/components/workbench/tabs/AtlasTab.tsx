@@ -148,6 +148,10 @@ export function AtlasTab() {
                   <MapPin className="w-3.5 h-3.5" />
                   Values
                 </TabsTrigger>
+                <TabsTrigger value="trends" className="text-xs gap-1.5">
+                  <TrendingUp className="w-3.5 h-3.5" />
+                  Trends
+                </TabsTrigger>
               </TabsList>
             </Tabs>
           </div>
