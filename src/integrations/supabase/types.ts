@@ -1314,6 +1314,67 @@ export type Database = {
           },
         ]
       }
+      dq_verification_snapshots: {
+        Row: {
+          batch_id: string | null
+          county_id: string
+          created_at: string
+          diagnosis_run_id: string | null
+          gate_results: Json
+          id: string
+          metrics: Json
+          passed_all_gates: boolean | null
+          quality_score: number | null
+          snapshot_type: string
+        }
+        Insert: {
+          batch_id?: string | null
+          county_id: string
+          created_at?: string
+          diagnosis_run_id?: string | null
+          gate_results?: Json
+          id?: string
+          metrics?: Json
+          passed_all_gates?: boolean | null
+          quality_score?: number | null
+          snapshot_type?: string
+        }
+        Update: {
+          batch_id?: string | null
+          county_id?: string
+          created_at?: string
+          diagnosis_run_id?: string | null
+          gate_results?: Json
+          id?: string
+          metrics?: Json
+          passed_all_gates?: boolean | null
+          quality_score?: number | null
+          snapshot_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dq_verification_snapshots_batch_id_fkey"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "dq_remediation_batches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dq_verification_snapshots_county_id_fkey"
+            columns: ["county_id"]
+            isOneToOne: false
+            referencedRelation: "counties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dq_verification_snapshots_diagnosis_run_id_fkey"
+            columns: ["diagnosis_run_id"]
+            isOneToOne: false
+            referencedRelation: "dq_diagnosis_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       exemptions: {
         Row: {
           applicant_name: string | null
@@ -4834,6 +4895,7 @@ export type Database = {
         Args: { p_county_id: string; p_limit?: number }
         Returns: Json
       }
+      compute_dq_scores: { Args: { p_county_id: string }; Returns: Json }
       compute_ratio_distribution: {
         Args: {
           p_neighborhood_code?: string
@@ -4938,6 +5000,7 @@ export type Database = {
         | { Args: { table_name: string }; Returns: string }
       enablelongtransactions: { Args: never; Returns: string }
       equals: { Args: { geom1: unknown; geom2: unknown }; Returns: boolean }
+      evaluate_readiness_gates: { Args: { p_county_id: string }; Returns: Json }
       geometry: { Args: { "": string }; Returns: unknown }
       geometry_above: {
         Args: { geom1: unknown; geom2: unknown }
