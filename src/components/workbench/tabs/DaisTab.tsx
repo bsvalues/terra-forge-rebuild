@@ -143,8 +143,9 @@ export function DaisTab({ initialCategory, onCategoryConsumed }: DaisTabProps) {
           <PermitsWorkflow />
         </TabsContent>
 
-        <TabsContent value="exemptions" className="mt-0">
+        <TabsContent value="exemptions" className="mt-0 space-y-4">
           <ExemptionsWorkflow />
+          <ExemptionEligibilityChecker />
         </TabsContent>
 
         <TabsContent value="appeals" className="mt-0 space-y-4">
