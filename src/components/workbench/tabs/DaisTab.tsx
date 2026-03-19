@@ -160,6 +160,7 @@ export function DaisTab({ initialCategory, onCategoryConsumed }: DaisTabProps) {
         <TabsContent value="appeals" className="mt-0 space-y-4">
           <AppealsWorkflow />
           <AppealRiskDashboard />
+          <AppealOutcomePredictor />
         </TabsContent>
 
         <TabsContent value="notices" className="mt-0 space-y-4">
