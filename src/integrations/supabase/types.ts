@@ -5602,6 +5602,7 @@ export type Database = {
       }
       disablelongtransactions: { Args: never; Returns: string }
       discover_unregistered_neighborhoods: { Args: never; Returns: Json }
+      dq_parcel_counts: { Args: { p_county_id: string }; Returns: Json }
       dropgeometrycolumn:
         | {
             Args: {
