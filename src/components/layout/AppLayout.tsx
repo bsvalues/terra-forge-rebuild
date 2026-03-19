@@ -291,6 +291,8 @@ export function AppLayout({ initialParcel: routeParcel, initialModule, initialFa
             return <RevaluationNoticeGenerator onNavigate={handleNavigate} />;
           case "nbhd-review":
             return <NeighborhoodReviewOrchestrator />;
+          case "appeal-risk":
+            return <AppealRiskDashboard />;
           case "webhooks":
             return (
               <div className="p-6 max-w-7xl mx-auto">
