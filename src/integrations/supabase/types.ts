@@ -5290,6 +5290,10 @@ export type Database = {
         Returns: Json
       }
       get_pipeline_status: { Args: { p_county_id?: string }; Returns: Json }
+      get_revaluation_notice_candidates: {
+        Args: { p_cycle_id: string; p_min_change_pct?: number }
+        Returns: Json
+      }
       get_revaluation_progress: { Args: { p_cycle_id: string }; Returns: Json }
       get_revaluation_report: { Args: { p_cycle_id: string }; Returns: Json }
       get_user_county_id: { Args: never; Returns: string }

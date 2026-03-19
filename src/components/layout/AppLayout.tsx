@@ -41,6 +41,7 @@ const DataDoctorDashboard = lazy(() => import("@/components/slco-pipeline").then
 const RevaluationLaunchPanel = lazy(() => import("@/components/revaluation/RevaluationLaunchPanel").then(m => ({ default: m.RevaluationLaunchPanel })));
 const RevaluationProgressTracker = lazy(() => import("@/components/revaluation/RevaluationProgressTracker").then(m => ({ default: m.RevaluationProgressTracker })));
 const RevaluationReportDashboard = lazy(() => import("@/components/revaluation/RevaluationReportDashboard").then(m => ({ default: m.RevaluationReportDashboard })));
+const RevaluationNoticeGenerator = lazy(() => import("@/components/revaluation/RevaluationNoticeGenerator").then(m => ({ default: m.RevaluationNoticeGenerator })));
 
 // Workbench views
 const PropertyWorkbench = lazy(() => import("@/components/workbench").then(m => ({ default: m.PropertyWorkbench })));
@@ -284,6 +285,8 @@ export function AppLayout({ initialParcel: routeParcel, initialModule, initialFa
             return <RevaluationProgressTracker onNavigate={handleNavigate} />;
           case "reval-report":
             return <RevaluationReportDashboard onNavigate={handleNavigate} />;
+          case "reval-notices":
+            return <RevaluationNoticeGenerator onNavigate={handleNavigate} />;
           case "webhooks":
             return (
               <div className="p-6 max-w-7xl mx-auto">
