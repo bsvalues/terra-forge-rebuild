@@ -21,6 +21,7 @@ import {
   Loader2,
   RefreshCw,
   BookOpen,
+  Shield,
 } from "lucide-react";
 import { Star } from "lucide-react";
 import { useWorkbench } from "../WorkbenchContext";
@@ -29,6 +30,8 @@ import { useParcelAdjustments } from "@/hooks/useValueAdjustments";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { TerraTraceActivityFeed } from "@/components/proof/TerraTraceActivityFeed";
+import { TraceChainIntegrityPanel } from "@/components/proof/TraceChainIntegrityPanel";
+import { useAuthContext } from "@/contexts/AuthContext";
 import { ParcelDetailEditor } from "../ParcelDetailEditor";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
@@ -188,6 +191,7 @@ function ParcelSummaryContent() {
   const snapshot = useParcel360(parcel.id);
   const { isWatched, watchItem } = useIsWatched(parcel.id);
   const { toggle: toggleWatch, isPending: watchPending } = useToggleWatchlist();
+  const { profile } = useAuthContext();
 
   const fmt = (v: number | null | undefined) =>
     v != null
@@ -271,6 +275,15 @@ function ParcelSummaryContent() {
         <QuickStat icon={DollarSign} label="Qualified Sales" value={snapshot.sales.qualifiedCount} />
         <QuickStat icon={Gavel} label="Pending Appeals" value={snapshot.workflows.pendingAppeals.length} alert={snapshot.workflows.pendingAppeals.length > 0} />
         <QuickStat icon={FileText} label="Open Permits" value={snapshot.workflows.openPermits.length} />
+      </motion.div>
+
+      {/* Trust OS: Chain Integrity */}
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
+        <h3 className="text-sm font-medium text-foreground mb-2 flex items-center gap-1.5">
+          <Shield className="w-4 h-4 text-chart-5" />
+          Trust Layer
+        </h3>
+        <TraceChainIntegrityPanel countyId={profile?.county_id} />
       </motion.div>
 
       {/* Main Content: Tabbed */}

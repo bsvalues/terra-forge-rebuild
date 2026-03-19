@@ -9,6 +9,7 @@ import { PermitsWorkflow } from "@/components/dais/PermitsWorkflow";
 import { ExemptionsWorkflow } from "@/components/dais/ExemptionsWorkflow";
 import { CertificationPipeline } from "@/components/dais/CertificationPipeline";
 import { NoticesPanel } from "@/components/dais/NoticesPanel";
+import { WorkflowInstanceTracker } from "@/components/workflow";
 import { useWorkbench } from "../WorkbenchContext";
 
 interface DaisTabProps {
@@ -58,11 +59,16 @@ export function DaisTab({ initialCategory, onCategoryConsumed }: DaisTabProps) {
         </button>
       </motion.div>
 
-      {/* Workflow Stats */}
-      <WorkflowStats 
-        onSelectCategory={setActiveCategory} 
-        activeCategory={activeCategory} 
-      />
+      {/* Workflow Stats + Instance Tracker */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div className="lg:col-span-2">
+          <WorkflowStats 
+            onSelectCategory={setActiveCategory} 
+            activeCategory={activeCategory} 
+          />
+        </div>
+        <WorkflowInstanceTracker />
+      </div>
 
       {/* Category Tabs */}
       <Tabs value={activeCategory} onValueChange={setActiveCategory} className="space-y-4">

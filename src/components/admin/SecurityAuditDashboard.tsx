@@ -15,6 +15,8 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Progress } from "@/components/ui/progress";
 import { useSecurityAudit, type SecurityEvent } from "@/hooks/useSecurityAudit";
+import { TraceChainIntegrityPanel } from "@/components/proof/TraceChainIntegrityPanel";
+import { useAuthContext } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 
 // ── Event icon + color mapping ────────────────────────────────
@@ -252,6 +254,7 @@ function ComplianceChecklist() {
 // ── Main Dashboard ───────────────────────────────────────────
 export function SecurityAuditDashboard() {
   const { data: metrics, isLoading, error } = useSecurityAudit();
+  const { profile } = useAuthContext();
 
   if (isLoading) {
     return (
@@ -326,7 +329,10 @@ export function SecurityAuditDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <ModuleActivityChart breakdown={metrics.moduleBreakdown} total={metrics.totalEvents7d} />
         <EventTypeList breakdown={metrics.eventTypeBreakdown} />
-        <ComplianceChecklist />
+        <div className="space-y-4">
+          <ComplianceChecklist />
+          <TraceChainIntegrityPanel countyId={profile?.county_id} />
+        </div>
       </div>
 
       {/* Audit Trail */}
