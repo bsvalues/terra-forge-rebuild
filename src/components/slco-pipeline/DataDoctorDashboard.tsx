@@ -326,11 +326,22 @@ export function DataDoctorDashboard() {
               <Button
                 size="sm"
                 variant="outline"
+                onClick={() => setShowVerification(true)}
+                className="gap-2"
+              >
+                <Target className="h-3.5 w-3.5" />
+                Verify & Gates
+              </Button>
+            )}
+            {hasRun && (
+              <Button
+                size="sm"
+                variant="outline"
                 onClick={() => setShowWorkbench(true)}
                 className="gap-2"
               >
                 <Wrench className="h-3.5 w-3.5" />
-                Remediation Workbench
+                Remediation
               </Button>
             )}
             <Button

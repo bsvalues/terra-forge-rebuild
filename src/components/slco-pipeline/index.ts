@@ -6,3 +6,4 @@ export { SLCODemoLanding } from "./SLCODemoLanding";
 export { WebhookNotificationHub } from "./WebhookNotificationHub";
 export { DataDoctorDashboard } from "./DataDoctorDashboard";
 export { RemediationWorkbench } from "./RemediationWorkbench";
+export { VerificationPanel } from "./VerificationPanel";
