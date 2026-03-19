@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Hammer, TrendingUp, Activity, Brain, Layers, Microscope, Compass, Factory as FactoryIcon, ExternalLink } from "lucide-react";
+import { Hammer, TrendingUp, Activity, Brain, Layers, Microscope, Compass, Factory as FactoryIcon, ExternalLink, FlaskConical, DollarSign, BarChart3 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useLatestCalibrationRun } from "@/hooks/useFactoryMetrics";
 import { CompsView } from "./CompsView";
@@ -10,6 +10,9 @@ import { RegressionStudioDashboard } from "@/components/regression/RegressionStu
 import { AVMStudioDashboard } from "@/components/avm/AVMStudioDashboard";
 import { SegmentDiscoveryDashboard } from "@/components/segments";
 import { ValuationAnatomyDashboard } from "@/components/anatomy";
+import { AvmRunPanel } from "@/components/valuation/AvmRunPanel";
+import { CostApproachPanel } from "@/components/valuation/CostApproachPanel";
+import { RatioStudyPanel } from "@/components/valuation/RatioStudyPanel";
 import { 
   PRDDrilldownDialog, 
   CODDrilldownDialog, 
@@ -24,7 +27,7 @@ import {
   useSampleSize,
 } from "@/hooks/useVEIData";
 
-type ForgeView = "vei" | "regression" | "avm" | "segments" | "anatomy" | "comps";
+type ForgeView = "vei" | "regression" | "avm" | "segments" | "anatomy" | "comps" | "avmrun" | "cost" | "ratio";
 
 export function ForgeTab() {
   const [activeView, setActiveView] = useState<ForgeView>("vei");
@@ -36,6 +39,9 @@ export function ForgeTab() {
     { id: "segments", label: "Segments", icon: Layers },
     { id: "anatomy", label: "Anatomy", icon: Compass },
     { id: "comps", label: "Comparables", icon: TrendingUp },
+    { id: "avmrun", label: "AVM Pipeline", icon: FlaskConical },
+    { id: "cost", label: "Cost Approach", icon: DollarSign },
+    { id: "ratio", label: "Ratio Study", icon: BarChart3 },
   ];
 
   const navigate = useNavigate();
@@ -116,6 +122,9 @@ export function ForgeTab() {
         {activeView === "segments" && <SegmentDiscoveryDashboard />}
         {activeView === "anatomy" && <ValuationAnatomyDashboard />}
         {activeView === "comps" && <CompsView />}
+        {activeView === "avmrun" && <AvmRunPanel />}
+        {activeView === "cost" && <CostApproachPanel />}
+        {activeView === "ratio" && <RatioStudyPanel />}
       </div>
     </div>
   );

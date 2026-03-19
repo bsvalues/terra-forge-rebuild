@@ -37,6 +37,7 @@ import { GeoEquityMap } from "@/components/geoequity/GeoEquityMap";
 import { EquityHeatmap } from "@/components/geoequity/EquityHeatmap";
 import { GISLayersPanel } from "@/components/geoequity/GISLayersPanel";
 import { ParcelSearchPanel } from "@/components/geoequity/ParcelSearchPanel";
+import { GeoEquityPanel } from "@/components/spatial/GeoEquityPanel";
 import { 
   useGISLayers, 
   useNeighborhoodGeoStats,
@@ -44,7 +45,7 @@ import {
 } from "@/hooks/useGISData";
 import { cn } from "@/lib/utils";
 
-type AtlasView = "map" | "heatmap" | "layers" | "search";
+type AtlasView = "map" | "heatmap" | "layers" | "search" | "geoequity";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -135,6 +136,10 @@ export function AtlasTab() {
                 <TabsTrigger value="search" className="text-xs gap-1.5">
                   <Search className="w-3.5 h-3.5" />
                   Search
+                </TabsTrigger>
+                <TabsTrigger value="geoequity" className="text-xs gap-1.5">
+                  <Compass className="w-3.5 h-3.5" />
+                  GeoEquity
                 </TabsTrigger>
               </TabsList>
             </Tabs>
@@ -430,6 +435,18 @@ export function AtlasTab() {
               className="p-6 h-full overflow-auto"
             >
               <ParcelSearchPanel />
+            </motion.div>
+          )}
+
+          {activeView === "geoequity" && (
+            <motion.div
+              key="geoequity"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              className="p-6 h-full overflow-auto"
+            >
+              <GeoEquityPanel />
             </motion.div>
           )}
         </AnimatePresence>
