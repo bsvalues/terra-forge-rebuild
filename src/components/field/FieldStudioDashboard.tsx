@@ -19,6 +19,7 @@ import {
 import { useFieldSync } from "@/hooks/useFieldSync";
 import { pullFieldAssignments } from "@/services/ingestService";
 import { InspectionPanel } from "./InspectionPanel";
+import { SyncStatusBanner } from "./SyncStatusBanner";
 
 export function FieldStudioDashboard() {
   const [assignments, setAssignments] = useState<FieldAssignment[]>([]);
