@@ -6,7 +6,12 @@ import {
   Scale,
   Bell,
 } from "lucide-react";
-import { useAppealsStats } from "@/hooks/useWorkflowStats";
+import {
+  useAppealsStats,
+  usePermitsStats,
+  useExemptionsStats,
+  useNoticesStats,
+} from "@/hooks/useWorkflowStats";
 
 interface WorkflowStatsProps {
   onSelectCategory: (category: string) => void;
@@ -15,25 +20,28 @@ interface WorkflowStatsProps {
 
 export function WorkflowStats({ onSelectCategory, activeCategory }: WorkflowStatsProps) {
   const { data: appealsData } = useAppealsStats();
+  const { data: permitsData } = usePermitsStats();
+  const { data: exemptionsData } = useExemptionsStats();
+  const { data: noticesData } = useNoticesStats();
 
   const stats = [
     {
       id: "permits",
       title: "Permits",
       icon: FileCheck,
-      pending: 12,
-      total: 45,
+      pending: permitsData?.pending || 0,
+      total: permitsData?.total || 0,
       color: "tf-green",
-      trend: "+3 this week",
+      trend: `${permitsData?.pending || 0} uncertified`,
     },
     {
       id: "exemptions",
       title: "Exemptions",
       icon: ClipboardCheck,
-      pending: 8,
-      total: 156,
+      pending: exemptionsData?.pending || 0,
+      total: exemptionsData?.total || 0,
       color: "tf-gold",
-      trend: "5 expiring soon",
+      trend: `${exemptionsData?.pending || 0} pending review`,
     },
     {
       id: "appeals",
@@ -48,10 +56,10 @@ export function WorkflowStats({ onSelectCategory, activeCategory }: WorkflowStat
       id: "notices",
       title: "Notices",
       icon: Bell,
-      pending: 0,
-      total: 234,
+      pending: noticesData?.pending || 0,
+      total: noticesData?.total || 0,
       color: "tf-cyan",
-      trend: "All sent",
+      trend: noticesData?.pending ? `${noticesData.pending} in queue` : "All sent",
     },
   ];
 
