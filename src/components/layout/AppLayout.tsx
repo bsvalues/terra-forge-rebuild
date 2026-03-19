@@ -36,6 +36,7 @@ const CountyConfigPanel = lazy(() => import("@/components/settings").then(m => (
 const AppealInsightsDashboard = lazy(() => import("@/components/appeal-insights").then(m => ({ default: m.AppealInsightsDashboard })));
 const SLCOPipelineHub = lazy(() => import("@/components/slco-pipeline").then(m => ({ default: m.SLCOPipelineHub })));
 const SLCODemoLanding = lazy(() => import("@/components/slco-pipeline").then(m => ({ default: m.SLCODemoLanding })));
+const WebhookNotificationHub = lazy(() => import("@/components/slco-pipeline").then(m => ({ default: m.WebhookNotificationHub })));
 
 // Workbench views
 const PropertyWorkbench = lazy(() => import("@/components/workbench").then(m => ({ default: m.PropertyWorkbench })));
@@ -271,6 +272,12 @@ export function AppLayout({ initialParcel: routeParcel, initialModule, initialFa
             return <SLCOPipelineHub />;
           case "slco-demo":
             return <SLCODemoLanding onNavigate={handleNavigate} />;
+          case "webhooks":
+            return (
+              <div className="p-6 max-w-7xl mx-auto">
+                <WebhookNotificationHub />
+              </div>
+            );
           case "settings":
             return <CountyConfigPanel />;
           case "sync":

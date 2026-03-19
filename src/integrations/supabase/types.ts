@@ -3905,6 +3905,112 @@ export type Database = {
           },
         ]
       }
+      webhook_deliveries: {
+        Row: {
+          attempt_number: number
+          created_at: string
+          delivered_at: string | null
+          endpoint_id: string
+          error_message: string | null
+          event_type: string
+          id: string
+          payload: Json
+          response_body: string | null
+          status: string
+          status_code: number | null
+        }
+        Insert: {
+          attempt_number?: number
+          created_at?: string
+          delivered_at?: string | null
+          endpoint_id: string
+          error_message?: string | null
+          event_type: string
+          id?: string
+          payload?: Json
+          response_body?: string | null
+          status?: string
+          status_code?: number | null
+        }
+        Update: {
+          attempt_number?: number
+          created_at?: string
+          delivered_at?: string | null
+          endpoint_id?: string
+          error_message?: string | null
+          event_type?: string
+          id?: string
+          payload?: Json
+          response_body?: string | null
+          status?: string
+          status_code?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "webhook_deliveries_endpoint_id_fkey"
+            columns: ["endpoint_id"]
+            isOneToOne: false
+            referencedRelation: "webhook_endpoints"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      webhook_endpoints: {
+        Row: {
+          county_id: string
+          created_at: string
+          created_by: string
+          event_types: string[]
+          id: string
+          is_active: boolean
+          metadata: Json | null
+          name: string
+          retry_count: number
+          secret: string | null
+          timeout_ms: number
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          county_id?: string
+          created_at?: string
+          created_by?: string
+          event_types?: string[]
+          id?: string
+          is_active?: boolean
+          metadata?: Json | null
+          name: string
+          retry_count?: number
+          secret?: string | null
+          timeout_ms?: number
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          county_id?: string
+          created_at?: string
+          created_by?: string
+          event_types?: string[]
+          id?: string
+          is_active?: boolean
+          metadata?: Json | null
+          name?: string
+          retry_count?: number
+          secret?: string | null
+          timeout_ms?: number
+          updated_at?: string
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "webhook_endpoints_county_id_fkey"
+            columns: ["county_id"]
+            isOneToOne: false
+            referencedRelation: "counties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       workflow_tasks: {
         Row: {
           assigned_by: string
