@@ -45,11 +45,11 @@ export function SummaryTab() {
 
   if (!hasParcel) {
     return (
-      <div className="flex items-center justify-center h-full">
+      <div className="space-y-8 p-6">
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="text-center max-w-md mx-auto p-8"
+          className="text-center max-w-md mx-auto pt-4 pb-6"
         >
           <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-6">
             <MapPin className="w-10 h-10 text-primary" />
@@ -60,6 +60,7 @@ export function SummaryTab() {
           </p>
           <p className="text-xs text-muted-foreground">"One parcel, one screen, every role"</p>
         </motion.div>
+        <ExecutiveKpiCards />
       </div>
     );
   }

@@ -338,9 +338,13 @@ export function InspectionPanel({ assignment, onBack }: InspectionPanelProps) {
         {/* Photo Tab — using PhotoCaptureGrid */}
         <TabsContent value="photo" className="mt-4 space-y-4">
           <PhotoCaptureGrid
-            onPhotoCaptured={(label, base64) => {
-              saveObservation("photo", { blob: base64, label, photoCount: 1 });
+            photos={capturedPhotos}
+            onCapture={(photo) => {
+              setCapturedPhotos(prev => [...prev, photo]);
+              saveObservation("photo", { blob: photo.dataUrl, label: photo.label, photoCount: 1 });
             }}
+            onRemove={(id) => setCapturedPhotos(prev => prev.filter(p => p.id !== id))}
+            onLabelChange={(id, label) => setCapturedPhotos(prev => prev.map(p => p.id === id ? { ...p, label } : p))}
           />
         </TabsContent>
 
