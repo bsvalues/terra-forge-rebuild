@@ -1,8 +1,7 @@
 // TerraFusion OS — Phase 88: GeoEquity Spatial Panel
 // Renders a Leaflet map showing parcel assessment ratios colored by equity tier.
 
-import { useMemo, useState } from "react";
-import { MapContainer, TileLayer, CircleMarker, Popup, useMap } from "react-leaflet";
+import { useMemo, useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -10,6 +9,7 @@ import { Map, Layers, Loader2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthContext } from "@/contexts/AuthContext";
+import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
 interface ParcelEquityPoint {
@@ -23,10 +23,10 @@ interface ParcelEquityPoint {
 }
 
 const EQUITY_COLORS: Record<string, string> = {
-  under: "#ef4444",    // Red — under-assessed
-  fair: "#22c55e",     // Green — fair
-  over: "#3b82f6",     // Blue — over-assessed
-  unknown: "#6b7280",  // Gray
+  under: "#ef4444",
+  fair: "#22c55e",
+  over: "#3b82f6",
+  unknown: "#6b7280",
 };
 
 function getEquityTier(ratio: number | null): string {
@@ -40,7 +40,6 @@ function useParcelEquityData(countyId?: string) {
   return useQuery<ParcelEquityPoint[]>({
     queryKey: ["geo-equity-parcels", countyId],
     queryFn: async () => {
-      // Join parcels with their latest assessment ratio
       const { data: parcels, error } = await supabase
         .from("parcels")
         .select("id, parcel_number, latitude, longitude, assessed_value, neighborhood_code")
@@ -76,29 +75,75 @@ function useParcelEquityData(countyId?: string) {
   });
 }
 
-function FitBounds({ points }: { points: ParcelEquityPoint[] }) {
-  const map = useMap();
-  useMemo(() => {
-    if (points.length > 0) {
-      const bounds = points.map((p) => [p.latitude, p.longitude] as [number, number]);
-      map.fitBounds(bounds, { padding: [30, 30] });
-    }
-  }, [points, map]);
-  return null;
-}
-
 export function GeoEquityPanel() {
   const { profile } = useAuthContext();
   const { data: points = [], isLoading } = useParcelEquityData(profile?.county_id ?? undefined);
   const [showLegend, setShowLegend] = useState(true);
+  const mapRef = useRef<L.Map | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
-  const center: [number, number] = points.length > 0
-    ? [points[0].latitude, points[0].longitude]
-    : [40.76, -111.89]; // Default Salt Lake City
+  useEffect(() => {
+    if (!containerRef.current || mapRef.current) return;
+
+    const center: L.LatLngExpression = points.length > 0
+      ? [points[0].latitude, points[0].longitude]
+      : [40.76, -111.89];
+
+    const map = L.map(containerRef.current).setView(center, 12);
+    L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>',
+    }).addTo(map);
+
+    mapRef.current = map;
+
+    return () => {
+      map.remove();
+      mapRef.current = null;
+    };
+  }, []);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || points.length === 0) return;
+
+    // Clear existing markers
+    map.eachLayer((layer) => {
+      if (layer instanceof L.CircleMarker) map.removeLayer(layer);
+    });
+
+    const bounds: L.LatLngExpression[] = [];
+    points.forEach((p) => {
+      const tier = getEquityTier(p.ratio);
+      const color = EQUITY_COLORS[tier];
+      bounds.push([p.latitude, p.longitude]);
+
+      L.circleMarker([p.latitude, p.longitude], {
+        radius: 5,
+        fillColor: color,
+        fillOpacity: 0.7,
+        color,
+        weight: 1,
+      })
+        .bindPopup(`
+          <div style="font-size:12px">
+            <b>${p.parcel_number}</b><br/>
+            Value: $${p.assessed_value.toLocaleString()}<br/>
+            Ratio: ${p.ratio?.toFixed(4) ?? "N/A"}<br/>
+            Nbhd: ${p.neighborhood_code ?? "—"}<br/>
+            <span style="color:${color};font-weight:bold">${tier.toUpperCase()}</span>
+          </div>
+        `)
+        .addTo(map);
+    });
+
+    if (bounds.length > 0) {
+      map.fitBounds(bounds as L.LatLngBoundsExpression, { padding: [30, 30] });
+    }
+  }, [points]);
 
   const summary = useMemo(() => {
     const counts = { under: 0, fair: 0, over: 0, unknown: 0 };
-    points.forEach((p) => { counts[getEquityTier(p.ratio)]++; });
+    points.forEach((p) => { counts[getEquityTier(p.ratio) as keyof typeof counts]++; });
     return counts;
   }, [points]);
 
@@ -145,50 +190,8 @@ export function GeoEquityPanel() {
           </Button>
         </CardHeader>
         <CardContent className="p-0 relative">
-          <div className="h-[400px]">
-            <MapContainer
-              center={center}
-              zoom={12}
-              className="h-full w-full"
-              style={{ background: "hsl(var(--background))" }}
-            >
-              <TileLayer
-                url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'
-              />
-              <FitBounds points={points} />
-              {points.map((p) => {
-                const tier = getEquityTier(p.ratio);
-                return (
-                  <CircleMarker
-                    key={p.id}
-                    center={[p.latitude, p.longitude]}
-                    radius={5}
-                    pathOptions={{
-                      fillColor: EQUITY_COLORS[tier],
-                      fillOpacity: 0.7,
-                      color: EQUITY_COLORS[tier],
-                      weight: 1,
-                    }}
-                  >
-                    <Popup>
-                      <div className="text-xs space-y-1">
-                        <div className="font-semibold">{p.parcel_number}</div>
-                        <div>Value: ${p.assessed_value.toLocaleString()}</div>
-                        <div>Ratio: {p.ratio?.toFixed(4) ?? "N/A"}</div>
-                        <div>Nbhd: {p.neighborhood_code ?? "—"}</div>
-                        <Badge className="text-[10px]" style={{ backgroundColor: EQUITY_COLORS[tier] }}>
-                          {tier.toUpperCase()}
-                        </Badge>
-                      </div>
-                    </Popup>
-                  </CircleMarker>
-                );
-              })}
-            </MapContainer>
-          </div>
+          <div ref={containerRef} className="h-[400px] w-full" />
 
-          {/* Legend overlay */}
           {showLegend && (
             <div className="absolute bottom-3 left-3 bg-card/90 backdrop-blur-sm border border-border/40 rounded-lg p-3 z-[1000]">
               <div className="text-[10px] font-medium text-foreground mb-2">Assessment Equity</div>

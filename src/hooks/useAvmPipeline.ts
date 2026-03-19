@@ -76,14 +76,14 @@ export function useLaunchAvmRun() {
     }) => {
       const { data, error } = await supabase
         .from("avm_runs")
-        .insert({
+        .insert([{
           county_id: params.countyId,
           model_name: params.modelName,
           model_type: params.modelType,
           model_version: "1.0",
           status: "queued",
           training_config: params.trainingConfig ?? {},
-        })
+        }])
         .select()
         .single();
       if (error) throw error;
