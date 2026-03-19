@@ -2,9 +2,11 @@ import { useState, useCallback, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   ArrowLeft, Camera, Ruler, ClipboardCheck, MessageSquare,
-  AlertTriangle, CheckCircle2, MapPin, Save, ImagePlus, PenTool
+  AlertTriangle, CheckCircle2, MapPin, Save, ImagePlus, PenTool, Navigation
 } from "lucide-react";
 import { SketchModule } from "@/components/sketch";
+import { GpsTracker } from "./GpsTracker";
+import { PhotoCaptureGrid } from "./PhotoCaptureGrid";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -65,8 +67,8 @@ export function InspectionPanel({ assignment, onBack }: InspectionPanelProps) {
   const [anomalyType, setAnomalyType] = useState("boundary_mismatch");
   const [anomalyDesc, setAnomalyDesc] = useState("");
 
-  // Photo state
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [capturedPhotos, setCapturedPhotos] = useState<Array<{ id: string; dataUrl: string; label: string; timestamp: number }>>([]);
 
   // Load observations on mount
   useEffect(() => {
@@ -194,6 +196,9 @@ export function InspectionPanel({ assignment, onBack }: InspectionPanelProps) {
 
   return (
     <div className="p-4 sm:p-6 max-w-3xl mx-auto space-y-4">
+      {/* GPS Tracker */}
+      <GpsTracker className="mb-1" />
+
       {/* Header */}
       <div className="flex items-center gap-3">
         <Button variant="ghost" size="icon" onClick={onBack}>
@@ -330,50 +335,17 @@ export function InspectionPanel({ assignment, onBack }: InspectionPanelProps) {
           </Card>
         </TabsContent>
 
-        {/* Photo Tab */}
+        {/* Photo Tab — using PhotoCaptureGrid */}
         <TabsContent value="photo" className="mt-4 space-y-4">
-          <Card className="border-border/50">
-            <CardContent className="p-4 space-y-4">
-              <div className="text-center">
-                {photoPreview ? (
-                  <div className="relative">
-                    <img
-                      src={photoPreview}
-                      alt="Captured photo"
-                      className="w-full max-h-64 object-cover rounded-lg border border-border/50"
-                    />
-                    <button
-                      onClick={() => setPhotoPreview(null)}
-                      className="absolute top-2 right-2 w-6 h-6 rounded-full bg-destructive/80 text-destructive-foreground flex items-center justify-center text-xs"
-                    >
-                      ✕
-                    </button>
-                  </div>
-                ) : (
-                  <label className="cursor-pointer block">
-                    <div className="border-2 border-dashed border-border/50 rounded-xl p-8 hover:border-primary/30 transition-colors">
-                      <ImagePlus className="w-10 h-10 text-muted-foreground/40 mx-auto mb-2" />
-                      <p className="text-sm text-muted-foreground">Tap to capture or select a photo</p>
-                      <p className="text-[10px] text-muted-foreground mt-1">Camera or gallery</p>
-                    </div>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      capture="environment"
-                      className="hidden"
-                      onChange={handlePhotoCapture}
-                    />
-                  </label>
-                )}
-              </div>
-              {photoPreview && (
-                <Button onClick={handleSavePhoto} disabled={saving} className="w-full">
-                  <Camera className="w-4 h-4 mr-2" />
-                  Save Photo Evidence
-                </Button>
-              )}
-            </CardContent>
-          </Card>
+          <PhotoCaptureGrid
+            photos={capturedPhotos}
+            onCapture={(photo) => {
+              setCapturedPhotos(prev => [...prev, photo]);
+              saveObservation("photo", { blob: photo.dataUrl, label: photo.label, photoCount: 1 });
+            }}
+            onRemove={(id) => setCapturedPhotos(prev => prev.filter(p => p.id !== id))}
+            onLabelChange={(id, label) => setCapturedPhotos(prev => prev.map(p => p.id === id ? { ...p, label } : p))}
+          />
         </TabsContent>
 
         {/* Notes Tab */}
