@@ -329,6 +329,12 @@ export function SecurityAuditDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <ModuleActivityChart breakdown={metrics.moduleBreakdown} total={metrics.totalEvents7d} />
         <EventTypeList breakdown={metrics.eventTypeBreakdown} />
+        <div className="space-y-4">
+          <ComplianceChecklist />
+          <TraceChainIntegrityPanel countyId={profile?.county_id} />
+        </div>
+      </div>
+        <EventTypeList breakdown={metrics.eventTypeBreakdown} />
         <ComplianceChecklist />
       </div>
 
