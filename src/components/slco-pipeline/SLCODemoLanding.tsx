@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 import {
   Building2, MapPin, TrendingUp, Shield, BarChart3,
   ArrowRight, CheckCircle2, Clock, Database, Users,
-  Layers, Scale, FileText, Rocket, Sparkles, Activity,
+  Layers, Scale, FileText, Rocket, Sparkles, Activity, Mail,
   AlertTriangle, Globe, Mountain, ChevronRight,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
