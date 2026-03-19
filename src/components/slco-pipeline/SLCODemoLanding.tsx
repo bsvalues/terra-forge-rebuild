@@ -152,7 +152,7 @@ export function SLCODemoLanding({ onNavigate }: SLCODemoLandingProps) {
     { title: "Run Initial Pipeline", desc: "Ingest and normalize Salt Lake County parcel data", completed: hasData },
     { title: "Validate & Remediate Data", desc: "AI-powered diagnosis, PostGIS-driven repair, human-approved fixes", completed: hasData && qualityScore > 60 },
     { title: "Configure Neighborhoods", desc: "Register neighborhood codes, configure model areas, verify calibration readiness", completed: hasNeighborhoods },
-    { title: "Launch Revaluation", desc: "Begin annual revaluation cycle with calibrated models", completed: false },
+    { title: "Launch Revaluation", desc: "Begin annual revaluation cycle with calibrated models", completed: (vitals as any)?.revaluationLaunched ?? false },
   ];
 
   const completedSteps = onboardingSteps.filter((s) => s.completed).length;
