@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { useCountyVitals } from "@/hooks/useCountyVitals";
+import { useRevaluationCycles } from "@/hooks/useRevaluationCycles";
 import { DefensibilityScoreCard } from "@/components/analytics/DefensibilityScoreCard";
 
 // ── Quick-start template definitions ───────────────────────────────
