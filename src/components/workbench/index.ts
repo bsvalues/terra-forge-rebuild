@@ -7,4 +7,5 @@ export { TerraPilotPanel } from "./TerraPilotPanel";
 export { TerraPilotChat } from "./TerraPilotChat";
 export { TerraSphereVisual } from "./TerraSphereVisual";
 export { CommandPalette } from "./CommandPalette";
+export { ToolExecutionTrace } from "./ToolExecutionTrace";
 export * from "./types";

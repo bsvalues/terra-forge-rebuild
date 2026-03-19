@@ -1,10 +1,13 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
-import { Sparkles, MessageSquare, Lightbulb, Zap } from "lucide-react";
+import { Sparkles, MessageSquare, Lightbulb, Zap, Activity } from "lucide-react";
 import { useWorkbench } from "../WorkbenchContext";
 import { TerraPilotChat } from "../TerraPilotChat";
+import { ToolExecutionTrace } from "../ToolExecutionTrace";
 
 export function PilotTab() {
   const { pilotMode, setPilotMode } = useWorkbench();
+  const [showTrace, setShowTrace] = useState(false);
 
   return (
     <div className="h-full flex flex-col">
@@ -59,6 +62,23 @@ export function PilotTab() {
           )}
         </div>
       </motion.div>
+
+      {/* Trace Toggle */}
+      <div className="px-6 py-2 border-b border-border/30">
+        <button
+          onClick={() => setShowTrace(!showTrace)}
+          className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <Activity className="w-3.5 h-3.5" />
+          {showTrace ? "Hide" : "Show"} Tool Execution Trace
+        </button>
+      </div>
+
+      {showTrace && (
+        <div className="px-6 py-4 border-b border-border/30 bg-muted/5">
+          <ToolExecutionTrace />
+        </div>
+      )}
 
       {/* Full Chat Interface */}
       <div className="flex-1 overflow-hidden">

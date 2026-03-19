@@ -16,6 +16,7 @@ const Auth = lazy(() => import("./pages/Auth"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const Property = lazy(() => import("./pages/Property"));
 const Factory = lazy(() => import("./pages/Factory"));
+const OwnerPortal = lazy(() => import("./pages/OwnerPortal"));
 
 const queryClient = new QueryClient();
 
@@ -83,6 +84,7 @@ function AppShell() {
                 </ProtectedRoute>
               }
             />
+            <Route path="/portal" element={<OwnerPortal />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
