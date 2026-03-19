@@ -53,6 +53,7 @@ export function ForgeTab() {
     { id: "compare", label: "Compare", icon: ArrowLeftRight },
     { id: "nbhd-ratio", label: "Nbhd Ratios", icon: MapPin },
     { id: "adjustments", label: "Adjustments", icon: Undo2 },
+    { id: "snapshots", label: "Snapshots", icon: ArrowLeftRight },
   ];
 
   const navigate = useNavigate();
