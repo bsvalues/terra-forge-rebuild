@@ -107,7 +107,7 @@ export function TopSystemBar({ onOpenCommandPalette, onOpenControlCenter, onOpen
           </TooltipContent>
         </Tooltip>
 
-        <NotificationBell />
+        <NotificationCenter />
 
         <Tooltip>
           <TooltipTrigger asChild>

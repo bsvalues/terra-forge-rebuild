@@ -349,6 +349,50 @@ export function CommandPalette({ open: controlledOpen, onOpenChange }: CommandPa
             </div>
           </CommandItem>
           <CommandItem
+            value="run avm model pipeline"
+            onSelect={() => { setActiveTab("forge"); setOpen(false); }}
+            className="flex items-center gap-3"
+          >
+            <ChartBar className="w-4 h-4 text-mode-valuation" />
+            <div className="flex-1">
+              <span>AVM Pipeline</span>
+              <span className="text-xs text-muted-foreground ml-2">Launch automated valuation model</span>
+            </div>
+          </CommandItem>
+          <CommandItem
+            value="cost approach revaluation"
+            onSelect={() => { setActiveTab("forge"); setOpen(false); }}
+            className="flex items-center gap-3"
+          >
+            <DollarSign className="w-4 h-4 text-mode-valuation" />
+            <div className="flex-1">
+              <span>Cost Approach</span>
+              <span className="text-xs text-muted-foreground ml-2">Schedule-based revaluation</span>
+            </div>
+          </CommandItem>
+          <CommandItem
+            value="ratio study iaao compliance"
+            onSelect={() => { setActiveTab("forge"); setOpen(false); }}
+            className="flex items-center gap-3"
+          >
+            <Scale className="w-4 h-4 text-mode-valuation" />
+            <div className="flex-1">
+              <span>Ratio Study</span>
+              <span className="text-xs text-muted-foreground ml-2">IAAO compliance metrics</span>
+            </div>
+          </CommandItem>
+          <CommandItem
+            value="geo equity spatial map assessment"
+            onSelect={() => { setActiveTab("atlas"); setOpen(false); }}
+            className="flex items-center gap-3"
+          >
+            <Map className="w-4 h-4 text-mode-mapping" />
+            <div className="flex-1">
+              <span>GeoEquity Map</span>
+              <span className="text-xs text-muted-foreground ml-2">Spatial assessment ratio analysis</span>
+            </div>
+          </CommandItem>
+          <CommandItem
             value="keyboard shortcuts help"
             onSelect={() => setShowShortcuts(!showShortcuts)}
             className="flex items-center gap-3"
