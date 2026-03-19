@@ -5,6 +5,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { RemediationWorkbench } from "./RemediationWorkbench";
+import { VerificationPanel } from "./VerificationPanel";
 import {
   Stethoscope, MapPin, Home, Copy, GitCompareArrows, Brain,
   AlertTriangle, Play, Loader2, Shield, ShieldAlert, ShieldX,
