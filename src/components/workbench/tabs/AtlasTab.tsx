@@ -474,6 +474,18 @@ export function AtlasTab() {
               <NeighborhoodValuationHeatmap />
             </motion.div>
           )}
+
+          {activeView === "trends" && (
+            <motion.div
+              key="trends"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              className="p-6 h-full overflow-auto"
+            >
+              <NeighborhoodMarketSparklines studyPeriodId={studyPeriod.id ?? undefined} />
+            </motion.div>
+          )}
         </AnimatePresence>
       </div>
     </div>
