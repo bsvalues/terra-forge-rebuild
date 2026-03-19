@@ -37,6 +37,7 @@ import { GeoEquityMap } from "@/components/geoequity/GeoEquityMap";
 import { EquityHeatmap } from "@/components/geoequity/EquityHeatmap";
 import { GISLayersPanel } from "@/components/geoequity/GISLayersPanel";
 import { ParcelSearchPanel } from "@/components/geoequity/ParcelSearchPanel";
+import { GeoEquityPanel } from "@/components/spatial/GeoEquityPanel";
 import { 
   useGISLayers, 
   useNeighborhoodGeoStats,
