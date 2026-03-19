@@ -207,6 +207,12 @@ export function DaisTab({ initialCategory, onCategoryConsumed }: DaisTabProps) {
             <DQRemediationProgressTracker />
           </div>
         </TabsContent>
+
+        <TabsContent value="automation" className="mt-0">
+          <div className="p-4">
+            <WorkflowAutomationRules />
+          </div>
+        </TabsContent>
       </Tabs>
     </div>
   );
