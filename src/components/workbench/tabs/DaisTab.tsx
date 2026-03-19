@@ -13,6 +13,7 @@ import { CertificationPipeline } from "@/components/dais/CertificationPipeline";
 import { NoticesPanel } from "@/components/dais/NoticesPanel";
 import { BatchNoticeStatusDashboard } from "@/components/dais/BatchNoticeStatusDashboard";
 import { DQRemediationProgressTracker } from "@/components/dais/DQRemediationProgressTracker";
+import { WorkflowSlaTracker } from "@/components/dais/WorkflowSlaTracker";
 import { WorkflowInstanceTracker } from "@/components/workflow";
 import { WorkflowTemplateCRUD } from "@/components/admin/WorkflowTemplateCRUD";
 import { BulkAssessmentExport } from "@/components/valuation/BulkAssessmentExport";
