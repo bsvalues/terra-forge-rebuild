@@ -1,8 +1,10 @@
-// TerraFusion OS — Phase 72: Revaluation Progress Hook
+// TerraFusion OS — Phase 72+73: Revaluation Progress Hook
 // "The progress bar is my only friend now." — Ralph Wiggum
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { emitTraceEventAsync } from "@/services/terraTrace";
 
 export interface NeighborhoodProgress {
   hood_cd: string;
@@ -48,5 +50,53 @@ export function useRevaluationProgress(cycleId: string | null) {
     enabled: !!cycleId,
     staleTime: 30_000,
     refetchInterval: 60_000,
+  });
+}
+
+/** Complete (finalize) a revaluation cycle */
+export function useCompleteRevaluationCycle() {
+  const qc = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation<
+    { cycle_id: string; status: string; parcels_certified: number; certification_pct: number },
+    Error,
+    string
+  >({
+    mutationFn: async (cycleId: string) => {
+      const { data, error } = await supabase.rpc(
+        "complete_revaluation_cycle" as any,
+        { p_cycle_id: cycleId }
+      );
+      if (error) throw error;
+      const result = data as any;
+      if (result?.error) throw new Error(result.error);
+      return result;
+    },
+    onSuccess: async (result) => {
+      qc.invalidateQueries({ queryKey: ["revaluation-cycles"] });
+      qc.invalidateQueries({ queryKey: ["revaluation-progress"] });
+      qc.invalidateQueries({ queryKey: ["county-vitals"] });
+      await emitTraceEventAsync({
+        sourceModule: "dais",
+        eventType: "county_roll_certified",
+        eventData: {
+          cycle_id: result.cycle_id,
+          parcels_certified: result.parcels_certified,
+          certification_pct: result.certification_pct,
+        },
+      });
+      toast({
+        title: "Revaluation Cycle Completed",
+        description: `${result.parcels_certified} parcels certified (${result.certification_pct}%)`,
+      });
+    },
+    onError: (err) => {
+      toast({
+        title: "Completion Failed",
+        description: err.message,
+        variant: "destructive",
+      });
+    },
   });
 }
