@@ -202,3 +202,49 @@ export function useReviewFix() {
     onError: (err: any) => toast.error("Review failed", { description: err.message }),
   });
 }
+
+/** Run verification — re-score and evaluate readiness gates */
+export function useRunVerification() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (params: { countyId: string; batchId?: string; diagnosisRunId?: string }) =>
+      invokeRemediation({
+        action: "verify",
+        county_id: params.countyId,
+        batch_id: params.batchId,
+        diagnosis_run_id: params.diagnosisRunId,
+      }),
+    onSuccess: (data) => {
+      qc.invalidateQueries({ queryKey: QUERY_KEY });
+      qc.invalidateQueries({ queryKey: ["data-doctor-status"] });
+      const passed = data.passed_all;
+      if (passed) {
+        toast.success("All readiness gates passed!", {
+          description: `Quality score: ${Math.round(data.quality_score)}%`,
+        });
+      } else {
+        toast.info("Verification complete", {
+          description: `Quality score: ${Math.round(data.quality_score)}% — some gates still open`,
+        });
+      }
+    },
+    onError: (err: any) => toast.error("Verification failed", { description: err.message }),
+  });
+}
+
+/** Fetch verification history */
+export function useVerificationHistory(countyId: string | undefined) {
+  return useQuery<VerificationSnapshot[]>({
+    queryKey: [...QUERY_KEY, "verification", countyId],
+    queryFn: async () => {
+      if (!countyId) throw new Error("No county");
+      const res = await invokeRemediation({
+        action: "get_verification_history",
+        county_id: countyId,
+      });
+      return res.snapshots || [];
+    },
+    enabled: !!countyId,
+    staleTime: 30_000,
+  });
+}
