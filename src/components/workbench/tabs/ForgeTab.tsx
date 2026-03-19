@@ -59,6 +59,7 @@ export function ForgeTab() {
     { id: "snapshots", label: "Snapshots", icon: ArrowLeftRight },
     { id: "confidence", label: "Confidence", icon: Target },
     { id: "equity-matrix", label: "Equity Matrix", icon: Grid3X3 },
+    { id: "methodology", label: "Methodology", icon: BookOpen },
   ];
 
   const navigate = useNavigate();
