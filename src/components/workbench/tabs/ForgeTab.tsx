@@ -152,6 +152,7 @@ export function ForgeTab() {
         {activeView === "confidence" && <div className="p-6"><ValuationConfidenceVisualizer /></div>}
         {activeView === "equity-matrix" && <div className="p-6"><NeighborhoodEquityMatrix /></div>}
         {activeView === "methodology" && <div className="p-6"><AssessmentMethodologyViewer /></div>}
+        {activeView === "diff" && <div className="p-6"><ParcelComparisonDiff /></div>}
       </div>
     </div>
   );
