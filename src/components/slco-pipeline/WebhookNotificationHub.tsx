@@ -1,5 +1,5 @@
-// TerraFusion OS — Phase 64: Real-time Webhook Notification Hub
-// Manages outbound webhook subscriptions & monitors delivery health.
+// TerraFusion OS — Phase 65: Real-time Webhook Notification Hub
+// Manages outbound webhook subscriptions, dispatch, & delivery monitoring.
 
 import { useState } from "react";
 import {
@@ -9,6 +9,7 @@ import {
   useToggleWebhookEndpoint,
   useDeleteWebhookEndpoint,
   useTestWebhookEndpoint,
+  useDispatchWebhookEvent,
   useWebhookStats,
   useWebhookRealtime,
   WEBHOOK_EVENT_TYPES,
@@ -157,6 +158,84 @@ function CreateEndpointDialog() {
           <Button onClick={handleCreate} disabled={createMutation.isPending} className="w-full">
             {createMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
             Create Endpoint
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// ── Dispatch Event Dialog ──────────────────────────────────────────
+function DispatchEventDialog() {
+  const [open, setOpen] = useState(false);
+  const [eventType, setEventType] = useState("");
+  const [payloadStr, setPayloadStr] = useState("{}");
+  const dispatchMutation = useDispatchWebhookEvent();
+
+  const handleDispatch = () => {
+    if (!eventType) {
+      toast.error("Select an event type");
+      return;
+    }
+    let payload: Record<string, unknown>;
+    try {
+      payload = JSON.parse(payloadStr);
+    } catch {
+      toast.error("Invalid JSON payload");
+      return;
+    }
+    dispatchMutation.mutate(
+      { event_type: eventType, payload },
+      {
+        onSuccess: (result) => {
+          toast.success(`Dispatched to ${result.dispatched} endpoint(s), ${result.delivered} delivered`);
+          setOpen(false);
+        },
+        onError: (err) => toast.error(`Dispatch failed: ${err.message}`),
+      }
+    );
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button size="sm" variant="outline" className="gap-1.5">
+          <Send className="h-3.5 w-3.5" /> Dispatch Event
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-lg">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Send className="h-5 w-5 text-primary" /> Dispatch Webhook Event
+          </DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4 mt-2">
+          <div>
+            <Label>Event Type</Label>
+            <div className="flex flex-wrap gap-1.5 mt-1.5">
+              {WEBHOOK_EVENT_TYPES.map((evt) => (
+                <Badge
+                  key={evt}
+                  variant={eventType === evt ? "default" : "outline"}
+                  className="cursor-pointer text-[10px] transition-colors"
+                  onClick={() => setEventType(evt)}
+                >
+                  {evt}
+                </Badge>
+              ))}
+            </div>
+          </div>
+          <div>
+            <Label>Payload (JSON)</Label>
+            <textarea
+              className="w-full h-24 mt-1 p-2 rounded-md border border-border bg-muted/30 text-xs font-mono resize-none focus:outline-none focus:ring-1 focus:ring-primary"
+              value={payloadStr}
+              onChange={(e) => setPayloadStr(e.target.value)}
+            />
+          </div>
+          <Button onClick={handleDispatch} disabled={dispatchMutation.isPending} className="w-full">
+            {dispatchMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+            Fire Event
           </Button>
         </div>
       </DialogContent>
@@ -332,7 +411,10 @@ export function WebhookNotificationHub() {
             <Activity className="h-4 w-4 text-primary" />
             Webhook Notification Hub
           </CardTitle>
-          <CreateEndpointDialog />
+          <div className="flex gap-2">
+            <DispatchEventDialog />
+            <CreateEndpointDialog />
+          </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
