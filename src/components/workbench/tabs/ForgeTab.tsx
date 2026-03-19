@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Hammer, TrendingUp, Activity, Brain, Layers, Microscope, Compass, Factory as FactoryIcon, ExternalLink, FlaskConical, DollarSign, BarChart3, MapPin, Undo2, Target, Grid3X3 } from "lucide-react";
+import { Hammer, TrendingUp, Activity, Brain, Layers, Microscope, Compass, Factory as FactoryIcon, ExternalLink, FlaskConical, DollarSign, BarChart3, MapPin, Undo2, Target, Grid3X3, BookOpen } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useLatestCalibrationRun } from "@/hooks/useFactoryMetrics";
 import { CompsView } from "./CompsView";
@@ -19,6 +19,7 @@ import { BatchAdjustmentReviewQueue } from "@/components/forge/BatchAdjustmentRe
 import { ComparativeSnapshotDiff } from "@/components/forge/ComparativeSnapshotDiff";
 import { ValuationConfidenceVisualizer } from "@/components/forge/ValuationConfidenceVisualizer";
 import { NeighborhoodEquityMatrix } from "@/components/forge/NeighborhoodEquityMatrix";
+import { AssessmentMethodologyViewer } from "@/components/forge/AssessmentMethodologyViewer";
 import { 
   PRDDrilldownDialog, 
   CODDrilldownDialog, 
@@ -37,7 +38,7 @@ import {
   ArrowLeftRight,
 } from "lucide-react";
 
-type ForgeView = "vei" | "regression" | "avm" | "segments" | "anatomy" | "comps" | "avmrun" | "cost" | "ratio" | "compare" | "nbhd-ratio" | "adjustments" | "snapshots" | "confidence" | "equity-matrix";
+type ForgeView = "vei" | "regression" | "avm" | "segments" | "anatomy" | "comps" | "avmrun" | "cost" | "ratio" | "compare" | "nbhd-ratio" | "adjustments" | "snapshots" | "confidence" | "equity-matrix" | "methodology";
 
 export function ForgeTab() {
   const [activeView, setActiveView] = useState<ForgeView>("vei");
@@ -58,6 +59,7 @@ export function ForgeTab() {
     { id: "snapshots", label: "Snapshots", icon: ArrowLeftRight },
     { id: "confidence", label: "Confidence", icon: Target },
     { id: "equity-matrix", label: "Equity Matrix", icon: Grid3X3 },
+    { id: "methodology", label: "Methodology", icon: BookOpen },
   ];
 
   const navigate = useNavigate();
@@ -147,6 +149,7 @@ export function ForgeTab() {
         {activeView === "snapshots" && <div className="p-6"><ComparativeSnapshotDiff /></div>}
         {activeView === "confidence" && <div className="p-6"><ValuationConfidenceVisualizer /></div>}
         {activeView === "equity-matrix" && <div className="p-6"><NeighborhoodEquityMatrix /></div>}
+        {activeView === "methodology" && <div className="p-6"><AssessmentMethodologyViewer /></div>}
       </div>
     </div>
   );

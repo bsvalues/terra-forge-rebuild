@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { FolderOpen, FileText, Brain, Package, Upload, Shield } from "lucide-react";
+import { FolderOpen, FileText, Brain, Package, Upload, Shield, StickyNote } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useWorkbench } from "@/components/workbench/WorkbenchContext";
@@ -8,6 +8,7 @@ import { DocumentsPanel } from "@/components/dossier/DocumentsPanel";
 import { DocumentUploadDialog } from "@/components/dossier/DocumentUploadDialog";
 import { NarrativeDraftingPanel } from "@/components/dossier/NarrativeDraftingPanel";
 import { PacketAssemblyPanel } from "@/components/dossier/PacketAssemblyPanel";
+import { ParcelAnnotations } from "@/components/dossier/ParcelAnnotations";
 
 export function DossierTab() {
   const [activeView, setActiveView] = useState("files");
@@ -56,6 +57,10 @@ export function DossierTab() {
             <Package className="w-3.5 h-3.5" />
             Packets
           </TabsTrigger>
+          <TabsTrigger value="annotations" className="gap-2 text-xs">
+            <StickyNote className="w-3.5 h-3.5" />
+            Annotations
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="files" className="mt-4">
@@ -68,6 +73,9 @@ export function DossierTab() {
 
         <TabsContent value="packets" className="mt-4">
           <PacketAssemblyPanel parcelId={parcelId} />
+        </TabsContent>
+        <TabsContent value="annotations" className="mt-4">
+          <ParcelAnnotations parcelId={parcelId} />
         </TabsContent>
       </Tabs>
 

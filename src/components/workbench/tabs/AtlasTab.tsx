@@ -20,6 +20,7 @@ import {
   Database,
   Loader2,
   ExternalLink,
+  TrendingUp,
 } from "lucide-react";
 import { useWorkbench } from "../WorkbenchContext";
 import { Button } from "@/components/ui/button";
@@ -40,6 +41,7 @@ import { ParcelSearchPanel } from "@/components/geoequity/ParcelSearchPanel";
 import { GeoEquityPanel } from "@/components/spatial/GeoEquityPanel";
 import { NeighborhoodHeatmapLegend } from "@/components/atlas/NeighborhoodHeatmapLegend";
 import { NeighborhoodValuationHeatmap } from "@/components/atlas/NeighborhoodValuationHeatmap";
+import { NeighborhoodMarketSparklines } from "@/components/atlas/NeighborhoodMarketSparklines";
 import { 
   useGISLayers, 
   useNeighborhoodGeoStats,
@@ -47,7 +49,7 @@ import {
 } from "@/hooks/useGISData";
 import { cn } from "@/lib/utils";
 
-type AtlasView = "map" | "heatmap" | "layers" | "search" | "geoequity" | "valuation";
+type AtlasView = "map" | "heatmap" | "layers" | "search" | "geoequity" | "valuation" | "trends";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -146,6 +148,10 @@ export function AtlasTab() {
                 <TabsTrigger value="valuation" className="text-xs gap-1.5">
                   <MapPin className="w-3.5 h-3.5" />
                   Values
+                </TabsTrigger>
+                <TabsTrigger value="trends" className="text-xs gap-1.5">
+                  <TrendingUp className="w-3.5 h-3.5" />
+                  Trends
                 </TabsTrigger>
               </TabsList>
             </Tabs>
@@ -466,6 +472,18 @@ export function AtlasTab() {
               className="p-6 h-full overflow-auto"
             >
               <NeighborhoodValuationHeatmap />
+            </motion.div>
+          )}
+
+          {activeView === "trends" && (
+            <motion.div
+              key="trends"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              className="p-6 h-full overflow-auto"
+            >
+              <NeighborhoodMarketSparklines studyPeriodId={studyPeriod.id ?? undefined} />
             </motion.div>
           )}
         </AnimatePresence>
