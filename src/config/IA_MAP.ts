@@ -106,6 +106,7 @@ export const IA_MODULES: ModuleDefinition[] = [
       { id: "appeal-insights", label: "Appeal Insights", icon: TrendingUp, scope: "county" },
       { id: "slco-pipeline", label: "SLCo Pipeline", icon: Database, scope: "county" },
       { id: "slco-demo", label: "SLCo Demo", icon: Layers, scope: "county" },
+      { id: "data-doctor", label: "Data Doctor", icon: Shield, scope: "county" },
       { id: "webhooks", label: "Webhook Hub", icon: Radar, scope: "county" },
       { id: "settings", label: "Settings", icon: Target, scope: "county" },
     ],
