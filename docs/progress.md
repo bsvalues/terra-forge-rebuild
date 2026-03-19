@@ -9,12 +9,14 @@
 
 ## Current State Summary
 
-**Active Phase**: Phase 58 — Salt Lake County Pipeline Hub (COMPLETE)  
-**Last Completed Task**: 58.3 — IA_MAP + AppLayout wiring  
-**Next Task**: Phase 59 planning  
+**Active Phase**: Phase 59 — UGRC Spatial Ingestion Engine (COMPLETE)  
+**Last Completed Task**: 59.3 — UGRC panel integrated into SLCO Pipeline Hub  
+**Next Task**: Phase 60 planning  
 **Blockers**: None
 
 ---
+
+| 59 | UGRC Spatial Ingestion Engine | ✅ COMPLETE | 3/3 | ugrc-ingest edge function (ArcGIS REST query with OBJECTID cursor, Salt Lake County FIPS filter, auto-creates county + layer, resumable fetch with 20s time-budget and 150ms backoff), useUGRCIngestion hook (start/resume/pause/status mutations, job detail with event log), UGRCIngestionPanel UI (pipeline visualization, job cards with status badges, event log, start/pause/resume controls), integrated into SLCOPipelineHub |
 
 | 58 | Salt Lake County Pipeline Hub | ✅ COMPLETE | 3/3 | useSLCOIngestion hook (4-source registry with live data_sources/pipeline_events queries, 7-stage pipeline tracker, 4-mart readiness), SLCOPipelineHub UI (progress bar, source cards with priority/transport/cadence/confidence, pipeline stage conveyor, acquisition policy card, mart readiness grid, 10-table schema blueprint), IA_MAP + AppLayout wiring (Home slco-pipeline view) |
 
