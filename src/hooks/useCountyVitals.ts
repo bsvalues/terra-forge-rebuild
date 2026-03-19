@@ -6,6 +6,31 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
+export type DefensibilityVerdict = "strong" | "watch" | "at_risk";
+
+export interface DefensibilityPillars {
+  dataCompleteness: number;
+  dataConsistency: number;
+  marketSupport: number;
+  modelStability: number;
+}
+
+export interface DefensibilityScore {
+  overall: number;
+  verdict: DefensibilityVerdict;
+  pillars: DefensibilityPillars;
+}
+
+export interface DataQualityVitals {
+  latestSnapshot: {
+    quality_score: number | null;
+    passed_all_gates: boolean | null;
+    created_at: string;
+  } | null;
+  openIssues: number;
+  hardBlockers: number;
+}
+
 export interface CountyVitals {
   parcels: {
     total: number;
@@ -47,6 +72,8 @@ export interface CountyVitals {
       created_at: string;
     }>;
   };
+  dataQuality: DataQualityVitals;
+  defensibility: DefensibilityScore;
   /** ISO timestamp of when this snapshot was fetched */
   fetchedAt: string;
 }
