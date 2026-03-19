@@ -141,14 +141,17 @@ export function SLCODemoLanding({ onNavigate }: SLCODemoLandingProps) {
   const totalParcels = vitals?.parcels?.total || 0;
   const qualityScore = vitals?.quality?.overall || 0;
   const defensibility = vitals?.defensibility;
+  const nbhdCount = vitals?.parcels?.withNeighborhood || 0;
+  const calibratedNbhds = vitals?.calibration?.calibratedNeighborhoods || 0;
 
   // Determine onboarding state
   const hasData = totalParcels > 0;
+  const hasNeighborhoods = nbhdCount > 0 && calibratedNbhds > 0;
   const onboardingSteps = [
     { title: "Connect Data Sources", desc: "Configure UGRC, Recorder, and CAMA connections", completed: true },
     { title: "Run Initial Pipeline", desc: "Ingest and normalize Salt Lake County parcel data", completed: hasData },
     { title: "Validate & Remediate Data", desc: "AI-powered diagnosis, PostGIS-driven repair, human-approved fixes", completed: hasData && qualityScore > 60 },
-    { title: "Configure Neighborhoods", desc: "Define neighborhood boundaries and model areas", completed: false },
+    { title: "Configure Neighborhoods", desc: "Register neighborhood codes, configure model areas, verify calibration readiness", completed: hasNeighborhoods },
     { title: "Launch Revaluation", desc: "Begin annual revaluation cycle with calibrated models", completed: false },
   ];
 
