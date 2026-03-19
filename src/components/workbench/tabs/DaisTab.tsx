@@ -118,6 +118,13 @@ export function DaisTab({ initialCategory, onCategoryConsumed }: DaisTabProps) {
             <Settings2 className="w-4 h-4" />
             Templates
           </TabsTrigger>
+          <TabsTrigger 
+            value="export"
+            className="gap-2 data-[state=active]:bg-chart-5/20 data-[state=active]:text-chart-5"
+          >
+            <Download className="w-4 h-4" />
+            Export
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="permits" className="mt-0">
