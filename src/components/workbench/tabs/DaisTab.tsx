@@ -5,6 +5,7 @@ import { Building2, FileCheck, Scale, Bell, ClipboardCheck, ShieldCheck, Externa
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { WorkflowStats } from "@/components/dais/WorkflowStats";
 import { AppealsWorkflow } from "@/components/dais/AppealsWorkflow";
+import { AppealRiskDashboard } from "@/components/dais/AppealRiskDashboard";
 import { PermitsWorkflow } from "@/components/dais/PermitsWorkflow";
 import { ExemptionsWorkflow } from "@/components/dais/ExemptionsWorkflow";
 import { CertificationPipeline } from "@/components/dais/CertificationPipeline";
