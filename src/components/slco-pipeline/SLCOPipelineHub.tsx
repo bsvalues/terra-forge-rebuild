@@ -3,6 +3,7 @@
 
 import { useSLCOIngestion, type SLCOSource, type PipelineStageRow, type MartStatus } from "@/hooks/useSLCOIngestion";
 import { UGRCIngestionPanel } from "./UGRCIngestionPanel";
+import { PipelineOrchestratorPanel } from "./PipelineOrchestratorPanel";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -301,7 +302,8 @@ export function SLCOPipelineHub() {
       {/* UGRC Live Fetch Controls */}
       <UGRCIngestionPanel />
 
-      {/* Pipeline + Marts */}
+      {/* Pipeline Orchestrator */}
+      <PipelineOrchestratorPanel />
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div className="lg:col-span-2">
           <StageTracker stages={data.stages} />

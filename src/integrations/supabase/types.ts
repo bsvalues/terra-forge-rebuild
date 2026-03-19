@@ -2895,6 +2895,516 @@ export type Database = {
           },
         ]
       }
+      slco_parcel_assessment_summary: {
+        Row: {
+          assessed_value: number | null
+          assessment_sk: string
+          county_id: string
+          improvement_value: number | null
+          land_value: number | null
+          parcel_id_normalized: string
+          property_type_code: string | null
+          property_type_label: string | null
+          retrieved_at: string
+          snapshot_date: string | null
+          source_system: string
+          tax_district_id: string | null
+          tax_year: number
+          total_market_value: number | null
+        }
+        Insert: {
+          assessed_value?: number | null
+          assessment_sk?: string
+          county_id?: string
+          improvement_value?: number | null
+          land_value?: number | null
+          parcel_id_normalized: string
+          property_type_code?: string | null
+          property_type_label?: string | null
+          retrieved_at?: string
+          snapshot_date?: string | null
+          source_system: string
+          tax_district_id?: string | null
+          tax_year: number
+          total_market_value?: number | null
+        }
+        Update: {
+          assessed_value?: number | null
+          assessment_sk?: string
+          county_id?: string
+          improvement_value?: number | null
+          land_value?: number | null
+          parcel_id_normalized?: string
+          property_type_code?: string | null
+          property_type_label?: string | null
+          retrieved_at?: string
+          snapshot_date?: string | null
+          source_system?: string
+          tax_district_id?: string | null
+          tax_year?: number
+          total_market_value?: number | null
+        }
+        Relationships: []
+      }
+      slco_parcel_commercial_characteristics: {
+        Row: {
+          building_class: string | null
+          commercial_sk: string
+          county_id: string
+          effective_year_built: number | null
+          income_unit_count: number | null
+          notes: string | null
+          parcel_id_normalized: string
+          percent_office: number | null
+          remodel_year: number | null
+          rentable_sqft: number | null
+          rental_class: string | null
+          retrieved_at: string
+          snapshot_date: string | null
+          source_system: string
+          stories: number | null
+          total_floor_area_sqft: number | null
+          year_built: number | null
+          zoning: string | null
+        }
+        Insert: {
+          building_class?: string | null
+          commercial_sk?: string
+          county_id?: string
+          effective_year_built?: number | null
+          income_unit_count?: number | null
+          notes?: string | null
+          parcel_id_normalized: string
+          percent_office?: number | null
+          remodel_year?: number | null
+          rentable_sqft?: number | null
+          rental_class?: string | null
+          retrieved_at?: string
+          snapshot_date?: string | null
+          source_system: string
+          stories?: number | null
+          total_floor_area_sqft?: number | null
+          year_built?: number | null
+          zoning?: string | null
+        }
+        Update: {
+          building_class?: string | null
+          commercial_sk?: string
+          county_id?: string
+          effective_year_built?: number | null
+          income_unit_count?: number | null
+          notes?: string | null
+          parcel_id_normalized?: string
+          percent_office?: number | null
+          remodel_year?: number | null
+          rentable_sqft?: number | null
+          rental_class?: string | null
+          retrieved_at?: string
+          snapshot_date?: string | null
+          source_system?: string
+          stories?: number | null
+          total_floor_area_sqft?: number | null
+          year_built?: number | null
+          zoning?: string | null
+        }
+        Relationships: []
+      }
+      slco_parcel_evidence_registry: {
+        Row: {
+          county_id: string
+          evidence_sk: string
+          evidence_type: string | null
+          file_hash: string | null
+          parcel_id_normalized: string
+          retrieved_at: string
+          snapshot_date: string | null
+          source_ref: string | null
+          source_system: string
+          source_url: string | null
+          storage_uri: string | null
+        }
+        Insert: {
+          county_id?: string
+          evidence_sk?: string
+          evidence_type?: string | null
+          file_hash?: string | null
+          parcel_id_normalized: string
+          retrieved_at?: string
+          snapshot_date?: string | null
+          source_ref?: string | null
+          source_system: string
+          source_url?: string | null
+          storage_uri?: string | null
+        }
+        Update: {
+          county_id?: string
+          evidence_sk?: string
+          evidence_type?: string | null
+          file_hash?: string | null
+          parcel_id_normalized?: string
+          retrieved_at?: string
+          snapshot_date?: string | null
+          source_ref?: string | null
+          source_system?: string
+          source_url?: string | null
+          storage_uri?: string | null
+        }
+        Relationships: []
+      }
+      slco_parcel_geometry_snapshot: {
+        Row: {
+          area_acres: number | null
+          area_sqft: number | null
+          centroid_lat: number | null
+          centroid_lng: number | null
+          coordinates: Json | null
+          county_id: string
+          geom_sk: string
+          geometry_version: number
+          parcel_id_normalized: string
+          retrieved_at: string
+          source_system: string
+          superseded_at: string | null
+        }
+        Insert: {
+          area_acres?: number | null
+          area_sqft?: number | null
+          centroid_lat?: number | null
+          centroid_lng?: number | null
+          coordinates?: Json | null
+          county_id?: string
+          geom_sk?: string
+          geometry_version?: number
+          parcel_id_normalized: string
+          retrieved_at?: string
+          source_system: string
+          superseded_at?: string | null
+        }
+        Update: {
+          area_acres?: number | null
+          area_sqft?: number | null
+          centroid_lat?: number | null
+          centroid_lng?: number | null
+          coordinates?: Json | null
+          county_id?: string
+          geom_sk?: string
+          geometry_version?: number
+          parcel_id_normalized?: string
+          retrieved_at?: string
+          source_system?: string
+          superseded_at?: string | null
+        }
+        Relationships: []
+      }
+      slco_parcel_identifier_history: {
+        Row: {
+          county_id: string
+          effective_date: string | null
+          id_hist_sk: string
+          parcel_id_normalized: string
+          prior_parcel_id_normalized: string | null
+          relationship_type: string | null
+          retrieved_at: string
+          source_system: string
+          successor_parcel_id_normalized: string | null
+        }
+        Insert: {
+          county_id?: string
+          effective_date?: string | null
+          id_hist_sk?: string
+          parcel_id_normalized: string
+          prior_parcel_id_normalized?: string | null
+          relationship_type?: string | null
+          retrieved_at?: string
+          source_system: string
+          successor_parcel_id_normalized?: string | null
+        }
+        Update: {
+          county_id?: string
+          effective_date?: string | null
+          id_hist_sk?: string
+          parcel_id_normalized?: string
+          prior_parcel_id_normalized?: string | null
+          relationship_type?: string | null
+          retrieved_at?: string
+          source_system?: string
+          successor_parcel_id_normalized?: string | null
+        }
+        Relationships: []
+      }
+      slco_parcel_master: {
+        Row: {
+          acreage: number | null
+          active_flag: boolean
+          county_id: string
+          created_at: string
+          geom_source: string | null
+          land_use_code: string | null
+          model_area_id: string | null
+          owner_name: string | null
+          parcel_id: string
+          parcel_id_normalized: string
+          parcel_sk: string
+          property_type_code: string | null
+          property_type_label: string | null
+          situs_address: string | null
+          situs_city: string | null
+          situs_zip: string | null
+          source_preferred: string
+          tax_district_id: string | null
+          updated_at: string
+          valid_from: string
+          valid_to: string | null
+        }
+        Insert: {
+          acreage?: number | null
+          active_flag?: boolean
+          county_id?: string
+          created_at?: string
+          geom_source?: string | null
+          land_use_code?: string | null
+          model_area_id?: string | null
+          owner_name?: string | null
+          parcel_id: string
+          parcel_id_normalized: string
+          parcel_sk?: string
+          property_type_code?: string | null
+          property_type_label?: string | null
+          situs_address?: string | null
+          situs_city?: string | null
+          situs_zip?: string | null
+          source_preferred?: string
+          tax_district_id?: string | null
+          updated_at?: string
+          valid_from?: string
+          valid_to?: string | null
+        }
+        Update: {
+          acreage?: number | null
+          active_flag?: boolean
+          county_id?: string
+          created_at?: string
+          geom_source?: string | null
+          land_use_code?: string | null
+          model_area_id?: string | null
+          owner_name?: string | null
+          parcel_id?: string
+          parcel_id_normalized?: string
+          parcel_sk?: string
+          property_type_code?: string | null
+          property_type_label?: string | null
+          situs_address?: string | null
+          situs_city?: string | null
+          situs_zip?: string | null
+          source_preferred?: string
+          tax_district_id?: string | null
+          updated_at?: string
+          valid_from?: string
+          valid_to?: string | null
+        }
+        Relationships: []
+      }
+      slco_parcel_source_registry: {
+        Row: {
+          county_id: string
+          license_terms_note: string | null
+          parcel_id_normalized: string
+          raw_payload_hash: string
+          retrieved_at: string
+          snapshot_date: string | null
+          source_dataset: string | null
+          source_record_id: string | null
+          source_row_sk: string
+          source_system: string
+          source_url: string | null
+        }
+        Insert: {
+          county_id?: string
+          license_terms_note?: string | null
+          parcel_id_normalized: string
+          raw_payload_hash: string
+          retrieved_at?: string
+          snapshot_date?: string | null
+          source_dataset?: string | null
+          source_record_id?: string | null
+          source_row_sk?: string
+          source_system: string
+          source_url?: string | null
+        }
+        Update: {
+          county_id?: string
+          license_terms_note?: string | null
+          parcel_id_normalized?: string
+          raw_payload_hash?: string
+          retrieved_at?: string
+          snapshot_date?: string | null
+          source_dataset?: string | null
+          source_record_id?: string | null
+          source_row_sk?: string
+          source_system?: string
+          source_url?: string | null
+        }
+        Relationships: []
+      }
+      slco_parcel_spatial_context: {
+        Row: {
+          context_sk: string
+          county_id: string
+          joined_at: string
+          model_area_id: string | null
+          municipality: string | null
+          parcel_id_normalized: string
+          source_system: string
+          tax_district_id: string | null
+        }
+        Insert: {
+          context_sk?: string
+          county_id?: string
+          joined_at?: string
+          model_area_id?: string | null
+          municipality?: string | null
+          parcel_id_normalized: string
+          source_system: string
+          tax_district_id?: string | null
+        }
+        Update: {
+          context_sk?: string
+          county_id?: string
+          joined_at?: string
+          model_area_id?: string | null
+          municipality?: string | null
+          parcel_id_normalized?: string
+          source_system?: string
+          tax_district_id?: string | null
+        }
+        Relationships: []
+      }
+      slco_parcel_value_history: {
+        Row: {
+          county_id: string
+          improvement_value: number | null
+          land_value: number | null
+          market_value: number | null
+          parcel_id_normalized: string
+          retrieved_at: string
+          snapshot_date: string | null
+          source_system: string
+          tax_year: number
+          value_hist_sk: string
+        }
+        Insert: {
+          county_id?: string
+          improvement_value?: number | null
+          land_value?: number | null
+          market_value?: number | null
+          parcel_id_normalized: string
+          retrieved_at?: string
+          snapshot_date?: string | null
+          source_system: string
+          tax_year: number
+          value_hist_sk?: string
+        }
+        Update: {
+          county_id?: string
+          improvement_value?: number | null
+          land_value?: number | null
+          market_value?: number | null
+          parcel_id_normalized?: string
+          retrieved_at?: string
+          snapshot_date?: string | null
+          source_system?: string
+          tax_year?: number
+          value_hist_sk?: string
+        }
+        Relationships: []
+      }
+      slco_pipeline_runs: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          error_message: string | null
+          id: string
+          metadata: Json | null
+          rows_in: number | null
+          rows_out: number | null
+          rows_rejected: number | null
+          stage: string
+          started_at: string | null
+          status: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          metadata?: Json | null
+          rows_in?: number | null
+          rows_out?: number | null
+          rows_rejected?: number | null
+          stage: string
+          started_at?: string | null
+          status?: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          metadata?: Json | null
+          rows_in?: number | null
+          rows_out?: number | null
+          rows_rejected?: number | null
+          stage?: string
+          started_at?: string | null
+          status?: string
+        }
+        Relationships: []
+      }
+      slco_recorder_document_index: {
+        Row: {
+          county_id: string
+          document_sk: string
+          document_type: string | null
+          grantee: string | null
+          grantor: string | null
+          image_available: boolean | null
+          legal_description: string | null
+          parcel_id_normalized: string | null
+          recorder_doc_number: string
+          recording_date: string | null
+          retrieved_at: string
+          source_system: string
+        }
+        Insert: {
+          county_id?: string
+          document_sk?: string
+          document_type?: string | null
+          grantee?: string | null
+          grantor?: string | null
+          image_available?: boolean | null
+          legal_description?: string | null
+          parcel_id_normalized?: string | null
+          recorder_doc_number: string
+          recording_date?: string | null
+          retrieved_at?: string
+          source_system?: string
+        }
+        Update: {
+          county_id?: string
+          document_sk?: string
+          document_type?: string | null
+          grantee?: string | null
+          grantor?: string | null
+          image_available?: boolean | null
+          legal_description?: string | null
+          parcel_id_normalized?: string | null
+          recorder_doc_number?: string
+          recording_date?: string | null
+          retrieved_at?: string
+          source_system?: string
+        }
+        Relationships: []
+      }
       spatial_ref_sys: {
         Row: {
           auth_name: string | null
@@ -3489,6 +3999,66 @@ export type Database = {
           f_table_schema?: unknown
           srid?: number | null
           type?: string | null
+        }
+        Relationships: []
+      }
+      mart_slco_dossier_index: {
+        Row: {
+          county_id: string | null
+          document_type: string | null
+          evidence_type: string | null
+          file_hash: string | null
+          grantee: string | null
+          grantor: string | null
+          owner_name: string | null
+          parcel_id_normalized: string | null
+          recorder_doc_number: string | null
+          recording_date: string | null
+          situs_address: string | null
+          snapshot_date: string | null
+          source_system: string | null
+          source_url: string | null
+        }
+        Relationships: []
+      }
+      mart_slco_forge_cost_context: {
+        Row: {
+          building_class: string | null
+          county_id: string | null
+          effective_year_built: number | null
+          improvement_value: number | null
+          land_value: number | null
+          parcel_id_normalized: string | null
+          property_type_code: string | null
+          rentable_sqft: number | null
+          stories: number | null
+          total_floor_area_sqft: number | null
+          total_market_value: number | null
+          year_built: number | null
+          zoning: string | null
+        }
+        Relationships: []
+      }
+      mart_slco_workbench_summary: {
+        Row: {
+          acreage: number | null
+          assessed_value: number | null
+          assessment_improvement_value: number | null
+          assessment_land_value: number | null
+          county_id: string | null
+          model_area_id: string | null
+          municipality: string | null
+          owner_name: string | null
+          parcel_id: string | null
+          parcel_id_normalized: string | null
+          property_type_code: string | null
+          property_type_label: string | null
+          situs_address: string | null
+          situs_city: string | null
+          situs_zip: string | null
+          tax_district_id: string | null
+          tax_year: number | null
+          total_market_value: number | null
         }
         Relationships: []
       }

@@ -44,3 +44,9 @@ verify_jwt = false
 
 [functions.avm-train]
 verify_jwt = false
+
+[functions.ugrc-ingest]
+verify_jwt = false
+
+[functions.slco-pipeline]
+verify_jwt = false
