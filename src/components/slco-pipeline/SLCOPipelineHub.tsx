@@ -3,6 +3,7 @@
 
 import { useSLCOIngestion, type SLCOSource, type PipelineStageRow, type MartStatus } from "@/hooks/useSLCOIngestion";
 import { UGRCIngestionPanel } from "./UGRCIngestionPanel";
+import { PipelineOrchestratorPanel } from "./PipelineOrchestratorPanel";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
