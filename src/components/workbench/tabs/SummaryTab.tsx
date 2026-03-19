@@ -277,6 +277,15 @@ function ParcelSummaryContent() {
         <QuickStat icon={FileText} label="Open Permits" value={snapshot.workflows.openPermits.length} />
       </motion.div>
 
+      {/* Trust OS: Chain Integrity */}
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
+        <h3 className="text-sm font-medium text-foreground mb-2 flex items-center gap-1.5">
+          <Shield className="w-4 h-4 text-chart-5" />
+          Trust Layer
+        </h3>
+        <TraceChainIntegrityPanel countyId={profile?.county_id} />
+      </motion.div>
+
       {/* Main Content: Tabbed */}
       <Tabs defaultValue="details" className="w-full">
         <TabsList className="bg-muted/50 mb-4">
