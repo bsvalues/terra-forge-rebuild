@@ -261,7 +261,7 @@ export function SLCODemoLanding({ onNavigate }: SLCODemoLandingProps) {
                 i === 1 ? "Run Pipeline" :
                 i === 2 ? "Open Data Doctor" :
                 i === 3 ? "Define Areas" :
-                "Begin"
+                "Launch"
               }
             />
           ))}
