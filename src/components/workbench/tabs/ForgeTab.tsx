@@ -15,6 +15,7 @@ import { CostApproachPanel } from "@/components/valuation/CostApproachPanel";
 import { RatioStudyPanel } from "@/components/valuation/RatioStudyPanel";
 import { NeighborhoodRatioStudyDashboard } from "@/components/valuation/NeighborhoodRatioStudyDashboard";
 import { ParcelComparisonView } from "../ParcelComparisonView";
+import { BatchAdjustmentReviewQueue } from "@/components/forge/BatchAdjustmentReviewQueue";
 import { 
   PRDDrilldownDialog, 
   CODDrilldownDialog, 
