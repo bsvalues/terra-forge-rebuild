@@ -10,7 +10,7 @@ import {
   Command,
   SlidersHorizontal,
 } from "lucide-react";
-import { NotificationBell } from "@/components/geoequity/NotificationBell";
+import { NotificationCenter } from "@/components/navigation/NotificationCenter";
 import { CountySwitcher } from "@/components/admin/CountySwitcher";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
