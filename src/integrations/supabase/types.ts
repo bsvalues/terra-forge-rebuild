@@ -5524,6 +5524,10 @@ export type Database = {
         Args: { p_county_id: string; p_limit?: number }
         Returns: Json
       }
+      bulk_update_parcel_centroids: {
+        Args: { p_county_id: string; p_data: Json }
+        Returns: number
+      }
       complete_revaluation_cycle: {
         Args: { p_cycle_id: string }
         Returns: Json
