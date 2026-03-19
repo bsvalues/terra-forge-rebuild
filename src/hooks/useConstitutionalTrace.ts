@@ -76,7 +76,7 @@ export function useValueLineage(parcelId?: string, limit = 50) {
 
       const { data, error } = await query;
       if (error) throw error;
-      return (data || []) as ValueLineageEntry[];
+      return (data || []) as unknown as ValueLineageEntry[];
     },
     staleTime: 15_000,
   });
