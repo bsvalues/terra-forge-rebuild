@@ -19,6 +19,9 @@ import { PermitImpactEstimator } from "@/components/dais/PermitImpactEstimator";
 import { MultiParcelBatchExport } from "@/components/dais/MultiParcelBatchExport";
 import { AppealOutcomePredictor } from "@/components/dais/AppealOutcomePredictor";
 import { OwnerCommunicationLog } from "@/components/dais/OwnerCommunicationLog";
+import { RollChangeSummary } from "@/components/dais/RollChangeSummary";
+import { PropertyInspectionScheduler } from "@/components/dais/PropertyInspectionScheduler";
+import { TaxLevyImpactCalculator } from "@/components/dais/TaxLevyImpactCalculator";
 import { WorkflowInstanceTracker } from "@/components/workflow";
 import { WorkflowTemplateCRUD } from "@/components/admin/WorkflowTemplateCRUD";
 import { BulkAssessmentExport } from "@/components/valuation/BulkAssessmentExport";
@@ -151,6 +154,7 @@ export function DaisTab({ initialCategory, onCategoryConsumed }: DaisTabProps) {
         <TabsContent value="permits" className="mt-0 space-y-4">
           <PermitsWorkflow />
           <PermitImpactEstimator />
+          <PropertyInspectionScheduler />
         </TabsContent>
 
         <TabsContent value="exemptions" className="mt-0 space-y-4">
@@ -173,6 +177,8 @@ export function DaisTab({ initialCategory, onCategoryConsumed }: DaisTabProps) {
         <TabsContent value="certification" className="mt-0 space-y-4">
           <CertificationPipeline />
           <NeighborhoodCertificationWorkflow />
+          <RollChangeSummary />
+          <TaxLevyImpactCalculator />
         </TabsContent>
 
         <TabsContent value="templates" className="mt-0">
