@@ -376,7 +376,7 @@ export function SLCODemoLanding({ onNavigate }: SLCODemoLandingProps) {
                                 if (t.id === "annual-reval") onNavigate("dashboard");
                                 else if (t.id === "appeal-defense") onNavigate("appeal-insights");
                                 else if (t.id === "data-onboard") onNavigate("slco-pipeline");
-                                else onNavigate("neighborhoods");
+                                else onNavigate("nbhd-review");
                               }}
                             >
                               Launch Template
