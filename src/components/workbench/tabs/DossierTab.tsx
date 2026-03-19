@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { FolderOpen, FileText, Brain, Package, Upload, Shield } from "lucide-react";
+import { FolderOpen, FileText, Brain, Package, Upload, Shield, StickyNote } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useWorkbench } from "@/components/workbench/WorkbenchContext";
