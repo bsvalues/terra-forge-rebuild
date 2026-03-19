@@ -158,7 +158,7 @@ export function SuiteHub({ onNavigate, onParcelNavigate }: SuiteHubProps) {
           </div>
           <ScopeHeader
             scope="county"
-            label="Benton"
+            label={countyMeta?.shortName ?? "County"}
             source="county-vitals"
             fetchedAt={vitals?.fetchedAt}
             status="published"

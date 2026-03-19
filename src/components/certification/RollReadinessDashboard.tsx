@@ -280,7 +280,7 @@ export function RollReadinessDashboard() {
     <div className="space-y-6">
       {/* Scope + Provenance */}
       <div className="flex items-center justify-end gap-2">
-        <ScopeHeader scope="county" label="Benton" source="roll-readiness" status="draft" />
+        <ScopeHeader scope="county" label={countyMeta?.shortName ?? "County"} source="roll-readiness" status="draft" />
         <ProvenanceBadge source="roll-readiness" />
       </div>
 

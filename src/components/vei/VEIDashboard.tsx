@@ -214,7 +214,7 @@ export function VEIDashboard() {
             </p>
           </div>
           <div className="flex items-center gap-3 flex-wrap">
-            <ScopeHeader scope="county" label="Benton" source="ratio-analysis" status="published" />
+            <ScopeHeader scope="county" label={countyMeta?.shortName ?? "County"} source="ratio-analysis" status="published" />
             <ProvenanceBadge source="ratio-analysis" />
             <TaxYearSelector
               years={taxYears}
