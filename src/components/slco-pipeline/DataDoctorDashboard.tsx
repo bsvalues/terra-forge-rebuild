@@ -1,9 +1,10 @@
-// TerraFusion OS — Data Doctor Dashboard (Phase 66)
+// TerraFusion OS — Data Doctor Dashboard (Phase 66+67)
 // AI diagnoses. PostGIS repairs. Humans approve.
 // "The data said it wants a second opinion" — Ralph Wiggum, Chief Diagnostician
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { RemediationWorkbench } from "./RemediationWorkbench";
 import {
   Stethoscope, MapPin, Home, Copy, GitCompareArrows, Brain,
   AlertTriangle, Play, Loader2, Shield, ShieldAlert, ShieldX,
