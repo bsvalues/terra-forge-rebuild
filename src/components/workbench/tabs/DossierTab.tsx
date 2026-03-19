@@ -8,6 +8,7 @@ import { DocumentsPanel } from "@/components/dossier/DocumentsPanel";
 import { DocumentUploadDialog } from "@/components/dossier/DocumentUploadDialog";
 import { NarrativeDraftingPanel } from "@/components/dossier/NarrativeDraftingPanel";
 import { PacketAssemblyPanel } from "@/components/dossier/PacketAssemblyPanel";
+import { ParcelAnnotations } from "@/components/dossier/ParcelAnnotations";
 
 export function DossierTab() {
   const [activeView, setActiveView] = useState("files");
