@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { ExecutiveKpiCards } from "../ExecutiveKpiCards";
 import { AssessmentSparkline } from "../AssessmentSparkline";
+import { ValueChangeExplainer } from "../ValueChangeExplainer";
 import { motion } from "framer-motion";
 import {
   TrendingUp,
