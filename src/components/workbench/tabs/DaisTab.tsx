@@ -177,6 +177,8 @@ export function DaisTab({ initialCategory, onCategoryConsumed }: DaisTabProps) {
         <TabsContent value="certification" className="mt-0 space-y-4">
           <CertificationPipeline />
           <NeighborhoodCertificationWorkflow />
+          <RollChangeSummary />
+          <TaxLevyImpactCalculator />
         </TabsContent>
 
         <TabsContent value="templates" className="mt-0">
