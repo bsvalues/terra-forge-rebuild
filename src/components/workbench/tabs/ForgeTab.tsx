@@ -16,6 +16,7 @@ import { RatioStudyPanel } from "@/components/valuation/RatioStudyPanel";
 import { NeighborhoodRatioStudyDashboard } from "@/components/valuation/NeighborhoodRatioStudyDashboard";
 import { ParcelComparisonView } from "../ParcelComparisonView";
 import { BatchAdjustmentReviewQueue } from "@/components/forge/BatchAdjustmentReviewQueue";
+import { ComparativeSnapshotDiff } from "@/components/forge/ComparativeSnapshotDiff";
 import { 
   PRDDrilldownDialog, 
   CODDrilldownDialog, 
@@ -34,7 +35,7 @@ import {
   ArrowLeftRight,
 } from "lucide-react";
 
-type ForgeView = "vei" | "regression" | "avm" | "segments" | "anatomy" | "comps" | "avmrun" | "cost" | "ratio" | "compare" | "nbhd-ratio" | "adjustments";
+type ForgeView = "vei" | "regression" | "avm" | "segments" | "anatomy" | "comps" | "avmrun" | "cost" | "ratio" | "compare" | "nbhd-ratio" | "adjustments" | "snapshots";
 
 export function ForgeTab() {
   const [activeView, setActiveView] = useState<ForgeView>("vei");
@@ -52,6 +53,7 @@ export function ForgeTab() {
     { id: "compare", label: "Compare", icon: ArrowLeftRight },
     { id: "nbhd-ratio", label: "Nbhd Ratios", icon: MapPin },
     { id: "adjustments", label: "Adjustments", icon: Undo2 },
+    { id: "snapshots", label: "Snapshots", icon: ArrowLeftRight },
   ];
 
   const navigate = useNavigate();
@@ -138,6 +140,7 @@ export function ForgeTab() {
         {activeView === "compare" && <div className="p-6"><ParcelComparisonView /></div>}
         {activeView === "nbhd-ratio" && <NeighborhoodRatioStudyDashboard />}
         {activeView === "adjustments" && <div className="p-6"><BatchAdjustmentReviewQueue /></div>}
+        {activeView === "snapshots" && <div className="p-6"><ComparativeSnapshotDiff /></div>}
       </div>
     </div>
   );

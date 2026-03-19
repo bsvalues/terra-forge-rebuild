@@ -14,6 +14,8 @@ import { NoticesPanel } from "@/components/dais/NoticesPanel";
 import { BatchNoticeStatusDashboard } from "@/components/dais/BatchNoticeStatusDashboard";
 import { DQRemediationProgressTracker } from "@/components/dais/DQRemediationProgressTracker";
 import { WorkflowSlaTracker } from "@/components/dais/WorkflowSlaTracker";
+import { NeighborhoodCertificationWorkflow } from "@/components/dais/NeighborhoodCertificationWorkflow";
+import { PermitImpactEstimator } from "@/components/dais/PermitImpactEstimator";
 import { WorkflowInstanceTracker } from "@/components/workflow";
 import { WorkflowTemplateCRUD } from "@/components/admin/WorkflowTemplateCRUD";
 import { BulkAssessmentExport } from "@/components/valuation/BulkAssessmentExport";
@@ -143,8 +145,9 @@ export function DaisTab({ initialCategory, onCategoryConsumed }: DaisTabProps) {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="permits" className="mt-0">
+        <TabsContent value="permits" className="mt-0 space-y-4">
           <PermitsWorkflow />
+          <PermitImpactEstimator />
         </TabsContent>
 
         <TabsContent value="exemptions" className="mt-0 space-y-4">
@@ -162,8 +165,9 @@ export function DaisTab({ initialCategory, onCategoryConsumed }: DaisTabProps) {
           <BatchNoticeStatusDashboard />
         </TabsContent>
 
-        <TabsContent value="certification" className="mt-0">
+        <TabsContent value="certification" className="mt-0 space-y-4">
           <CertificationPipeline />
+          <NeighborhoodCertificationWorkflow />
         </TabsContent>
 
         <TabsContent value="templates" className="mt-0">
