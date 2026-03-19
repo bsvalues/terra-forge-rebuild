@@ -9,10 +9,13 @@
 
 ## Current State Summary
 
-**Active Phase**: Phase 59 — UGRC Spatial Ingestion Engine (COMPLETE)  
-**Last Completed Task**: 59.3 — UGRC panel integrated into SLCO Pipeline Hub  
-**Next Task**: Phase 60 planning  
+**Active Phase**: Phase 60 — SLCO Canonical Schema + Pipeline Orchestrator (COMPLETE)  
+**Last Completed Task**: 60.3 — Pipeline Orchestrator UI wired into SLCO Hub  
+**Next Task**: Phase 61 planning  
 **Blockers**: None
+
+| 60 | SLCO Canonical Schema + Pipeline Orchestrator | ✅ COMPLETE | 3/3 | 10-table canonical schema (parcel_master, source_registry, geometry_snapshot, assessment_summary, commercial_characteristics, value_history, recorder_document_index, identifier_history, spatial_context, evidence_registry) + pipeline_runs tracking table + 3 mart views (workbench_summary, forge_cost_context, dossier_index) with security_invoker + slco-pipeline edge function (7-stage orchestrator: raw_ingest→standardize→identity_resolve→spatial_join→commercial_enrich→recorder_enrich→publish_marts) + useSLCOPipeline hook + PipelineOrchestratorPanel UI with per-stage run/reset controls and canonical table inventory |
+
 
 ---
 
