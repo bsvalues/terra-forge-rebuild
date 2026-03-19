@@ -150,6 +150,13 @@ export function DaisTab({ initialCategory, onCategoryConsumed }: DaisTabProps) {
             <Wrench className="w-4 h-4" />
             DQ Fixes
           </TabsTrigger>
+          <TabsTrigger 
+            value="automation"
+            className="gap-2 data-[state=active]:bg-tf-gold/20 data-[state=active]:text-tf-gold"
+          >
+            <Zap className="w-4 h-4" />
+            Automation
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="permits" className="mt-0 space-y-4">
