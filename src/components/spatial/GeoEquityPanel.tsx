@@ -177,7 +177,7 @@ export function GeoEquityPanel() {
       <Card className="bg-card/80 border-border/40 overflow-hidden">
         <CardHeader className="pb-2 flex flex-row items-center justify-between">
           <CardTitle className="text-sm font-medium flex items-center gap-2">
-            <Map className="w-4 h-4 text-chart-3" />
+            <MapIcon className="w-4 h-4 text-chart-3" />
             GeoEquity Atlas
           </CardTitle>
           <Button
