@@ -56,6 +56,8 @@ export function ForgeTab() {
     { id: "nbhd-ratio", label: "Nbhd Ratios", icon: MapPin },
     { id: "adjustments", label: "Adjustments", icon: Undo2 },
     { id: "snapshots", label: "Snapshots", icon: ArrowLeftRight },
+    { id: "confidence", label: "Confidence", icon: Target },
+    { id: "equity-matrix", label: "Equity Matrix", icon: Grid3X3 },
   ];
 
   const navigate = useNavigate();
