@@ -169,7 +169,7 @@ function SaveProfileDialog({
               Description (optional)
             </label>
             <Input
-              placeholder="e.g. Benton Co. sales export, annual refresh"
+              placeholder="e.g. Salt Lake Co. sales export, annual refresh"
               value={desc}
               onChange={(e) => setDesc(e.target.value)}
             />

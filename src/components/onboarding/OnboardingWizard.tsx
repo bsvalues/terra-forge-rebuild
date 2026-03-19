@@ -182,7 +182,7 @@ export function OnboardingWizard() {
                     <Label htmlFor="county-name" className="text-sm">County Name</Label>
                     <Input
                       id="county-name"
-                      placeholder="e.g., Benton County"
+                      placeholder="e.g., Salt Lake County"
                       value={countyName}
                       onChange={(e) => setCountyName(e.target.value)}
                       className="mt-1"
