@@ -2771,6 +2771,77 @@ export type Database = {
           },
         ]
       }
+      revaluation_cycles: {
+        Row: {
+          completed_at: string | null
+          county_id: string
+          created_at: string
+          cycle_name: string
+          defensibility_score: number | null
+          id: string
+          launched_at: string | null
+          launched_by: string
+          model_types: string[]
+          neighborhoods: string[]
+          notes: string | null
+          parcels_calibrated: number
+          parcels_valued: number
+          quality_score: number | null
+          status: string
+          tax_year: number
+          total_parcels: number
+          updated_at: string
+        }
+        Insert: {
+          completed_at?: string | null
+          county_id: string
+          created_at?: string
+          cycle_name: string
+          defensibility_score?: number | null
+          id?: string
+          launched_at?: string | null
+          launched_by?: string
+          model_types?: string[]
+          neighborhoods?: string[]
+          notes?: string | null
+          parcels_calibrated?: number
+          parcels_valued?: number
+          quality_score?: number | null
+          status?: string
+          tax_year?: number
+          total_parcels?: number
+          updated_at?: string
+        }
+        Update: {
+          completed_at?: string | null
+          county_id?: string
+          created_at?: string
+          cycle_name?: string
+          defensibility_score?: number | null
+          id?: string
+          launched_at?: string | null
+          launched_by?: string
+          model_types?: string[]
+          neighborhoods?: string[]
+          notes?: string | null
+          parcels_calibrated?: number
+          parcels_valued?: number
+          quality_score?: number | null
+          status?: string
+          tax_year?: number
+          total_parcels?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "revaluation_cycles_county_id_fkey"
+            columns: ["county_id"]
+            isOneToOne: false
+            referencedRelation: "counties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       review_queue_items: {
         Row: {
           created_at: string
@@ -5225,6 +5296,14 @@ export type Database = {
         Returns: boolean
       }
       is_admin: { Args: never; Returns: boolean }
+      launch_revaluation_cycle: {
+        Args: {
+          p_cycle_name?: string
+          p_neighborhoods?: string[]
+          p_tax_year?: number
+        }
+        Returns: Json
+      }
       link_parcels_to_polygons_by_location: {
         Args: { p_county_id: string; p_layer_id: string; p_limit?: number }
         Returns: Json
