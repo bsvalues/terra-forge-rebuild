@@ -4,6 +4,7 @@ import { AssessmentSparkline } from "../AssessmentSparkline";
 import { ValueChangeExplainer } from "../ValueChangeExplainer";
 import { TraceActivityFeed } from "@/components/trace/TraceActivityFeed";
 import { WatchlistPanel } from "@/components/workbench/WatchlistPanel";
+import { ParcelTimeline } from "@/components/workbench/ParcelTimeline";
 import { motion } from "framer-motion";
 import {
   TrendingUp,
@@ -520,13 +521,16 @@ function ParcelSummaryContent() {
 
         {/* Activity Feed */}
         <TabsContent value="activity">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-card border border-border/50 rounded-2xl p-6">
-            <h3 className="text-lg font-medium text-foreground mb-4 flex items-center gap-2">
-              <Activity className="w-5 h-5 text-primary" />
-              TerraTrace Activity Feed
-            </h3>
-            <TerraTraceActivityFeed parcelId={parcel.id} />
-          </motion.div>
+          <div className="space-y-6">
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-card border border-border/50 rounded-2xl p-6">
+              <h3 className="text-lg font-medium text-foreground mb-4 flex items-center gap-2">
+                <Activity className="w-5 h-5 text-primary" />
+                TerraTrace Activity Feed
+              </h3>
+              <TerraTraceActivityFeed parcelId={parcel.id} />
+            </motion.div>
+            <ParcelTimeline />
+          </div>
         </TabsContent>
       </Tabs>
     </div>
