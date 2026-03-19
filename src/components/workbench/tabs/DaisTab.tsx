@@ -167,6 +167,7 @@ export function DaisTab({ initialCategory, onCategoryConsumed }: DaisTabProps) {
         <TabsContent value="notices" className="mt-0 space-y-4">
           <NoticesPanel />
           <BatchNoticeStatusDashboard />
+          <OwnerCommunicationLog />
         </TabsContent>
 
         <TabsContent value="certification" className="mt-0 space-y-4">

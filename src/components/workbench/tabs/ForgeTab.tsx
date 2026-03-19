@@ -145,6 +145,8 @@ export function ForgeTab() {
         {activeView === "nbhd-ratio" && <NeighborhoodRatioStudyDashboard />}
         {activeView === "adjustments" && <div className="p-6"><BatchAdjustmentReviewQueue /></div>}
         {activeView === "snapshots" && <div className="p-6"><ComparativeSnapshotDiff /></div>}
+        {activeView === "confidence" && <div className="p-6"><ValuationConfidenceVisualizer /></div>}
+        {activeView === "equity-matrix" && <div className="p-6"><NeighborhoodEquityMatrix /></div>}
       </div>
     </div>
   );
