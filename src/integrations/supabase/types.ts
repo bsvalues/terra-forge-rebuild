@@ -2118,33 +2118,45 @@ export type Database = {
         Row: {
           county_id: string
           created_at: string
+          description: string | null
           geometry: Json | null
           hood_cd: string
           hood_name: string | null
           id: string
           metadata: Json | null
+          model_type: string | null
+          property_classes: string[] | null
+          status: string | null
           updated_at: string
           year: number
         }
         Insert: {
           county_id: string
           created_at?: string
+          description?: string | null
           geometry?: Json | null
           hood_cd: string
           hood_name?: string | null
           id?: string
           metadata?: Json | null
+          model_type?: string | null
+          property_classes?: string[] | null
+          status?: string | null
           updated_at?: string
           year: number
         }
         Update: {
           county_id?: string
           created_at?: string
+          description?: string | null
           geometry?: Json | null
           hood_cd?: string
           hood_name?: string | null
           id?: string
           metadata?: Json | null
+          model_type?: string | null
+          property_classes?: string[] | null
+          status?: string | null
           updated_at?: string
           year?: number
         }
@@ -4968,6 +4980,7 @@ export type Database = {
         }[]
       }
       disablelongtransactions: { Args: never; Returns: string }
+      discover_unregistered_neighborhoods: { Args: never; Returns: Json }
       dropgeometrycolumn:
         | {
             Args: {
