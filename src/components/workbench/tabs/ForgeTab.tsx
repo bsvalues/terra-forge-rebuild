@@ -49,6 +49,7 @@ export function ForgeTab() {
     { id: "cost", label: "Cost Approach", icon: DollarSign },
     { id: "ratio", label: "Ratio Study", icon: BarChart3 },
     { id: "compare", label: "Compare", icon: ArrowLeftRight },
+    { id: "nbhd-ratio", label: "Nbhd Ratios", icon: MapPin },
   ];
 
   const navigate = useNavigate();
