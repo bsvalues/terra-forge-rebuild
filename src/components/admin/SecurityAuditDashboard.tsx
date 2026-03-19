@@ -334,9 +334,6 @@ export function SecurityAuditDashboard() {
           <TraceChainIntegrityPanel countyId={profile?.county_id} />
         </div>
       </div>
-        <EventTypeList breakdown={metrics.eventTypeBreakdown} />
-        <ComplianceChecklist />
-      </div>
 
       {/* Audit Trail */}
       <Card className="border-border/50 bg-card/80">
