@@ -9,10 +9,12 @@
 
 ## Current State Summary
 
-**Active Phase**: Phase 62 — Constitutional Traceability Hardening (COMPLETE)  
-**Last Completed Task**: 62.4 — Write-lane isolation enforcement UI  
-**Next Task**: Phase 63 planning  
+**Active Phase**: Phase 63 — SLCo Demo Landing & Onboarding (COMPLETE)  
+**Last Completed Task**: 63.3 — Jurisdiction map & quick-start templates  
+**Next Task**: Phase 64 planning  
 **Blockers**: None
+
+| 63 | SLCo Demo Landing & Onboarding | ✅ COMPLETE | 3/3 | SLCODemoLanding executive dashboard (hero with Mountain branding, FIPS 49035, 3-stat overview), 5-step guided assessor onboarding wizard (progress bar, step cards with navigation actions, auto-detects pipeline state), interactive SLCo jurisdiction grid (12 districts with parcel counts and active/pending status), 4 quick-start templates (Annual Revaluation, Appeal Defense, Data Onboarding, Neighborhood Review with expandable step lists + launch buttons), quick-nav grid to key views, IA_MAP slco-demo view, AppLayout wiring |
 
 | 62 | Constitutional Traceability Hardening | ✅ COMPLETE | 4/4 | Source-of-Truth metadata (source_system, pipeline_version, lineage_hash, payload_checksum) on SLCO canonical tables, slco_value_lineage append-only table with immutable trigger (blocks UPDATE/DELETE), write_lane_violations append-only audit table with DB persistence from writeLane.ts, appeal_audit_trail view (appeals + status_changes + value_adjustments join), slco_lineage_summary view, ConstitutionalTracePanel UI (3-tab: Value Lineage explorer with parcel filter, Write-Lane violation monitor with stats, Appeal Audit Trail with status chain + adjustment linkage), integrated into SLCOPipelineHub |
 
