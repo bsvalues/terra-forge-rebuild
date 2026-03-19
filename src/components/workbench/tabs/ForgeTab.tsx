@@ -20,6 +20,7 @@ import { ComparativeSnapshotDiff } from "@/components/forge/ComparativeSnapshotD
 import { ValuationConfidenceVisualizer } from "@/components/forge/ValuationConfidenceVisualizer";
 import { NeighborhoodEquityMatrix } from "@/components/forge/NeighborhoodEquityMatrix";
 import { AssessmentMethodologyViewer } from "@/components/forge/AssessmentMethodologyViewer";
+import { ParcelComparisonDiff } from "@/components/forge/ParcelComparisonDiff";
 import { 
   PRDDrilldownDialog, 
   CODDrilldownDialog, 
