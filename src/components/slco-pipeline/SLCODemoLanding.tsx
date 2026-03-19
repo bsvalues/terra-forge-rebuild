@@ -140,6 +140,7 @@ export function SLCODemoLanding({ onNavigate }: SLCODemoLandingProps) {
 
   const totalParcels = vitals?.parcels?.total || 0;
   const qualityScore = vitals?.quality?.overall || 0;
+  const defensibility = vitals?.defensibility;
 
   // Determine onboarding state
   const hasData = totalParcels > 0;
