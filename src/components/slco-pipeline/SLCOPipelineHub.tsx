@@ -4,6 +4,7 @@
 import { useSLCOIngestion, type SLCOSource, type PipelineStageRow, type MartStatus } from "@/hooks/useSLCOIngestion";
 import { UGRCIngestionPanel } from "./UGRCIngestionPanel";
 import { PipelineOrchestratorPanel } from "./PipelineOrchestratorPanel";
+import { ConstitutionalTracePanel } from "./ConstitutionalTracePanel";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -312,6 +313,9 @@ export function SLCOPipelineHub() {
       </div>
 
       <MartReadiness marts={data.marts} />
+
+      {/* Constitutional Traceability */}
+      <ConstitutionalTracePanel />
 
       {/* Schema Preview */}
       <Card className="border-border/50 bg-card/80">

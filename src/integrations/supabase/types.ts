@@ -47,6 +47,13 @@ export type Database = {
             foreignKeyName: "appeal_status_changes_appeal_id_fkey"
             columns: ["appeal_id"]
             isOneToOne: false
+            referencedRelation: "appeal_audit_trail"
+            referencedColumns: ["appeal_id"]
+          },
+          {
+            foreignKeyName: "appeal_status_changes_appeal_id_fkey"
+            columns: ["appeal_id"]
+            isOneToOne: false
             referencedRelation: "appeals"
             referencedColumns: ["id"]
           },
@@ -2902,7 +2909,9 @@ export type Database = {
           county_id: string
           improvement_value: number | null
           land_value: number | null
+          lineage_hash: string | null
           parcel_id_normalized: string
+          pipeline_version: string | null
           property_type_code: string | null
           property_type_label: string | null
           retrieved_at: string
@@ -2918,7 +2927,9 @@ export type Database = {
           county_id?: string
           improvement_value?: number | null
           land_value?: number | null
+          lineage_hash?: string | null
           parcel_id_normalized: string
+          pipeline_version?: string | null
           property_type_code?: string | null
           property_type_label?: string | null
           retrieved_at?: string
@@ -2934,7 +2945,9 @@ export type Database = {
           county_id?: string
           improvement_value?: number | null
           land_value?: number | null
+          lineage_hash?: string | null
           parcel_id_normalized?: string
+          pipeline_version?: string | null
           property_type_code?: string | null
           property_type_label?: string | null
           retrieved_at?: string
@@ -3061,7 +3074,9 @@ export type Database = {
           county_id: string
           geom_sk: string
           geometry_version: number
+          lineage_hash: string | null
           parcel_id_normalized: string
+          pipeline_version: string | null
           retrieved_at: string
           source_system: string
           superseded_at: string | null
@@ -3075,7 +3090,9 @@ export type Database = {
           county_id?: string
           geom_sk?: string
           geometry_version?: number
+          lineage_hash?: string | null
           parcel_id_normalized: string
+          pipeline_version?: string | null
           retrieved_at?: string
           source_system: string
           superseded_at?: string | null
@@ -3089,7 +3106,9 @@ export type Database = {
           county_id?: string
           geom_sk?: string
           geometry_version?: number
+          lineage_hash?: string | null
           parcel_id_normalized?: string
+          pipeline_version?: string | null
           retrieved_at?: string
           source_system?: string
           superseded_at?: string | null
@@ -3139,18 +3158,23 @@ export type Database = {
           county_id: string
           created_at: string
           geom_source: string | null
+          ingested_at: string | null
           land_use_code: string | null
+          lineage_hash: string | null
           model_area_id: string | null
           owner_name: string | null
           parcel_id: string
           parcel_id_normalized: string
           parcel_sk: string
+          payload_checksum: string | null
+          pipeline_version: string | null
           property_type_code: string | null
           property_type_label: string | null
           situs_address: string | null
           situs_city: string | null
           situs_zip: string | null
           source_preferred: string
+          source_system: string | null
           tax_district_id: string | null
           updated_at: string
           valid_from: string
@@ -3162,18 +3186,23 @@ export type Database = {
           county_id?: string
           created_at?: string
           geom_source?: string | null
+          ingested_at?: string | null
           land_use_code?: string | null
+          lineage_hash?: string | null
           model_area_id?: string | null
           owner_name?: string | null
           parcel_id: string
           parcel_id_normalized: string
           parcel_sk?: string
+          payload_checksum?: string | null
+          pipeline_version?: string | null
           property_type_code?: string | null
           property_type_label?: string | null
           situs_address?: string | null
           situs_city?: string | null
           situs_zip?: string | null
           source_preferred?: string
+          source_system?: string | null
           tax_district_id?: string | null
           updated_at?: string
           valid_from?: string
@@ -3185,18 +3214,23 @@ export type Database = {
           county_id?: string
           created_at?: string
           geom_source?: string | null
+          ingested_at?: string | null
           land_use_code?: string | null
+          lineage_hash?: string | null
           model_area_id?: string | null
           owner_name?: string | null
           parcel_id?: string
           parcel_id_normalized?: string
           parcel_sk?: string
+          payload_checksum?: string | null
+          pipeline_version?: string | null
           property_type_code?: string | null
           property_type_label?: string | null
           situs_address?: string | null
           situs_city?: string | null
           situs_zip?: string | null
           source_preferred?: string
+          source_system?: string | null
           tax_district_id?: string | null
           updated_at?: string
           valid_from?: string
@@ -3402,6 +3436,69 @@ export type Database = {
           recording_date?: string | null
           retrieved_at?: string
           source_system?: string
+        }
+        Relationships: []
+      }
+      slco_value_lineage: {
+        Row: {
+          correlation_id: string | null
+          county_id: string
+          created_at: string | null
+          created_by: string | null
+          delta_amount: number | null
+          delta_pct: number | null
+          event_type: string
+          id: string
+          lineage_hash: string | null
+          parcel_id: string
+          pipeline_stage: string | null
+          pipeline_version: string | null
+          reason: string | null
+          source_module: string
+          source_system: string | null
+          trace_event_id: string | null
+          value_after: Json | null
+          value_before: Json | null
+        }
+        Insert: {
+          correlation_id?: string | null
+          county_id?: string
+          created_at?: string | null
+          created_by?: string | null
+          delta_amount?: number | null
+          delta_pct?: number | null
+          event_type: string
+          id?: string
+          lineage_hash?: string | null
+          parcel_id: string
+          pipeline_stage?: string | null
+          pipeline_version?: string | null
+          reason?: string | null
+          source_module: string
+          source_system?: string | null
+          trace_event_id?: string | null
+          value_after?: Json | null
+          value_before?: Json | null
+        }
+        Update: {
+          correlation_id?: string | null
+          county_id?: string
+          created_at?: string | null
+          created_by?: string | null
+          delta_amount?: number | null
+          delta_pct?: number | null
+          event_type?: string
+          id?: string
+          lineage_hash?: string | null
+          parcel_id?: string
+          pipeline_stage?: string | null
+          pipeline_version?: string | null
+          reason?: string | null
+          source_module?: string
+          source_system?: string | null
+          trace_event_id?: string | null
+          value_after?: Json | null
+          value_before?: Json | null
         }
         Relationships: []
       }
@@ -3879,8 +3976,85 @@ export type Database = {
           },
         ]
       }
+      write_lane_violations: {
+        Row: {
+          actor_id: string | null
+          attempted_module: string
+          context: Json | null
+          created_at: string | null
+          expected_owner: string
+          id: string
+          target_domain: string
+          violation_type: string
+        }
+        Insert: {
+          actor_id?: string | null
+          attempted_module: string
+          context?: Json | null
+          created_at?: string | null
+          expected_owner: string
+          id?: string
+          target_domain: string
+          violation_type?: string
+        }
+        Update: {
+          actor_id?: string | null
+          attempted_module?: string
+          context?: Json | null
+          created_at?: string | null
+          expected_owner?: string
+          id?: string
+          target_domain?: string
+          violation_type?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
+      appeal_audit_trail: {
+        Row: {
+          adj_applied_at: string | null
+          adj_new_value: number | null
+          adj_previous_value: number | null
+          adj_reason: string | null
+          adjustment_id: string | null
+          adjustment_type: string | null
+          appeal_date: string | null
+          appeal_id: string | null
+          appeal_notes: string | null
+          appeal_status: string | null
+          change_reason: string | null
+          county_id: string | null
+          final_value: number | null
+          hearing_date: string | null
+          new_status: string | null
+          original_value: number | null
+          parcel_id: string | null
+          previous_status: string | null
+          requested_value: number | null
+          resolution_date: string | null
+          resolution_type: string | null
+          status_change_id: string | null
+          status_changed_at: string | null
+          tax_year: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appeals_county_id_fkey"
+            columns: ["county_id"]
+            isOneToOne: false
+            referencedRelation: "counties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appeals_parcel_id_fkey"
+            columns: ["parcel_id"]
+            isOneToOne: false
+            referencedRelation: "parcels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       appeals_sanitized: {
         Row: {
           appeal_date: string | null
@@ -4059,6 +4233,24 @@ export type Database = {
           tax_district_id: string | null
           tax_year: number | null
           total_market_value: number | null
+        }
+        Relationships: []
+      }
+      slco_lineage_summary: {
+        Row: {
+          created_at: string | null
+          delta_amount: number | null
+          delta_pct: number | null
+          event_type: string | null
+          lineage_hash: string | null
+          parcel_id: string | null
+          parcel_id_normalized: string | null
+          pipeline_stage: string | null
+          pipeline_version: string | null
+          reason: string | null
+          situs_address: string | null
+          source_module: string | null
+          source_system: string | null
         }
         Relationships: []
       }

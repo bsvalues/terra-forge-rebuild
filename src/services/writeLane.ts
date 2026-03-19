@@ -1,8 +1,9 @@
 // TerraFusion OS — Write-Lane Enforcement
 // Constitutional write-lane matrix: each domain has exactly ONE owner
+// Phase 62: violations are now persisted to write_lane_violations table
 
 import type { WriteDomain, SourceModule } from "@/types/parcel360";
-
+import { supabase } from "@/integrations/supabase/client";
 /**
  * The canonical Write-Lane Matrix.
  * Maps each data domain to the single module that owns writes.
@@ -62,6 +63,7 @@ export function assertWriteLane(domain: WriteDomain, sourceModule: SourceModule)
   if (sourceModule === "field" && domain !== "trace_events") {
     const msg = `[WriteLane] FIELD GUARDRAIL: "field" module attempted direct write to "${domain}". Field Studio must route through domain services.`;
     console.error(msg);
+    logViolationAsync(sourceModule, domain, owner, "field_guardrail");
     if (import.meta.env.DEV) {
       throw new Error(msg);
     }
@@ -71,8 +73,32 @@ export function assertWriteLane(domain: WriteDomain, sourceModule: SourceModule)
   if (owner !== sourceModule) {
     const msg = `[WriteLane] VIOLATION: "${sourceModule}" attempted to write to "${domain}" (owned by "${owner}")`;
     console.error(msg);
+    logViolationAsync(sourceModule, domain, owner, "cross_lane");
     if (import.meta.env.DEV) {
       throw new Error(msg);
     }
   }
+}
+
+/**
+ * Persist write-lane violations to the append-only audit table.
+ * Fire-and-forget — never blocks the caller.
+ */
+function logViolationAsync(
+  attemptedModule: string,
+  targetDomain: string,
+  expectedOwner: string,
+  violationType: string,
+): void {
+  supabase
+    .from("write_lane_violations" as any)
+    .insert({
+      attempted_module: attemptedModule,
+      target_domain: targetDomain,
+      expected_owner: expectedOwner,
+      violation_type: violationType,
+    } as any)
+    .then(({ error }) => {
+      if (error) console.warn("[WriteLane] Failed to log violation:", error.message);
+    });
 }
