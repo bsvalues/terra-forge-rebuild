@@ -333,7 +333,10 @@ export function WebhookNotificationHub() {
             <Activity className="h-4 w-4 text-primary" />
             Webhook Notification Hub
           </CardTitle>
-          <CreateEndpointDialog />
+          <div className="flex gap-2">
+            <DispatchEventDialog />
+            <CreateEndpointDialog />
+          </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
