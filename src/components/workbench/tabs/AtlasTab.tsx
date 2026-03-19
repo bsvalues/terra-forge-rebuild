@@ -143,6 +143,10 @@ export function AtlasTab() {
                   <Compass className="w-3.5 h-3.5" />
                   GeoEquity
                 </TabsTrigger>
+                <TabsTrigger value="valuation" className="text-xs gap-1.5">
+                  <MapPin className="w-3.5 h-3.5" />
+                  Values
+                </TabsTrigger>
               </TabsList>
             </Tabs>
           </div>
