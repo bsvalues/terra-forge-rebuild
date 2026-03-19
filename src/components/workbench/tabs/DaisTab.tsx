@@ -145,8 +145,9 @@ export function DaisTab({ initialCategory, onCategoryConsumed }: DaisTabProps) {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="permits" className="mt-0">
+        <TabsContent value="permits" className="mt-0 space-y-4">
           <PermitsWorkflow />
+          <PermitImpactEstimator />
         </TabsContent>
 
         <TabsContent value="exemptions" className="mt-0 space-y-4">
