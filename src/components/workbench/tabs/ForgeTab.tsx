@@ -17,6 +17,8 @@ import { NeighborhoodRatioStudyDashboard } from "@/components/valuation/Neighbor
 import { ParcelComparisonView } from "../ParcelComparisonView";
 import { BatchAdjustmentReviewQueue } from "@/components/forge/BatchAdjustmentReviewQueue";
 import { ComparativeSnapshotDiff } from "@/components/forge/ComparativeSnapshotDiff";
+import { ValuationConfidenceVisualizer } from "@/components/forge/ValuationConfidenceVisualizer";
+import { NeighborhoodEquityMatrix } from "@/components/forge/NeighborhoodEquityMatrix";
 import { 
   PRDDrilldownDialog, 
   CODDrilldownDialog, 
