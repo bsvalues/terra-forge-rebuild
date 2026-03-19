@@ -9,12 +9,13 @@
 
 ## Current State Summary
 
-**Active Phase**: Phase 60 — SLCO Canonical Schema + Pipeline Orchestrator (COMPLETE)  
-**Last Completed Task**: 60.3 — Pipeline Orchestrator UI wired into SLCO Hub  
-**Next Task**: Phase 61 planning  
+**Active Phase**: Phase 61 — Stage-Gate Pipeline Orchestrator (COMPLETE)  
+**Last Completed Task**: 61.2 — Pipeline visualizer with gate badges, run history timeline  
+**Next Task**: Phase 62 planning  
 **Blockers**: None
 
-| 60 | SLCO Canonical Schema + Pipeline Orchestrator | ✅ COMPLETE | 3/3 | 10-table canonical schema (parcel_master, source_registry, geometry_snapshot, assessment_summary, commercial_characteristics, value_history, recorder_document_index, identifier_history, spatial_context, evidence_registry) + pipeline_runs tracking table + 3 mart views (workbench_summary, forge_cost_context, dossier_index) with security_invoker + slco-pipeline edge function (7-stage orchestrator: raw_ingest→standardize→identity_resolve→spatial_join→commercial_enrich→recorder_enrich→publish_marts) + useSLCOPipeline hook + PipelineOrchestratorPanel UI with per-stage run/reset controls and canonical table inventory |
+| 61 | Stage-Gate Pipeline Orchestrator | ✅ COMPLETE | 2/2 | Stage-gate prerequisite enforcement (each stage declares required predecessors + min row counts), auto-retry with exponential backoff (3 retries, 500ms/1s/2s), quality validation (rejection rate + zero-output detection), enhanced raw_ingest (now creates geometry snapshots + assessment summaries from UGRC attributes), validate_gate action, force-run with gate skip, GateBadge tooltips showing check details, RunHistoryTimeline with duration/retry/row metrics, lock/unlock UI for gate-blocked stages |
+
 
 
 ---
