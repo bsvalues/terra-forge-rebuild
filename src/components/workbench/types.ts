@@ -172,3 +172,22 @@ export const PILOT_TOOLS: PilotTool[] = [
   { id: "summarize_parcel", name: "Summarize Parcel", category: "summarize", mode: "muse", suite: "summary", risk: "read", description: "Generate parcel overview" },
   { id: "synthesize_evidence", name: "Synthesize Evidence", category: "synthesize", mode: "muse", suite: "dossier", risk: "read", description: "Compile case evidence" },
 ];
+
+// ============================================================
+// Swarm Types — Phase 80 Multi-Agent Orchestration
+// ============================================================
+export interface SwarmTaskStatus {
+  agent: string;
+  tool: string;
+  status: "pending" | "active" | "done" | "error";
+  execution_time_ms?: number;
+}
+
+export interface SwarmPhase {
+  phase: "routing" | "dispatching" | "executing" | "synthesizing" | "complete";
+  message?: string;
+  intent?: string;
+  tasks?: SwarmTaskStatus[];
+  complexity?: string;
+  total_time_ms?: number;
+}

@@ -1,5 +1,6 @@
 // TerraPilot Chat — the mouth of the swarm. It speaks in riddles and also databases.
 // "I choo-choo-choose to execute your write tools." — Ralph, Senior DevOps
+// Phase 80: Now with SWARM POWER. The agents are inside the computer!
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -19,6 +20,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
 import { cn } from "@/lib/utils";
+import { SwarmActivityBar, type SwarmPhase } from "./SwarmActivityBar";
 
 interface ToolCallResult {
   tool_name: string;
