@@ -116,6 +116,7 @@ export function TerraPilotChat({ fullscreen = false }: TerraPilotChatProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [activeTools, setActiveTools] = useState<string[]>([]);
   const [confirmingAction, setConfirmingAction] = useState(false);
+  const [swarmPhase, setSwarmPhase] = useState<SwarmPhase | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
 
