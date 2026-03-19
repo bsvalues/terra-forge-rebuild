@@ -145,7 +145,7 @@ export function SLCODemoLanding({ onNavigate }: SLCODemoLandingProps) {
   const onboardingSteps = [
     { title: "Connect Data Sources", desc: "Configure UGRC, Recorder, and CAMA connections", completed: true },
     { title: "Run Initial Pipeline", desc: "Ingest and normalize Salt Lake County parcel data", completed: hasData },
-    { title: "Validate Data Quality", desc: "Review quality scores and resolve anomalies", completed: hasData && qualityScore > 60 },
+    { title: "Validate & Remediate Data", desc: "AI-powered diagnosis, PostGIS-driven repair, human-approved fixes", completed: hasData && qualityScore > 60 },
     { title: "Configure Neighborhoods", desc: "Define neighborhood boundaries and model areas", completed: false },
     { title: "Launch Revaluation", desc: "Begin annual revaluation cycle with calibrated models", completed: false },
   ];
@@ -244,7 +244,7 @@ export function SLCODemoLanding({ onNavigate }: SLCODemoLandingProps) {
                   ? () => {
                       if (i === 0) onNavigate("slco-pipeline");
                       else if (i === 1) onNavigate("slco-pipeline");
-                      else if (i === 2) onNavigate("quality");
+                      else if (i === 2) onNavigate("data-doctor");
                       else if (i === 3) onNavigate("neighborhoods");
                       else onNavigate("dashboard");
                     }
@@ -253,7 +253,7 @@ export function SLCODemoLanding({ onNavigate }: SLCODemoLandingProps) {
               actionLabel={
                 i === 0 ? "Configure" :
                 i === 1 ? "Run Pipeline" :
-                i === 2 ? "Review Quality" :
+                i === 2 ? "Open Data Doctor" :
                 i === 3 ? "Define Areas" :
                 "Begin"
               }

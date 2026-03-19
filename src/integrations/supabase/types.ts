@@ -992,6 +992,328 @@ export type Database = {
           },
         ]
       }
+      dq_diagnosis_runs: {
+        Row: {
+          completed_at: string | null
+          county_id: string
+          created_at: string
+          error_message: string | null
+          hard_blockers_found: number
+          id: string
+          lanes_analyzed: string[] | null
+          model_used: string | null
+          quality_snapshot: Json | null
+          started_at: string
+          status: string
+          total_issues_found: number
+          treatment_plan: Json | null
+        }
+        Insert: {
+          completed_at?: string | null
+          county_id: string
+          created_at?: string
+          error_message?: string | null
+          hard_blockers_found?: number
+          id?: string
+          lanes_analyzed?: string[] | null
+          model_used?: string | null
+          quality_snapshot?: Json | null
+          started_at?: string
+          status?: string
+          total_issues_found?: number
+          treatment_plan?: Json | null
+        }
+        Update: {
+          completed_at?: string | null
+          county_id?: string
+          created_at?: string
+          error_message?: string | null
+          hard_blockers_found?: number
+          id?: string
+          lanes_analyzed?: string[] | null
+          model_used?: string | null
+          quality_snapshot?: Json | null
+          started_at?: string
+          status?: string
+          total_issues_found?: number
+          treatment_plan?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dq_diagnosis_runs_county_id_fkey"
+            columns: ["county_id"]
+            isOneToOne: false
+            referencedRelation: "counties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dq_issue_registry: {
+        Row: {
+          affected_count: number
+          affected_parcel_ids: string[] | null
+          blocker_reason: string | null
+          confidence_score: number | null
+          county_id: string
+          created_at: string
+          diagnosis_run_id: string | null
+          fix_tier: Database["public"]["Enums"]["dq_fix_tier"]
+          id: string
+          impact_score: number | null
+          is_hard_blocker: boolean | null
+          issue_description: string | null
+          issue_title: string
+          issue_type: string
+          lane: Database["public"]["Enums"]["dq_lane"]
+          metadata: Json | null
+          priority_score: number | null
+          resolution_notes: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          reversibility_score: number | null
+          sample_parcel_ids: string[] | null
+          severity: Database["public"]["Enums"]["dq_severity"]
+          source_explanation: string | null
+          source_trust_level: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          affected_count?: number
+          affected_parcel_ids?: string[] | null
+          blocker_reason?: string | null
+          confidence_score?: number | null
+          county_id: string
+          created_at?: string
+          diagnosis_run_id?: string | null
+          fix_tier?: Database["public"]["Enums"]["dq_fix_tier"]
+          id?: string
+          impact_score?: number | null
+          is_hard_blocker?: boolean | null
+          issue_description?: string | null
+          issue_title: string
+          issue_type: string
+          lane: Database["public"]["Enums"]["dq_lane"]
+          metadata?: Json | null
+          priority_score?: number | null
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          reversibility_score?: number | null
+          sample_parcel_ids?: string[] | null
+          severity?: Database["public"]["Enums"]["dq_severity"]
+          source_explanation?: string | null
+          source_trust_level?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          affected_count?: number
+          affected_parcel_ids?: string[] | null
+          blocker_reason?: string | null
+          confidence_score?: number | null
+          county_id?: string
+          created_at?: string
+          diagnosis_run_id?: string | null
+          fix_tier?: Database["public"]["Enums"]["dq_fix_tier"]
+          id?: string
+          impact_score?: number | null
+          is_hard_blocker?: boolean | null
+          issue_description?: string | null
+          issue_title?: string
+          issue_type?: string
+          lane?: Database["public"]["Enums"]["dq_lane"]
+          metadata?: Json | null
+          priority_score?: number | null
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          reversibility_score?: number | null
+          sample_parcel_ids?: string[] | null
+          severity?: Database["public"]["Enums"]["dq_severity"]
+          source_explanation?: string | null
+          source_trust_level?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dq_issue_registry_county_id_fkey"
+            columns: ["county_id"]
+            isOneToOne: false
+            referencedRelation: "counties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dq_proposed_fixes: {
+        Row: {
+          applied_at: string | null
+          batch_id: string | null
+          confidence: number | null
+          county_id: string
+          created_at: string
+          current_value: string | null
+          explanation: string | null
+          fix_method: string
+          fix_tier: Database["public"]["Enums"]["dq_fix_tier"]
+          id: string
+          issue_id: string
+          parcel_id: string | null
+          proposed_value: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          source_trust: string | null
+          status: string
+          target_column: string
+          target_table: string
+        }
+        Insert: {
+          applied_at?: string | null
+          batch_id?: string | null
+          confidence?: number | null
+          county_id: string
+          created_at?: string
+          current_value?: string | null
+          explanation?: string | null
+          fix_method: string
+          fix_tier: Database["public"]["Enums"]["dq_fix_tier"]
+          id?: string
+          issue_id: string
+          parcel_id?: string | null
+          proposed_value?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          source_trust?: string | null
+          status?: string
+          target_column: string
+          target_table?: string
+        }
+        Update: {
+          applied_at?: string | null
+          batch_id?: string | null
+          confidence?: number | null
+          county_id?: string
+          created_at?: string
+          current_value?: string | null
+          explanation?: string | null
+          fix_method?: string
+          fix_tier?: Database["public"]["Enums"]["dq_fix_tier"]
+          id?: string
+          issue_id?: string
+          parcel_id?: string | null
+          proposed_value?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          source_trust?: string | null
+          status?: string
+          target_column?: string
+          target_table?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dq_proposed_fixes_county_id_fkey"
+            columns: ["county_id"]
+            isOneToOne: false
+            referencedRelation: "counties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dq_proposed_fixes_issue_id_fkey"
+            columns: ["issue_id"]
+            isOneToOne: false
+            referencedRelation: "dq_issue_registry"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dq_proposed_fixes_parcel_id_fkey"
+            columns: ["parcel_id"]
+            isOneToOne: false
+            referencedRelation: "parcels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dq_remediation_batches: {
+        Row: {
+          applied_at: string | null
+          applied_by: string | null
+          applied_count: number
+          batch_name: string
+          county_id: string
+          created_at: string
+          error_message: string | null
+          fix_tier: Database["public"]["Enums"]["dq_fix_tier"]
+          id: string
+          lane: Database["public"]["Enums"]["dq_lane"]
+          quality_score_after: number | null
+          quality_score_before: number | null
+          rejected_count: number
+          rollback_manifest: Json | null
+          rolled_back_at: string | null
+          rolled_back_by: string | null
+          rolled_back_count: number
+          status: string
+          total_fixes: number
+          trace_event_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          applied_at?: string | null
+          applied_by?: string | null
+          applied_count?: number
+          batch_name: string
+          county_id: string
+          created_at?: string
+          error_message?: string | null
+          fix_tier: Database["public"]["Enums"]["dq_fix_tier"]
+          id?: string
+          lane: Database["public"]["Enums"]["dq_lane"]
+          quality_score_after?: number | null
+          quality_score_before?: number | null
+          rejected_count?: number
+          rollback_manifest?: Json | null
+          rolled_back_at?: string | null
+          rolled_back_by?: string | null
+          rolled_back_count?: number
+          status?: string
+          total_fixes?: number
+          trace_event_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          applied_at?: string | null
+          applied_by?: string | null
+          applied_count?: number
+          batch_name?: string
+          county_id?: string
+          created_at?: string
+          error_message?: string | null
+          fix_tier?: Database["public"]["Enums"]["dq_fix_tier"]
+          id?: string
+          lane?: Database["public"]["Enums"]["dq_lane"]
+          quality_score_after?: number | null
+          quality_score_before?: number | null
+          rejected_count?: number
+          rollback_manifest?: Json | null
+          rolled_back_at?: string | null
+          rolled_back_by?: string | null
+          rolled_back_count?: number
+          status?: string
+          total_fixes?: number
+          trace_event_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dq_remediation_batches_county_id_fkey"
+            columns: ["county_id"]
+            isOneToOne: false
+            referencedRelation: "counties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       exemptions: {
         Row: {
           applicant_name: string | null
@@ -4571,6 +4893,18 @@ export type Database = {
             }[]
           }
       compute_readiness_score: { Args: { p_county_id?: string }; Returns: Json }
+      count_duplicate_addresses: {
+        Args: { p_county_id: string }
+        Returns: {
+          count: number
+        }[]
+      }
+      count_duplicate_parcel_numbers: {
+        Args: { p_county_id: string }
+        Returns: {
+          count: number
+        }[]
+      }
       disablelongtransactions: { Args: never; Returns: string }
       dropgeometrycolumn:
         | {
@@ -5470,6 +5804,15 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "analyst" | "viewer"
+      dq_fix_tier: "auto_apply" | "review_confirm" | "human_resolve"
+      dq_lane:
+        | "spatial_healing"
+        | "address_normalization"
+        | "orphan_duplicate"
+        | "cross_source_reconciliation"
+        | "characteristic_inference"
+        | "value_anomaly"
+      dq_severity: "critical" | "high" | "medium" | "low"
     }
     CompositeTypes: {
       geometry_dump: {
@@ -5606,6 +5949,16 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "analyst", "viewer"],
+      dq_fix_tier: ["auto_apply", "review_confirm", "human_resolve"],
+      dq_lane: [
+        "spatial_healing",
+        "address_normalization",
+        "orphan_duplicate",
+        "cross_source_reconciliation",
+        "characteristic_inference",
+        "value_anomaly",
+      ],
+      dq_severity: ["critical", "high", "medium", "low"],
     },
   },
 } as const
