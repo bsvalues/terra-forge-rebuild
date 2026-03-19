@@ -154,6 +154,7 @@ export function DaisTab({ initialCategory, onCategoryConsumed }: DaisTabProps) {
         <TabsContent value="permits" className="mt-0 space-y-4">
           <PermitsWorkflow />
           <PermitImpactEstimator />
+          <PropertyInspectionScheduler />
         </TabsContent>
 
         <TabsContent value="exemptions" className="mt-0 space-y-4">
