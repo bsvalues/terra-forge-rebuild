@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { ExecutiveKpiCards } from "../ExecutiveKpiCards";
+import { AssessmentSparkline } from "../AssessmentSparkline";
 import { motion } from "framer-motion";
 import {
   TrendingUp,
@@ -270,6 +271,19 @@ function ParcelSummaryContent() {
         </h3>
         <OperationalBlockers snapshot={snapshot} />
       </motion.div>
+
+      {/* Assessment Sparkline */}
+      {snapshot.valuation.history.length >= 2 && (
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }}>
+          <div className="bg-card border border-border/50 rounded-xl p-4">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs text-muted-foreground">Value Trend ({snapshot.valuation.history.length} years)</span>
+              <TrendingUp className="w-3.5 h-3.5 text-chart-5" />
+            </div>
+            <AssessmentSparkline history={snapshot.valuation.history} />
+          </div>
+        </motion.div>
+      )}
 
       {/* Quick Stats */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="grid grid-cols-2 sm:grid-cols-4 gap-3">
