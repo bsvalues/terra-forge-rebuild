@@ -1,5 +1,5 @@
-// TerraFusion OS — Phase 64: Real-time Webhook Notification Hub
-// Manages outbound webhook subscriptions & monitors delivery health.
+// TerraFusion OS — Phase 65: Real-time Webhook Notification Hub
+// Manages outbound webhook subscriptions, dispatch, & delivery monitoring.
 
 import { useState } from "react";
 import {
@@ -9,6 +9,7 @@ import {
   useToggleWebhookEndpoint,
   useDeleteWebhookEndpoint,
   useTestWebhookEndpoint,
+  useDispatchWebhookEvent,
   useWebhookStats,
   useWebhookRealtime,
   WEBHOOK_EVENT_TYPES,
