@@ -196,6 +196,9 @@ export function InspectionPanel({ assignment, onBack }: InspectionPanelProps) {
 
   return (
     <div className="p-4 sm:p-6 max-w-3xl mx-auto space-y-4">
+      {/* GPS Tracker */}
+      <GpsTracker className="mb-1" />
+
       {/* Header */}
       <div className="flex items-center gap-3">
         <Button variant="ghost" size="icon" onClick={onBack}>
