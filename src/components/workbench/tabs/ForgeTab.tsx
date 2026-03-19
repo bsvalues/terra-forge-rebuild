@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Hammer, TrendingUp, Activity, Brain, Layers, Microscope, Compass, Factory as FactoryIcon, ExternalLink, FlaskConical, DollarSign, BarChart3, MapPin } from "lucide-react";
+import { Hammer, TrendingUp, Activity, Brain, Layers, Microscope, Compass, Factory as FactoryIcon, ExternalLink, FlaskConical, DollarSign, BarChart3, MapPin, Undo2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useLatestCalibrationRun } from "@/hooks/useFactoryMetrics";
 import { CompsView } from "./CompsView";
@@ -15,6 +15,7 @@ import { CostApproachPanel } from "@/components/valuation/CostApproachPanel";
 import { RatioStudyPanel } from "@/components/valuation/RatioStudyPanel";
 import { NeighborhoodRatioStudyDashboard } from "@/components/valuation/NeighborhoodRatioStudyDashboard";
 import { ParcelComparisonView } from "../ParcelComparisonView";
+import { BatchAdjustmentReviewQueue } from "@/components/forge/BatchAdjustmentReviewQueue";
 import { 
   PRDDrilldownDialog, 
   CODDrilldownDialog, 
@@ -33,7 +34,7 @@ import {
   ArrowLeftRight,
 } from "lucide-react";
 
-type ForgeView = "vei" | "regression" | "avm" | "segments" | "anatomy" | "comps" | "avmrun" | "cost" | "ratio" | "compare" | "nbhd-ratio";
+type ForgeView = "vei" | "regression" | "avm" | "segments" | "anatomy" | "comps" | "avmrun" | "cost" | "ratio" | "compare" | "nbhd-ratio" | "adjustments";
 
 export function ForgeTab() {
   const [activeView, setActiveView] = useState<ForgeView>("vei");
@@ -50,6 +51,7 @@ export function ForgeTab() {
     { id: "ratio", label: "Ratio Study", icon: BarChart3 },
     { id: "compare", label: "Compare", icon: ArrowLeftRight },
     { id: "nbhd-ratio", label: "Nbhd Ratios", icon: MapPin },
+    { id: "adjustments", label: "Adjustments", icon: Undo2 },
   ];
 
   const navigate = useNavigate();
@@ -135,6 +137,7 @@ export function ForgeTab() {
         {activeView === "ratio" && <RatioStudyPanel />}
         {activeView === "compare" && <div className="p-6"><ParcelComparisonView /></div>}
         {activeView === "nbhd-ratio" && <NeighborhoodRatioStudyDashboard />}
+        {activeView === "adjustments" && <div className="p-6"><BatchAdjustmentReviewQueue /></div>}
       </div>
     </div>
   );

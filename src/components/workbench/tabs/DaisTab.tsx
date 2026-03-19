@@ -5,6 +5,7 @@ import { Building2, FileCheck, Scale, Bell, ClipboardCheck, ShieldCheck, Externa
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { WorkflowStats } from "@/components/dais/WorkflowStats";
 import { AppealsWorkflow } from "@/components/dais/AppealsWorkflow";
+import { AppealRiskDashboard } from "@/components/dais/AppealRiskDashboard";
 import { PermitsWorkflow } from "@/components/dais/PermitsWorkflow";
 import { ExemptionsWorkflow } from "@/components/dais/ExemptionsWorkflow";
 import { CertificationPipeline } from "@/components/dais/CertificationPipeline";
@@ -137,8 +138,9 @@ export function DaisTab({ initialCategory, onCategoryConsumed }: DaisTabProps) {
           <ExemptionsWorkflow />
         </TabsContent>
 
-        <TabsContent value="appeals" className="mt-0">
+        <TabsContent value="appeals" className="mt-0 space-y-4">
           <AppealsWorkflow />
+          <AppealRiskDashboard />
         </TabsContent>
 
         <TabsContent value="notices" className="mt-0 space-y-4">
