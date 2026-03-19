@@ -1,5 +1,5 @@
-// TerraFusion OS — SLCO Pipeline Orchestrator Hook
-// Manages stage execution, status polling, and live table counts.
+// TerraFusion OS — SLCO Pipeline Orchestrator Hook v2
+// Phase 61: Stage-gate validation, auto-retry, run history timeline.
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -17,6 +17,18 @@ const STAGES = [
 
 export type SLCOStage = typeof STAGES[number];
 
+export interface GateCheck {
+  check: string;
+  passed: boolean;
+  detail: string;
+}
+
+export interface GateResult {
+  passed: boolean;
+  stage: string;
+  checks: GateCheck[];
+}
+
 export interface StageStatus {
   stage: string;
   status: "pending" | "running" | "complete" | "failed";
@@ -26,17 +38,35 @@ export interface StageStatus {
   error_message?: string;
   started_at?: string;
   completed_at?: string;
+  metadata?: Record<string, any>;
+}
+
+export interface RunHistoryEntry {
+  id: string;
+  stage: string;
+  status: string;
+  rows_in: number;
+  rows_out: number;
+  rows_rejected: number;
+  error_message?: string;
+  started_at?: string;
+  completed_at?: string;
+  duration_ms?: number | null;
+  metadata?: Record<string, any>;
 }
 
 export interface PipelineStatus {
   stages: Record<string, StageStatus>;
+  gates: Record<string, GateResult>;
   tableCounts: Record<string, number>;
   runs: any[];
+  history: RunHistoryEntry[];
 }
 
 async function invokePipeline(body: Record<string, any>) {
   const { data, error } = await supabase.functions.invoke("slco-pipeline", { body });
   if (error) throw error;
+  if (data?.error && !data?.ok) throw new Error(data.error);
   return data;
 }
 
@@ -57,12 +87,13 @@ export function useSLCOPipelineStatus() {
 export function useRunStage() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (stage: SLCOStage) => invokePipeline({ action: "run_stage", stage }),
-    onSuccess: (_data, stage) => {
+    mutationFn: ({ stage, skipGateCheck }: { stage: SLCOStage; skipGateCheck?: boolean }) =>
+      invokePipeline({ action: "run_stage", stage, skipGateCheck }),
+    onSuccess: (_data, { stage }) => {
       qc.invalidateQueries({ queryKey: QUERY_KEY });
       toast.success(`Stage "${stage}" completed`);
     },
-    onError: (err: any, stage) => {
+    onError: (err: any, { stage }) => {
       qc.invalidateQueries({ queryKey: QUERY_KEY });
       toast.error(`Stage "${stage}" failed`, { description: err.message });
     },
@@ -81,6 +112,12 @@ export function useRunAllStages() {
       qc.invalidateQueries({ queryKey: QUERY_KEY });
       toast.error("Pipeline failed", { description: err.message });
     },
+  });
+}
+
+export function useValidateGate() {
+  return useMutation({
+    mutationFn: (stage: SLCOStage) => invokePipeline({ action: "validate_gate", stage }),
   });
 }
 
