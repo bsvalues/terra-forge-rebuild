@@ -244,7 +244,7 @@ export function SLCODemoLanding({ onNavigate }: SLCODemoLandingProps) {
                   ? () => {
                       if (i === 0) onNavigate("slco-pipeline");
                       else if (i === 1) onNavigate("slco-pipeline");
-                      else if (i === 2) onNavigate("quality");
+                      else if (i === 2) onNavigate("data-doctor");
                       else if (i === 3) onNavigate("neighborhoods");
                       else onNavigate("dashboard");
                     }
