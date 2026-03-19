@@ -138,6 +138,21 @@ async function fetchCountyVitals(): Promise<CountyVitals> {
     ingest: {
       recentJobs: (raw.ingest.recentJobs ?? []) as CountyVitals["ingest"]["recentJobs"],
     },
+    dataQuality: {
+      latestSnapshot: raw.dataQuality?.latestSnapshot ?? null,
+      openIssues: raw.dataQuality?.openIssues ?? 0,
+      hardBlockers: raw.dataQuality?.hardBlockers ?? 0,
+    },
+    defensibility: {
+      overall: raw.defensibility?.overall ?? 0,
+      verdict: raw.defensibility?.verdict ?? "at_risk",
+      pillars: {
+        dataCompleteness: raw.defensibility?.pillars?.dataCompleteness ?? 0,
+        dataConsistency: raw.defensibility?.pillars?.dataConsistency ?? 0,
+        marketSupport: raw.defensibility?.pillars?.marketSupport ?? 0,
+        modelStability: raw.defensibility?.pillars?.modelStability ?? 0,
+      },
+    },
     fetchedAt: new Date().toISOString(),
   };
 }
