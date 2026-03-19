@@ -47,6 +47,7 @@ export function ForgeTab() {
     { id: "avmrun", label: "AVM Pipeline", icon: FlaskConical },
     { id: "cost", label: "Cost Approach", icon: DollarSign },
     { id: "ratio", label: "Ratio Study", icon: BarChart3 },
+    { id: "compare", label: "Compare", icon: ArrowLeftRight },
   ];
 
   const navigate = useNavigate();
