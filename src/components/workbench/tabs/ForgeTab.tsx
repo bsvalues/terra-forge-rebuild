@@ -28,7 +28,11 @@ import {
   useSampleSize,
 } from "@/hooks/useVEIData";
 
-type ForgeView = "vei" | "regression" | "avm" | "segments" | "anatomy" | "comps" | "avmrun" | "cost" | "ratio";
+import {
+  ArrowLeftRight,
+} from "lucide-react";
+
+type ForgeView = "vei" | "regression" | "avm" | "segments" | "anatomy" | "comps" | "avmrun" | "cost" | "ratio" | "compare";
 
 export function ForgeTab() {
   const [activeView, setActiveView] = useState<ForgeView>("vei");
