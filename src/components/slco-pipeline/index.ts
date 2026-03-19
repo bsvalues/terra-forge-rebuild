@@ -4,3 +4,4 @@ export { PipelineOrchestratorPanel } from "./PipelineOrchestratorPanel";
 export { ConstitutionalTracePanel } from "./ConstitutionalTracePanel";
 export { SLCODemoLanding } from "./SLCODemoLanding";
 export { WebhookNotificationHub } from "./WebhookNotificationHub";
+export { DataDoctorDashboard } from "./DataDoctorDashboard";
