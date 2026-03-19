@@ -98,7 +98,7 @@ const TOOL_LABELS: Record<string, string> = {
   run_model: "Running model",
 };
 
-const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/terrapilot-chat`;
+const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/terrapilot-router`;
 
 /** Get the current user's auth token for edge function calls */
 async function getAuthToken(): Promise<string> {
