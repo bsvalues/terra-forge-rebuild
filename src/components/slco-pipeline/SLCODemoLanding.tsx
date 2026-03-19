@@ -152,7 +152,7 @@ export function SLCODemoLanding({ onNavigate }: SLCODemoLandingProps) {
     { title: "Run Initial Pipeline", desc: "Ingest and normalize Salt Lake County parcel data", completed: hasData },
     { title: "Validate & Remediate Data", desc: "AI-powered diagnosis, PostGIS-driven repair, human-approved fixes", completed: hasData && qualityScore > 60 },
     { title: "Configure Neighborhoods", desc: "Register neighborhood codes, configure model areas, verify calibration readiness", completed: hasNeighborhoods },
-    { title: "Launch Revaluation", desc: "Begin annual revaluation cycle with calibrated models", completed: false },
+    { title: "Launch Revaluation", desc: "Begin annual revaluation cycle with calibrated models", completed: (vitals as any)?.revaluationLaunched ?? false },
   ];
 
   const completedSteps = onboardingSteps.filter((s) => s.completed).length;
@@ -252,7 +252,7 @@ export function SLCODemoLanding({ onNavigate }: SLCODemoLandingProps) {
                       else if (i === 1) onNavigate("slco-pipeline");
                       else if (i === 2) onNavigate("data-doctor");
                       else if (i === 3) onNavigate("neighborhoods");
-                      else onNavigate("dashboard");
+                      else onNavigate("launch-reval");
                     }
                   : undefined
               }
@@ -261,7 +261,7 @@ export function SLCODemoLanding({ onNavigate }: SLCODemoLandingProps) {
                 i === 1 ? "Run Pipeline" :
                 i === 2 ? "Open Data Doctor" :
                 i === 3 ? "Define Areas" :
-                "Begin"
+                "Launch"
               }
             />
           ))}
@@ -392,11 +392,12 @@ export function SLCODemoLanding({ onNavigate }: SLCODemoLandingProps) {
       </div>
 
       {/* ── Quick Navigation Grid ─────────────────────────────────── */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
         {[
           { icon: Database, label: "SLCo Pipeline", view: "slco-pipeline", desc: "Ingestion & normalization" },
           { icon: BarChart3, label: "Command Briefing", view: "dashboard", desc: "County overview" },
           { icon: Scale, label: "Appeal Insights", view: "appeal-insights", desc: "Filing trends & defense" },
+          { icon: Rocket, label: "Launch Reval", view: "launch-reval", desc: "Start revaluation cycle" },
           { icon: Activity, label: "Activity Feed", view: "activity", desc: "Real-time audit trail" },
         ].map((nav) => (
           <Card

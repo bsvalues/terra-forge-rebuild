@@ -38,6 +38,7 @@ const SLCOPipelineHub = lazy(() => import("@/components/slco-pipeline").then(m =
 const SLCODemoLanding = lazy(() => import("@/components/slco-pipeline").then(m => ({ default: m.SLCODemoLanding })));
 const WebhookNotificationHub = lazy(() => import("@/components/slco-pipeline").then(m => ({ default: m.WebhookNotificationHub })));
 const DataDoctorDashboard = lazy(() => import("@/components/slco-pipeline").then(m => ({ default: m.DataDoctorDashboard })));
+const RevaluationLaunchPanel = lazy(() => import("@/components/revaluation/RevaluationLaunchPanel").then(m => ({ default: m.RevaluationLaunchPanel })));
 
 // Workbench views
 const PropertyWorkbench = lazy(() => import("@/components/workbench").then(m => ({ default: m.PropertyWorkbench })));
@@ -275,6 +276,8 @@ export function AppLayout({ initialParcel: routeParcel, initialModule, initialFa
             return <SLCODemoLanding onNavigate={handleNavigate} />;
           case "data-doctor":
             return <DataDoctorDashboard />;
+          case "launch-reval":
+            return <RevaluationLaunchPanel />;
           case "webhooks":
             return (
               <div className="p-6 max-w-7xl mx-auto">

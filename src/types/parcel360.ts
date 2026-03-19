@@ -51,7 +51,8 @@ export type TraceEventType =
   | "batch_notices_status_changed"
   | "data_exported"
   | "watchlist_updated"
-  | "county_config_updated";
+  | "county_config_updated"
+  | "revaluation_launched";
 
 export type ArtifactType =
   | "assessment"
