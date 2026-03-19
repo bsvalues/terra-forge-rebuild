@@ -135,7 +135,7 @@ export function PipelineOrchestratorPanel() {
           <div className="space-y-2">
             {STAGES.map((stage, i) => {
               const meta = STAGE_META[stage];
-              const stageData = status.stages[stage] || { status: "pending", rows_in: 0, rows_out: 0 };
+              const stageData: StageStatus = status.stages[stage] || { stage, status: "pending", rows_in: 0, rows_out: 0, rows_rejected: 0 };
               const sc = STATUS_CONFIG[stageData.status] || STATUS_CONFIG.pending;
               const StatusIcon = sc.icon;
               const StageIcon = meta.icon;
