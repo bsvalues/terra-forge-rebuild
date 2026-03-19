@@ -37,7 +37,7 @@ import {
   ArrowLeftRight,
 } from "lucide-react";
 
-type ForgeView = "vei" | "regression" | "avm" | "segments" | "anatomy" | "comps" | "avmrun" | "cost" | "ratio" | "compare" | "nbhd-ratio" | "adjustments" | "snapshots";
+type ForgeView = "vei" | "regression" | "avm" | "segments" | "anatomy" | "comps" | "avmrun" | "cost" | "ratio" | "compare" | "nbhd-ratio" | "adjustments" | "snapshots" | "confidence" | "equity-matrix";
 
 export function ForgeTab() {
   const [activeView, setActiveView] = useState<ForgeView>("vei");
