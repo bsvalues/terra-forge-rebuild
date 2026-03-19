@@ -437,6 +437,18 @@ export function AtlasTab() {
               <ParcelSearchPanel />
             </motion.div>
           )}
+
+          {activeView === "geoequity" && (
+            <motion.div
+              key="geoequity"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              className="p-6 h-full overflow-auto"
+            >
+              <GeoEquityPanel />
+            </motion.div>
+          )}
         </AnimatePresence>
       </div>
     </div>

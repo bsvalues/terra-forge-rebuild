@@ -122,6 +122,9 @@ export function ForgeTab() {
         {activeView === "segments" && <SegmentDiscoveryDashboard />}
         {activeView === "anatomy" && <ValuationAnatomyDashboard />}
         {activeView === "comps" && <CompsView />}
+        {activeView === "avmrun" && <AvmRunPanel />}
+        {activeView === "cost" && <CostApproachPanel />}
+        {activeView === "ratio" && <RatioStudyPanel />}
       </div>
     </div>
   );
