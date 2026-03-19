@@ -137,6 +137,7 @@ export function ForgeTab() {
         {activeView === "ratio" && <RatioStudyPanel />}
         {activeView === "compare" && <div className="p-6"><ParcelComparisonView /></div>}
         {activeView === "nbhd-ratio" && <NeighborhoodRatioStudyDashboard />}
+        {activeView === "adjustments" && <div className="p-6"><BatchAdjustmentReviewQueue /></div>}
       </div>
     </div>
   );
