@@ -38,6 +38,7 @@ import { EquityHeatmap } from "@/components/geoequity/EquityHeatmap";
 import { GISLayersPanel } from "@/components/geoequity/GISLayersPanel";
 import { ParcelSearchPanel } from "@/components/geoequity/ParcelSearchPanel";
 import { GeoEquityPanel } from "@/components/spatial/GeoEquityPanel";
+import { NeighborhoodHeatmapLegend } from "@/components/atlas/NeighborhoodHeatmapLegend";
 import { 
   useGISLayers, 
   useNeighborhoodGeoStats,
