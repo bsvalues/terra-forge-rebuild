@@ -2,9 +2,11 @@ import { useState, useCallback, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   ArrowLeft, Camera, Ruler, ClipboardCheck, MessageSquare,
-  AlertTriangle, CheckCircle2, MapPin, Save, ImagePlus, PenTool
+  AlertTriangle, CheckCircle2, MapPin, Save, ImagePlus, PenTool, Navigation
 } from "lucide-react";
 import { SketchModule } from "@/components/sketch";
+import { GpsTracker } from "./GpsTracker";
+import { PhotoCaptureGrid } from "./PhotoCaptureGrid";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
