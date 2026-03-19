@@ -220,8 +220,7 @@ export function TerraPilotChat({ fullscreen = false }: TerraPilotChatProps) {
     setIsLoading(true);
     setSystemState("processing");
     setActiveTools([]);
-
-    abortRef.current = new AbortController();
+    setSwarmPhase(null);
 
     try {
       const context = {
