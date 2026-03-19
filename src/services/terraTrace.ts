@@ -18,19 +18,22 @@ export async function emitTraceEvent(params: TraceEventParams): Promise<string |
       return null;
     }
 
+    const row: TraceEventInsert = {
+      county_id: countyId,
+      parcel_id: params.parcelId || null,
+      source_module: params.sourceModule,
+      event_type: params.eventType,
+      event_data: params.eventData || {},
+      correlation_id: params.correlationId || null,
+      causation_id: params.causationId || null,
+      artifact_type: params.artifactType || null,
+      artifact_id: params.artifactId || null,
+      agent_id: params.agentId || null,
+    };
+
     const { data, error } = await supabase
       .from("trace_events" as any)
-      .insert({
-        county_id: countyId,
-        parcel_id: params.parcelId || null,
-        source_module: params.sourceModule,
-        event_type: params.eventType,
-        event_data: params.eventData || {},
-        correlation_id: params.correlationId || null,
-        causation_id: params.causationId || null,
-        artifact_type: params.artifactType || null,
-        artifact_id: params.artifactId || null,
-      } as any)
+      .insert(row as any)
       .select("id")
       .single();
 
