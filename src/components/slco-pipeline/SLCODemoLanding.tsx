@@ -5,7 +5,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import {
   Building2, MapPin, TrendingUp, Shield, BarChart3,
-  ArrowRight, CheckCircle2, Clock, Database, Users,
+  ArrowRight, CheckCircle2, Clock, Database, Users, GitCompare,
   Layers, Scale, FileText, Rocket, Sparkles, Activity, Mail,
   AlertTriangle, Globe, Mountain, ChevronRight,
 } from "lucide-react";
@@ -406,6 +406,7 @@ export function SLCODemoLanding({ onNavigate }: SLCODemoLandingProps) {
           { icon: FileText, label: "Reval Report", view: "reval-report", desc: "Value change summaries" },
           { icon: Mail, label: "Reval Notices", view: "reval-notices", desc: "Generate owner notices" },
           { icon: MapPin, label: "Nbhd Review", view: "nbhd-review", desc: "Orchestrated workflow" },
+          { icon: GitCompare, label: "Comparative", view: "comparative", desc: "Multi-cycle overlay" },
           { icon: Activity, label: "Activity Feed", view: "activity", desc: "Real-time audit trail" },
         ].map((nav) => (
           <Card

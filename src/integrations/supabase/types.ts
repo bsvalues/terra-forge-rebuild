@@ -755,6 +755,95 @@ export type Database = {
           },
         ]
       }
+      comparison_snapshots: {
+        Row: {
+          appeal_count: number | null
+          appeal_rate: number | null
+          avg_assessed_value: number
+          avg_improvement_value: number
+          avg_land_value: number
+          avg_sale_price: number | null
+          cod: number | null
+          county_id: string
+          created_at: string
+          created_by: string
+          exemption_count: number | null
+          id: string
+          median_assessed_value: number
+          median_ratio: number | null
+          metadata: Json | null
+          neighborhood_code: string | null
+          prd: number | null
+          property_class: string | null
+          qualified_sales: number | null
+          snapshot_label: string
+          tax_year: number
+          total_assessed_value: number
+          total_parcels: number
+          total_sales: number | null
+        }
+        Insert: {
+          appeal_count?: number | null
+          appeal_rate?: number | null
+          avg_assessed_value?: number
+          avg_improvement_value?: number
+          avg_land_value?: number
+          avg_sale_price?: number | null
+          cod?: number | null
+          county_id: string
+          created_at?: string
+          created_by?: string
+          exemption_count?: number | null
+          id?: string
+          median_assessed_value?: number
+          median_ratio?: number | null
+          metadata?: Json | null
+          neighborhood_code?: string | null
+          prd?: number | null
+          property_class?: string | null
+          qualified_sales?: number | null
+          snapshot_label: string
+          tax_year: number
+          total_assessed_value?: number
+          total_parcels?: number
+          total_sales?: number | null
+        }
+        Update: {
+          appeal_count?: number | null
+          appeal_rate?: number | null
+          avg_assessed_value?: number
+          avg_improvement_value?: number
+          avg_land_value?: number
+          avg_sale_price?: number | null
+          cod?: number | null
+          county_id?: string
+          created_at?: string
+          created_by?: string
+          exemption_count?: number | null
+          id?: string
+          median_assessed_value?: number
+          median_ratio?: number | null
+          metadata?: Json | null
+          neighborhood_code?: string | null
+          prd?: number | null
+          property_class?: string | null
+          qualified_sales?: number | null
+          snapshot_label?: string
+          tax_year?: number
+          total_assessed_value?: number
+          total_parcels?: number
+          total_sales?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comparison_snapshots_county_id_fkey"
+            columns: ["county_id"]
+            isOneToOne: false
+            referencedRelation: "counties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cost_approach_runs: {
         Row: {
           cod: number | null
@@ -5402,6 +5491,16 @@ export type Database = {
       enablelongtransactions: { Args: never; Returns: string }
       equals: { Args: { geom1: unknown; geom2: unknown }; Returns: boolean }
       evaluate_readiness_gates: { Args: { p_county_id: string }; Returns: Json }
+      generate_comparison_snapshot: {
+        Args: {
+          p_county_id: string
+          p_label?: string
+          p_neighborhood_code?: string
+          p_property_class?: string
+          p_tax_year: number
+        }
+        Returns: string
+      }
       geometry: { Args: { "": string }; Returns: unknown }
       geometry_above: {
         Args: { geom1: unknown; geom2: unknown }
