@@ -151,6 +151,12 @@ export function DaisTab({ initialCategory, onCategoryConsumed }: DaisTabProps) {
         <TabsContent value="templates" className="mt-0">
           <WorkflowTemplateCRUD />
         </TabsContent>
+
+        <TabsContent value="export" className="mt-0">
+          <div className="p-4">
+            <BulkAssessmentExport />
+          </div>
+        </TabsContent>
       </Tabs>
     </div>
   );
