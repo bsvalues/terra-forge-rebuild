@@ -26,6 +26,7 @@ import { WorkflowInstanceTracker } from "@/components/workflow";
 import { WorkflowTemplateCRUD } from "@/components/admin/WorkflowTemplateCRUD";
 import { BulkAssessmentExport } from "@/components/valuation/BulkAssessmentExport";
 import { CertificationReadinessWidget } from "@/components/dais/CertificationReadinessWidget";
+import { WorkflowAutomationRules } from "@/components/dais/WorkflowAutomationRules";
 import { useWorkbench } from "../WorkbenchContext";
 
 interface DaisTabProps {
