@@ -1,16 +1,18 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Building2, FileCheck, Scale, Bell, ClipboardCheck, ShieldCheck, ExternalLink, Factory as FactoryIcon, Settings2, Download } from "lucide-react";
+import { Building2, FileCheck, Scale, Bell, ClipboardCheck, ShieldCheck, ExternalLink, Factory as FactoryIcon, Settings2, Download, Wrench } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { WorkflowStats } from "@/components/dais/WorkflowStats";
 import { AppealsWorkflow } from "@/components/dais/AppealsWorkflow";
 import { AppealRiskDashboard } from "@/components/dais/AppealRiskDashboard";
 import { PermitsWorkflow } from "@/components/dais/PermitsWorkflow";
 import { ExemptionsWorkflow } from "@/components/dais/ExemptionsWorkflow";
+import { ExemptionEligibilityChecker } from "@/components/dais/ExemptionEligibilityChecker";
 import { CertificationPipeline } from "@/components/dais/CertificationPipeline";
 import { NoticesPanel } from "@/components/dais/NoticesPanel";
 import { BatchNoticeStatusDashboard } from "@/components/dais/BatchNoticeStatusDashboard";
+import { DQRemediationProgressTracker } from "@/components/dais/DQRemediationProgressTracker";
 import { WorkflowInstanceTracker } from "@/components/workflow";
 import { WorkflowTemplateCRUD } from "@/components/admin/WorkflowTemplateCRUD";
 import { BulkAssessmentExport } from "@/components/valuation/BulkAssessmentExport";
@@ -128,14 +130,22 @@ export function DaisTab({ initialCategory, onCategoryConsumed }: DaisTabProps) {
             <Download className="w-4 h-4" />
             Export
           </TabsTrigger>
+          <TabsTrigger 
+            value="dq-remediation"
+            className="gap-2 data-[state=active]:bg-tf-cyan/20 data-[state=active]:text-tf-cyan"
+          >
+            <Wrench className="w-4 h-4" />
+            DQ Fixes
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="permits" className="mt-0">
           <PermitsWorkflow />
         </TabsContent>
 
-        <TabsContent value="exemptions" className="mt-0">
+        <TabsContent value="exemptions" className="mt-0 space-y-4">
           <ExemptionsWorkflow />
+          <ExemptionEligibilityChecker />
         </TabsContent>
 
         <TabsContent value="appeals" className="mt-0 space-y-4">
@@ -159,6 +169,12 @@ export function DaisTab({ initialCategory, onCategoryConsumed }: DaisTabProps) {
         <TabsContent value="export" className="mt-0">
           <div className="p-4">
             <BulkAssessmentExport />
+          </div>
+        </TabsContent>
+
+        <TabsContent value="dq-remediation" className="mt-0">
+          <div className="p-4">
+            <DQRemediationProgressTracker />
           </div>
         </TabsContent>
       </Tabs>
