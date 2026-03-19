@@ -9,7 +9,7 @@ import {
   Stethoscope, MapPin, Home, Copy, GitCompareArrows, Brain,
   AlertTriangle, Play, Loader2, Shield, ShieldAlert, ShieldX,
   ChevronRight, Clock, Zap, ArrowRight, CheckCircle2, XCircle,
-  BarChart3, RefreshCw, Info, Sparkles, TrendingUp,
+  BarChart3, RefreshCw, Info, Sparkles, TrendingUp, Wrench,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
