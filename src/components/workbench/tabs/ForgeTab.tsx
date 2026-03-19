@@ -19,6 +19,7 @@ import { BatchAdjustmentReviewQueue } from "@/components/forge/BatchAdjustmentRe
 import { ComparativeSnapshotDiff } from "@/components/forge/ComparativeSnapshotDiff";
 import { ValuationConfidenceVisualizer } from "@/components/forge/ValuationConfidenceVisualizer";
 import { NeighborhoodEquityMatrix } from "@/components/forge/NeighborhoodEquityMatrix";
+import { AssessmentMethodologyViewer } from "@/components/forge/AssessmentMethodologyViewer";
 import { 
   PRDDrilldownDialog, 
   CODDrilldownDialog, 
