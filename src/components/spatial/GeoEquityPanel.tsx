@@ -51,14 +51,14 @@ function useParcelEquityData(countyId?: string) {
       if (error) throw error;
       if (!parcels?.length) return [];
 
-      const parcelIds = parcels.map((p) => p.id);
-      const { data: ratios } = await supabase
-        .from("assessment_ratios")
-        .select("parcel_id, ratio")
-        .in("parcel_id", parcelIds);
-
       const ratioMap = new Map<string, number>();
-      ratios?.forEach((r) => { if (r.ratio != null) ratioMap.set(r.parcel_id, r.ratio); });
+      if (parcelIds.length > 0) {
+        const { data: ratios } = await supabase
+          .from("assessment_ratios")
+          .select("parcel_id, ratio")
+          .in("parcel_id", parcelIds);
+        ratios?.forEach((r) => { if (r.ratio != null) ratioMap.set(r.parcel_id, r.ratio); });
+      }
 
       return parcels.map((p) => ({
         id: p.id,

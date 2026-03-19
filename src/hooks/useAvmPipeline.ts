@@ -82,7 +82,7 @@ export function useLaunchAvmRun() {
           model_type: params.modelType,
           model_version: "1.0",
           status: "queued",
-          training_config: params.trainingConfig ?? {},
+          training_config: (params.trainingConfig ?? {}) as unknown as import("@/integrations/supabase/types").Json,
         }])
         .select()
         .single();
