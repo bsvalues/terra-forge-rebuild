@@ -191,6 +191,7 @@ function ParcelSummaryContent() {
   const snapshot = useParcel360(parcel.id);
   const { isWatched, watchItem } = useIsWatched(parcel.id);
   const { toggle: toggleWatch, isPending: watchPending } = useToggleWatchlist();
+  const { profile } = useAuthContext();
 
   const fmt = (v: number | null | undefined) =>
     v != null
