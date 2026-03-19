@@ -20,6 +20,7 @@ import { ComparativeSnapshotDiff } from "@/components/forge/ComparativeSnapshotD
 import { ValuationConfidenceVisualizer } from "@/components/forge/ValuationConfidenceVisualizer";
 import { NeighborhoodEquityMatrix } from "@/components/forge/NeighborhoodEquityMatrix";
 import { AssessmentMethodologyViewer } from "@/components/forge/AssessmentMethodologyViewer";
+import { ParcelComparisonDiff } from "@/components/forge/ParcelComparisonDiff";
 import { 
   PRDDrilldownDialog, 
   CODDrilldownDialog, 
@@ -38,7 +39,7 @@ import {
   ArrowLeftRight,
 } from "lucide-react";
 
-type ForgeView = "vei" | "regression" | "avm" | "segments" | "anatomy" | "comps" | "avmrun" | "cost" | "ratio" | "compare" | "nbhd-ratio" | "adjustments" | "snapshots" | "confidence" | "equity-matrix" | "methodology";
+type ForgeView = "vei" | "regression" | "avm" | "segments" | "anatomy" | "comps" | "avmrun" | "cost" | "ratio" | "compare" | "nbhd-ratio" | "adjustments" | "snapshots" | "confidence" | "equity-matrix" | "methodology" | "diff";
 
 export function ForgeTab() {
   const [activeView, setActiveView] = useState<ForgeView>("vei");
@@ -60,6 +61,7 @@ export function ForgeTab() {
     { id: "confidence", label: "Confidence", icon: Target },
     { id: "equity-matrix", label: "Equity Matrix", icon: Grid3X3 },
     { id: "methodology", label: "Methodology", icon: BookOpen },
+    { id: "diff", label: "Diff", icon: ArrowLeftRight },
   ];
 
   const navigate = useNavigate();
@@ -150,6 +152,7 @@ export function ForgeTab() {
         {activeView === "confidence" && <div className="p-6"><ValuationConfidenceVisualizer /></div>}
         {activeView === "equity-matrix" && <div className="p-6"><NeighborhoodEquityMatrix /></div>}
         {activeView === "methodology" && <div className="p-6"><AssessmentMethodologyViewer /></div>}
+        {activeView === "diff" && <div className="p-6"><ParcelComparisonDiff /></div>}
       </div>
     </div>
   );

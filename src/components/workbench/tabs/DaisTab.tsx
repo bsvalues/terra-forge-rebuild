@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Building2, FileCheck, Scale, Bell, ClipboardCheck, ShieldCheck, ExternalLink, Factory as FactoryIcon, Settings2, Download, Wrench, Clock, Zap } from "lucide-react";
+import { Building2, FileCheck, Scale, Bell, ClipboardCheck, ShieldCheck, ExternalLink, Factory as FactoryIcon, Settings2, Download, Wrench, Clock, Zap, Layers, Calendar } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { WorkflowStats } from "@/components/dais/WorkflowStats";
 import { AppealsWorkflow } from "@/components/dais/AppealsWorkflow";
@@ -27,6 +27,8 @@ import { WorkflowTemplateCRUD } from "@/components/admin/WorkflowTemplateCRUD";
 import { BulkAssessmentExport } from "@/components/valuation/BulkAssessmentExport";
 import { CertificationReadinessWidget } from "@/components/dais/CertificationReadinessWidget";
 import { WorkflowAutomationRules } from "@/components/dais/WorkflowAutomationRules";
+import { BatchWorkflowExecutor } from "@/components/dais/BatchWorkflowExecutor";
+import { AssessmentCalendar } from "@/components/dais/AssessmentCalendar";
 import { useWorkbench } from "../WorkbenchContext";
 
 interface DaisTabProps {
@@ -157,6 +159,20 @@ export function DaisTab({ initialCategory, onCategoryConsumed }: DaisTabProps) {
             <Zap className="w-4 h-4" />
             Automation
           </TabsTrigger>
+          <TabsTrigger 
+            value="batch"
+            className="gap-2 data-[state=active]:bg-primary/20 data-[state=active]:text-primary"
+          >
+            <Layers className="w-4 h-4" />
+            Batch
+          </TabsTrigger>
+          <TabsTrigger 
+            value="calendar"
+            className="gap-2 data-[state=active]:bg-suite-dais/20 data-[state=active]:text-suite-dais"
+          >
+            <Calendar className="w-4 h-4" />
+            Calendar
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="permits" className="mt-0 space-y-4">
@@ -211,6 +227,18 @@ export function DaisTab({ initialCategory, onCategoryConsumed }: DaisTabProps) {
         <TabsContent value="automation" className="mt-0">
           <div className="p-4">
             <WorkflowAutomationRules />
+          </div>
+        </TabsContent>
+
+        <TabsContent value="batch" className="mt-0">
+          <div className="p-4">
+            <BatchWorkflowExecutor />
+          </div>
+        </TabsContent>
+
+        <TabsContent value="calendar" className="mt-0">
+          <div className="p-4">
+            <AssessmentCalendar />
           </div>
         </TabsContent>
       </Tabs>
