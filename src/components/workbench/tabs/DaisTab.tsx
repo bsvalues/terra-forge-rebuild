@@ -171,6 +171,12 @@ export function DaisTab({ initialCategory, onCategoryConsumed }: DaisTabProps) {
             <BulkAssessmentExport />
           </div>
         </TabsContent>
+
+        <TabsContent value="dq-remediation" className="mt-0">
+          <div className="p-4">
+            <DQRemediationProgressTracker />
+          </div>
+        </TabsContent>
       </Tabs>
     </div>
   );
