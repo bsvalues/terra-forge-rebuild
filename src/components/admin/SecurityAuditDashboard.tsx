@@ -15,6 +15,8 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Progress } from "@/components/ui/progress";
 import { useSecurityAudit, type SecurityEvent } from "@/hooks/useSecurityAudit";
+import { TraceChainIntegrityPanel } from "@/components/proof/TraceChainIntegrityPanel";
+import { useAuthContext } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 
 // ── Event icon + color mapping ────────────────────────────────
