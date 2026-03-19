@@ -23,6 +23,7 @@ import { invokeDefenseNarrative } from "@/services/ingestService";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
 import { format } from "date-fns";
+import { DefensePacketPrintButton } from "./DefensePacketPrint";
 
 type PacketStatus = "idle" | "generating" | "ready" | "error";
 
