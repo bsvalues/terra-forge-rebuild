@@ -229,6 +229,18 @@ export function DaisTab({ initialCategory, onCategoryConsumed }: DaisTabProps) {
             <WorkflowAutomationRules />
           </div>
         </TabsContent>
+
+        <TabsContent value="batch" className="mt-0">
+          <div className="p-4">
+            <BatchWorkflowExecutor />
+          </div>
+        </TabsContent>
+
+        <TabsContent value="calendar" className="mt-0">
+          <div className="p-4">
+            <AssessmentCalendar />
+          </div>
+        </TabsContent>
       </Tabs>
     </div>
   );
