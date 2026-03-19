@@ -9,6 +9,7 @@ import { PermitsWorkflow } from "@/components/dais/PermitsWorkflow";
 import { ExemptionsWorkflow } from "@/components/dais/ExemptionsWorkflow";
 import { CertificationPipeline } from "@/components/dais/CertificationPipeline";
 import { NoticesPanel } from "@/components/dais/NoticesPanel";
+import { WorkflowInstanceTracker } from "@/components/workflow";
 import { useWorkbench } from "../WorkbenchContext";
 
 interface DaisTabProps {
