@@ -14,6 +14,177 @@ export type Database = {
   }
   public: {
     Tables: {
+      appeal_risk_scores: {
+        Row: {
+          ai_defense_strategy: string | null
+          ai_risk_summary: string | null
+          assigned_to: string | null
+          county_id: string
+          created_at: string
+          defense_notes: string | null
+          defense_status: string
+          dossier_packet_id: string | null
+          id: string
+          neighborhood_code: string | null
+          new_value: number
+          owner_name: string | null
+          parcel_id: string
+          parcel_number: string
+          prior_value: number
+          risk_factors: Json
+          risk_score: number
+          risk_tier: string
+          scoring_run_id: string | null
+          situs_address: string | null
+          tax_year: number
+          updated_at: string
+          value_change: number | null
+          value_change_pct: number | null
+        }
+        Insert: {
+          ai_defense_strategy?: string | null
+          ai_risk_summary?: string | null
+          assigned_to?: string | null
+          county_id: string
+          created_at?: string
+          defense_notes?: string | null
+          defense_status?: string
+          dossier_packet_id?: string | null
+          id?: string
+          neighborhood_code?: string | null
+          new_value?: number
+          owner_name?: string | null
+          parcel_id: string
+          parcel_number: string
+          prior_value?: number
+          risk_factors?: Json
+          risk_score?: number
+          risk_tier?: string
+          scoring_run_id?: string | null
+          situs_address?: string | null
+          tax_year?: number
+          updated_at?: string
+          value_change?: number | null
+          value_change_pct?: number | null
+        }
+        Update: {
+          ai_defense_strategy?: string | null
+          ai_risk_summary?: string | null
+          assigned_to?: string | null
+          county_id?: string
+          created_at?: string
+          defense_notes?: string | null
+          defense_status?: string
+          dossier_packet_id?: string | null
+          id?: string
+          neighborhood_code?: string | null
+          new_value?: number
+          owner_name?: string | null
+          parcel_id?: string
+          parcel_number?: string
+          prior_value?: number
+          risk_factors?: Json
+          risk_score?: number
+          risk_tier?: string
+          scoring_run_id?: string | null
+          situs_address?: string | null
+          tax_year?: number
+          updated_at?: string
+          value_change?: number | null
+          value_change_pct?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appeal_risk_scores_county_id_fkey"
+            columns: ["county_id"]
+            isOneToOne: false
+            referencedRelation: "counties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appeal_risk_scores_dossier_packet_id_fkey"
+            columns: ["dossier_packet_id"]
+            isOneToOne: false
+            referencedRelation: "dossier_packets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appeal_risk_scores_parcel_id_fkey"
+            columns: ["parcel_id"]
+            isOneToOne: false
+            referencedRelation: "parcels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      appeal_risk_scoring_runs: {
+        Row: {
+          completed_at: string | null
+          county_id: string
+          created_at: string
+          created_by: string
+          critical_change_threshold: number
+          critical_count: number
+          error_message: string | null
+          high_change_threshold: number
+          high_count: number
+          id: string
+          low_count: number
+          medium_count: number
+          parcels_flagged: number
+          started_at: string | null
+          status: string
+          total_parcels_scanned: number
+          updated_at: string
+        }
+        Insert: {
+          completed_at?: string | null
+          county_id: string
+          created_at?: string
+          created_by?: string
+          critical_change_threshold?: number
+          critical_count?: number
+          error_message?: string | null
+          high_change_threshold?: number
+          high_count?: number
+          id?: string
+          low_count?: number
+          medium_count?: number
+          parcels_flagged?: number
+          started_at?: string | null
+          status?: string
+          total_parcels_scanned?: number
+          updated_at?: string
+        }
+        Update: {
+          completed_at?: string | null
+          county_id?: string
+          created_at?: string
+          created_by?: string
+          critical_change_threshold?: number
+          critical_count?: number
+          error_message?: string | null
+          high_change_threshold?: number
+          high_count?: number
+          id?: string
+          low_count?: number
+          medium_count?: number
+          parcels_flagged?: number
+          started_at?: string | null
+          status?: string
+          total_parcels_scanned?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appeal_risk_scoring_runs_county_id_fkey"
+            columns: ["county_id"]
+            isOneToOne: false
+            referencedRelation: "counties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       appeal_status_changes: {
         Row: {
           appeal_id: string
@@ -5330,6 +5501,7 @@ export type Database = {
       }
       geomfromewkt: { Args: { "": string }; Returns: unknown }
       get_appeal_owner_email: { Args: { p_appeal_id: string }; Returns: string }
+      get_appeal_risk_summary: { Args: { p_county_id?: string }; Returns: Json }
       get_county_timeline:
         | {
             Args: {

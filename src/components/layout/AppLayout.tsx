@@ -43,6 +43,7 @@ const RevaluationProgressTracker = lazy(() => import("@/components/revaluation/R
 const RevaluationReportDashboard = lazy(() => import("@/components/revaluation/RevaluationReportDashboard").then(m => ({ default: m.RevaluationReportDashboard })));
 const RevaluationNoticeGenerator = lazy(() => import("@/components/revaluation/RevaluationNoticeGenerator").then(m => ({ default: m.RevaluationNoticeGenerator })));
 const NeighborhoodReviewOrchestrator = lazy(() => import("@/components/review").then(m => ({ default: m.NeighborhoodReviewOrchestrator })));
+const AppealRiskDashboard = lazy(() => import("@/components/appeal-risk").then(m => ({ default: m.AppealRiskDashboard })));
 
 // Workbench views
 const PropertyWorkbench = lazy(() => import("@/components/workbench").then(m => ({ default: m.PropertyWorkbench })));
@@ -290,6 +291,8 @@ export function AppLayout({ initialParcel: routeParcel, initialModule, initialFa
             return <RevaluationNoticeGenerator onNavigate={handleNavigate} />;
           case "nbhd-review":
             return <NeighborhoodReviewOrchestrator />;
+          case "appeal-risk":
+            return <AppealRiskDashboard />;
           case "webhooks":
             return (
               <div className="p-6 max-w-7xl mx-auto">

@@ -373,10 +373,10 @@ export function SLCODemoLanding({ onNavigate }: SLCODemoLandingProps) {
                               className="mt-2 text-xs w-full gap-1"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                if (t.id === "annual-reval") onNavigate("dashboard");
-                                else if (t.id === "appeal-defense") onNavigate("appeal-insights");
-                                else if (t.id === "data-onboard") onNavigate("slco-pipeline");
-                                else onNavigate("nbhd-review");
+                                 if (t.id === "annual-reval") onNavigate("dashboard");
+                                 else if (t.id === "appeal-defense") onNavigate("appeal-risk");
+                                 else if (t.id === "data-onboard") onNavigate("slco-pipeline");
+                                 else onNavigate("nbhd-review");
                               }}
                             >
                               Launch Template
@@ -396,10 +396,11 @@ export function SLCODemoLanding({ onNavigate }: SLCODemoLandingProps) {
 
       {/* ── Quick Navigation Grid ─────────────────────────────────── */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-9 gap-3">
-        {[
+         {[
           { icon: Database, label: "SLCo Pipeline", view: "slco-pipeline", desc: "Ingestion & normalization" },
           { icon: BarChart3, label: "Command Briefing", view: "dashboard", desc: "County overview" },
           { icon: Scale, label: "Appeal Insights", view: "appeal-insights", desc: "Filing trends & defense" },
+          { icon: AlertTriangle, label: "Appeal Risk", view: "appeal-risk", desc: "Risk scoring & defense" },
           { icon: Rocket, label: "Launch Reval", view: "launch-reval", desc: "Start revaluation cycle" },
           { icon: TrendingUp, label: "Reval Progress", view: "reval-progress", desc: "Track cycle progress" },
           { icon: FileText, label: "Reval Report", view: "reval-report", desc: "Value change summaries" },
