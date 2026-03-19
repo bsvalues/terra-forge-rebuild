@@ -2114,6 +2114,148 @@ export type Database = {
           },
         ]
       }
+      neighborhood_review_tasks: {
+        Row: {
+          assigned_to: string | null
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string
+          description: string | null
+          due_date: string | null
+          id: string
+          priority: string
+          result_data: Json | null
+          review_id: string
+          stage: Database["public"]["Enums"]["nbhd_review_stage"]
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          priority?: string
+          result_data?: Json | null
+          review_id: string
+          stage: Database["public"]["Enums"]["nbhd_review_stage"]
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_to?: string | null
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          priority?: string
+          result_data?: Json | null
+          review_id?: string
+          stage?: Database["public"]["Enums"]["nbhd_review_stage"]
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "neighborhood_review_tasks_review_id_fkey"
+            columns: ["review_id"]
+            isOneToOne: false
+            referencedRelation: "neighborhood_reviews"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      neighborhood_reviews: {
+        Row: {
+          ai_recommendations: Json
+          calibration_completed_at: string | null
+          completed_at: string | null
+          county_id: string
+          created_at: string
+          created_by: string
+          current_stage: Database["public"]["Enums"]["nbhd_review_stage"]
+          data_audit_completed_at: string | null
+          equity_review_completed_at: string | null
+          id: string
+          metrics_snapshot: Json
+          neighborhood_code: string
+          notes: string | null
+          review_name: string
+          scoping_completed_at: string | null
+          sign_off_completed_at: string | null
+          spatial_analysis_completed_at: string | null
+          stage_gate_results: Json
+          started_at: string
+          status: string
+          target_deadline: string | null
+          updated_at: string
+        }
+        Insert: {
+          ai_recommendations?: Json
+          calibration_completed_at?: string | null
+          completed_at?: string | null
+          county_id: string
+          created_at?: string
+          created_by?: string
+          current_stage?: Database["public"]["Enums"]["nbhd_review_stage"]
+          data_audit_completed_at?: string | null
+          equity_review_completed_at?: string | null
+          id?: string
+          metrics_snapshot?: Json
+          neighborhood_code: string
+          notes?: string | null
+          review_name: string
+          scoping_completed_at?: string | null
+          sign_off_completed_at?: string | null
+          spatial_analysis_completed_at?: string | null
+          stage_gate_results?: Json
+          started_at?: string
+          status?: string
+          target_deadline?: string | null
+          updated_at?: string
+        }
+        Update: {
+          ai_recommendations?: Json
+          calibration_completed_at?: string | null
+          completed_at?: string | null
+          county_id?: string
+          created_at?: string
+          created_by?: string
+          current_stage?: Database["public"]["Enums"]["nbhd_review_stage"]
+          data_audit_completed_at?: string | null
+          equity_review_completed_at?: string | null
+          id?: string
+          metrics_snapshot?: Json
+          neighborhood_code?: string
+          notes?: string | null
+          review_name?: string
+          scoping_completed_at?: string | null
+          sign_off_completed_at?: string | null
+          spatial_analysis_completed_at?: string | null
+          stage_gate_results?: Json
+          started_at?: string
+          status?: string
+          target_deadline?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "neighborhood_reviews_county_id_fkey"
+            columns: ["county_id"]
+            isOneToOne: false
+            referencedRelation: "counties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       neighborhoods: {
         Row: {
           county_id: string
@@ -5257,6 +5399,10 @@ export type Database = {
           prd: number
         }[]
       }
+      get_neighborhood_review_context: {
+        Args: { p_review_id: string }
+        Returns: Json
+      }
       get_neighborhood_stats: {
         Args: { p_year?: number }
         Returns: {
@@ -5978,6 +6124,13 @@ export type Database = {
         | "characteristic_inference"
         | "value_anomaly"
       dq_severity: "critical" | "high" | "medium" | "low"
+      nbhd_review_stage:
+        | "scoping"
+        | "data_audit"
+        | "spatial_analysis"
+        | "calibration"
+        | "equity_review"
+        | "sign_off"
     }
     CompositeTypes: {
       geometry_dump: {
@@ -6124,6 +6277,14 @@ export const Constants = {
         "value_anomaly",
       ],
       dq_severity: ["critical", "high", "medium", "low"],
+      nbhd_review_stage: [
+        "scoping",
+        "data_audit",
+        "spatial_analysis",
+        "calibration",
+        "equity_review",
+        "sign_off",
+      ],
     },
   },
 } as const
