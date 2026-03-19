@@ -398,6 +398,7 @@ export function SLCODemoLanding({ onNavigate }: SLCODemoLandingProps) {
           { icon: BarChart3, label: "Command Briefing", view: "dashboard", desc: "County overview" },
           { icon: Scale, label: "Appeal Insights", view: "appeal-insights", desc: "Filing trends & defense" },
           { icon: Rocket, label: "Launch Reval", view: "launch-reval", desc: "Start revaluation cycle" },
+          { icon: TrendingUp, label: "Reval Progress", view: "reval-progress", desc: "Track cycle progress" },
           { icon: Activity, label: "Activity Feed", view: "activity", desc: "Real-time audit trail" },
         ].map((nav) => (
           <Card
