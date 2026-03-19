@@ -32,6 +32,7 @@ import { MissionPreviewDrawer } from "./MissionPreviewDrawer";
 import { useState, useRef, useEffect } from "react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useCountyVitals } from "@/hooks/useCountyVitals";
+import { useCountyMeta } from "@/hooks/useCountyMeta";
 import { ProvenanceBadge, ProvenanceNumber, ScopeHeader } from "@/components/trust";
 import { DataStatusRibbon } from "./DataStatusRibbon";
 import { NextBestAction } from "./NextBestAction";
@@ -80,6 +81,7 @@ const SUITE_REGISTRY: SuiteEntry[] = [
 
 export function SuiteHub({ onNavigate, onParcelNavigate }: SuiteHubProps) {
   const { data: vitals, isLoading: vitalsLoading } = useCountyVitals();
+  const countyMeta = useCountyMeta();
   const { data: pipeline } = usePipelineStatus();
   const [searchValue, setSearchValue] = useState("");
   const [previewMissionId, setPreviewMissionId] = useState<string | null>(null);
@@ -157,7 +159,7 @@ export function SuiteHub({ onNavigate, onParcelNavigate }: SuiteHubProps) {
           </div>
           <ScopeHeader
             scope="county"
-            label="Benton"
+            label={countyMeta?.shortName ?? "County"}
             source="county-vitals"
             fetchedAt={vitals?.fetchedAt}
             status="published"

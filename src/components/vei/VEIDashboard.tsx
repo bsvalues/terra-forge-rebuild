@@ -20,6 +20,7 @@ import {
 } from "./drilldown";
 import { Activity, TrendingUp, BarChart3, AlertTriangle, Percent, Target, Filter, Info, Compass } from "lucide-react";
 import { ScopeHeader, ProvenanceBadge } from "@/components/trust";
+import { useCountyMeta } from "@/hooks/useCountyMeta";
 import { useRatioAnalysis, useTaxYears, useNeighborhoodRatioComparison, type OutlierMethod } from "@/hooks/useRatioAnalysis";
 import { useHistoricalRatioTrend, useAppealsByValueTier } from "@/hooks/useHistoricalRatioTrend";
 import { useFieldCohort } from "@/hooks/useFieldCohort";
@@ -44,6 +45,7 @@ type DrilldownType = "prd" | "cod" | "tier" | "appeals" | null;
 
 export function VEIDashboard() {
   const currentYear = new Date().getFullYear();
+  const countyMeta = useCountyMeta();
   const [selectedYear, setSelectedYear] = useState<number>(currentYear);
   const [salesStartDate, setSalesStartDate] = useState<Date>(subMonths(new Date(), 24));
   const [salesEndDate, setSalesEndDate] = useState<Date>(new Date());
@@ -214,7 +216,7 @@ export function VEIDashboard() {
             </p>
           </div>
           <div className="flex items-center gap-3 flex-wrap">
-            <ScopeHeader scope="county" label="Benton" source="ratio-analysis" status="published" />
+            <ScopeHeader scope="county" label={countyMeta?.shortName ?? "County"} source="ratio-analysis" status="published" />
             <ProvenanceBadge source="ratio-analysis" />
             <TaxYearSelector
               years={taxYears}

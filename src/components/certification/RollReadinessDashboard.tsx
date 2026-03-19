@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import { ScopeHeader, ProvenanceBadge, ProvenanceNumber } from "@/components/trust";
+import { useCountyMeta } from "@/hooks/useCountyMeta";
 import {
   ShieldCheck,
   ShieldAlert,
@@ -257,6 +258,7 @@ function SummaryGrid({ summary }: { summary: RollReadinessData["summary"] }) {
 // ── Main Dashboard ──────────────────────────────────────────────
 export function RollReadinessDashboard() {
   const { data, isLoading } = useRollReadiness();
+  const countyMeta = useCountyMeta();
 
   if (isLoading || !data) {
     return (
@@ -280,7 +282,7 @@ export function RollReadinessDashboard() {
     <div className="space-y-6">
       {/* Scope + Provenance */}
       <div className="flex items-center justify-end gap-2">
-        <ScopeHeader scope="county" label="Benton" source="roll-readiness" status="draft" />
+        <ScopeHeader scope="county" label={countyMeta?.shortName ?? "County"} source="roll-readiness" status="draft" />
         <ProvenanceBadge source="roll-readiness" />
       </div>
 

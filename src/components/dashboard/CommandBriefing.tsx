@@ -20,6 +20,7 @@ import { TerraTraceActivityFeed } from "@/components/proof/TerraTraceActivityFee
 import { SystemHealthPanel } from "./SystemHealthPanel";
 import { NeighborhoodLeaderboard } from "./NeighborhoodLeaderboard";
 import { useCountyVitals } from "@/hooks/useCountyVitals";
+import { useCountyMeta } from "@/hooks/useCountyMeta";
 import { ProvenanceBadge, ProvenanceNumber, ScopeHeader } from "@/components/trust";
 
 interface CommandBriefingProps {
@@ -28,6 +29,7 @@ interface CommandBriefingProps {
 
 export function CommandBriefing({ onNavigate }: CommandBriefingProps) {
   const { data: vitals } = useCountyVitals();
+  const countyMeta = useCountyMeta();
 
   const parcelsCount = vitals?.parcels.total ?? 0;
   const salesCount = vitals?.sales.total ?? 0;
@@ -98,7 +100,7 @@ export function CommandBriefing({ onNavigate }: CommandBriefingProps) {
           </div>
           <ScopeHeader
             scope="county"
-            label="Benton"
+            label={countyMeta?.shortName ?? "County"}
             source="county-vitals"
             fetchedAt={vitals?.fetchedAt}
             status="published"

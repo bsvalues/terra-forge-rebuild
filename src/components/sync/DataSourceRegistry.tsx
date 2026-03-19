@@ -200,7 +200,7 @@ export function DataSourceRegistry() {
             <div>
               <Label>Source Name</Label>
               <Input
-                placeholder="e.g. Benton County PACS FTP"
+                placeholder="e.g. Salt Lake County CAMA Feed"
                 value={newSource.name}
                 onChange={(e) => setNewSource({ ...newSource, name: e.target.value })}
               />

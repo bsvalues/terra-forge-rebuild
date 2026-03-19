@@ -17,6 +17,7 @@ import {
 import { useDataQualityScoring, type NeighborhoodQuality, type StaleAlert, type ParcelScore } from "@/hooks/useDataQualityScoring";
 import { cn } from "@/lib/utils";
 import { ScopeHeader, ProvenanceBadge, ProvenanceNumber } from "@/components/trust";
+import { useCountyMeta } from "@/hooks/useCountyMeta";
 
 // ── Grade Config ───────────────────────────────────────────────
 
@@ -282,6 +283,7 @@ function LowestScoreParcels({ parcels }: { parcels: ParcelScore[] }) {
 
 export function DataQualityScoringEngine() {
   const { data, isLoading } = useDataQualityScoring();
+  const countyMeta = useCountyMeta();
 
   if (isLoading) {
     return (
@@ -316,7 +318,7 @@ export function DataQualityScoringEngine() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <ScopeHeader scope="county" label="Benton" source="data-quality" status="published" />
+          <ScopeHeader scope="county" label={countyMeta?.shortName ?? "County"} source="data-quality" status="published" />
           <ProvenanceBadge source="data-quality" />
         </div>
       </div>
