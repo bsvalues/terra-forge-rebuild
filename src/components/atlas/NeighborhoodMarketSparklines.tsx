@@ -54,9 +54,8 @@ export function NeighborhoodMarketSparklines({ studyPeriodId }: NeighborhoodMark
   // Generate synthetic trend data from neighborhood stats
   const neighborhoodTrends = useMemo(() => {
     return stats.slice(0, 12).map((nbhd) => {
-      const baseValue = nbhd.avg_assessed_value || 150000;
-      // Create a 6-point synthetic trend with slight variance
-      const seed = nbhd.neighborhood_code.charCodeAt(0);
+      const baseValue = (nbhd.median * 200000) || 150000;
+      const seed = nbhd.code.charCodeAt(0);
       const trend = Array.from({ length: 6 }, (_, i) => {
         const noise = Math.sin(seed + i * 1.5) * 0.08;
         const growth = ((seed % 3 === 0 ? 0.02 : seed % 3 === 1 ? -0.01 : 0.04) * i);
@@ -67,12 +66,12 @@ export function NeighborhoodMarketSparklines({ studyPeriodId }: NeighborhoodMark
         : 0;
 
       return {
-        code: nbhd.neighborhood_code,
-        parcelCount: nbhd.parcel_count,
+        code: nbhd.code,
+        parcelCount: nbhd.count,
         avgValue: baseValue,
         trend,
         latestChange,
-        medianRatio: nbhd.median_ratio,
+        medianRatio: nbhd.median,
         cod: nbhd.cod,
       };
     });

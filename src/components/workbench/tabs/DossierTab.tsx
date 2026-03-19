@@ -57,6 +57,10 @@ export function DossierTab() {
             <Package className="w-3.5 h-3.5" />
             Packets
           </TabsTrigger>
+          <TabsTrigger value="annotations" className="gap-2 text-xs">
+            <StickyNote className="w-3.5 h-3.5" />
+            Annotations
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="files" className="mt-4">
