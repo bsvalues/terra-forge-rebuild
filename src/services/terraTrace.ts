@@ -18,7 +18,7 @@ export async function emitTraceEvent(params: TraceEventParams): Promise<string |
       return null;
     }
 
-    const row: TraceEventInsert = {
+    const row = {
       county_id: countyId,
       parcel_id: params.parcelId || null,
       source_module: params.sourceModule,
