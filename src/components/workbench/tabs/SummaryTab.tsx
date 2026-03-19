@@ -3,6 +3,7 @@ import { ExecutiveKpiCards } from "../ExecutiveKpiCards";
 import { AssessmentSparkline } from "../AssessmentSparkline";
 import { ValueChangeExplainer } from "../ValueChangeExplainer";
 import { TraceActivityFeed } from "@/components/trace/TraceActivityFeed";
+import { WatchlistPanel } from "@/components/workbench/WatchlistPanel";
 import { motion } from "framer-motion";
 import {
   TrendingUp,
