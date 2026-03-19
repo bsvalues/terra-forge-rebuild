@@ -253,7 +253,7 @@ export function SLCODemoLanding({ onNavigate }: SLCODemoLandingProps) {
               actionLabel={
                 i === 0 ? "Configure" :
                 i === 1 ? "Run Pipeline" :
-                i === 2 ? "Review Quality" :
+                i === 2 ? "Open Data Doctor" :
                 i === 3 ? "Define Areas" :
                 "Begin"
               }

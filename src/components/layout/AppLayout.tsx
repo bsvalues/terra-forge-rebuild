@@ -273,6 +273,8 @@ export function AppLayout({ initialParcel: routeParcel, initialModule, initialFa
             return <SLCOPipelineHub />;
           case "slco-demo":
             return <SLCODemoLanding onNavigate={handleNavigate} />;
+          case "data-doctor":
+            return <DataDoctorDashboard />;
           case "webhooks":
             return (
               <div className="p-6 max-w-7xl mx-auto">
