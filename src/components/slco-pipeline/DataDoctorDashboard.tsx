@@ -292,8 +292,6 @@ export function DataDoctorDashboard() {
     return <RemediationWorkbench onBack={() => setShowWorkbench(false)} />;
   }
 
-  const hasRun = !!status?.latest_run;
-  const isRunning = runDiagnosis.isPending || status?.latest_run?.status === "running";
 
   return (
     <div className="p-6 max-w-6xl mx-auto space-y-6">
