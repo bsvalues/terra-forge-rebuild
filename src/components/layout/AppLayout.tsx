@@ -42,6 +42,7 @@ const RevaluationLaunchPanel = lazy(() => import("@/components/revaluation/Reval
 const RevaluationProgressTracker = lazy(() => import("@/components/revaluation/RevaluationProgressTracker").then(m => ({ default: m.RevaluationProgressTracker })));
 const RevaluationReportDashboard = lazy(() => import("@/components/revaluation/RevaluationReportDashboard").then(m => ({ default: m.RevaluationReportDashboard })));
 const RevaluationNoticeGenerator = lazy(() => import("@/components/revaluation/RevaluationNoticeGenerator").then(m => ({ default: m.RevaluationNoticeGenerator })));
+const NeighborhoodReviewOrchestrator = lazy(() => import("@/components/review").then(m => ({ default: m.NeighborhoodReviewOrchestrator })));
 
 // Workbench views
 const PropertyWorkbench = lazy(() => import("@/components/workbench").then(m => ({ default: m.PropertyWorkbench })));
