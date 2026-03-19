@@ -357,6 +357,7 @@ export function TerraPilotChat({ fullscreen = false }: TerraPilotChatProps) {
       }
 
       setActiveTools([]);
+      setSwarmPhase(null);
       setSystemState("success");
       setTimeout(() => setSystemState("idle"), 2000);
     } catch (error: any) {
