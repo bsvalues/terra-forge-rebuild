@@ -314,6 +314,9 @@ export function SLCOPipelineHub() {
 
       <MartReadiness marts={data.marts} />
 
+      {/* Constitutional Traceability */}
+      <ConstitutionalTracePanel />
+
       {/* Schema Preview */}
       <Card className="border-border/50 bg-card/80">
         <CardHeader className="pb-3">

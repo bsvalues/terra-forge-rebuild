@@ -139,7 +139,7 @@ export function useAppealAuditTrail(parcelId?: string, limit = 50) {
 
       const { data, error } = await query;
       if (error) throw error;
-      return (data || []) as AppealAuditEntry[];
+      return (data || []) as unknown as AppealAuditEntry[];
     },
     staleTime: 15_000,
   });
