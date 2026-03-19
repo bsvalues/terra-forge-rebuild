@@ -395,7 +395,7 @@ export function SLCODemoLanding({ onNavigate }: SLCODemoLandingProps) {
       </div>
 
       {/* ── Quick Navigation Grid ─────────────────────────────────── */}
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-9 gap-3">
         {[
           { icon: Database, label: "SLCo Pipeline", view: "slco-pipeline", desc: "Ingestion & normalization" },
           { icon: BarChart3, label: "Command Briefing", view: "dashboard", desc: "County overview" },
@@ -404,6 +404,7 @@ export function SLCODemoLanding({ onNavigate }: SLCODemoLandingProps) {
           { icon: TrendingUp, label: "Reval Progress", view: "reval-progress", desc: "Track cycle progress" },
           { icon: FileText, label: "Reval Report", view: "reval-report", desc: "Value change summaries" },
           { icon: Mail, label: "Reval Notices", view: "reval-notices", desc: "Generate owner notices" },
+          { icon: MapPin, label: "Nbhd Review", view: "nbhd-review", desc: "Orchestrated workflow" },
           { icon: Activity, label: "Activity Feed", view: "activity", desc: "Real-time audit trail" },
         ].map((nav) => (
           <Card
