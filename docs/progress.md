@@ -9,10 +9,12 @@
 
 ## Current State Summary
 
-**Active Phase**: Phase 64 — Real-time Webhook Notification Hub (COMPLETE)  
-**Last Completed Task**: 64.4 — Realtime delivery monitoring + SLCOPipelineHub integration  
-**Next Task**: Phase 65 planning  
+**Active Phase**: Phase 65 — Webhook Delivery Dispatch Engine (COMPLETE)  
+**Last Completed Task**: 65.2 — Client-side dispatch wiring + UI dispatch dialog  
+**Next Task**: Phase 66 planning  
 **Blockers**: None
+
+| 65 | Webhook Delivery Dispatch Engine | ✅ COMPLETE | 2/2 | webhook-dispatch edge function (HMAC-SHA256 signing, exponential backoff retry up to 5 attempts, timeout control, concurrent multi-endpoint delivery, delivery status recording), useDispatchWebhookEvent hook (invokes edge function with auth), DispatchEventDialog UI (event type picker, JSON payload editor, fire button with delivery result toast), integrated into WebhookNotificationHub header |
 
 | 64 | Real-time Webhook Notification Hub | ✅ COMPLETE | 4/4 | webhook_endpoints + webhook_deliveries tables (RLS, realtime-enabled), useWebhookHub hooks (CRUD endpoints, delivery queries, toggle/delete/test mutations, realtime subscription, computed stats), WebhookNotificationHub UI (4-stat cards, create dialog with event type picker, endpoint cards with toggle/test/delete, delivery timeline with status icons), 10 supported event types, HMAC signing support, integrated into SLCOPipelineHub + standalone webhooks view in IA_MAP |
 
