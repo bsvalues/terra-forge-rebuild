@@ -159,6 +159,20 @@ export function DaisTab({ initialCategory, onCategoryConsumed }: DaisTabProps) {
             <Zap className="w-4 h-4" />
             Automation
           </TabsTrigger>
+          <TabsTrigger 
+            value="batch"
+            className="gap-2 data-[state=active]:bg-primary/20 data-[state=active]:text-primary"
+          >
+            <Layers className="w-4 h-4" />
+            Batch
+          </TabsTrigger>
+          <TabsTrigger 
+            value="calendar"
+            className="gap-2 data-[state=active]:bg-suite-dais/20 data-[state=active]:text-suite-dais"
+          >
+            <Calendar className="w-4 h-4" />
+            Calendar
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="permits" className="mt-0 space-y-4">
