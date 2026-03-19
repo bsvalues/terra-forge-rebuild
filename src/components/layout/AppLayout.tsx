@@ -297,6 +297,8 @@ export function AppLayout({ initialParcel: routeParcel, initialModule, initialFa
             return <AppealRiskDashboard />;
           case "comparative":
             return <ComparativeDashboard />;
+          case "owner-portal":
+            return <OwnerPortal />;
           case "webhooks":
             return (
               <div className="p-6 max-w-7xl mx-auto">
