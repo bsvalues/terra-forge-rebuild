@@ -4893,6 +4893,18 @@ export type Database = {
             }[]
           }
       compute_readiness_score: { Args: { p_county_id?: string }; Returns: Json }
+      count_duplicate_addresses: {
+        Args: { p_county_id: string }
+        Returns: {
+          count: number
+        }[]
+      }
+      count_duplicate_parcel_numbers: {
+        Args: { p_county_id: string }
+        Returns: {
+          count: number
+        }[]
+      }
       disablelongtransactions: { Args: never; Returns: string }
       dropgeometrycolumn:
         | {
