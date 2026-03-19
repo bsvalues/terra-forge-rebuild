@@ -8,6 +8,7 @@ import {
   useRunAllStages,
   useResetPipeline,
   STAGES,
+  type StageStatus,
   type SLCOStage,
 } from "@/hooks/useSLCOPipeline";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
