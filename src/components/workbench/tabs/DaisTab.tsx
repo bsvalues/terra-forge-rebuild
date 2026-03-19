@@ -79,6 +79,9 @@ export function DaisTab({ initialCategory, onCategoryConsumed }: DaisTabProps) {
         <CertificationReadinessWidget />
       </div>
 
+      {/* SLA Deadline Tracker */}
+      <WorkflowSlaTracker />
+
       {/* Category Tabs */}
       <Tabs value={activeCategory} onValueChange={setActiveCategory} className="space-y-4">
         <TabsList className="bg-tf-elevated/50 p-1">
