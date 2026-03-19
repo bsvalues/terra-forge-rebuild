@@ -456,6 +456,18 @@ export function AtlasTab() {
               <NeighborhoodHeatmapLegend />
             </motion.div>
           )}
+
+          {activeView === "valuation" && (
+            <motion.div
+              key="valuation"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              className="p-6 h-full overflow-auto"
+            >
+              <NeighborhoodValuationHeatmap />
+            </motion.div>
+          )}
         </AnimatePresence>
       </div>
     </div>
