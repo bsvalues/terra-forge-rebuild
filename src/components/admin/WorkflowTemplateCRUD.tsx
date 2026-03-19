@@ -163,7 +163,6 @@ function TemplateForm({ onSaved }: { onSaved: () => void }) {
     showChangeReceipt({
       action: "Workflow Template Created",
       entity: name,
-      entityType: "workflow_template",
       reason: `${steps.length}-step ${category} workflow`,
     });
     setName("");
