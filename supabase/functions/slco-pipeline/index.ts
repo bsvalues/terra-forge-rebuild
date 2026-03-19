@@ -1,6 +1,6 @@
-// TerraFusion OS — SLCO Pipeline Orchestrator
-// Executes the 7-stage ingestion pipeline for Salt Lake County canonical schema.
-// Stages: raw_ingest → standardize → identity_resolve → spatial_join → commercial_enrich → recorder_enrich → publish_marts
+// TerraFusion OS — SLCO Pipeline Orchestrator v2
+// Phase 61: Stage-gate validation, auto-retry with exponential backoff,
+// prerequisite enforcement, and run history tracking.
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
@@ -23,9 +23,54 @@ const STAGES = [
 
 type Stage = typeof STAGES[number];
 
+// ── Stage-Gate Prerequisites ───────────────────────────────────────
+// Each stage declares what must be true before it can run.
+const STAGE_GATES: Record<Stage, {
+  requiredStages: Stage[];          // predecessor stages that must be "complete"
+  minRowsRequired?: { table: string; count: number }; // minimum rows in a table
+  description: string;
+}> = {
+  raw_ingest: {
+    requiredStages: [],
+    description: "No prerequisites — entry point. Requires GIS features in gis_features table.",
+  },
+  standardize: {
+    requiredStages: ["raw_ingest"],
+    minRowsRequired: { table: "slco_parcel_master", count: 1 },
+    description: "Requires raw_ingest to have populated slco_parcel_master.",
+  },
+  identity_resolve: {
+    requiredStages: ["standardize"],
+    minRowsRequired: { table: "slco_parcel_master", count: 1 },
+    description: "Requires standardized parcel master records.",
+  },
+  spatial_join: {
+    requiredStages: ["identity_resolve"],
+    minRowsRequired: { table: "slco_parcel_source_registry", count: 1 },
+    description: "Requires resolved parcel identities with source registry.",
+  },
+  commercial_enrich: {
+    requiredStages: ["spatial_join"],
+    description: "Requires spatial context assignments.",
+  },
+  recorder_enrich: {
+    requiredStages: ["identity_resolve"],
+    description: "Requires canonical parcel keys. Recorder Data Services subscription needed.",
+  },
+  publish_marts: {
+    requiredStages: ["spatial_join"],
+    description: "Requires spatial context. Commercial/recorder enrichment optional.",
+  },
+};
+
+// ── Retry Configuration ────────────────────────────────────────────
+const MAX_RETRIES = 3;
+const BASE_BACKOFF_MS = 500;
+
 interface PipelineRequest {
-  action: "run_stage" | "run_all" | "status" | "reset";
+  action: "run_stage" | "run_all" | "status" | "reset" | "validate_gate";
   stage?: Stage;
+  skipGateCheck?: boolean;  // Allow force-running past gate failures
 }
 
 serve(async (req: Request) => {
@@ -40,39 +85,98 @@ serve(async (req: Request) => {
 
     const params: PipelineRequest = await req.json();
 
-    if (params.action === "status") {
-      return await handleStatus(supabase);
+    switch (params.action) {
+      case "status":
+        return await handleStatus(supabase);
+      case "reset":
+        return await handleReset(supabase);
+      case "validate_gate":
+        if (!params.stage) return json({ error: "stage required" }, 400);
+        return await handleValidateGate(supabase, params.stage);
+      case "run_stage":
+        if (!params.stage) return json({ error: "stage required" }, 400);
+        return await handleRunStage(supabase, params.stage, params.skipGateCheck);
+      case "run_all":
+        return await handleRunAll(supabase);
+      default:
+        return json({ error: "Unknown action" }, 400);
     }
-
-    if (params.action === "reset") {
-      return await handleReset(supabase);
-    }
-
-    if (params.action === "run_stage" && params.stage) {
-      return await handleRunStage(supabase, params.stage);
-    }
-
-    if (params.action === "run_all") {
-      return await handleRunAll(supabase);
-    }
-
-    return json({ error: "Unknown action" }, 400);
   } catch (e) {
     console.error("slco-pipeline error:", e);
     return json({ error: e instanceof Error ? e.message : "Unknown error" }, 500);
   }
 });
 
-// ── Status ─────────────────────────────────────────────────────────
+// ── Gate Validation ────────────────────────────────────────────────
+interface GateResult {
+  passed: boolean;
+  stage: string;
+  checks: { check: string; passed: boolean; detail: string }[];
+}
+
+async function validateGate(supabase: any, stage: Stage): Promise<GateResult> {
+  const gate = STAGE_GATES[stage];
+  const checks: GateResult["checks"] = [];
+
+  // Check required predecessor stages
+  for (const req of gate.requiredStages) {
+    const { data: latestRun } = await supabase
+      .from("slco_pipeline_runs")
+      .select("status")
+      .eq("stage", req)
+      .eq("status", "complete")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .single();
+
+    const passed = !!latestRun;
+    checks.push({
+      check: `stage_${req}_complete`,
+      passed,
+      detail: passed
+        ? `Prerequisite stage "${req}" has completed successfully.`
+        : `Prerequisite stage "${req}" has not completed. Run it first.`,
+    });
+  }
+
+  // Check minimum row requirements
+  if (gate.minRowsRequired) {
+    const { count } = await supabase
+      .from(gate.minRowsRequired.table)
+      .select("*", { count: "exact", head: true });
+
+    const actual = count || 0;
+    const passed = actual >= gate.minRowsRequired.count;
+    checks.push({
+      check: `min_rows_${gate.minRowsRequired.table}`,
+      passed,
+      detail: passed
+        ? `Table "${gate.minRowsRequired.table}" has ${actual} rows (min: ${gate.minRowsRequired.count}).`
+        : `Table "${gate.minRowsRequired.table}" has ${actual} rows but needs at least ${gate.minRowsRequired.count}.`,
+    });
+  }
+
+  return {
+    passed: checks.every((c) => c.passed),
+    stage,
+    checks,
+  };
+}
+
+async function handleValidateGate(supabase: any, stage: Stage) {
+  const result = await validateGate(supabase, stage);
+  return json(result);
+}
+
+// ── Status (enhanced with gate info) ───────────────────────────────
 async function handleStatus(supabase: any) {
-  // Get latest run per stage
   const { data: runs } = await supabase
     .from("slco_pipeline_runs")
     .select("*")
     .order("created_at", { ascending: false })
-    .limit(50);
+    .limit(100);
 
-  // Get canonical table counts
+  // Table counts
   const counts: Record<string, number> = {};
   const tables = [
     "slco_parcel_master",
@@ -94,25 +198,67 @@ async function handleStatus(supabase: any) {
     counts[table] = count || 0;
   }
 
-  // Build stage statuses from latest runs
+  // Build stage statuses from latest completed runs
   const stageStatus: Record<string, any> = {};
+  const gateResults: Record<string, GateResult> = {};
+
   for (const stage of STAGES) {
     const latestRun = (runs || []).find((r: any) => r.stage === stage);
     stageStatus[stage] = latestRun || { stage, status: "pending", rows_in: 0, rows_out: 0 };
+
+    // Compute gate validation for each stage
+    gateResults[stage] = await validateGate(supabase, stage);
   }
 
-  return json({ stages: stageStatus, tableCounts: counts, runs: runs || [] });
+  // Build run history timeline (last 20 runs)
+  const history = (runs || []).slice(0, 20).map((r: any) => ({
+    id: r.id,
+    stage: r.stage,
+    status: r.status,
+    rows_in: r.rows_in,
+    rows_out: r.rows_out,
+    rows_rejected: r.rows_rejected,
+    error_message: r.error_message,
+    started_at: r.started_at,
+    completed_at: r.completed_at,
+    duration_ms: r.started_at && r.completed_at
+      ? new Date(r.completed_at).getTime() - new Date(r.started_at).getTime()
+      : null,
+    metadata: r.metadata,
+  }));
+
+  return json({
+    stages: stageStatus,
+    gates: gateResults,
+    tableCounts: counts,
+    runs: runs || [],
+    history,
+  });
 }
 
 // ── Reset ──────────────────────────────────────────────────────────
 async function handleReset(supabase: any) {
-  // Only reset pipeline_runs, not the data tables
   await supabase.from("slco_pipeline_runs").delete().neq("id", "00000000-0000-0000-0000-000000000000");
   return json({ ok: true, message: "Pipeline runs cleared" });
 }
 
-// ── Run Single Stage ───────────────────────────────────────────────
-async function handleRunStage(supabase: any, stage: Stage) {
+// ── Run Stage with Gate Check + Auto-Retry ─────────────────────────
+async function handleRunStage(supabase: any, stage: Stage, skipGateCheck?: boolean) {
+  // Stage-gate validation
+  if (!skipGateCheck) {
+    const gateResult = await validateGate(supabase, stage);
+    if (!gateResult.passed) {
+      const failedChecks = gateResult.checks.filter((c) => !c.passed);
+      return json({
+        ok: false,
+        stage,
+        gateBlocked: true,
+        gateResult,
+        error: `Stage gate blocked: ${failedChecks.map((c) => c.detail).join("; ")}`,
+      }, 422);
+    }
+  }
+
   // Create run record
   const { data: run } = await supabase
     .from("slco_pipeline_runs")
@@ -120,47 +266,86 @@ async function handleRunStage(supabase: any, stage: Stage) {
       stage,
       status: "running",
       started_at: new Date().toISOString(),
+      metadata: { retryCount: 0, gateSkipped: !!skipGateCheck },
     })
     .select("*")
     .single();
 
-  try {
-    const result = await executeStage(supabase, stage);
+  // Execute with auto-retry
+  let lastError: string | null = null;
+  let result: StageResult | null = null;
 
-    await supabase
-      .from("slco_pipeline_runs")
-      .update({
-        status: "complete",
-        rows_in: result.rowsIn,
-        rows_out: result.rowsOut,
-        rows_rejected: result.rowsRejected,
-        completed_at: new Date().toISOString(),
-        metadata: result.metadata || {},
-      })
-      .eq("id", run.id);
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    try {
+      result = await executeStage(supabase, stage);
 
-    return json({ ok: true, stage, ...result });
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
-    await supabase
-      .from("slco_pipeline_runs")
-      .update({
-        status: "failed",
-        error_message: msg,
-        completed_at: new Date().toISOString(),
-      })
-      .eq("id", run.id);
+      // Quality gate: check if output is acceptable
+      const qualityCheck = validateStageOutput(stage, result);
+      if (!qualityCheck.passed) {
+        console.warn(`Quality check failed for ${stage}: ${qualityCheck.reason}`);
+        result.metadata = {
+          ...result.metadata,
+          qualityWarning: qualityCheck.reason,
+        };
+      }
 
-    return json({ ok: false, stage, error: msg }, 500);
+      // Success — update run record
+      await supabase
+        .from("slco_pipeline_runs")
+        .update({
+          status: "complete",
+          rows_in: result.rowsIn,
+          rows_out: result.rowsOut,
+          rows_rejected: result.rowsRejected,
+          completed_at: new Date().toISOString(),
+          metadata: {
+            ...result.metadata,
+            retryCount: attempt,
+            gateSkipped: !!skipGateCheck,
+            qualityPassed: validateStageOutput(stage, result).passed,
+          },
+        })
+        .eq("id", run.id);
+
+      return json({ ok: true, stage, attempt, ...result });
+    } catch (err) {
+      lastError = err instanceof Error ? err.message : String(err);
+      console.error(`Stage ${stage} attempt ${attempt + 1}/${MAX_RETRIES + 1} failed:`, lastError);
+
+      if (attempt < MAX_RETRIES) {
+        // Exponential backoff: 500ms, 1000ms, 2000ms
+        const backoff = BASE_BACKOFF_MS * Math.pow(2, attempt);
+        console.log(`Retrying ${stage} in ${backoff}ms...`);
+        await new Promise((r) => setTimeout(r, backoff));
+      }
+    }
   }
+
+  // All retries exhausted
+  await supabase
+    .from("slco_pipeline_runs")
+    .update({
+      status: "failed",
+      error_message: `Failed after ${MAX_RETRIES + 1} attempts: ${lastError}`,
+      completed_at: new Date().toISOString(),
+      metadata: { retryCount: MAX_RETRIES, lastError },
+    })
+    .eq("id", run.id);
+
+  return json({
+    ok: false,
+    stage,
+    error: `Failed after ${MAX_RETRIES + 1} attempts: ${lastError}`,
+    retriesExhausted: true,
+  }, 500);
 }
 
-// ── Run All Stages Sequentially ────────────────────────────────────
+// ── Run All with Gate Enforcement ──────────────────────────────────
 async function handleRunAll(supabase: any) {
   const results: Record<string, any> = {};
 
   for (const stage of STAGES) {
-    const resp = await handleRunStage(supabase, stage);
+    const resp = await handleRunStage(supabase, stage, false);
     const body = await resp.json();
     results[stage] = body;
 
@@ -169,12 +354,46 @@ async function handleRunAll(supabase: any) {
         ok: false,
         failedAt: stage,
         results,
-        message: `Pipeline halted at ${stage}: ${body.error}`,
+        message: body.gateBlocked
+          ? `Pipeline halted: stage "${stage}" gate check failed.`
+          : `Pipeline halted at "${stage}": ${body.error}`,
       });
     }
   }
 
   return json({ ok: true, results });
+}
+
+// ── Quality Validation ─────────────────────────────────────────────
+interface QualityResult {
+  passed: boolean;
+  reason?: string;
+}
+
+function validateStageOutput(stage: Stage, result: StageResult): QualityResult {
+  // No rows processed at all — warn but don't fail
+  if (result.rowsIn === 0) {
+    return { passed: true, reason: "No input rows — stage had nothing to process." };
+  }
+
+  // High rejection rate (> 50%)
+  const rejectionRate = result.rowsRejected / result.rowsIn;
+  if (rejectionRate > 0.5) {
+    return {
+      passed: false,
+      reason: `High rejection rate: ${(rejectionRate * 100).toFixed(1)}% of ${result.rowsIn} rows rejected.`,
+    };
+  }
+
+  // Zero output when there was input
+  if (result.rowsOut === 0 && result.rowsIn > 0 && result.rowsRejected === 0) {
+    return {
+      passed: false,
+      reason: `Zero rows output from ${result.rowsIn} input rows — possible silent failure.`,
+    };
+  }
+
+  return { passed: true };
 }
 
 // ── Stage Executors ────────────────────────────────────────────────
@@ -206,9 +425,8 @@ async function executeStage(supabase: any, stage: Stage): Promise<StageResult> {
   }
 }
 
-// Stage 1: Raw Ingest — Transform gis_features into canonical parcel_master
+// Stage 1: Raw Ingest
 async function executeRawIngest(supabase: any): Promise<StageResult> {
-  // Get all UGRC-ingested features for SLCo county
   const { data: features, count } = await supabase
     .from("gis_features")
     .select("properties, centroid_lat, centroid_lng, coordinates, source_object_id, county_id", { count: "exact" })
@@ -221,20 +439,17 @@ async function executeRawIngest(supabase: any): Promise<StageResult> {
 
   let inserted = 0;
   let rejected = 0;
-
-  // Batch process features into slco_parcel_master
   const batch: any[] = [];
+
   for (const f of features) {
     const attrs = f.properties || {};
     const parcelId = attrs.PARCEL_ID || attrs.parcel_id || attrs.SERIAL_NUM || "";
     if (!parcelId) { rejected++; continue; }
 
-    const normalized = normalizeParcelId(parcelId);
-
     batch.push({
       county_id: "49035",
       parcel_id: parcelId,
-      parcel_id_normalized: normalized,
+      parcel_id_normalized: normalizeParcelId(parcelId),
       source_preferred: "sgid",
       situs_address: attrs.PARCEL_ADD || attrs.ADDRESS || null,
       situs_city: attrs.PARCEL_CITY || attrs.CITY || null,
@@ -248,7 +463,6 @@ async function executeRawIngest(supabase: any): Promise<StageResult> {
       active_flag: true,
     });
 
-    // Also create source registry and geometry snapshot entries
     if (batch.length >= 200) {
       const { error } = await supabase.from("slco_parcel_master").upsert(batch, {
         onConflict: "county_id,parcel_id_normalized,valid_from",
@@ -260,25 +474,78 @@ async function executeRawIngest(supabase: any): Promise<StageResult> {
     }
   }
 
-  // Flush remaining
   if (batch.length > 0) {
     const { error } = await supabase.from("slco_parcel_master").upsert(batch, {
       onConflict: "county_id,parcel_id_normalized,valid_from",
       ignoreDuplicates: true,
     });
-    if (error) { rejected += batch.length; console.error("Final upsert err:", error.message); }
-    else { inserted += batch.length; }
+    if (error) { rejected += batch.length; } else { inserted += batch.length; }
+  }
+
+  // Also create geometry snapshots from features with coordinates
+  let geomCount = 0;
+  const geomBatch: any[] = [];
+  for (const f of features) {
+    const attrs = f.properties || {};
+    const parcelId = attrs.PARCEL_ID || attrs.parcel_id || attrs.SERIAL_NUM || "";
+    if (!parcelId || !f.coordinates) continue;
+
+    geomBatch.push({
+      county_id: "49035",
+      parcel_id_normalized: normalizeParcelId(parcelId),
+      geometry_version: 1,
+      centroid_lat: f.centroid_lat,
+      centroid_lng: f.centroid_lng,
+      coordinates: f.coordinates,
+      source_system: "ugrc_sgid",
+      area_acres: attrs.ACRES ? parseFloat(attrs.ACRES) : null,
+    });
+  }
+
+  if (geomBatch.length > 0) {
+    const { error } = await supabase.from("slco_parcel_geometry_snapshot").insert(geomBatch);
+    if (!error) geomCount = geomBatch.length;
+  }
+
+  // Create assessment summary from UGRC value attributes
+  let assessCount = 0;
+  const assessBatch: any[] = [];
+  for (const f of features) {
+    const attrs = f.properties || {};
+    const parcelId = attrs.PARCEL_ID || attrs.parcel_id || attrs.SERIAL_NUM || "";
+    const totalMkt = parseFloat(attrs.TOTAL_MKT_VALUE || "0");
+    if (!parcelId || totalMkt <= 0) continue;
+
+    assessBatch.push({
+      county_id: "49035",
+      parcel_id_normalized: normalizeParcelId(parcelId),
+      tax_year: new Date().getFullYear(),
+      land_value: parseFloat(attrs.LAND_MKT_VALUE || "0") || null,
+      improvement_value: parseFloat(attrs.BLDG_MKT_VALUE || "0") || null,
+      total_market_value: totalMkt,
+      property_type_code: attrs.PROP_CLASS || null,
+      source_system: "ugrc_sgid",
+      snapshot_date: new Date().toISOString().split("T")[0],
+    });
+  }
+
+  if (assessBatch.length > 0) {
+    const { error } = await supabase.from("slco_parcel_assessment_summary").upsert(assessBatch, {
+      onConflict: "county_id,parcel_id_normalized,tax_year,source_system",
+      ignoreDuplicates: true,
+    });
+    if (!error) assessCount = assessBatch.length;
   }
 
   return {
     rowsIn: features.length,
     rowsOut: inserted,
     rowsRejected: rejected,
-    metadata: { totalAvailable: count },
+    metadata: { totalAvailable: count, geometrySnapshots: geomCount, assessmentSummaries: assessCount },
   };
 }
 
-// Stage 2: Standardize — Normalize fields
+// Stage 2: Standardize
 async function executeStandardize(supabase: any): Promise<StageResult> {
   const { data: parcels, count } = await supabase
     .from("slco_parcel_master")
@@ -308,16 +575,14 @@ async function executeStandardize(supabase: any): Promise<StageResult> {
   return { rowsIn: parcels.length, rowsOut: updated, rowsRejected: 0, metadata: { totalRecords: count } };
 }
 
-// Stage 3: Identity Resolution — Ensure canonical keys
+// Stage 3: Identity Resolution
 async function executeIdentityResolve(supabase: any): Promise<StageResult> {
-  // Count distinct parcel_id_normalized values
   const { count: masterCount } = await supabase
     .from("slco_parcel_master")
     .select("parcel_id_normalized", { count: "exact", head: true })
     .eq("county_id", "49035")
     .eq("active_flag", true);
 
-  // Create source registry entries for all master records without one
   const { data: unregistered } = await supabase
     .from("slco_parcel_master")
     .select("parcel_id_normalized, source_preferred, parcel_id")
@@ -332,7 +597,7 @@ async function executeIdentityResolve(supabase: any): Promise<StageResult> {
       source_system: p.source_preferred || "sgid",
       source_dataset: "ugrc_sgid_parcels",
       retrieved_at: new Date().toISOString(),
-      raw_payload_hash: simpleHash(p.parcel_id_normalized),
+      raw_payload_hash: simpleHash(p.parcel_id_normalized + new Date().toISOString()),
     }));
 
     const { error } = await supabase.from("slco_parcel_source_registry").insert(registryRows);
@@ -347,11 +612,11 @@ async function executeIdentityResolve(supabase: any): Promise<StageResult> {
   };
 }
 
-// Stage 4: Spatial Join — Link parcels to tax districts, model areas
+// Stage 4: Spatial Join
 async function executeSpatialJoin(supabase: any): Promise<StageResult> {
   const { data: parcels } = await supabase
     .from("slco_parcel_master")
-    .select("parcel_id_normalized, property_type_code")
+    .select("parcel_id_normalized, property_type_code, tax_district_id")
     .eq("county_id", "49035")
     .eq("active_flag", true)
     .limit(500);
@@ -360,14 +625,28 @@ async function executeSpatialJoin(supabase: any): Promise<StageResult> {
     return { rowsIn: 0, rowsOut: 0, rowsRejected: 0 };
   }
 
-  // Create spatial context entries (simplified — real impl would use PostGIS ST_Intersects)
+  // Check for existing spatial context to avoid duplicates
+  const { count: existingCount } = await supabase
+    .from("slco_parcel_spatial_context")
+    .select("*", { count: "exact", head: true })
+    .eq("county_id", "49035");
+
+  if ((existingCount || 0) > 0) {
+    return {
+      rowsIn: parcels.length,
+      rowsOut: 0,
+      rowsRejected: 0,
+      metadata: { message: `Spatial context already exists (${existingCount} rows). Delete first to re-run.`, existingCount },
+    };
+  }
+
   const contextRows = parcels.map((p: any) => ({
     county_id: "49035",
     parcel_id_normalized: p.parcel_id_normalized,
-    tax_district_id: "SLCO-DEFAULT",
+    tax_district_id: p.tax_district_id || "SLCO-DEFAULT",
     model_area_id: null,
     municipality: "SALT LAKE COUNTY",
-    source_system: "spatial_join_v1",
+    source_system: "spatial_join_v2",
   }));
 
   const { error } = await supabase.from("slco_parcel_spatial_context").insert(contextRows);
@@ -382,7 +661,6 @@ async function executeSpatialJoin(supabase: any): Promise<StageResult> {
 
 // Stage 5: Commercial Enrichment
 async function executeCommercialEnrich(supabase: any): Promise<StageResult> {
-  // Find commercial parcels from master
   const { data: commercialParcels } = await supabase
     .from("slco_parcel_master")
     .select("parcel_id_normalized, property_type_code")
@@ -413,7 +691,6 @@ async function executeCommercialEnrich(supabase: any): Promise<StageResult> {
 
 // Stage 6: Recorder Enrichment
 async function executeRecorderEnrich(supabase: any): Promise<StageResult> {
-  // Placeholder — real impl would pull from Recorder Data Services subscription
   return {
     rowsIn: 0,
     rowsOut: 0,
@@ -424,7 +701,6 @@ async function executeRecorderEnrich(supabase: any): Promise<StageResult> {
 
 // Stage 7: Publish Marts
 async function executePublishMarts(supabase: any): Promise<StageResult> {
-  // Verify mart views are queryable
   const { count: workbenchCount } = await supabase
     .from("mart_slco_workbench_summary")
     .select("*", { count: "exact", head: true });
