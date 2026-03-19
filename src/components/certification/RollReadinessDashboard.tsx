@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import { ScopeHeader, ProvenanceBadge, ProvenanceNumber } from "@/components/trust";
+import { useCountyMeta } from "@/hooks/useCountyMeta";
 import {
   ShieldCheck,
   ShieldAlert,
