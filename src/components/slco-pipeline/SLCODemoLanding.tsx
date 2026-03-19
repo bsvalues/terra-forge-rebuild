@@ -265,6 +265,15 @@ export function SLCODemoLanding({ onNavigate }: SLCODemoLandingProps) {
         </CardContent>
       </Card>
 
+      {/* ── Defensibility Score ────────────────────────────────────── */}
+      {defensibility && (
+        <DefensibilityScoreCard
+          defensibility={defensibility}
+          dataQuality={vitals?.dataQuality}
+          onNavigate={onNavigate}
+        />
+      )}
+
       {/* ── Jurisdiction Map (Interactive Grid) ───────────────────── */}
       <Card className="border-border/50 bg-card/80">
         <CardHeader className="pb-3">
