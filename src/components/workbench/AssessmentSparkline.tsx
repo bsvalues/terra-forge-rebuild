@@ -5,10 +5,10 @@ import { AreaChart, Area, ResponsiveContainer, Tooltip, YAxis } from "recharts";
 
 interface AssessmentSparklineProps {
   history: Array<{
-    tax_year: number;
-    land_value: number;
-    improvement_value: number;
-    total_value: number | null;
+    taxYear: number;
+    landValue: number;
+    improvementValue: number;
+    totalValue: number | null;
   }>;
 }
 
