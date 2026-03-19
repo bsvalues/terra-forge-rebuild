@@ -145,7 +145,7 @@ export function SLCODemoLanding({ onNavigate }: SLCODemoLandingProps) {
   const onboardingSteps = [
     { title: "Connect Data Sources", desc: "Configure UGRC, Recorder, and CAMA connections", completed: true },
     { title: "Run Initial Pipeline", desc: "Ingest and normalize Salt Lake County parcel data", completed: hasData },
-    { title: "Validate Data Quality", desc: "Review quality scores and resolve anomalies", completed: hasData && qualityScore > 60 },
+    { title: "Validate & Remediate Data", desc: "AI-powered diagnosis, PostGIS-driven repair, human-approved fixes", completed: hasData && qualityScore > 60 },
     { title: "Configure Neighborhoods", desc: "Define neighborhood boundaries and model areas", completed: false },
     { title: "Launch Revaluation", desc: "Begin annual revaluation cycle with calibrated models", completed: false },
   ];
