@@ -29,6 +29,29 @@ export interface ProposedFix {
   created_at: string;
 }
 
+export interface VerificationSnapshot {
+  id: string;
+  county_id: string;
+  batch_id: string | null;
+  diagnosis_run_id: string | null;
+  snapshot_type: string;
+  metrics: Record<string, any>;
+  quality_score: number | null;
+  gate_results: Record<string, any>;
+  passed_all_gates: boolean | null;
+  created_at: string;
+}
+
+export interface ReadinessGate {
+  gate: string;
+  label: string;
+  description: string;
+  passed: boolean;
+  value: number;
+  threshold: number;
+  severity: string;
+}
+
 export interface RemediationBatch {
   id: string;
   county_id: string;
