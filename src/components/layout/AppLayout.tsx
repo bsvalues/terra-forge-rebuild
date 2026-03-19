@@ -266,6 +266,8 @@ export function AppLayout({ initialParcel: routeParcel, initialModule, initialFa
             return <NeighborhoodDirectoryPanel />;
           case "appeal-insights":
             return <AppealInsightsDashboard />;
+          case "slco-pipeline":
+            return <SLCOPipelineHub />;
           case "settings":
             return <CountyConfigPanel />;
           case "sync":
