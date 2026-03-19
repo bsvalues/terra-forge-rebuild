@@ -285,9 +285,14 @@ export function DataDoctorDashboard() {
   const runDiagnosis = useRunDiagnosis();
   const [expandedLane, setExpandedLane] = useState<DQLane | null>(null);
   const [showWorkbench, setShowWorkbench] = useState(false);
+  const [showVerification, setShowVerification] = useState(false);
 
   const hasRun = !!status?.latest_run;
   const isRunning = runDiagnosis.isPending || status?.latest_run?.status === "running";
+
+  if (showVerification) {
+    return <VerificationPanel onBack={() => setShowVerification(false)} />;
+  }
 
   if (showWorkbench) {
     return <RemediationWorkbench onBack={() => setShowWorkbench(false)} />;
