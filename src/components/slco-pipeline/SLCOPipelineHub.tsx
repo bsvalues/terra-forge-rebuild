@@ -2,6 +2,7 @@
 // Phase 58: Live demo hub for the 4-source SLCO ingestion conveyor belt.
 
 import { useSLCOIngestion, type SLCOSource, type PipelineStageRow, type MartStatus } from "@/hooks/useSLCOIngestion";
+import { UGRCIngestionPanel } from "./UGRCIngestionPanel";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
