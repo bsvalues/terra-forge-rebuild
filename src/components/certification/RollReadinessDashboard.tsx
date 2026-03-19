@@ -258,6 +258,7 @@ function SummaryGrid({ summary }: { summary: RollReadinessData["summary"] }) {
 // ── Main Dashboard ──────────────────────────────────────────────
 export function RollReadinessDashboard() {
   const { data, isLoading } = useRollReadiness();
+  const countyMeta = useCountyMeta();
 
   if (isLoading || !data) {
     return (

@@ -81,6 +81,7 @@ const SUITE_REGISTRY: SuiteEntry[] = [
 
 export function SuiteHub({ onNavigate, onParcelNavigate }: SuiteHubProps) {
   const { data: vitals, isLoading: vitalsLoading } = useCountyVitals();
+  const countyMeta = useCountyMeta();
   const { data: pipeline } = usePipelineStatus();
   const [searchValue, setSearchValue] = useState("");
   const [previewMissionId, setPreviewMissionId] = useState<string | null>(null);

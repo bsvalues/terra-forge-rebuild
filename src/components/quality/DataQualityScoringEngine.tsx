@@ -283,6 +283,7 @@ function LowestScoreParcels({ parcels }: { parcels: ParcelScore[] }) {
 
 export function DataQualityScoringEngine() {
   const { data, isLoading } = useDataQualityScoring();
+  const countyMeta = useCountyMeta();
 
   if (isLoading) {
     return (

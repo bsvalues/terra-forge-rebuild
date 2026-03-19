@@ -45,6 +45,7 @@ type DrilldownType = "prd" | "cod" | "tier" | "appeals" | null;
 
 export function VEIDashboard() {
   const currentYear = new Date().getFullYear();
+  const countyMeta = useCountyMeta();
   const [selectedYear, setSelectedYear] = useState<number>(currentYear);
   const [salesStartDate, setSalesStartDate] = useState<Date>(subMonths(new Date(), 24));
   const [salesEndDate, setSalesEndDate] = useState<Date>(new Date());
