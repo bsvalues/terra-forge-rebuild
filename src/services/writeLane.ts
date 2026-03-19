@@ -1,8 +1,9 @@
 // TerraFusion OS — Write-Lane Enforcement
 // Constitutional write-lane matrix: each domain has exactly ONE owner
+// Phase 62: violations are now persisted to write_lane_violations table
 
 import type { WriteDomain, SourceModule } from "@/types/parcel360";
-
+import { supabase } from "@/integrations/supabase/client";
 /**
  * The canonical Write-Lane Matrix.
  * Maps each data domain to the single module that owns writes.
