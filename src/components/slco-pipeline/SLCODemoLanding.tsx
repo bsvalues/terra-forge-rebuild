@@ -407,6 +407,7 @@ export function SLCODemoLanding({ onNavigate }: SLCODemoLandingProps) {
           { icon: Mail, label: "Reval Notices", view: "reval-notices", desc: "Generate owner notices" },
           { icon: MapPin, label: "Nbhd Review", view: "nbhd-review", desc: "Orchestrated workflow" },
           { icon: GitCompare, label: "Comparative", view: "comparative", desc: "Multi-cycle overlay" },
+          { icon: User, label: "Owner Portal", view: "owner-portal", desc: "Public property lookup" },
           { icon: Activity, label: "Activity Feed", view: "activity", desc: "Real-time audit trail" },
         ].map((nav) => (
           <Card
