@@ -1,5 +1,6 @@
-// TerraFusion OS — Neighborhood Directory Hooks
+// TerraFusion OS — Neighborhood Directory Hooks (Phase 70)
 // Read-contract: neighborhoods table | Write-lane: OS Core (neighborhood definitions)
+// "The neighborhoods told me their secrets. They're mostly rectangles." — Ralph Wiggum
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,6 +15,10 @@ export interface NeighborhoodRow {
   year: number;
   geometry: unknown;
   metadata: Record<string, unknown> | null;
+  model_type: string | null;
+  property_classes: string[] | null;
+  description: string | null;
+  status: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -28,10 +33,25 @@ export interface NeighborhoodStats {
   avg_year_built: number | null;
 }
 
+export interface DiscoveredNeighborhood {
+  hood_cd: string;
+  parcel_count: number;
+  avg_value: number;
+  avg_building_area: number | null;
+  avg_year_built: number | null;
+  with_coords: number;
+  class_count: number;
+  property_classes: string[] | null;
+  is_registered: boolean;
+  latest_r_squared: number | null;
+}
+
+const QUERY_KEY = ["neighborhoods"];
+
 /** Fetch all neighborhoods for the current year */
 export function useNeighborhoods(year?: number) {
   return useQuery({
-    queryKey: ["neighborhoods", year],
+    queryKey: [...QUERY_KEY, year],
     queryFn: async () => {
       let query = supabase
         .from("neighborhoods")
@@ -86,7 +106,7 @@ export function useNeighborhoodStats() {
 
         stats.push({
           hood_cd: code,
-          hood_name: null, // Will be enriched from neighborhoods table
+          hood_name: null,
           parcel_count: sorted.length,
           median_value: median,
           total_value: total,
@@ -96,6 +116,19 @@ export function useNeighborhoodStats() {
       }
 
       return stats.sort((a, b) => b.parcel_count - a.parcel_count);
+    },
+    staleTime: 120_000,
+  });
+}
+
+/** Discover all neighborhood codes from parcels with registration status */
+export function useDiscoverNeighborhoods() {
+  return useQuery<DiscoveredNeighborhood[]>({
+    queryKey: ["neighborhood-discovery"],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("discover_unregistered_neighborhoods" as any);
+      if (error) throw error;
+      return (data as unknown as DiscoveredNeighborhood[]) || [];
     },
     staleTime: 120_000,
   });
@@ -111,6 +144,9 @@ export function useCreateNeighborhood() {
       hood_cd: string;
       hood_name?: string;
       year: number;
+      model_type?: string;
+      property_classes?: string[];
+      description?: string;
     }) => {
       const { data, error } = await supabase
         .from("neighborhoods")
@@ -119,7 +155,11 @@ export function useCreateNeighborhood() {
           hood_name: input.hood_name || null,
           year: input.year,
           county_id: "benton-county",
-        })
+          model_type: input.model_type || "linear",
+          property_classes: input.property_classes || [],
+          description: input.description || null,
+          status: "registered",
+        } as any)
         .select()
         .single();
       if (error) throw error;
@@ -131,11 +171,51 @@ export function useCreateNeighborhood() {
       return data;
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["neighborhoods"] });
-      toast({ title: "Neighborhood created" });
+      qc.invalidateQueries({ queryKey: QUERY_KEY });
+      qc.invalidateQueries({ queryKey: ["neighborhood-discovery"] });
+      qc.invalidateQueries({ queryKey: ["county-vitals"] });
+      toast({ title: "Neighborhood registered" });
     },
     onError: (err: Error) => {
       toast({ title: "Error", description: err.message, variant: "destructive" });
+    },
+  });
+}
+
+/** Bulk register multiple neighborhoods */
+export function useBulkRegisterNeighborhoods() {
+  const qc = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (codes: string[]) => {
+      const year = new Date().getFullYear();
+      const rows = codes.map(code => ({
+        hood_cd: code,
+        year,
+        county_id: "benton-county",
+        status: "registered",
+      }));
+      const { data, error } = await supabase
+        .from("neighborhoods")
+        .upsert(rows as any, { onConflict: "county_id,hood_cd,year" })
+        .select();
+      if (error) throw error;
+      await emitTraceEventAsync({
+        sourceModule: "atlas",
+        eventType: "neighborhood_certified",
+        eventData: { action: "bulk_registered", count: codes.length, codes },
+      });
+      return data;
+    },
+    onSuccess: (data) => {
+      qc.invalidateQueries({ queryKey: QUERY_KEY });
+      qc.invalidateQueries({ queryKey: ["neighborhood-discovery"] });
+      qc.invalidateQueries({ queryKey: ["county-vitals"] });
+      toast({ title: `${data?.length || 0} neighborhoods registered` });
+    },
+    onError: (err: Error) => {
+      toast({ title: "Bulk register failed", description: err.message, variant: "destructive" });
     },
   });
 }
@@ -149,10 +229,16 @@ export function useUpdateNeighborhood() {
     mutationFn: async (input: {
       id: string;
       hood_name?: string;
+      model_type?: string;
+      property_classes?: string[];
+      description?: string;
       metadata?: Record<string, unknown>;
     }) => {
       const updates: Record<string, unknown> = {};
       if (input.hood_name !== undefined) updates.hood_name = input.hood_name;
+      if (input.model_type !== undefined) updates.model_type = input.model_type;
+      if (input.property_classes !== undefined) updates.property_classes = input.property_classes;
+      if (input.description !== undefined) updates.description = input.description;
       if (input.metadata !== undefined) updates.metadata = input.metadata;
 
       const { data, error } = await supabase
@@ -165,7 +251,7 @@ export function useUpdateNeighborhood() {
       return data;
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["neighborhoods"] });
+      qc.invalidateQueries({ queryKey: QUERY_KEY });
       toast({ title: "Neighborhood updated" });
     },
     onError: (err: Error) => {
@@ -188,7 +274,8 @@ export function useDeleteNeighborhood() {
       if (error) throw error;
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["neighborhoods"] });
+      qc.invalidateQueries({ queryKey: QUERY_KEY });
+      qc.invalidateQueries({ queryKey: ["neighborhood-discovery"] });
       toast({ title: "Neighborhood deleted" });
     },
     onError: (err: Error) => {
