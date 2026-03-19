@@ -318,6 +318,9 @@ export function SLCOPipelineHub() {
       {/* Constitutional Traceability */}
       <ConstitutionalTracePanel />
 
+      {/* Webhook Notification Hub */}
+      <WebhookNotificationHub />
+
       {/* Schema Preview */}
       <Card className="border-border/50 bg-card/80">
         <CardHeader className="pb-3">

@@ -182,6 +182,7 @@ export const LEGACY_REDIRECTS: LegacyRedirect[] = [
   { legacyId: "appeal-insights", targetModule: "home", targetView: "appeal-insights" },
   { legacyId: "slco-pipeline", targetModule: "home", targetView: "slco-pipeline" },
   { legacyId: "settings", targetModule: "home", targetView: "settings" },
+  { legacyId: "webhooks", targetModule: "home", targetView: "webhooks" },
   // Factory absorbs these
   { legacyId: "vei", targetModule: "factory", targetView: "vei" },
   { legacyId: "geoequity", targetModule: "factory", targetView: "geoequity" },
