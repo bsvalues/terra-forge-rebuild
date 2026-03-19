@@ -316,6 +316,17 @@ export function DataDoctorDashboard() {
               source="data-doctor"
               status="draft"
             />
+            {hasRun && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setShowWorkbench(true)}
+                className="gap-2"
+              >
+                <Wrench className="h-3.5 w-3.5" />
+                Remediation Workbench
+              </Button>
+            )}
             <Button
               size="sm"
               onClick={() => runDiagnosis.mutate(countyId)}
