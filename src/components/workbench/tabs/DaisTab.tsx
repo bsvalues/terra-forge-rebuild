@@ -13,6 +13,7 @@ import { BatchNoticeStatusDashboard } from "@/components/dais/BatchNoticeStatusD
 import { WorkflowInstanceTracker } from "@/components/workflow";
 import { WorkflowTemplateCRUD } from "@/components/admin/WorkflowTemplateCRUD";
 import { BulkAssessmentExport } from "@/components/valuation/BulkAssessmentExport";
+import { CertificationReadinessWidget } from "@/components/dais/CertificationReadinessWidget";
 import { useWorkbench } from "../WorkbenchContext";
 
 interface DaisTabProps {
