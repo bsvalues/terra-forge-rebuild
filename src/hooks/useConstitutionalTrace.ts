@@ -95,7 +95,7 @@ export function useWriteLaneViolations(limit = 50) {
         .limit(limit);
 
       if (error) throw error;
-      return (data || []) as WriteLaneViolation[];
+      return (data || []) as unknown as WriteLaneViolation[];
     },
     staleTime: 15_000,
   });
