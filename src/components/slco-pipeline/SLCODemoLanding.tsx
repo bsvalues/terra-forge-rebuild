@@ -1,4 +1,4 @@
-// TerraFusion OS — SLCo Demo Landing Dashboard (Phase 63)
+// TerraFusion OS — SLCo Demo Landing Dashboard (Phase 63 + Phase 69 Defensibility)
 // Executive-grade overview for Salt Lake County assessors.
 
 import { useState } from "react";
@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { useCountyVitals } from "@/hooks/useCountyVitals";
+import { DefensibilityScoreCard } from "@/components/analytics/DefensibilityScoreCard";
 
 // ── Quick-start template definitions ───────────────────────────────
 const QUICK_START_TEMPLATES = [
