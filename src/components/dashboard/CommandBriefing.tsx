@@ -20,6 +20,7 @@ import { TerraTraceActivityFeed } from "@/components/proof/TerraTraceActivityFee
 import { SystemHealthPanel } from "./SystemHealthPanel";
 import { NeighborhoodLeaderboard } from "./NeighborhoodLeaderboard";
 import { useCountyVitals } from "@/hooks/useCountyVitals";
+import { useCountyMeta } from "@/hooks/useCountyMeta";
 import { ProvenanceBadge, ProvenanceNumber, ScopeHeader } from "@/components/trust";
 
 interface CommandBriefingProps {
