@@ -164,8 +164,9 @@ export function DaisTab({ initialCategory, onCategoryConsumed }: DaisTabProps) {
           <BatchNoticeStatusDashboard />
         </TabsContent>
 
-        <TabsContent value="certification" className="mt-0">
+        <TabsContent value="certification" className="mt-0 space-y-4">
           <CertificationPipeline />
+          <NeighborhoodCertificationWorkflow />
         </TabsContent>
 
         <TabsContent value="templates" className="mt-0">
