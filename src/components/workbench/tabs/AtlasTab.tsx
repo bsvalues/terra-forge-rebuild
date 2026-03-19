@@ -20,6 +20,7 @@ import {
   Database,
   Loader2,
   ExternalLink,
+  TrendingUp,
 } from "lucide-react";
 import { useWorkbench } from "../WorkbenchContext";
 import { Button } from "@/components/ui/button";
