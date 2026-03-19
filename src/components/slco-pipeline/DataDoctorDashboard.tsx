@@ -283,6 +283,14 @@ export function DataDoctorDashboard() {
   const { data: status, isLoading } = useDataDoctorStatus(countyId);
   const runDiagnosis = useRunDiagnosis();
   const [expandedLane, setExpandedLane] = useState<DQLane | null>(null);
+  const [showWorkbench, setShowWorkbench] = useState(false);
+
+  const hasRun = !!status?.latest_run;
+  const isRunning = runDiagnosis.isPending || status?.latest_run?.status === "running";
+
+  if (showWorkbench) {
+    return <RemediationWorkbench onBack={() => setShowWorkbench(false)} />;
+  }
 
   const hasRun = !!status?.latest_run;
   const isRunning = runDiagnosis.isPending || status?.latest_run?.status === "running";
