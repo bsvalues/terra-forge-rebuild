@@ -187,10 +187,23 @@ ${appendixE}
           </div>
         </div>
         {status === "ready" && (
-          <Button onClick={handleDownload} className="gap-2">
-            <Download className="w-4 h-4" />
-            Download
-          </Button>
+          <div className="flex items-center gap-2">
+            <DefensePacketPrintButton
+              parcelNumber={parcel.parcelNumber}
+              address={parcel.address}
+              studyPeriodName={studyPeriod.name}
+              narrative={narrative}
+              assessments={assessments}
+              comps={comps}
+              receipts={receipts}
+              traceEvents={traceEvents}
+              appeals={appeals}
+            />
+            <Button onClick={handleDownload} className="gap-2">
+              <Download className="w-4 h-4" />
+              Download MD
+            </Button>
+          </div>
         )}
       </div>
 
