@@ -109,6 +109,13 @@ export function DaisTab({ initialCategory, onCategoryConsumed }: DaisTabProps) {
             <ShieldCheck className="w-4 h-4" />
             Certification
           </TabsTrigger>
+          <TabsTrigger 
+            value="templates"
+            className="gap-2 data-[state=active]:bg-primary/20 data-[state=active]:text-primary"
+          >
+            <Settings2 className="w-4 h-4" />
+            Templates
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="permits" className="mt-0">
@@ -129,6 +136,10 @@ export function DaisTab({ initialCategory, onCategoryConsumed }: DaisTabProps) {
 
         <TabsContent value="certification" className="mt-0">
           <CertificationPipeline />
+        </TabsContent>
+
+        <TabsContent value="templates" className="mt-0">
+          <WorkflowTemplateCRUD />
         </TabsContent>
       </Tabs>
     </div>
