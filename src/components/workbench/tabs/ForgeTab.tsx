@@ -51,6 +51,7 @@ export function ForgeTab() {
     { id: "ratio", label: "Ratio Study", icon: BarChart3 },
     { id: "compare", label: "Compare", icon: ArrowLeftRight },
     { id: "nbhd-ratio", label: "Nbhd Ratios", icon: MapPin },
+    { id: "adjustments", label: "Adjustments", icon: Undo2 },
   ];
 
   const navigate = useNavigate();
