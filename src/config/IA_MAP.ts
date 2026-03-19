@@ -104,6 +104,7 @@ export const IA_MODULES: ModuleDefinition[] = [
       { id: "validation", label: "Validation Rules", icon: ShieldCheck, scope: "county" },
       { id: "neighborhoods", label: "Neighborhoods", icon: Map, scope: "county" },
       { id: "appeal-insights", label: "Appeal Insights", icon: TrendingUp, scope: "county" },
+      { id: "slco-pipeline", label: "SLCo Pipeline", icon: Database, scope: "county" },
       { id: "settings", label: "Settings", icon: Target, scope: "county" },
     ],
   },
@@ -177,6 +178,7 @@ export const LEGACY_REDIRECTS: LegacyRedirect[] = [
   { legacyId: "validation", targetModule: "home", targetView: "validation" },
   { legacyId: "neighborhoods", targetModule: "home", targetView: "neighborhoods" },
   { legacyId: "appeal-insights", targetModule: "home", targetView: "appeal-insights" },
+  { legacyId: "slco-pipeline", targetModule: "home", targetView: "slco-pipeline" },
   { legacyId: "settings", targetModule: "home", targetView: "settings" },
   // Factory absorbs these
   { legacyId: "vei", targetModule: "factory", targetView: "vei" },

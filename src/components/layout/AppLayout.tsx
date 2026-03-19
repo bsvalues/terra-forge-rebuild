@@ -34,6 +34,7 @@ const DataValidationPanel = lazy(() => import("@/components/validation").then(m 
 const NeighborhoodDirectoryPanel = lazy(() => import("@/components/neighborhoods").then(m => ({ default: m.NeighborhoodDirectoryPanel })));
 const CountyConfigPanel = lazy(() => import("@/components/settings").then(m => ({ default: m.CountyConfigPanel })));
 const AppealInsightsDashboard = lazy(() => import("@/components/appeal-insights").then(m => ({ default: m.AppealInsightsDashboard })));
+const SLCOPipelineHub = lazy(() => import("@/components/slco-pipeline").then(m => ({ default: m.SLCOPipelineHub })));
 
 // Workbench views
 const PropertyWorkbench = lazy(() => import("@/components/workbench").then(m => ({ default: m.PropertyWorkbench })));
@@ -265,6 +266,8 @@ export function AppLayout({ initialParcel: routeParcel, initialModule, initialFa
             return <NeighborhoodDirectoryPanel />;
           case "appeal-insights":
             return <AppealInsightsDashboard />;
+          case "slco-pipeline":
+            return <SLCOPipelineHub />;
           case "settings":
             return <CountyConfigPanel />;
           case "sync":
