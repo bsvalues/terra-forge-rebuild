@@ -37,6 +37,7 @@ const AppealInsightsDashboard = lazy(() => import("@/components/appeal-insights"
 const SLCOPipelineHub = lazy(() => import("@/components/slco-pipeline").then(m => ({ default: m.SLCOPipelineHub })));
 const SLCODemoLanding = lazy(() => import("@/components/slco-pipeline").then(m => ({ default: m.SLCODemoLanding })));
 const WebhookNotificationHub = lazy(() => import("@/components/slco-pipeline").then(m => ({ default: m.WebhookNotificationHub })));
+const DataDoctorDashboard = lazy(() => import("@/components/slco-pipeline").then(m => ({ default: m.DataDoctorDashboard })));
 
 // Workbench views
 const PropertyWorkbench = lazy(() => import("@/components/workbench").then(m => ({ default: m.PropertyWorkbench })));
