@@ -18,6 +18,7 @@ import { NeighborhoodCertificationWorkflow } from "@/components/dais/Neighborhoo
 import { PermitImpactEstimator } from "@/components/dais/PermitImpactEstimator";
 import { MultiParcelBatchExport } from "@/components/dais/MultiParcelBatchExport";
 import { AppealOutcomePredictor } from "@/components/dais/AppealOutcomePredictor";
+import { OwnerCommunicationLog } from "@/components/dais/OwnerCommunicationLog";
 import { WorkflowInstanceTracker } from "@/components/workflow";
 import { WorkflowTemplateCRUD } from "@/components/admin/WorkflowTemplateCRUD";
 import { BulkAssessmentExport } from "@/components/valuation/BulkAssessmentExport";
