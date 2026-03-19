@@ -1,14 +1,15 @@
-// TerraFusion OS — Data Doctor Dashboard (Phase 66)
+// TerraFusion OS — Data Doctor Dashboard (Phase 66+67)
 // AI diagnoses. PostGIS repairs. Humans approve.
 // "The data said it wants a second opinion" — Ralph Wiggum, Chief Diagnostician
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { RemediationWorkbench } from "./RemediationWorkbench";
 import {
   Stethoscope, MapPin, Home, Copy, GitCompareArrows, Brain,
   AlertTriangle, Play, Loader2, Shield, ShieldAlert, ShieldX,
   ChevronRight, Clock, Zap, ArrowRight, CheckCircle2, XCircle,
-  BarChart3, RefreshCw, Info, Sparkles, TrendingUp,
+  BarChart3, RefreshCw, Info, Sparkles, TrendingUp, Wrench,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -282,9 +283,15 @@ export function DataDoctorDashboard() {
   const { data: status, isLoading } = useDataDoctorStatus(countyId);
   const runDiagnosis = useRunDiagnosis();
   const [expandedLane, setExpandedLane] = useState<DQLane | null>(null);
+  const [showWorkbench, setShowWorkbench] = useState(false);
 
   const hasRun = !!status?.latest_run;
   const isRunning = runDiagnosis.isPending || status?.latest_run?.status === "running";
+
+  if (showWorkbench) {
+    return <RemediationWorkbench onBack={() => setShowWorkbench(false)} />;
+  }
+
 
   return (
     <div className="p-6 max-w-6xl mx-auto space-y-6">
@@ -309,6 +316,17 @@ export function DataDoctorDashboard() {
               source="data-doctor"
               status="draft"
             />
+            {hasRun && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setShowWorkbench(true)}
+                className="gap-2"
+              >
+                <Wrench className="h-3.5 w-3.5" />
+                Remediation Workbench
+              </Button>
+            )}
             <Button
               size="sm"
               onClick={() => runDiagnosis.mutate(countyId)}
