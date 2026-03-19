@@ -45,7 +45,7 @@ import {
 } from "@/hooks/useGISData";
 import { cn } from "@/lib/utils";
 
-type AtlasView = "map" | "heatmap" | "layers" | "search";
+type AtlasView = "map" | "heatmap" | "layers" | "search" | "geoequity";
 
 const containerVariants = {
   hidden: { opacity: 0 },
