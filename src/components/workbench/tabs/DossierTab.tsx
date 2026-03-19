@@ -74,6 +74,9 @@ export function DossierTab() {
         <TabsContent value="packets" className="mt-4">
           <PacketAssemblyPanel parcelId={parcelId} />
         </TabsContent>
+        <TabsContent value="annotations" className="mt-4">
+          <ParcelAnnotations parcelId={parcelId} />
+        </TabsContent>
       </Tabs>
 
       <DocumentUploadDialog
