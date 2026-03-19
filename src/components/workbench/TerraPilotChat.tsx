@@ -501,11 +501,16 @@ export function TerraPilotChat({ fullscreen = false }: TerraPilotChatProps) {
             </AnimatePresence>
           )}
 
+          {/* Swarm Activity Bar (Phase 80) */}
+          {swarmPhase && swarmPhase.phase !== "complete" && (
+            <SwarmActivityBar phase={swarmPhase} />
+          )}
+
           {/* Active tool execution indicator */}
-          {activeTools.length > 0 && (
+          {activeTools.length > 0 && !swarmPhase && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex gap-3">
               <div className={`w-7 h-7 rounded-full flex items-center justify-center ${
-                pilotMode === "pilot" ? "bg-tf-cyan/20 text-tf-cyan" : "bg-tf-purple/20 text-tf-purple"
+                pilotMode === "pilot" ? "bg-[hsl(var(--tf-electric-cyan)/0.2)] text-[hsl(var(--tf-electric-cyan))]" : "bg-[hsl(var(--tf-purple)/0.2)] text-[hsl(var(--tf-purple))]"
               }`}>
                 <Loader2 className="w-4 h-4 animate-spin" />
               </div>
@@ -514,7 +519,7 @@ export function TerraPilotChat({ fullscreen = false }: TerraPilotChatProps) {
                   const Icon = TOOL_ICONS[tool] || Activity;
                   return (
                     <div key={tool} className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Icon className="w-3.5 h-3.5 text-tf-cyan" />
+                      <Icon className="w-3.5 h-3.5 text-[hsl(var(--tf-electric-cyan))]" />
                       <span>{TOOL_LABELS[tool] || tool}</span>
                       <Loader2 className="w-3 h-3 animate-spin" />
                     </div>
@@ -524,7 +529,7 @@ export function TerraPilotChat({ fullscreen = false }: TerraPilotChatProps) {
             </motion.div>
           )}
 
-          {isLoading && activeTools.length === 0 && messages[messages.length - 1]?.role !== "assistant" && (
+          {isLoading && activeTools.length === 0 && !swarmPhase && messages[messages.length - 1]?.role !== "assistant" && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex gap-3">
               <div className={`w-7 h-7 rounded-full flex items-center justify-center ${
                 pilotMode === "pilot" ? "bg-tf-cyan/20 text-tf-cyan" : "bg-tf-purple/20 text-tf-purple"
