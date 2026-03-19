@@ -359,6 +359,14 @@ function ParcelSummaryContent() {
             <Activity className="w-3.5 h-3.5" />
             Activity
           </TabsTrigger>
+          <TabsTrigger value="timeline" className="text-xs gap-1.5">
+            <Clock className="w-3.5 h-3.5" />
+            Timeline
+          </TabsTrigger>
+          <TabsTrigger value="lineage" className="text-xs gap-1.5">
+            <RefreshCw className="w-3.5 h-3.5" />
+            Lineage
+          </TabsTrigger>
         </TabsList>
 
         {/* Parcel Detail Editor */}
