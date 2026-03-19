@@ -4897,6 +4897,79 @@ export type Database = {
           },
         ]
       }
+      workflow_instances: {
+        Row: {
+          assigned_to: string | null
+          completed_at: string | null
+          context: Json
+          county_id: string
+          created_at: string
+          current_step: number
+          id: string
+          parcel_id: string | null
+          started_at: string
+          started_by: string
+          status: string
+          step_results: Json
+          template_id: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          completed_at?: string | null
+          context?: Json
+          county_id: string
+          created_at?: string
+          current_step?: number
+          id?: string
+          parcel_id?: string | null
+          started_at?: string
+          started_by?: string
+          status?: string
+          step_results?: Json
+          template_id: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_to?: string | null
+          completed_at?: string | null
+          context?: Json
+          county_id?: string
+          created_at?: string
+          current_step?: number
+          id?: string
+          parcel_id?: string | null
+          started_at?: string
+          started_by?: string
+          status?: string
+          step_results?: Json
+          template_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workflow_instances_county_id_fkey"
+            columns: ["county_id"]
+            isOneToOne: false
+            referencedRelation: "counties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workflow_instances_parcel_id_fkey"
+            columns: ["parcel_id"]
+            isOneToOne: false
+            referencedRelation: "parcels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workflow_instances_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "workflow_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       workflow_tasks: {
         Row: {
           assigned_by: string
@@ -4964,6 +5037,59 @@ export type Database = {
             columns: ["parcel_id"]
             isOneToOne: false
             referencedRelation: "parcels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workflow_templates: {
+        Row: {
+          category: string
+          county_id: string
+          created_at: string
+          created_by: string
+          description: string | null
+          id: string
+          is_active: boolean
+          name: string
+          steps: Json
+          trigger_config: Json
+          trigger_type: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          county_id: string
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          steps?: Json
+          trigger_config?: Json
+          trigger_type?: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          county_id?: string
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          steps?: Json
+          trigger_config?: Json
+          trigger_type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workflow_templates_county_id_fkey"
+            columns: ["county_id"]
+            isOneToOne: false
+            referencedRelation: "counties"
             referencedColumns: ["id"]
           },
         ]
