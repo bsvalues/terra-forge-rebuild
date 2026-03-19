@@ -38,6 +38,7 @@ import { EquityHeatmap } from "@/components/geoequity/EquityHeatmap";
 import { GISLayersPanel } from "@/components/geoequity/GISLayersPanel";
 import { ParcelSearchPanel } from "@/components/geoequity/ParcelSearchPanel";
 import { GeoEquityPanel } from "@/components/spatial/GeoEquityPanel";
+import { NeighborhoodHeatmapLegend } from "@/components/atlas/NeighborhoodHeatmapLegend";
 import { 
   useGISLayers, 
   useNeighborhoodGeoStats,
@@ -444,9 +445,10 @@ export function AtlasTab() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
-              className="p-6 h-full overflow-auto"
+              className="p-6 h-full overflow-auto space-y-6"
             >
               <GeoEquityPanel />
+              <NeighborhoodHeatmapLegend />
             </motion.div>
           )}
         </AnimatePresence>

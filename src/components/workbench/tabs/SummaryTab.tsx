@@ -2,6 +2,7 @@ import { useState } from "react";
 import { ExecutiveKpiCards } from "../ExecutiveKpiCards";
 import { AssessmentSparkline } from "../AssessmentSparkline";
 import { ValueChangeExplainer } from "../ValueChangeExplainer";
+import { TraceActivityFeed } from "@/components/trace/TraceActivityFeed";
 import { motion } from "framer-motion";
 import {
   TrendingUp,
@@ -64,6 +65,7 @@ export function SummaryTab() {
           <p className="text-xs text-muted-foreground">"One parcel, one screen, every role"</p>
         </motion.div>
         <ExecutiveKpiCards />
+        <TraceActivityFeed />
       </div>
     );
   }
