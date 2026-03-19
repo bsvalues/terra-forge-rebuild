@@ -5,7 +5,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import {
   Building2, MapPin, TrendingUp, Shield, BarChart3,
-  ArrowRight, CheckCircle2, Clock, Database, Users, GitCompare,
+  ArrowRight, CheckCircle2, Clock, Database, Users, GitCompare, User,
   Layers, Scale, FileText, Rocket, Sparkles, Activity, Mail,
   AlertTriangle, Globe, Mountain, ChevronRight,
 } from "lucide-react";
