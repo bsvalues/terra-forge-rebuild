@@ -18,6 +18,7 @@ import { NeighborhoodCertificationWorkflow } from "@/components/dais/Neighborhoo
 import { PermitImpactEstimator } from "@/components/dais/PermitImpactEstimator";
 import { MultiParcelBatchExport } from "@/components/dais/MultiParcelBatchExport";
 import { AppealOutcomePredictor } from "@/components/dais/AppealOutcomePredictor";
+import { OwnerCommunicationLog } from "@/components/dais/OwnerCommunicationLog";
 import { WorkflowInstanceTracker } from "@/components/workflow";
 import { WorkflowTemplateCRUD } from "@/components/admin/WorkflowTemplateCRUD";
 import { BulkAssessmentExport } from "@/components/valuation/BulkAssessmentExport";
@@ -166,6 +167,7 @@ export function DaisTab({ initialCategory, onCategoryConsumed }: DaisTabProps) {
         <TabsContent value="notices" className="mt-0 space-y-4">
           <NoticesPanel />
           <BatchNoticeStatusDashboard />
+          <OwnerCommunicationLog />
         </TabsContent>
 
         <TabsContent value="certification" className="mt-0 space-y-4">

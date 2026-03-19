@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Hammer, TrendingUp, Activity, Brain, Layers, Microscope, Compass, Factory as FactoryIcon, ExternalLink, FlaskConical, DollarSign, BarChart3, MapPin, Undo2 } from "lucide-react";
+import { Hammer, TrendingUp, Activity, Brain, Layers, Microscope, Compass, Factory as FactoryIcon, ExternalLink, FlaskConical, DollarSign, BarChart3, MapPin, Undo2, Target, Grid3X3 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useLatestCalibrationRun } from "@/hooks/useFactoryMetrics";
 import { CompsView } from "./CompsView";
@@ -17,6 +17,8 @@ import { NeighborhoodRatioStudyDashboard } from "@/components/valuation/Neighbor
 import { ParcelComparisonView } from "../ParcelComparisonView";
 import { BatchAdjustmentReviewQueue } from "@/components/forge/BatchAdjustmentReviewQueue";
 import { ComparativeSnapshotDiff } from "@/components/forge/ComparativeSnapshotDiff";
+import { ValuationConfidenceVisualizer } from "@/components/forge/ValuationConfidenceVisualizer";
+import { NeighborhoodEquityMatrix } from "@/components/forge/NeighborhoodEquityMatrix";
 import { 
   PRDDrilldownDialog, 
   CODDrilldownDialog, 
@@ -35,7 +37,7 @@ import {
   ArrowLeftRight,
 } from "lucide-react";
 
-type ForgeView = "vei" | "regression" | "avm" | "segments" | "anatomy" | "comps" | "avmrun" | "cost" | "ratio" | "compare" | "nbhd-ratio" | "adjustments" | "snapshots";
+type ForgeView = "vei" | "regression" | "avm" | "segments" | "anatomy" | "comps" | "avmrun" | "cost" | "ratio" | "compare" | "nbhd-ratio" | "adjustments" | "snapshots" | "confidence" | "equity-matrix";
 
 export function ForgeTab() {
   const [activeView, setActiveView] = useState<ForgeView>("vei");
@@ -54,6 +56,8 @@ export function ForgeTab() {
     { id: "nbhd-ratio", label: "Nbhd Ratios", icon: MapPin },
     { id: "adjustments", label: "Adjustments", icon: Undo2 },
     { id: "snapshots", label: "Snapshots", icon: ArrowLeftRight },
+    { id: "confidence", label: "Confidence", icon: Target },
+    { id: "equity-matrix", label: "Equity Matrix", icon: Grid3X3 },
   ];
 
   const navigate = useNavigate();
@@ -141,6 +145,8 @@ export function ForgeTab() {
         {activeView === "nbhd-ratio" && <NeighborhoodRatioStudyDashboard />}
         {activeView === "adjustments" && <div className="p-6"><BatchAdjustmentReviewQueue /></div>}
         {activeView === "snapshots" && <div className="p-6"><ComparativeSnapshotDiff /></div>}
+        {activeView === "confidence" && <div className="p-6"><ValuationConfidenceVisualizer /></div>}
+        {activeView === "equity-matrix" && <div className="p-6"><NeighborhoodEquityMatrix /></div>}
       </div>
     </div>
   );

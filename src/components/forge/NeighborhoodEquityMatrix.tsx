@@ -1,0 +1,240 @@
+/**
+ * TerraFusion OS — Phase 129: Cross-Neighborhood Equity Comparison Matrix
+ * Constitutional owner: TerraForge (equity analysis)
+ *
+ * Displays a matrix comparing key equity metrics (COD, PRD, median ratio)
+ * across all neighborhoods for quick identification of outliers.
+ */
+
+import { useMemo } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Grid3X3,
+  Loader2,
+  AlertTriangle,
+  CheckCircle2,
+} from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
+import { cn } from "@/lib/utils";
+
+interface NbhdEquityRow {
+  code: string;
+  parcelCount: number;
+  medianRatio: number;
+  cod: number;
+  prd: number;
+  avgValue: number;
+  passesIAAO: boolean;
+}
+
+function useNeighborhoodEquityData() {
+  return useQuery({
+    queryKey: ["nbhd-equity-matrix"],
+    queryFn: async () => {
+      // Get assessment ratios grouped by neighborhood via parcels
+      const { data: ratios, error } = await supabase
+        .from("assessment_ratios")
+        .select("ratio, parcel_id, parcels!inner(neighborhood_code, assessed_value)")
+        .not("ratio", "is", null)
+        .limit(1000);
+
+      if (error) throw error;
+
+      // Aggregate by neighborhood
+      const map = new Map<string, { ratios: number[]; values: number[] }>();
+
+      for (const r of ratios || []) {
+        const nbhd = (r.parcels as any)?.neighborhood_code;
+        if (!nbhd) continue;
+        if (!map.has(nbhd)) map.set(nbhd, { ratios: [], values: [] });
+        const entry = map.get(nbhd)!;
+        if (r.ratio) entry.ratios.push(r.ratio);
+        const val = (r.parcels as any)?.assessed_value;
+        if (val) entry.values.push(val);
+      }
+
+      const rows: NbhdEquityRow[] = [];
+
+      for (const [code, data] of map.entries()) {
+        if (data.ratios.length < 3) continue;
+
+        const sorted = [...data.ratios].sort((a, b) => a - b);
+        const median = sorted[Math.floor(sorted.length / 2)];
+        const mean = sorted.reduce((s, v) => s + v, 0) / sorted.length;
+
+        // COD = avg absolute deviation from median / median * 100
+        const cod = (sorted.reduce((s, v) => s + Math.abs(v - median), 0) / sorted.length / median) * 100;
+
+        // PRD = mean ratio / weighted mean ratio
+        const totalValue = data.values.reduce((s, v) => s + v, 0);
+        const weightedMean = totalValue > 0
+          ? data.ratios.reduce((s, r, i) => s + r * (data.values[i] || 1), 0) / totalValue
+          : mean;
+        const prd = weightedMean > 0 ? mean / weightedMean : 1;
+
+        const avgValue = data.values.length > 0
+          ? Math.round(data.values.reduce((s, v) => s + v, 0) / data.values.length)
+          : 0;
+
+        // IAAO standards: COD 5-20 for residential, PRD 0.98-1.03
+        const passesIAAO = cod <= 20 && prd >= 0.98 && prd <= 1.03;
+
+        rows.push({
+          code,
+          parcelCount: data.ratios.length,
+          medianRatio: parseFloat(median.toFixed(3)),
+          cod: parseFloat(cod.toFixed(1)),
+          prd: parseFloat(prd.toFixed(3)),
+          avgValue,
+          passesIAAO,
+        });
+      }
+
+      return rows.sort((a, b) => b.cod - a.cod); // Worst COD first
+    },
+    staleTime: 30_000,
+  });
+}
+
+function getCodClass(cod: number): string {
+  if (cod <= 10) return "text-tf-green bg-tf-green/10";
+  if (cod <= 15) return "text-tf-gold bg-tf-gold/10";
+  if (cod <= 20) return "text-tf-amber bg-tf-amber/10";
+  return "text-destructive bg-destructive/10";
+}
+
+function getPrdClass(prd: number): string {
+  if (prd >= 0.98 && prd <= 1.03) return "text-tf-green bg-tf-green/10";
+  if (prd >= 0.95 && prd <= 1.05) return "text-tf-gold bg-tf-gold/10";
+  return "text-destructive bg-destructive/10";
+}
+
+function getRatioClass(ratio: number): string {
+  if (ratio >= 0.90 && ratio <= 1.10) return "text-tf-green";
+  if (ratio >= 0.85 && ratio <= 1.15) return "text-tf-gold";
+  return "text-destructive";
+}
+
+export function NeighborhoodEquityMatrix() {
+  const { data: rows, isLoading } = useNeighborhoodEquityData();
+
+  const summary = useMemo(() => {
+    if (!rows?.length) return null;
+    const passing = rows.filter((r) => r.passesIAAO).length;
+    return {
+      total: rows.length,
+      passing,
+      failing: rows.length - passing,
+      avgCod: parseFloat((rows.reduce((s, r) => s + r.cod, 0) / rows.length).toFixed(1)),
+    };
+  }, [rows]);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {/* Summary */}
+      {summary && (
+        <div className="grid grid-cols-4 gap-3">
+          <Card className="material-bento border-border/50">
+            <CardContent className="p-3 text-center">
+              <div className="text-xl font-medium text-foreground">{summary.total}</div>
+              <div className="text-[10px] text-muted-foreground">Neighborhoods</div>
+            </CardContent>
+          </Card>
+          <Card className="material-bento border-border/50">
+            <CardContent className="p-3 text-center">
+              <div className="text-xl font-medium text-tf-green">{summary.passing}</div>
+              <div className="text-[10px] text-muted-foreground">IAAO Compliant</div>
+            </CardContent>
+          </Card>
+          <Card className="material-bento border-border/50">
+            <CardContent className="p-3 text-center">
+              <div className="text-xl font-medium text-destructive">{summary.failing}</div>
+              <div className="text-[10px] text-muted-foreground">Non-Compliant</div>
+            </CardContent>
+          </Card>
+          <Card className="material-bento border-border/50">
+            <CardContent className="p-3 text-center">
+              <div className="text-xl font-medium text-foreground">{summary.avgCod}%</div>
+              <div className="text-[10px] text-muted-foreground">Avg COD</div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Equity Matrix Table */}
+      <Card className="material-bento border-border/50">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base flex items-center gap-2">
+            <Grid3X3 className="w-4 h-4 text-suite-forge" />
+            Cross-Neighborhood Equity Matrix
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ScrollArea className="h-[400px]">
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="border-b border-border/30">
+                  <th className="text-left py-2 text-muted-foreground font-medium">Neighborhood</th>
+                  <th className="text-right py-2 text-muted-foreground font-medium">Sales</th>
+                  <th className="text-right py-2 text-muted-foreground font-medium">Median Ratio</th>
+                  <th className="text-right py-2 text-muted-foreground font-medium">COD</th>
+                  <th className="text-right py-2 text-muted-foreground font-medium">PRD</th>
+                  <th className="text-right py-2 text-muted-foreground font-medium">Avg Value</th>
+                  <th className="text-center py-2 text-muted-foreground font-medium">IAAO</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(rows || []).map((r) => (
+                  <tr key={r.code} className="border-b border-border/10 hover:bg-muted/20">
+                    <td className="py-2 font-medium text-foreground">{r.code}</td>
+                    <td className="py-2 text-right text-muted-foreground">{r.parcelCount}</td>
+                    <td className={cn("py-2 text-right font-medium", getRatioClass(r.medianRatio))}>
+                      {r.medianRatio.toFixed(3)}
+                    </td>
+                    <td className="py-2 text-right">
+                      <span className={cn("px-1.5 py-0.5 rounded text-[10px] font-medium", getCodClass(r.cod))}>
+                        {r.cod}%
+                      </span>
+                    </td>
+                    <td className="py-2 text-right">
+                      <span className={cn("px-1.5 py-0.5 rounded text-[10px] font-medium", getPrdClass(r.prd))}>
+                        {r.prd.toFixed(3)}
+                      </span>
+                    </td>
+                    <td className="py-2 text-right text-muted-foreground">
+                      ${r.avgValue.toLocaleString()}
+                    </td>
+                    <td className="py-2 text-center">
+                      {r.passesIAAO ? (
+                        <CheckCircle2 className="w-4 h-4 text-tf-green mx-auto" />
+                      ) : (
+                        <AlertTriangle className="w-4 h-4 text-destructive mx-auto" />
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
+            {(!rows || rows.length === 0) && (
+              <div className="text-center py-8 text-sm text-muted-foreground">
+                No assessment ratio data available
+              </div>
+            )}
+          </ScrollArea>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
