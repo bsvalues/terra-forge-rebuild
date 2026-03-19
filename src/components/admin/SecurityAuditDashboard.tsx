@@ -254,6 +254,7 @@ function ComplianceChecklist() {
 // ── Main Dashboard ───────────────────────────────────────────
 export function SecurityAuditDashboard() {
   const { data: metrics, isLoading, error } = useSecurityAudit();
+  const { profile } = useAuthContext();
 
   if (isLoading) {
     return (
