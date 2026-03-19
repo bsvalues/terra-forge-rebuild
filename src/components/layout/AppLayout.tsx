@@ -44,6 +44,7 @@ const RevaluationReportDashboard = lazy(() => import("@/components/revaluation/R
 const RevaluationNoticeGenerator = lazy(() => import("@/components/revaluation/RevaluationNoticeGenerator").then(m => ({ default: m.RevaluationNoticeGenerator })));
 const NeighborhoodReviewOrchestrator = lazy(() => import("@/components/review").then(m => ({ default: m.NeighborhoodReviewOrchestrator })));
 const AppealRiskDashboard = lazy(() => import("@/components/appeal-risk").then(m => ({ default: m.AppealRiskDashboard })));
+const ComparativeDashboard = lazy(() => import("@/components/comparative").then(m => ({ default: m.ComparativeDashboard })));
 
 // Workbench views
 const PropertyWorkbench = lazy(() => import("@/components/workbench").then(m => ({ default: m.PropertyWorkbench })));
