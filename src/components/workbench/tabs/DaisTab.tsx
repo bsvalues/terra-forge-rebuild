@@ -131,8 +131,9 @@ export function DaisTab({ initialCategory, onCategoryConsumed }: DaisTabProps) {
           <AppealsWorkflow />
         </TabsContent>
 
-        <TabsContent value="notices" className="mt-0">
+        <TabsContent value="notices" className="mt-0 space-y-4">
           <NoticesPanel />
+          <BatchNoticeStatusDashboard />
         </TabsContent>
 
         <TabsContent value="certification" className="mt-0">
