@@ -13,6 +13,7 @@ import { ValuationAnatomyDashboard } from "@/components/anatomy";
 import { AvmRunPanel } from "@/components/valuation/AvmRunPanel";
 import { CostApproachPanel } from "@/components/valuation/CostApproachPanel";
 import { RatioStudyPanel } from "@/components/valuation/RatioStudyPanel";
+import { ParcelComparisonView } from "../ParcelComparisonView";
 import { 
   PRDDrilldownDialog, 
   CODDrilldownDialog, 
