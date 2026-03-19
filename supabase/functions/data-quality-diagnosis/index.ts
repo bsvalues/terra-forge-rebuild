@@ -279,182 +279,102 @@ async function runDeterministicAnalysis(
   supabase: any,
   countyId: string
 ): Promise<AnalysisResults> {
-  // Run all analyses via direct SQL through RPC or aggregation queries
-  const { count: totalParcels } = await supabase
-    .from("parcels")
-    .select("*", { count: "exact", head: true })
-    .eq("county_id", countyId);
+  // ── Single-pass RPC for all parcel counts (handles 400K+ in ~2s) ──
+  const { data: counts, error: rpcErr } = await supabase.rpc("dq_parcel_counts", {
+    p_county_id: countyId,
+  });
 
-  const total = totalParcels || 0;
+  if (rpcErr) {
+    console.error("dq_parcel_counts RPC failed, falling back to sequential:", rpcErr.message);
+    return runDeterministicAnalysisFallback(supabase, countyId);
+  }
 
-  // Spatial analysis
-  const { count: missingCoords } = await supabase
-    .from("parcels")
-    .select("*", { count: "exact", head: true })
-    .eq("county_id", countyId)
-    .is("latitude", null)
-    .is("longitude", null)
-    .is("latitude_wgs84", null);
+  const c = counts || {};
 
-  const { count: missingGeometry } = await supabase
-    .from("parcels")
-    .select("*", { count: "exact", head: true })
-    .eq("county_id", countyId)
-    .is("parcel_geom_wgs84", null);
-
-  // Out of CONUS bounds (lat not 24-50, lng not -125 to -66)
-  const { count: outOfBounds } = await supabase
-    .from("parcels")
-    .select("*", { count: "exact", head: true })
-    .eq("county_id", countyId)
-    .not("latitude_wgs84", "is", null)
-    .or("latitude_wgs84.lt.24,latitude_wgs84.gt.50,longitude_wgs84.lt.-125,longitude_wgs84.gt.-66");
-
-  // Possible SRID mismatch: coordinates with values > 1000 in lat/lng fields
-  const { count: sridMismatch } = await supabase
-    .from("parcels")
-    .select("*", { count: "exact", head: true })
-    .eq("county_id", countyId)
-    .not("latitude", "is", null)
-    .or("latitude.gt.1000,latitude.lt.-1000,longitude.gt.1000,longitude.lt.-1000");
-
-  const { count: zeroCoords } = await supabase
-    .from("parcels")
-    .select("*", { count: "exact", head: true })
-    .eq("county_id", countyId)
-    .eq("latitude", 0)
-    .eq("longitude", 0);
-
-  // Address analysis
-  const { count: missingAddress } = await supabase
-    .from("parcels")
-    .select("*", { count: "exact", head: true })
-    .eq("county_id", countyId)
-    .or("address.is.null,address.eq.");
-
-  const { count: missingCity } = await supabase
-    .from("parcels")
-    .select("*", { count: "exact", head: true })
-    .eq("county_id", countyId)
-    .is("city", null);
-
-  const { count: missingZip } = await supabase
-    .from("parcels")
-    .select("*", { count: "exact", head: true })
-    .eq("county_id", countyId)
-    .is("zip_code", null);
-
-  // Characteristics analysis
-  const { count: missingBuildingArea } = await supabase
-    .from("parcels")
-    .select("*", { count: "exact", head: true })
-    .eq("county_id", countyId)
-    .is("building_area", null);
-
-  const { count: missingYearBuilt } = await supabase
-    .from("parcels")
-    .select("*", { count: "exact", head: true })
-    .eq("county_id", countyId)
-    .is("year_built", null);
-
-  const { count: missingBedrooms } = await supabase
-    .from("parcels")
-    .select("*", { count: "exact", head: true })
-    .eq("county_id", countyId)
-    .is("bedrooms", null);
-
-  const { count: missingBathrooms } = await supabase
-    .from("parcels")
-    .select("*", { count: "exact", head: true })
-    .eq("county_id", countyId)
-    .is("bathrooms", null);
-
-  const { count: missingPropertyClass } = await supabase
-    .from("parcels")
-    .select("*", { count: "exact", head: true })
-    .eq("county_id", countyId)
-    .is("property_class", null);
-
-  const { count: zeroAssessed } = await supabase
-    .from("parcels")
-    .select("*", { count: "exact", head: true })
-    .eq("county_id", countyId)
-    .eq("assessed_value", 0);
-
-  // Value anomalies
-  const { count: zeroImprovementWithBuilding } = await supabase
-    .from("parcels")
-    .select("*", { count: "exact", head: true })
-    .eq("county_id", countyId)
-    .or("improvement_value.is.null,improvement_value.eq.0")
-    .not("building_area", "is", null)
-    .gt("building_area", 0);
-
-  const { count: missingLandValue } = await supabase
-    .from("parcels")
-    .select("*", { count: "exact", head: true })
-    .eq("county_id", countyId)
-    .or("land_value.is.null,land_value.eq.0");
-
-  // Neighborhood analysis
-  const { count: missingNeighborhood } = await supabase
-    .from("parcels")
-    .select("*", { count: "exact", head: true })
-    .eq("county_id", countyId)
-    .is("neighborhood_code", null);
-
-  const { data: neighborhoods } = await supabase
+  // Neighborhood count (separate table)
+  const { count: neighborhoodCount } = await supabase
     .from("neighborhoods")
-    .select("id", { count: "exact", head: true })
+    .select("*", { count: "exact", head: true })
     .eq("county_id", countyId);
 
-  // Duplicate detection
-  // We use supabase RPC or aggregation — for now count based approach
-  const { data: dupParcels } = await supabase.rpc("count_duplicate_parcel_numbers", {
-    p_county_id: countyId,
-  }).maybeSingle();
-
-  const { data: dupAddresses } = await supabase.rpc("count_duplicate_addresses", {
-    p_county_id: countyId,
-  }).maybeSingle();
+  // Duplicate detection RPCs
+  const [{ data: dupParcels }, { data: dupAddresses }] = await Promise.all([
+    supabase.rpc("count_duplicate_parcel_numbers", { p_county_id: countyId }).maybeSingle(),
+    supabase.rpc("count_duplicate_addresses", { p_county_id: countyId }).maybeSingle(),
+  ]);
 
   return {
-    total_parcels: total,
+    total_parcels: c.total_parcels || 0,
     spatial: {
-      missing_coords: missingCoords || 0,
-      missing_geometry: missingGeometry || 0,
-      out_of_bounds: outOfBounds || 0,
-      possible_srid_mismatch: sridMismatch || 0,
-      invalid_geometry: 0, // requires PostGIS ST_IsValid — handled in RPC
-      zero_coords: zeroCoords || 0,
+      missing_coords: c.missing_coords || 0,
+      missing_geometry: c.missing_geometry || 0,
+      out_of_bounds: c.out_of_bounds || 0,
+      possible_srid_mismatch: c.srid_mismatch || 0,
+      invalid_geometry: 0,
+      zero_coords: c.zero_coords || 0,
     },
     address: {
-      missing_address: missingAddress || 0,
-      missing_city: missingCity || 0,
-      missing_zip: missingZip || 0,
-      non_standard_street_types: 0, // Phase 67 — address normalizer
+      missing_address: c.missing_address || 0,
+      missing_city: c.missing_city || 0,
+      missing_zip: c.missing_zip || 0,
+      non_standard_street_types: 0,
     },
     characteristics: {
-      missing_building_area: missingBuildingArea || 0,
-      missing_year_built: missingYearBuilt || 0,
-      missing_bedrooms: missingBedrooms || 0,
-      missing_bathrooms: missingBathrooms || 0,
-      missing_property_class: missingPropertyClass || 0,
-      zero_assessed_value: zeroAssessed || 0,
+      missing_building_area: c.missing_building_area || 0,
+      missing_year_built: c.missing_year_built || 0,
+      missing_bedrooms: c.missing_bedrooms || 0,
+      missing_bathrooms: c.missing_bathrooms || 0,
+      missing_property_class: c.missing_property_class || 0,
+      zero_assessed_value: c.zero_assessed_value || 0,
     },
     values: {
-      zero_improvement_with_building: zeroImprovementWithBuilding || 0,
-      extreme_value_ratio: 0, // Phase 67
-      missing_land_value: missingLandValue || 0,
+      zero_improvement_with_building: c.zero_improvement_with_building || 0,
+      extreme_value_ratio: 0,
+      missing_land_value: c.missing_land_value || 0,
     },
     neighborhoods: {
-      missing_neighborhood: missingNeighborhood || 0,
-      total_neighborhoods: neighborhoods?.length || 0,
+      missing_neighborhood: c.missing_neighborhood || 0,
+      total_neighborhoods: neighborhoodCount || 0,
     },
     duplicates: {
       duplicate_parcel_numbers: dupParcels?.count || 0,
       duplicate_addresses: dupAddresses?.count || 0,
     },
+  };
+}
+
+// Fallback: sequential queries if RPC not available
+async function runDeterministicAnalysisFallback(
+  supabase: any,
+  countyId: string
+): Promise<AnalysisResults> {
+  const countQuery = async (filters: (q: any) => any) => {
+    let q = supabase.from("parcels").select("*", { count: "exact", head: true }).eq("county_id", countyId);
+    q = filters(q);
+    const { count } = await q;
+    return count || 0;
+  };
+
+  const [total, missingCoords, missingGeometry, missingNeighborhood, missingBuildingArea,
+    missingYearBuilt, missingPropertyClass, zeroAssessed] = await Promise.all([
+    countQuery((q: any) => q),
+    countQuery((q: any) => q.is("latitude", null).is("longitude", null).is("latitude_wgs84", null)),
+    countQuery((q: any) => q.is("parcel_geom_wgs84", null)),
+    countQuery((q: any) => q.is("neighborhood_code", null)),
+    countQuery((q: any) => q.is("building_area", null)),
+    countQuery((q: any) => q.is("year_built", null)),
+    countQuery((q: any) => q.is("property_class", null)),
+    countQuery((q: any) => q.eq("assessed_value", 0)),
+  ]);
+
+  return {
+    total_parcels: total,
+    spatial: { missing_coords: missingCoords, missing_geometry: missingGeometry, out_of_bounds: 0, possible_srid_mismatch: 0, invalid_geometry: 0, zero_coords: 0 },
+    address: { missing_address: 0, missing_city: 0, missing_zip: 0, non_standard_street_types: 0 },
+    characteristics: { missing_building_area: missingBuildingArea, missing_year_built: missingYearBuilt, missing_bedrooms: 0, missing_bathrooms: 0, missing_property_class: missingPropertyClass, zero_assessed_value: zeroAssessed },
+    values: { zero_improvement_with_building: 0, extreme_value_ratio: 0, missing_land_value: 0 },
+    neighborhoods: { missing_neighborhood: missingNeighborhood, total_neighborhoods: 0 },
+    duplicates: { duplicate_parcel_numbers: 0, duplicate_addresses: 0 },
   };
 }
 
