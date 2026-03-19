@@ -67,8 +67,8 @@ export function InspectionPanel({ assignment, onBack }: InspectionPanelProps) {
   const [anomalyType, setAnomalyType] = useState("boundary_mismatch");
   const [anomalyDesc, setAnomalyDesc] = useState("");
 
-  // Photo state
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [capturedPhotos, setCapturedPhotos] = useState<Array<{ id: string; dataUrl: string; label: string; timestamp: number }>>([]);
 
   // Load observations on mount
   useEffect(() => {
