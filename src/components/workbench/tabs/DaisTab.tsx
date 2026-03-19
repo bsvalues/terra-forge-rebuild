@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Building2, FileCheck, Scale, Bell, ClipboardCheck, ShieldCheck, ExternalLink, Factory as FactoryIcon, Settings2 } from "lucide-react";
+import { Building2, FileCheck, Scale, Bell, ClipboardCheck, ShieldCheck, ExternalLink, Factory as FactoryIcon, Settings2, Download } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { WorkflowStats } from "@/components/dais/WorkflowStats";
 import { AppealsWorkflow } from "@/components/dais/AppealsWorkflow";
@@ -12,6 +12,7 @@ import { NoticesPanel } from "@/components/dais/NoticesPanel";
 import { BatchNoticeStatusDashboard } from "@/components/dais/BatchNoticeStatusDashboard";
 import { WorkflowInstanceTracker } from "@/components/workflow";
 import { WorkflowTemplateCRUD } from "@/components/admin/WorkflowTemplateCRUD";
+import { BulkAssessmentExport } from "@/components/valuation/BulkAssessmentExport";
 import { useWorkbench } from "../WorkbenchContext";
 
 interface DaisTabProps {
@@ -117,6 +118,13 @@ export function DaisTab({ initialCategory, onCategoryConsumed }: DaisTabProps) {
             <Settings2 className="w-4 h-4" />
             Templates
           </TabsTrigger>
+          <TabsTrigger 
+            value="export"
+            className="gap-2 data-[state=active]:bg-chart-5/20 data-[state=active]:text-chart-5"
+          >
+            <Download className="w-4 h-4" />
+            Export
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="permits" className="mt-0">
@@ -142,6 +150,12 @@ export function DaisTab({ initialCategory, onCategoryConsumed }: DaisTabProps) {
 
         <TabsContent value="templates" className="mt-0">
           <WorkflowTemplateCRUD />
+        </TabsContent>
+
+        <TabsContent value="export" className="mt-0">
+          <div className="p-4">
+            <BulkAssessmentExport />
+          </div>
         </TabsContent>
       </Tabs>
     </div>
