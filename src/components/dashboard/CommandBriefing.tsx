@@ -29,6 +29,7 @@ interface CommandBriefingProps {
 
 export function CommandBriefing({ onNavigate }: CommandBriefingProps) {
   const { data: vitals } = useCountyVitals();
+  const countyMeta = useCountyMeta();
 
   const parcelsCount = vitals?.parcels.total ?? 0;
   const salesCount = vitals?.sales.total ?? 0;
