@@ -53,3 +53,9 @@ verify_jwt = false
 
 [functions.data-quality-remediation]
 verify_jwt = false
+
+[functions.terrapilot-router]
+verify_jwt = false
+
+[functions.owner-portal-lookup]
+verify_jwt = false

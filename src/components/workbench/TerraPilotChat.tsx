@@ -1,5 +1,6 @@
 // TerraPilot Chat — the mouth of the swarm. It speaks in riddles and also databases.
 // "I choo-choo-choose to execute your write tools." — Ralph, Senior DevOps
+// Phase 80: Now with SWARM POWER. The agents are inside the computer!
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -19,6 +20,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
 import { cn } from "@/lib/utils";
+import { SwarmActivityBar, type SwarmPhase } from "./SwarmActivityBar";
 
 interface ToolCallResult {
   tool_name: string;
@@ -96,7 +98,7 @@ const TOOL_LABELS: Record<string, string> = {
   run_model: "Running model",
 };
 
-const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/terrapilot-chat`;
+const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/terrapilot-router`;
 
 /** Get the current user's auth token for edge function calls */
 async function getAuthToken(): Promise<string> {
@@ -114,6 +116,7 @@ export function TerraPilotChat({ fullscreen = false }: TerraPilotChatProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [activeTools, setActiveTools] = useState<string[]>([]);
   const [confirmingAction, setConfirmingAction] = useState(false);
+  const [swarmPhase, setSwarmPhase] = useState<SwarmPhase | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
 
@@ -217,8 +220,7 @@ export function TerraPilotChat({ fullscreen = false }: TerraPilotChatProps) {
     setIsLoading(true);
     setSystemState("processing");
     setActiveTools([]);
-
-    abortRef.current = new AbortController();
+    setSwarmPhase(null);
 
     try {
       const context = {
@@ -303,6 +305,12 @@ export function TerraPilotChat({ fullscreen = false }: TerraPilotChatProps) {
           try {
             const parsed = JSON.parse(jsonStr);
             
+            // Swarm phase events (Phase 80)
+            if (parsed.swarm_phase) {
+              setSwarmPhase(parsed.swarm_phase as SwarmPhase);
+              continue;
+            }
+            
             if (parsed.tool_calls) {
               capturedToolCalls = parsed.tool_calls as ToolCallResult[];
               setActiveTools(capturedToolCalls.map(tc => tc.tool_name));
@@ -349,6 +357,7 @@ export function TerraPilotChat({ fullscreen = false }: TerraPilotChatProps) {
       }
 
       setActiveTools([]);
+      setSwarmPhase(null);
       setSystemState("success");
       setTimeout(() => setSystemState("idle"), 2000);
     } catch (error: any) {
@@ -492,11 +501,16 @@ export function TerraPilotChat({ fullscreen = false }: TerraPilotChatProps) {
             </AnimatePresence>
           )}
 
+          {/* Swarm Activity Bar (Phase 80) */}
+          {swarmPhase && swarmPhase.phase !== "complete" && (
+            <SwarmActivityBar phase={swarmPhase} />
+          )}
+
           {/* Active tool execution indicator */}
-          {activeTools.length > 0 && (
+          {activeTools.length > 0 && !swarmPhase && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex gap-3">
               <div className={`w-7 h-7 rounded-full flex items-center justify-center ${
-                pilotMode === "pilot" ? "bg-tf-cyan/20 text-tf-cyan" : "bg-tf-purple/20 text-tf-purple"
+                pilotMode === "pilot" ? "bg-[hsl(var(--tf-electric-cyan)/0.2)] text-[hsl(var(--tf-electric-cyan))]" : "bg-[hsl(var(--tf-purple)/0.2)] text-[hsl(var(--tf-purple))]"
               }`}>
                 <Loader2 className="w-4 h-4 animate-spin" />
               </div>
@@ -505,7 +519,7 @@ export function TerraPilotChat({ fullscreen = false }: TerraPilotChatProps) {
                   const Icon = TOOL_ICONS[tool] || Activity;
                   return (
                     <div key={tool} className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Icon className="w-3.5 h-3.5 text-tf-cyan" />
+                      <Icon className="w-3.5 h-3.5 text-[hsl(var(--tf-electric-cyan))]" />
                       <span>{TOOL_LABELS[tool] || tool}</span>
                       <Loader2 className="w-3 h-3 animate-spin" />
                     </div>
@@ -515,7 +529,7 @@ export function TerraPilotChat({ fullscreen = false }: TerraPilotChatProps) {
             </motion.div>
           )}
 
-          {isLoading && activeTools.length === 0 && messages[messages.length - 1]?.role !== "assistant" && (
+          {isLoading && activeTools.length === 0 && !swarmPhase && messages[messages.length - 1]?.role !== "assistant" && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex gap-3">
               <div className={`w-7 h-7 rounded-full flex items-center justify-center ${
                 pilotMode === "pilot" ? "bg-tf-cyan/20 text-tf-cyan" : "bg-tf-purple/20 text-tf-purple"
