@@ -269,6 +269,8 @@ export function AppLayout({ initialParcel: routeParcel, initialModule, initialFa
             return <AppealInsightsDashboard />;
           case "slco-pipeline":
             return <SLCOPipelineHub />;
+          case "slco-demo":
+            return <SLCODemoLanding onNavigate={handleNavigate} />;
           case "settings":
             return <CountyConfigPanel />;
           case "sync":
