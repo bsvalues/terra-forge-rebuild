@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Building2, FileCheck, Scale, Bell, ClipboardCheck, ShieldCheck, ExternalLink, Factory as FactoryIcon } from "lucide-react";
+import { Building2, FileCheck, Scale, Bell, ClipboardCheck, ShieldCheck, ExternalLink, Factory as FactoryIcon, Settings2 } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { WorkflowStats } from "@/components/dais/WorkflowStats";
 import { AppealsWorkflow } from "@/components/dais/AppealsWorkflow";
@@ -10,6 +10,7 @@ import { ExemptionsWorkflow } from "@/components/dais/ExemptionsWorkflow";
 import { CertificationPipeline } from "@/components/dais/CertificationPipeline";
 import { NoticesPanel } from "@/components/dais/NoticesPanel";
 import { WorkflowInstanceTracker } from "@/components/workflow";
+import { WorkflowTemplateCRUD } from "@/components/admin/WorkflowTemplateCRUD";
 import { useWorkbench } from "../WorkbenchContext";
 
 interface DaisTabProps {
@@ -108,6 +109,13 @@ export function DaisTab({ initialCategory, onCategoryConsumed }: DaisTabProps) {
             <ShieldCheck className="w-4 h-4" />
             Certification
           </TabsTrigger>
+          <TabsTrigger 
+            value="templates"
+            className="gap-2 data-[state=active]:bg-primary/20 data-[state=active]:text-primary"
+          >
+            <Settings2 className="w-4 h-4" />
+            Templates
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="permits" className="mt-0">
@@ -128,6 +136,10 @@ export function DaisTab({ initialCategory, onCategoryConsumed }: DaisTabProps) {
 
         <TabsContent value="certification" className="mt-0">
           <CertificationPipeline />
+        </TabsContent>
+
+        <TabsContent value="templates" className="mt-0">
+          <WorkflowTemplateCRUD />
         </TabsContent>
       </Tabs>
     </div>
