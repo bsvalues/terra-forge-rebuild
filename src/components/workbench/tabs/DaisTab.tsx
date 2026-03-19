@@ -16,6 +16,8 @@ import { DQRemediationProgressTracker } from "@/components/dais/DQRemediationPro
 import { WorkflowSlaTracker } from "@/components/dais/WorkflowSlaTracker";
 import { NeighborhoodCertificationWorkflow } from "@/components/dais/NeighborhoodCertificationWorkflow";
 import { PermitImpactEstimator } from "@/components/dais/PermitImpactEstimator";
+import { MultiParcelBatchExport } from "@/components/dais/MultiParcelBatchExport";
+import { AppealOutcomePredictor } from "@/components/dais/AppealOutcomePredictor";
 import { WorkflowInstanceTracker } from "@/components/workflow";
 import { WorkflowTemplateCRUD } from "@/components/admin/WorkflowTemplateCRUD";
 import { BulkAssessmentExport } from "@/components/valuation/BulkAssessmentExport";
@@ -158,6 +160,7 @@ export function DaisTab({ initialCategory, onCategoryConsumed }: DaisTabProps) {
         <TabsContent value="appeals" className="mt-0 space-y-4">
           <AppealsWorkflow />
           <AppealRiskDashboard />
+          <AppealOutcomePredictor />
         </TabsContent>
 
         <TabsContent value="notices" className="mt-0 space-y-4">
@@ -174,9 +177,12 @@ export function DaisTab({ initialCategory, onCategoryConsumed }: DaisTabProps) {
           <WorkflowTemplateCRUD />
         </TabsContent>
 
-        <TabsContent value="export" className="mt-0">
+        <TabsContent value="export" className="mt-0 space-y-4">
           <div className="p-4">
             <BulkAssessmentExport />
+          </div>
+          <div className="p-4">
+            <MultiParcelBatchExport />
           </div>
         </TabsContent>
 
