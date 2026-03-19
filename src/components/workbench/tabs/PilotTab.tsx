@@ -7,6 +7,7 @@ import { ToolExecutionTrace } from "../ToolExecutionTrace";
 
 export function PilotTab() {
   const { pilotMode, setPilotMode } = useWorkbench();
+  const [showTrace, setShowTrace] = useState(false);
 
   return (
     <div className="h-full flex flex-col">
