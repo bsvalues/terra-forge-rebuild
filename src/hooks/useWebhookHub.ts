@@ -207,6 +207,36 @@ export function useWebhookStats() {
   }, [endpoints, deliveries]);
 }
 
+/** Dispatch an event to all matching webhook endpoints via edge function */
+export function useDispatchWebhookEvent() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { event_type: string; payload: Record<string, unknown>; county_id?: string }) => {
+      const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+      const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch(
+        `https://${projectId}.supabase.co/functions/v1/webhook-dispatch`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${session?.access_token ?? anonKey}`,
+            "apikey": anonKey,
+          },
+          body: JSON.stringify(input),
+        }
+      );
+      if (!res.ok) {
+        const err = await res.text();
+        throw new Error(err);
+      }
+      return res.json();
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["webhook-deliveries"] }),
+  });
+}
+
 /** Subscribe to realtime delivery updates */
 export function useWebhookRealtime() {
   const qc = useQueryClient();
