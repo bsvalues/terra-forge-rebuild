@@ -63,8 +63,8 @@ export function DaisTab({ initialCategory, onCategoryConsumed }: DaisTabProps) {
         </button>
       </motion.div>
 
-      {/* Workflow Stats + Instance Tracker */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      {/* Workflow Stats + Instance Tracker + Cert Readiness */}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
         <div className="lg:col-span-2">
           <WorkflowStats 
             onSelectCategory={setActiveCategory} 
@@ -72,6 +72,7 @@ export function DaisTab({ initialCategory, onCategoryConsumed }: DaisTabProps) {
           />
         </div>
         <WorkflowInstanceTracker />
+        <CertificationReadinessWidget />
       </div>
 
       {/* Category Tabs */}

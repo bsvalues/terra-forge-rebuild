@@ -65,6 +65,7 @@ export function SummaryTab() {
           <p className="text-xs text-muted-foreground">"One parcel, one screen, every role"</p>
         </motion.div>
         <ExecutiveKpiCards />
+        <TraceActivityFeed />
       </div>
     );
   }
