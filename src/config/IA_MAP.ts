@@ -104,6 +104,7 @@ export const IA_MODULES: ModuleDefinition[] = [
       { id: "validation", label: "Validation Rules", icon: ShieldCheck, scope: "county" },
       { id: "neighborhoods", label: "Neighborhoods", icon: Map, scope: "county" },
       { id: "appeal-insights", label: "Appeal Insights", icon: TrendingUp, scope: "county" },
+      { id: "slco-pipeline", label: "SLCo Pipeline", icon: Database, scope: "county" },
       { id: "settings", label: "Settings", icon: Target, scope: "county" },
     ],
   },
