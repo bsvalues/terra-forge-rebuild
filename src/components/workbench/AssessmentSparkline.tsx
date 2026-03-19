@@ -16,10 +16,10 @@ export function AssessmentSparkline({ history }: AssessmentSparklineProps) {
   if (history.length < 2) return null;
 
   const data = [...history]
-    .sort((a, b) => a.tax_year - b.tax_year)
+    .sort((a, b) => a.taxYear - b.taxYear)
     .map((h) => ({
-      year: h.tax_year,
-      value: h.total_value ?? h.land_value + h.improvement_value,
+      year: h.taxYear,
+      value: h.totalValue ?? h.landValue + h.improvementValue,
     }));
 
   const min = Math.min(...data.map((d) => d.value));
