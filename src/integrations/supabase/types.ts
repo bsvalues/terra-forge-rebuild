@@ -5291,6 +5291,7 @@ export type Database = {
       }
       get_pipeline_status: { Args: { p_county_id?: string }; Returns: Json }
       get_revaluation_progress: { Args: { p_cycle_id: string }; Returns: Json }
+      get_revaluation_report: { Args: { p_cycle_id: string }; Returns: Json }
       get_user_county_id: { Args: never; Returns: string }
       gettransactionid: { Args: never; Returns: unknown }
       has_role: {
