@@ -392,11 +392,12 @@ export function SLCODemoLanding({ onNavigate }: SLCODemoLandingProps) {
       </div>
 
       {/* ── Quick Navigation Grid ─────────────────────────────────── */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
         {[
           { icon: Database, label: "SLCo Pipeline", view: "slco-pipeline", desc: "Ingestion & normalization" },
           { icon: BarChart3, label: "Command Briefing", view: "dashboard", desc: "County overview" },
           { icon: Scale, label: "Appeal Insights", view: "appeal-insights", desc: "Filing trends & defense" },
+          { icon: Rocket, label: "Launch Reval", view: "launch-reval", desc: "Start revaluation cycle" },
           { icon: Activity, label: "Activity Feed", view: "activity", desc: "Real-time audit trail" },
         ].map((nav) => (
           <Card
