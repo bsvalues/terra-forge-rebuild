@@ -130,6 +130,13 @@ export function DaisTab({ initialCategory, onCategoryConsumed }: DaisTabProps) {
             <Download className="w-4 h-4" />
             Export
           </TabsTrigger>
+          <TabsTrigger 
+            value="dq-remediation"
+            className="gap-2 data-[state=active]:bg-tf-cyan/20 data-[state=active]:text-tf-cyan"
+          >
+            <Wrench className="w-4 h-4" />
+            DQ Fixes
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="permits" className="mt-0">
