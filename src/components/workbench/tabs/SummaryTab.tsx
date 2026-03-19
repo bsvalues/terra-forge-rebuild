@@ -5,6 +5,8 @@ import { ValueChangeExplainer } from "../ValueChangeExplainer";
 import { TraceActivityFeed } from "@/components/trace/TraceActivityFeed";
 import { WatchlistPanel } from "@/components/workbench/WatchlistPanel";
 import { ParcelTimeline } from "@/components/workbench/ParcelTimeline";
+import { DataLineageViewer } from "@/components/workbench/DataLineageViewer";
+import { ParcelHistoryTimeline } from "@/components/workbench/ParcelHistoryTimeline";
 import { motion } from "framer-motion";
 import {
   TrendingUp,
@@ -357,6 +359,14 @@ function ParcelSummaryContent() {
             <Activity className="w-3.5 h-3.5" />
             Activity
           </TabsTrigger>
+          <TabsTrigger value="timeline" className="text-xs gap-1.5">
+            <Clock className="w-3.5 h-3.5" />
+            Timeline
+          </TabsTrigger>
+          <TabsTrigger value="lineage" className="text-xs gap-1.5">
+            <RefreshCw className="w-3.5 h-3.5" />
+            Lineage
+          </TabsTrigger>
         </TabsList>
 
         {/* Parcel Detail Editor */}
@@ -531,6 +541,20 @@ function ParcelSummaryContent() {
             </motion.div>
             <ParcelTimeline />
           </div>
+        </TabsContent>
+
+        {/* Timeline */}
+        <TabsContent value="timeline">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-card border border-border/50 rounded-2xl p-6">
+            <ParcelHistoryTimeline parcelId={parcel.id} />
+          </motion.div>
+        </TabsContent>
+
+        {/* Lineage */}
+        <TabsContent value="lineage">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-card border border-border/50 rounded-2xl p-6">
+            <DataLineageViewer />
+          </motion.div>
         </TabsContent>
       </Tabs>
     </div>

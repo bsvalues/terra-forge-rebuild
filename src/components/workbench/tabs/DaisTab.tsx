@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Building2, FileCheck, Scale, Bell, ClipboardCheck, ShieldCheck, ExternalLink, Factory as FactoryIcon, Settings2, Download, Wrench, Clock } from "lucide-react";
+import { Building2, FileCheck, Scale, Bell, ClipboardCheck, ShieldCheck, ExternalLink, Factory as FactoryIcon, Settings2, Download, Wrench, Clock, Zap } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { WorkflowStats } from "@/components/dais/WorkflowStats";
 import { AppealsWorkflow } from "@/components/dais/AppealsWorkflow";
@@ -26,6 +26,7 @@ import { WorkflowInstanceTracker } from "@/components/workflow";
 import { WorkflowTemplateCRUD } from "@/components/admin/WorkflowTemplateCRUD";
 import { BulkAssessmentExport } from "@/components/valuation/BulkAssessmentExport";
 import { CertificationReadinessWidget } from "@/components/dais/CertificationReadinessWidget";
+import { WorkflowAutomationRules } from "@/components/dais/WorkflowAutomationRules";
 import { useWorkbench } from "../WorkbenchContext";
 
 interface DaisTabProps {
@@ -149,6 +150,13 @@ export function DaisTab({ initialCategory, onCategoryConsumed }: DaisTabProps) {
             <Wrench className="w-4 h-4" />
             DQ Fixes
           </TabsTrigger>
+          <TabsTrigger 
+            value="automation"
+            className="gap-2 data-[state=active]:bg-tf-gold/20 data-[state=active]:text-tf-gold"
+          >
+            <Zap className="w-4 h-4" />
+            Automation
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="permits" className="mt-0 space-y-4">
@@ -197,6 +205,12 @@ export function DaisTab({ initialCategory, onCategoryConsumed }: DaisTabProps) {
         <TabsContent value="dq-remediation" className="mt-0">
           <div className="p-4">
             <DQRemediationProgressTracker />
+          </div>
+        </TabsContent>
+
+        <TabsContent value="automation" className="mt-0">
+          <div className="p-4">
+            <WorkflowAutomationRules />
           </div>
         </TabsContent>
       </Tabs>
