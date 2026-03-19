@@ -77,6 +77,8 @@ export interface TraceEventParams {
   causationId?: string;
   artifactType?: ArtifactType;
   artifactId?: string;
+  /** Phase 81: Swarm agent identity for provenance tracking */
+  agentId?: string;
 }
 
 export interface TraceEventRecord extends TraceEventParams {
