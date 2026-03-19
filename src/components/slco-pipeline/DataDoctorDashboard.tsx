@@ -5,11 +5,12 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { RemediationWorkbench } from "./RemediationWorkbench";
+import { VerificationPanel } from "./VerificationPanel";
 import {
   Stethoscope, MapPin, Home, Copy, GitCompareArrows, Brain,
   AlertTriangle, Play, Loader2, Shield, ShieldAlert, ShieldX,
   ChevronRight, Clock, Zap, ArrowRight, CheckCircle2, XCircle,
-  BarChart3, RefreshCw, Info, Sparkles, TrendingUp, Wrench,
+  BarChart3, RefreshCw, Info, Sparkles, TrendingUp, Wrench, Target,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -284,9 +285,14 @@ export function DataDoctorDashboard() {
   const runDiagnosis = useRunDiagnosis();
   const [expandedLane, setExpandedLane] = useState<DQLane | null>(null);
   const [showWorkbench, setShowWorkbench] = useState(false);
+  const [showVerification, setShowVerification] = useState(false);
 
   const hasRun = !!status?.latest_run;
   const isRunning = runDiagnosis.isPending || status?.latest_run?.status === "running";
+
+  if (showVerification) {
+    return <VerificationPanel onBack={() => setShowVerification(false)} />;
+  }
 
   if (showWorkbench) {
     return <RemediationWorkbench onBack={() => setShowWorkbench(false)} />;
@@ -320,11 +326,22 @@ export function DataDoctorDashboard() {
               <Button
                 size="sm"
                 variant="outline"
+                onClick={() => setShowVerification(true)}
+                className="gap-2"
+              >
+                <Target className="h-3.5 w-3.5" />
+                Verify & Gates
+              </Button>
+            )}
+            {hasRun && (
+              <Button
+                size="sm"
+                variant="outline"
                 onClick={() => setShowWorkbench(true)}
                 className="gap-2"
               >
                 <Wrench className="h-3.5 w-3.5" />
-                Remediation Workbench
+                Remediation
               </Button>
             )}
             <Button

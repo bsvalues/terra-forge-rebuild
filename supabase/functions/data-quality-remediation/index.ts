@@ -352,6 +352,72 @@ serve(async (req) => {
       return json({ ok: true, batches: batches || [] });
     }
 
+    // ══════════════════════════════════════════════════════════════
+    // ACTION: verify — run re-scoring and evaluate readiness gates
+    // ══════════════════════════════════════════════════════════════
+    if (action === "verify") {
+      const { batch_id, diagnosis_run_id } = body;
+
+      // Call the RPC to compute quality scores
+      const { data: scores, error: scoresErr } = await supabase
+        .rpc("compute_dq_scores", { p_county_id: county_id });
+      if (scoresErr) throw scoresErr;
+
+      // Call the RPC to evaluate readiness gates
+      const { data: gateResults, error: gateErr } = await supabase
+        .rpc("evaluate_readiness_gates", { p_county_id: county_id });
+      if (gateErr) throw gateErr;
+
+      // Store the verification snapshot
+      const { data: snapshot, error: snapErr } = await supabase
+        .from("dq_verification_snapshots")
+        .insert({
+          county_id,
+          batch_id: batch_id || null,
+          diagnosis_run_id: diagnosis_run_id || null,
+          snapshot_type: batch_id ? "post_remediation" : "baseline",
+          metrics: scores,
+          gate_results: gateResults,
+        })
+        .select()
+        .single();
+
+      if (snapErr) throw snapErr;
+
+      // Update batch quality scores if batch_id provided
+      if (batch_id) {
+        const overallScore = scores?.overall_score || 0;
+        await supabase
+          .from("dq_remediation_batches")
+          .update({ quality_score_after: overallScore })
+          .eq("id", batch_id);
+      }
+
+      return json({
+        ok: true,
+        snapshot_id: snapshot.id,
+        scores,
+        gates: gateResults,
+        passed_all: gateResults?.passed_all || false,
+        quality_score: scores?.overall_score || 0,
+      });
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // ACTION: get_verification_history — fetch verification snapshots
+    // ══════════════════════════════════════════════════════════════
+    if (action === "get_verification_history") {
+      const { data: snapshots, error } = await supabase
+        .from("dq_verification_snapshots")
+        .select("*")
+        .eq("county_id", county_id)
+        .order("created_at", { ascending: false })
+        .limit(20);
+
+      if (error) throw error;
+      return json({ ok: true, snapshots: snapshots || [] });
+    }
+
     return json({ error: `Unknown action: ${action}` }, 400);
   } catch (err) {
     console.error("data-quality-remediation error:", err);
