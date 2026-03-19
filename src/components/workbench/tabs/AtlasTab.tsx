@@ -137,6 +137,10 @@ export function AtlasTab() {
                   <Search className="w-3.5 h-3.5" />
                   Search
                 </TabsTrigger>
+                <TabsTrigger value="geoequity" className="text-xs gap-1.5">
+                  <Compass className="w-3.5 h-3.5" />
+                  GeoEquity
+                </TabsTrigger>
               </TabsList>
             </Tabs>
           </div>
