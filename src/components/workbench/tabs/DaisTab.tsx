@@ -12,6 +12,7 @@ import { NoticesPanel } from "@/components/dais/NoticesPanel";
 import { BatchNoticeStatusDashboard } from "@/components/dais/BatchNoticeStatusDashboard";
 import { WorkflowInstanceTracker } from "@/components/workflow";
 import { WorkflowTemplateCRUD } from "@/components/admin/WorkflowTemplateCRUD";
+import { BulkAssessmentExport } from "@/components/valuation/BulkAssessmentExport";
 import { useWorkbench } from "../WorkbenchContext";
 
 interface DaisTabProps {
