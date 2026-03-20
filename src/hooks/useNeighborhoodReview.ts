@@ -287,11 +287,11 @@ export function useCompleteReview() {
       const { error } = await supabase
         .from("neighborhood_reviews")
         .update({
-          status: "completed",
+          status: "completed" as const,
           completed_at: new Date().toISOString(),
           sign_off_completed_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
-        } as any)
+        })
         .eq("id", reviewId);
       if (error) throw error;
 
