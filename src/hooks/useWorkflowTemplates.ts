@@ -85,7 +85,7 @@ export function useCreateWorkflowTemplate() {
     }) => {
       const { data, error } = await supabase
         .from("workflow_templates")
-        .insert([template])
+        .insert([{ ...template, steps: JSON.parse(JSON.stringify(template.steps)), trigger_config: JSON.parse(JSON.stringify(template.trigger_config ?? {})) }])
         .select()
         .single();
       if (error) throw error;
