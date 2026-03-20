@@ -43,7 +43,7 @@ export function useCausalNarrative(event: TimelineEvent | null) {
       const linkKey = pickStrongestLinkKey(event);
 
       if (linkKey) {
-        const { data: linkedData } = await supabase.rpc("get_county_timeline" as any, {
+        const { data: linkedData } = await supabase.rpc("get_county_timeline" as "get_revaluation_progress", {
           p_from: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString(),
           p_to: new Date().toISOString(),
           p_types: null,
