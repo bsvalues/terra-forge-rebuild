@@ -1,7 +1,10 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { NeighborhoodSelector } from "./NeighborhoodSelector";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useActiveCountyId } from "@/hooks/useActiveCounty";
 import { FactoryDashboardHeader } from "./FactoryDashboardHeader";
 import { RegressionMode } from "./regression/RegressionMode";
 import { CostMode } from "./cost/CostMode";
@@ -35,6 +38,40 @@ export function FactoryLayout({ initialMode }: FactoryLayoutProps) {
   );
   const [neighborhood, setNeighborhood] = useState<string | null>(null);
   const { data: vitals } = useCountyVitals();
+  const countyId = useActiveCountyId();
+
+  // Auto-select highest-density neighborhood on first load
+  const { data: topNeighborhood } = useQuery({
+    queryKey: ["factory-top-neighborhood", countyId],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("parcels")
+        .select("neighborhood_code")
+        .eq("county_id", countyId!)
+        .not("neighborhood_code", "is", null)
+        .limit(5000);
+      if (!data?.length) return null;
+      const counts = new Map<string, number>();
+      for (const p of data) {
+        const code = p.neighborhood_code!;
+        counts.set(code, (counts.get(code) || 0) + 1);
+      }
+      let best = "";
+      let bestN = 0;
+      for (const [code, n] of counts) {
+        if (n > bestN) { best = code; bestN = n; }
+      }
+      return best || null;
+    },
+    enabled: !!countyId,
+    staleTime: 300_000,
+  });
+
+  useEffect(() => {
+    if (!neighborhood && topNeighborhood) {
+      setNeighborhood(topNeighborhood);
+    }
+  }, [topNeighborhood, neighborhood]);
 
   const handleModeChange = useCallback((val: string) => {
     setActiveMode(val as FactoryMode);
