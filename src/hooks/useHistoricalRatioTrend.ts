@@ -68,21 +68,22 @@ export function useHistoricalRatioTrend(
  * Joins appeals against parcels to determine value-tier-based appeal clustering.
  */
 export function useAppealsByValueTier(taxYear: number) {
+  const countyId = useActiveCountyId();
+
   return useQuery({
-    queryKey: ["appeals-by-value-tier", taxYear],
+    queryKey: ["appeals-by-value-tier", countyId, taxYear],
     queryFn: async () => {
       // Get all parcels with their assessed values for tier classification
-      const { data: parcels, error: pError } = await supabase
-        .from("parcels")
-        .select("id, assessed_value");
+      let pq = supabase.from("parcels").select("id, assessed_value");
+      if (countyId) pq = pq.eq("county_id", countyId);
+      const { data: parcels, error: pError } = await pq;
 
       if (pError) throw pError;
 
       // Get appeals for this tax year
-      const { data: appeals, error: aError } = await supabase
-        .from("appeals")
-        .select("id, parcel_id, status")
-        .eq("tax_year", taxYear);
+      let aq = supabase.from("appeals").select("id, parcel_id, status").eq("tax_year", taxYear);
+      if (countyId) aq = aq.eq("county_id", countyId);
+      const { data: appeals, error: aError } = await aq;
 
       if (aError) throw aError;
 

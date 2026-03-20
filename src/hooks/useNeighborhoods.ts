@@ -73,12 +73,15 @@ export function useNeighborhoods(year?: number) {
 
 /** Aggregate parcel stats per neighborhood */
 export function useNeighborhoodStats() {
+  const countyId = useActiveCountyId();
+
   return useQuery({
-    queryKey: ["neighborhood-stats"],
+    queryKey: ["neighborhood-stats", countyId],
     queryFn: async () => {
       const { data: parcels, error } = await supabase
         .from("parcels")
         .select("neighborhood_code, assessed_value, building_area, year_built")
+        .eq("county_id", countyId!)
         .not("neighborhood_code", "is", null);
       if (error) throw error;
 
@@ -122,6 +125,7 @@ export function useNeighborhoodStats() {
 
       return stats.sort((a, b) => b.parcel_count - a.parcel_count);
     },
+    enabled: !!countyId,
     staleTime: 120_000,
   });
 }

@@ -220,6 +220,7 @@ export function useRollReadiness() {
         },
       };
     },
+    enabled: !!countyId,
     staleTime: 60_000,
   });
 }

@@ -136,6 +136,7 @@ export function useSmartActions(): SmartAction[] {
       const { data: calibRuns } = await supabase
         .from("calibration_runs")
         .select("neighborhood_code")
+        .eq("county_id", countyId!)
         .limit(1000);
 
       const calibratedNbhds = new Set((calibRuns || []).map((r) => r.neighborhood_code));
