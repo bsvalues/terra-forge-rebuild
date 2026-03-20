@@ -159,7 +159,7 @@ export function VEIDashboard() {
     return { status: "concern", label: "Off Target", color: "vei-concern" };
   };
 
-  const getTierSlopeStatus = (slope: number) => {
+  const getTierSlopeStatus = (slope: number): { status: VEIStatus; label: string; color: string } => {
     const absSlope = Math.abs(slope);
     if (absSlope <= 0.02) return { status: "excellent", label: "Neutral", color: "vei-excellent" };
     if (absSlope <= 0.05) return { status: "good", label: "Slight Bias", color: "vei-good" };
