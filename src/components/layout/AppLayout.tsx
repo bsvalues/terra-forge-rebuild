@@ -321,8 +321,7 @@ export function AppLayout({ initialParcel: routeParcel, initialModule, initialFa
               </div>
             );
           default:
-            // "dashboard" or null → SLCO Demo Landing (primary dev server)
-            return <SLCODemoLanding onNavigate={handleNavigate} />;
+            return <SuiteHub onNavigate={handleNavigate} />;
         }
 
       // ── WORKBENCH: Parcel 360 ────────────────────────────────

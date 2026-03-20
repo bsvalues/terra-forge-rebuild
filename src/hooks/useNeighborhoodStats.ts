@@ -3,6 +3,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useActiveCountyId } from "@/hooks/useActiveCounty";
 
 export interface NeighborhoodStat {
   hood_cd: string;
@@ -17,18 +18,20 @@ export interface NeighborhoodStat {
 }
 
 export function useNeighborhoodStats(year?: number) {
+  const countyId = useActiveCountyId();
   const effectiveYear = year ?? new Date().getFullYear();
 
   return useQuery<NeighborhoodStat[]>({
-    queryKey: ["neighborhood-stats", effectiveYear],
+    queryKey: ["neighborhood-stats", countyId, effectiveYear],
     queryFn: async () => {
       const { data, error } = await supabase.rpc(
         "get_neighborhood_stats" as any,
-        { p_year: effectiveYear }
+        { p_year: effectiveYear, p_county_id: countyId }
       );
       if (error) throw error;
       return (data as NeighborhoodStat[]) ?? [];
     },
+    enabled: !!countyId,
     staleTime: 120_000,
   });
 }

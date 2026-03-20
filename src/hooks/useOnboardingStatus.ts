@@ -42,8 +42,8 @@ export function useOnboardingStatus() {
       // Check county name, parcel count, and study periods in parallel
       const [countyRes, parcelRes, studyRes] = await Promise.all([
         supabase.from("counties").select("name").eq("id", profile.county_id).single(),
-        supabase.from("parcels").select("id", { count: "exact", head: true }),
-        supabase.from("study_periods").select("id", { count: "exact", head: true }),
+        supabase.from("parcels").select("id", { count: "exact", head: true }).eq("county_id", profile.county_id),
+        supabase.from("study_periods").select("id", { count: "exact", head: true }).eq("county_id", profile.county_id),
       ]);
 
       const parcelCount = parcelRes.count ?? 0;

@@ -135,12 +135,12 @@ export function BatchNoticeDashboard() {
           <div className="space-y-3">
             <div className="space-y-1.5">
               <Label className="text-xs">Neighborhood (optional)</Label>
-              <Select value={neighborhoodCode} onValueChange={setNeighborhoodCode}>
+              <Select value={neighborhoodCode || "__all__"} onValueChange={(v) => setNeighborhoodCode(v === "__all__" ? "" : v)}>
                 <SelectTrigger className="h-8 text-xs">
                   <SelectValue placeholder="All neighborhoods" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All neighborhoods</SelectItem>
+                  <SelectItem value="__all__">All neighborhoods</SelectItem>
                   {neighborhoods.map((n: any) => (
                     <SelectItem key={n.neighborhood_code} value={n.neighborhood_code}>
                       {n.neighborhood_code} ({n.parcel_count} parcels)

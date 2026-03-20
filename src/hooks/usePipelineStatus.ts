@@ -4,6 +4,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useActiveCountyId } from "@/hooks/useActiveCounty";
 
 export type PipelineStage =
   | "ingest_received"
@@ -65,16 +66,21 @@ export const STAGE_ORDER: PipelineStage[] = [
 export { STAGE_LABELS, STAGE_DESCRIPTIONS };
 
 export function usePipelineStatus() {
+  const countyId = useActiveCountyId();
+
   return useQuery({
-    queryKey: ["pipeline-status"],
+    queryKey: ["pipeline-status", countyId],
     queryFn: async (): Promise<PipelineStatusResult> => {
-      const { data, error } = await supabase.rpc("get_pipeline_status" as any);
+      const { data, error } = await supabase.rpc("get_pipeline_status" as any, {
+        p_county_id: countyId,
+      });
       if (error) throw error;
       return data as PipelineStatusResult;
     },
+    enabled: !!countyId,
     staleTime: 30_000,
     gcTime: 60_000,
-    refetchInterval: 60_000, // auto-refresh every minute
+    refetchInterval: 60_000,
   });
 }
 

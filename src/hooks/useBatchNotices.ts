@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { assertWriteLane } from "@/services/writeLane";
 import { emitTraceEvent } from "@/services/terraTrace";
 import { invokeDraftNotice } from "@/services/ingestService";
+import { useActiveCountyId } from "@/hooks/useActiveCounty";
 
 export interface BatchNoticeJob {
   id: string;
@@ -27,12 +28,15 @@ export interface BatchNoticeJob {
 }
 
 export function useBatchNoticeJobs(statusFilter?: string) {
+  const countyId = useActiveCountyId();
+
   return useQuery({
-    queryKey: ["batch-notice-jobs", statusFilter],
+    queryKey: ["batch-notice-jobs", countyId, statusFilter],
     queryFn: async () => {
       let query = supabase
         .from("batch_notice_jobs")
         .select("*")
+        .eq("county_id", countyId!)
         .order("created_at", { ascending: false })
         .limit(50);
 
@@ -44,6 +48,7 @@ export function useBatchNoticeJobs(statusFilter?: string) {
       if (error) throw error;
       return data as BatchNoticeJob[];
     },
+    enabled: !!countyId,
   });
 }
 
