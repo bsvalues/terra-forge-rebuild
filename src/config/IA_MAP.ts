@@ -146,6 +146,7 @@ export const IA_MODULES: ModuleDefinition[] = [
       { id: "analytics", label: "Analytics", icon: TrendingUp, scope: "run" },
       { id: "advanced-analytics", label: "Advanced Analytics", icon: Radar, scope: "run" },
       { id: "segments", label: "Segments", icon: Layers, scope: "neighborhood" },
+      { id: "iaao-compliance", label: "IAAO Compliance", icon: ShieldCheck, scope: "county" },
     ],
   },
   {
@@ -198,6 +199,7 @@ export const LEGACY_REDIRECTS: LegacyRedirect[] = [
   { legacyId: "analytics", targetModule: "factory", targetView: "analytics" },
   { legacyId: "advanced-analytics", targetModule: "factory", targetView: "advanced-analytics" },
   { legacyId: "segments", targetModule: "factory", targetView: "segments" },
+  { legacyId: "iaao-compliance", targetModule: "factory", targetView: "iaao-compliance" },
   // Workbench absorbs Field
   { legacyId: "field", targetModule: "workbench", targetView: "field" },
   { legacyId: "compare", targetModule: "workbench", targetView: "compare" },

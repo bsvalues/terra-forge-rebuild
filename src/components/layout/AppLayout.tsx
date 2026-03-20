@@ -47,6 +47,7 @@ const NeighborhoodReviewOrchestrator = lazy(() => import("@/components/review").
 const AppealRiskDashboard = lazy(() => import("@/components/appeal-risk").then(m => ({ default: m.AppealRiskDashboard })));
 const ComparativeDashboard = lazy(() => import("@/components/comparative").then(m => ({ default: m.ComparativeDashboard })));
 const OwnerPortal = lazy(() => import("@/components/owner-portal").then(m => ({ default: m.OwnerPortal })));
+const IAAOComplianceDashboard = lazy(() => import("@/components/iaao").then(m => ({ default: m.IAAOComplianceDashboard })));
 
 // Workbench views
 const PropertyWorkbench = lazy(() => import("@/components/workbench").then(m => ({ default: m.PropertyWorkbench })));
@@ -377,6 +378,10 @@ export function AppLayout({ initialParcel: routeParcel, initialModule, initialFa
               <div className="p-6 max-w-7xl mx-auto">
                 <SegmentRevaluationDashboard />
               </div>
+            );
+          case "iaao-compliance":
+            return (
+              <IAAOComplianceDashboard />
             );
           default:
             // "calibration" or null → FactoryLayout
