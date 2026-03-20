@@ -67,7 +67,7 @@ export function WorkflowSlaTracker() {
     queryKey: ["sla-open-permits"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("permits" as any)
+        .from("permits")
         .select("id, status, created_at, parcels(parcel_number, address)")
         .in("status", ["pending", "in_review"])
         .order("created_at", { ascending: true })
