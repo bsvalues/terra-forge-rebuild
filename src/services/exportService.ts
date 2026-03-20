@@ -4,7 +4,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { emitTraceEvent } from "@/services/terraTrace";
-import ExcelJS from "exceljs";
+import * as ExcelJS from "exceljs";
 
 // ── Types ──────────────────────────────────────────────────────────
 export type ExportFormat = "csv" | "json" | "xlsx";
