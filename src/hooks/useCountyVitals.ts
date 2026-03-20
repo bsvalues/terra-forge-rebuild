@@ -84,32 +84,36 @@ async function fetchCountyVitals(): Promise<CountyVitals> {
 
   const raw = data as Record<string, any>;
 
-  const total = raw.parcels.total ?? 0;
-  const coordsCount = raw.parcels.withCoords ?? 0;
-  const classCount = raw.parcels.withClass ?? 0;
-  const nbhdCount = raw.parcels.withNeighborhood ?? 0;
+  // Map RPC shape to CountyVitals interface
+  const total = raw.parcels?.total ?? 0;
+  const coordsCount = raw.parcels?.withCoordinates ?? raw.parcels?.withCoords ?? 0;
+  const classCount = raw.parcels?.withClass ?? 0;
+  const nbhdCount = raw.parcels?.withNeighborhood ?? 0;
 
   const coordsPct = total > 0 ? Math.round((coordsCount / total) * 100) : 0;
   const classPct = total > 0 ? Math.round((classCount / total) * 100) : 0;
   const nbhdPct = total > 0 ? Math.round((nbhdCount / total) * 100) : 0;
 
-  const assessTotal = raw.assessments.total ?? 0;
-  const certCount = raw.assessments.certified ?? 0;
+  // Assessments — may or may not be in RPC
+  const assessTotal = raw.assessments?.total ?? 0;
+  const certCount = raw.assessments?.certified ?? 0;
 
-  // Compute calibrated neighborhoods + avg R² from RPC detail
-  const calibDetail: Array<{ neighborhood_code: string; r_squared: number | null }> =
-    raw.calibration.detail ?? [];
-  const rSquaredValues = calibDetail
-    .map((d) => d.r_squared ?? 0)
-    .filter((v) => v > 0);
+  // Workflows — may or may not be in RPC
+  const pendingAppeals = raw.appeals?.pending ?? raw.workflows?.pendingAppeals ?? 0;
+  const openPermits = raw.workflows?.openPermits ?? 0;
+  const pendingExemptions = raw.workflows?.pendingExemptions ?? 0;
 
-  const pendingAppeals = raw.workflows.pendingAppeals ?? 0;
-  const openPermits = raw.workflows.openPermits ?? 0;
-  const pendingExemptions = raw.workflows.pendingExemptions ?? 0;
+  // Calibration detail from defensibility
+  const calibDetail = raw.defensibility?.detail ?? raw.calibration?.detail ?? {};
+  const calibRSquared = calibDetail.avgRSquared ?? null;
+  const calibratedNbhds = calibDetail.calibratedNeighborhoods ?? 0;
+
+  // Calibration run count — use calibratable as proxy if runCount absent
+  const calibRunCount = raw.calibration?.runCount ?? calibratedNbhds;
 
   return {
     parcels: { total, withCoords: coordsCount, withClass: classCount, withNeighborhood: nbhdCount },
-    sales: { total: raw.sales.total ?? 0 },
+    sales: { total: raw.sales?.total ?? 0 },
     assessments: {
       total: assessTotal,
       certified: certCount,
@@ -128,15 +132,12 @@ async function fetchCountyVitals(): Promise<CountyVitals> {
       overall: Math.round((coordsPct + classPct + nbhdPct) / 3),
     },
     calibration: {
-      runCount: raw.calibration.runCount ?? 0,
-      calibratedNeighborhoods: calibDetail.length,
-      avgRSquared:
-        rSquaredValues.length > 0
-          ? rSquaredValues.reduce((a, b) => a + b, 0) / rSquaredValues.length
-          : null,
+      runCount: calibRunCount,
+      calibratedNeighborhoods: calibratedNbhds,
+      avgRSquared: calibRSquared,
     },
     ingest: {
-      recentJobs: (raw.ingest.recentJobs ?? []) as CountyVitals["ingest"]["recentJobs"],
+      recentJobs: (raw.ingest?.recentJobs ?? []) as CountyVitals["ingest"]["recentJobs"],
     },
     dataQuality: {
       latestSnapshot: raw.dataQuality?.latestSnapshot ?? null,
@@ -144,7 +145,7 @@ async function fetchCountyVitals(): Promise<CountyVitals> {
       hardBlockers: raw.dataQuality?.hardBlockers ?? 0,
     },
     defensibility: {
-      overall: raw.defensibility?.overall ?? 0,
+      overall: raw.defensibility?.score ?? raw.defensibility?.overall ?? 0,
       verdict: raw.defensibility?.verdict ?? "at_risk",
       pillars: {
         dataCompleteness: raw.defensibility?.pillars?.dataCompleteness ?? 0,
