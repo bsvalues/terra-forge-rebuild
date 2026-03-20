@@ -160,10 +160,10 @@ async function buildIaaoRatioStudy(
       .select("id, parcel_number, neighborhood_code, property_class, assessed_value, land_value, improvement_value")
       .in("id", parcelIds.slice(0, 500));
 
-    const parcelMap = new Map((parcels ?? []).map(p => [p.id, p]));
+    const parcelMap = new Map((parcels ?? []).map((p: any) => [p.id, p]));
 
-    const rows = (sales ?? []).map(s => {
-      const p = parcelMap.get(s.parcel_id);
+    const rows = (sales ?? []).map((s: any) => {
+      const p = parcelMap.get(s.parcel_id) as any;
       const assessedValue = p?.assessed_value ?? 0;
       const ratio = s.sale_price > 0 ? assessedValue / s.sale_price : null;
       return {
