@@ -125,7 +125,7 @@ export function useDeleteSnapshot() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from("comparison_snapshots")
         .delete()
         .eq("id", id);

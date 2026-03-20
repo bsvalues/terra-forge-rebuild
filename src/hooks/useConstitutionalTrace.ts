@@ -157,7 +157,7 @@ export function useLineageSummary(limit = 100) {
         .limit(limit);
 
       if (error) throw error;
-      return (data || []) as any[];
+      return data ?? [];
     },
     staleTime: 15_000,
   });
