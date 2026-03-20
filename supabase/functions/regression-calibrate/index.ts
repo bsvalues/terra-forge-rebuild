@@ -130,15 +130,26 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Fetch parcels in this neighborhood scoped to county
-    const { data: parcels, error: pErr } = await supabase
-      .from("parcels")
-      .select("id, building_area, land_area, year_built, bedrooms, bathrooms, assessed_value")
-      .eq("county_id", county_id)
-      .eq("neighborhood_code", neighborhood_code);
+    // Fetch parcels in this neighborhood scoped to county (paginated to avoid 1000-row limit)
+    let allParcels: any[] = [];
+    let offset = 0;
+    const PAGE = 1000;
+    while (true) {
+      const { data: page, error: pErr } = await supabase
+        .from("parcels")
+        .select("id, building_area, land_area, year_built, bedrooms, bathrooms, assessed_value")
+        .eq("county_id", county_id)
+        .eq("neighborhood_code", neighborhood_code)
+        .range(offset, offset + PAGE - 1);
+      if (pErr) throw pErr;
+      if (!page?.length) break;
+      allParcels.push(...page);
+      if (page.length < PAGE) break;
+      offset += PAGE;
+    }
+    const parcels = allParcels;
 
-    if (pErr) throw pErr;
-    if (!parcels?.length) {
+    if (!parcels.length) {
       return new Response(JSON.stringify({ error: "No parcels found for neighborhood" }), {
         status: 404,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
