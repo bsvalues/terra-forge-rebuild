@@ -5528,6 +5528,10 @@ export type Database = {
         Args: { p_county_id: string; p_data: Json }
         Returns: number
       }
+      bulk_update_parcel_lir: {
+        Args: { p_county_id: string; p_data: Json }
+        Returns: number
+      }
       bulk_update_parcel_zip_city: {
         Args: { p_county_id: string; p_data: Json }
         Returns: number
