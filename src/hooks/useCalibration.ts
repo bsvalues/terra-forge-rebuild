@@ -91,14 +91,10 @@ export function useCalibration(neighborhoodCode: string | null) {
   const saveMutation = useMutation({
     mutationFn: async () => {
       if (!result || !neighborhoodCode) throw new Error("No calibration result to save");
-
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("county_id")
-        .single();
+      if (!countyId) throw new Error("No county assigned");
 
       const { error } = await supabase.from("calibration_runs").insert({
-        county_id: profile?.county_id ?? (() => { throw new Error("No county assigned"); })(),
+        county_id: countyId,
         neighborhood_code: neighborhoodCode,
         model_type: "ols",
         status: "completed",
