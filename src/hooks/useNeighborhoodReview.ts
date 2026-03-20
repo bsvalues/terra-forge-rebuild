@@ -214,7 +214,7 @@ export function useCreateReview() {
       ];
 
       await supabase.from("neighborhood_review_tasks").insert(
-        defaultTasks.map((t) => ({ ...t, review_id: data.id })) as any[]
+        defaultTasks.map((t) => ({ ...t, review_id: data.id })) as Array<{ stage: string; title: string; priority: string; review_id: string }>
       );
 
       await emitTraceEventAsync({
