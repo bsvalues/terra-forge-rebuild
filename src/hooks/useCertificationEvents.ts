@@ -63,7 +63,7 @@ export function useRecordCertificationEvent() {
           parcels_created: params.parcels_created,
           total_parcels: params.total_parcels,
           readiness_score: params.readiness_score || null,
-          blocker_snapshot: params.blocker_snapshot || {},
+          blocker_snapshot: (params.blocker_snapshot || {}) as Record<string, string>,
           notes: params.notes || null,
         }])
         .select()

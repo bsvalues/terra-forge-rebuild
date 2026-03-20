@@ -106,7 +106,7 @@ export async function emitPipelineEvent(params: {
     rows_affected: params.rowsAffected ?? null,
     artifact_ref: params.artifactRef ?? null,
     error_id: params.errorId ?? null,
-    details: params.details ?? {},
+    details: (params.details ?? {}) as Record<string, string>,
     started_at: params.startedAt ?? now,
     finished_at: params.finishedAt ?? (params.status !== "running" ? now : undefined),
   }]);
