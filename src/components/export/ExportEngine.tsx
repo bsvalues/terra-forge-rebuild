@@ -40,6 +40,7 @@ export function exportCSV(dataset: ExportableDataset) {
  * Export dataset as XLSX (multi-sheet).
  */
 export async function exportXLSX(dataset: ExportableDataset) {
+  const ExcelJS = await import("exceljs");
   const wb = new ExcelJS.Workbook();
   wb.creator = "TerraFusion OS";
   wb.created = new Date();
