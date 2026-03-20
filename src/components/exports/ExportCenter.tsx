@@ -186,26 +186,23 @@ export function ExportCenter() {
             <CardContent className="pt-5">
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                 <div className="flex gap-2">
-                  <button
-                    onClick={() => setFormat("csv")}
-                    className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium border transition-all ${
-                      format === "csv"
-                        ? "bg-primary text-primary-foreground border-primary"
-                        : "bg-muted/30 text-muted-foreground border-border/40 hover:bg-muted/60"
-                    }`}
-                  >
-                    <FileSpreadsheet className="w-4 h-4" /> CSV
-                  </button>
-                  <button
-                    onClick={() => setFormat("json")}
-                    className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium border transition-all ${
-                      format === "json"
-                        ? "bg-primary text-primary-foreground border-primary"
-                        : "bg-muted/30 text-muted-foreground border-border/40 hover:bg-muted/60"
-                    }`}
-                  >
-                    <FileJson className="w-4 h-4" /> JSON
-                  </button>
+                  {([
+                    { key: "csv" as const, icon: FileSpreadsheet, label: "CSV" },
+                    { key: "json" as const, icon: FileJson, label: "JSON" },
+                    { key: "xlsx" as const, icon: FileText, label: "Excel" },
+                  ]).map(({ key, icon: Icon, label }) => (
+                    <button
+                      key={key}
+                      onClick={() => setFormat(key)}
+                      className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium border transition-all ${
+                        format === key
+                          ? "bg-primary text-primary-foreground border-primary"
+                          : "bg-muted/30 text-muted-foreground border-border/40 hover:bg-muted/60"
+                      }`}
+                    >
+                      <Icon className="w-4 h-4" /> {label}
+                    </button>
+                  ))}
                 </div>
                 <div className="flex-1" />
                 <Button
