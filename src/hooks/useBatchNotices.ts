@@ -109,7 +109,7 @@ export function useCreateBatchNoticeJob() {
       // 2. Create batch job record
       const { data: job, error: jErr } = await supabase
         .from("batch_notice_jobs")
-        .insert({
+        .insert([{
           county_id: countyId,
           neighborhood_code: params.neighborhoodCode || null,
           property_class: params.propertyClass || null,
@@ -118,10 +118,10 @@ export function useCreateBatchNoticeJob() {
             propertyClass: params.propertyClass,
             useAI: params.useAI,
             aiLimit: params.aiLimit,
-          },
+          } as Record<string, unknown>,
           total_parcels: parcels.length,
           status: "running",
-        } as any)
+        }])
         .select()
         .single();
 
