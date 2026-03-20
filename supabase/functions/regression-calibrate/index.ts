@@ -9,6 +9,7 @@ const corsHeaders = {
 
 interface RegressionRequest {
   neighborhood_code: string;
+  county_id: string;
   variables: string[]; // e.g. ["building_area", "land_area", "year_built", "bedrooms", "bathrooms"]
   tax_year?: number;
 }
@@ -119,20 +120,21 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    const { neighborhood_code, variables, tax_year } = (await req.json()) as RegressionRequest;
+    const { neighborhood_code, county_id, variables, tax_year } = (await req.json()) as RegressionRequest;
     const year = tax_year ?? new Date().getFullYear();
 
-    if (!neighborhood_code || !variables?.length) {
-      return new Response(JSON.stringify({ error: "neighborhood_code and variables are required" }), {
+    if (!neighborhood_code || !variables?.length || !county_id) {
+      return new Response(JSON.stringify({ error: "neighborhood_code, county_id, and variables are required" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Fetch parcels in this neighborhood (with any non-null building_area > 0)
+    // Fetch parcels in this neighborhood scoped to county
     const { data: parcels, error: pErr } = await supabase
       .from("parcels")
       .select("id, building_area, land_area, year_built, bedrooms, bathrooms, assessed_value")
+      .eq("county_id", county_id)
       .eq("neighborhood_code", neighborhood_code);
 
     if (pErr) throw pErr;
