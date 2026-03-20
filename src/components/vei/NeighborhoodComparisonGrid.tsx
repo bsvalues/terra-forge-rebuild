@@ -87,12 +87,38 @@ export function NeighborhoodComparisonGrid({ data, isLoading }: NeighborhoodComp
     </th>
   );
 
+  // Aggregate IAAO compliance stats
+  const compliant = sorted.filter(n => (n.cod ?? 0) <= 15 && Math.abs((n.prd ?? 1) - 1) <= 0.05);
+  const complianceRate = sorted.length > 0 ? Math.round((compliant.length / sorted.length) * 100) : 0;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       className="material-bento rounded-lg p-6 space-y-4"
     >
+      {/* IAAO Compliance Scorecard */}
+      <div className="grid grid-cols-4 gap-3 mb-2">
+        <div className="rounded-lg bg-[hsl(var(--tf-elevated)/0.5)] p-3 text-center">
+          <div className="text-2xl font-light text-foreground">{sorted.length}</div>
+          <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Neighborhoods</div>
+        </div>
+        <div className="rounded-lg bg-[hsl(var(--tf-elevated)/0.5)] p-3 text-center">
+          <div className={`text-2xl font-light ${complianceRate >= 80 ? "text-vei-excellent" : complianceRate >= 60 ? "text-vei-caution" : "text-vei-concern"}`}>
+            {complianceRate}%
+          </div>
+          <div className="text-[10px] text-muted-foreground uppercase tracking-wider">IAAO Compliant</div>
+        </div>
+        <div className="rounded-lg bg-[hsl(var(--vei-excellent)/0.08)] p-3 text-center">
+          <div className="text-2xl font-light text-vei-excellent">{compliant.length}</div>
+          <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Passing</div>
+        </div>
+        <div className="rounded-lg bg-[hsl(var(--vei-caution)/0.08)] p-3 text-center">
+          <div className="text-2xl font-light text-vei-caution">{flagged.length}</div>
+          <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Flagged</div>
+        </div>
+      </div>
+
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-lg font-medium text-foreground flex items-center gap-2">
