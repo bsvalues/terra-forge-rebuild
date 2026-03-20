@@ -321,7 +321,7 @@ export function useUpdateTaskStatus() {
       if (status === "completed") updates.completed_at = new Date().toISOString();
       const { error } = await supabase
         .from("neighborhood_review_tasks")
-        .update(updates as any)
+        .update(updates as { status: string; updated_at: string; completed_at?: string })
         .eq("id", taskId);
       if (error) throw error;
     },
