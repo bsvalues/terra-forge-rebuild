@@ -3,11 +3,12 @@
 // "The pipes are behind the wall now. The assessor sees a faucet." — Ralph Wiggum
 import { useState } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Database, Layers, Zap, MapPin } from "lucide-react";
+import { Database, Layers, Zap, MapPin, DollarSign } from "lucide-react";
 import { IngestControlPanel } from "@/components/geoequity/IngestControlPanel";
 import { ScrapeJobsDashboard } from "@/components/geoequity/ScrapeJobsDashboard";
 import { DataSourcesPanel } from "@/components/geoequity/DataSourcesPanel";
 import { GISLayersPanel } from "@/components/geoequity/GISLayersPanel";
+import { RedfinSalesIngest } from "@/components/admin/RedfinSalesIngest";
 import { useGISDataSources, useGISLayers } from "@/hooks/useGISData";
 
 export function DataOpsPanel() {
