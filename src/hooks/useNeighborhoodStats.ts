@@ -3,6 +3,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useActiveCountyId } from "@/hooks/useActiveCounty";
 
 export interface NeighborhoodStat {
   hood_cd: string;
