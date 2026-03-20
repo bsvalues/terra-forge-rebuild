@@ -160,7 +160,7 @@ export function useCreateBatchNoticeJob() {
             body = generateTemplate(p);
           }
 
-          await supabase.from("notices").insert({
+          await supabase.from("notices").insert([{
             parcel_id: p.id,
             county_id: countyId,
             notice_type: "assessment_change",
@@ -169,8 +169,8 @@ export function useCreateBatchNoticeJob() {
             status: "draft",
             ai_drafted: isAI,
             batch_job_id: job.id,
-            metadata: { batch: true },
-          } as any);
+            metadata: { batch: true } as Record<string, unknown>,
+          }]);
 
           generated++;
         } catch {
