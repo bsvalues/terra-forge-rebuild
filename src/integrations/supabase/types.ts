@@ -5777,9 +5777,7 @@ export type Database = {
         }
         Returns: Json
       }
-      get_county_vitals:
-        | { Args: never; Returns: Json }
-        | { Args: { p_county_id?: string }; Returns: Json }
+      get_county_vitals: { Args: { p_county_id?: string }; Returns: Json }
       get_geometry_health_report:
         | { Args: never; Returns: Json }
         | { Args: { p_county_id: string }; Returns: Json }
