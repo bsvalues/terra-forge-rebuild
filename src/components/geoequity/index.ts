@@ -12,3 +12,4 @@ export { CountyDataQualityReport } from "./CountyDataQualityReport";
 export { ParcelImportWizard } from "./ParcelImportWizard";
 export { ParcelSearchPanel } from "./ParcelSearchPanel";
 export { ParcelDetailSheet } from "./ParcelDetailSheet";
+export { SyncStatusBadge } from "./SyncStatusBadge";
