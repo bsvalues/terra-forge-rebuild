@@ -9,6 +9,7 @@ const corsHeaders = {
 
 interface RegressionRequest {
   neighborhood_code: string;
+  county_id: string;
   variables: string[]; // e.g. ["building_area", "land_area", "year_built", "bedrooms", "bathrooms"]
   tax_year?: number;
 }
