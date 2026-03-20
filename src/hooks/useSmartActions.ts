@@ -100,6 +100,7 @@ export function useSmartActions(): SmartAction[] {
       const { data: nbhdParcels } = await supabase
         .from("parcels")
         .select("neighborhood_code")
+        .eq("county_id", countyId!)
         .not("neighborhood_code", "is", null)
         .limit(5000);
 
