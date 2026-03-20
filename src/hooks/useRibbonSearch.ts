@@ -27,16 +27,20 @@ export interface RibbonStudyPeriod {
 }
 
 export function useRibbonParcelSearch(query: string) {
+  const countyId = useActiveCountyId();
+
   return useQuery({
-    queryKey: ["parcel-search", query],
+    queryKey: ["parcel-search", countyId, query],
     queryFn: async () => {
       if (!query || query.length < 2) return [];
-      const { data, error } = await supabase
+      let q = supabase
         .from("parcels")
         .select("id, parcel_number, address, city, property_class, assessed_value, latitude, longitude, neighborhood_code")
         .or(`parcel_number.ilike.%${query}%,address.ilike.%${query}%`)
         .order("assessed_value", { ascending: false })
         .limit(10);
+      if (countyId) q = q.eq("county_id", countyId);
+      const { data, error } = await q;
       if (error) throw error;
       return (data || []) as RibbonParcelResult[];
     },
