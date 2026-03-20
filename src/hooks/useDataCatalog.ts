@@ -150,11 +150,11 @@ async function fetchCatalogData(): Promise<CatalogDomain[]> {
       if (hasUpdatedAt) {
         const { data: latest } = await supabase
           .from(table)
-          .select("updated_at" as any)
-          .order("updated_at" as any, { ascending: false })
+          .select("*")
+          .order("created_at", { ascending: false })
           .limit(1)
           .single();
-        lastUpdated = (latest as any)?.updated_at ?? null;
+        lastUpdated = (latest as Record<string, unknown>)?.updated_at as string ?? null;
       }
 
       return { table, count: count ?? 0, lastUpdated };

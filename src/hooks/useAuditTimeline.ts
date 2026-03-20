@@ -32,7 +32,7 @@ export function useAuditTimeline() {
         bucketMap.set(key, 0);
       }
 
-      for (const row of data as any[]) {
+      for (const row of data) {
         const key = new Date(row.created_at).toISOString().split("T")[0];
         if (bucketMap.has(key)) {
           bucketMap.set(key, (bucketMap.get(key) || 0) + 1);
@@ -49,7 +49,7 @@ export function useAuditTimeline() {
         });
       }
 
-      const total = (data as any[]).length;
+      const total = data.length;
 
       const last3 = buckets.slice(-3).reduce((s, b) => s + b.count, 0);
       const prior4 = buckets.slice(0, 4).reduce((s, b) => s + b.count, 0);

@@ -201,7 +201,7 @@ export function useCertifyAssessments() {
     onSuccess: (data, variables) => {
       showChangeReceipt({
         entity: `TY${variables.taxYear} Assessments`,
-        action: `${(data as any[])?.length ?? 0} assessments certified`,
+        action: `${Array.isArray(data) ? data.length : 0} assessments certified`,
         impact: "county",
         changes: [{ field: "certified", before: "false", after: "true" }],
       });

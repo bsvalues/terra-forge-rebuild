@@ -43,7 +43,7 @@ export function useCausalNarrative(event: TimelineEvent | null) {
       const linkKey = pickStrongestLinkKey(event);
 
       if (linkKey) {
-        const { data: linkedData } = await supabase.rpc("get_county_timeline" as any, {
+        const { data: linkedData } = await (supabase.rpc as Function)("get_county_timeline", {
           p_from: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString(),
           p_to: new Date().toISOString(),
           p_types: null,
@@ -56,7 +56,7 @@ export function useCausalNarrative(event: TimelineEvent | null) {
           p_window_minutes: 10,
         });
 
-        const linkedResult = linkedData as any;
+        const linkedResult = linkedData as unknown as { rows?: TimelineEvent[] };
         const linkedRows: TimelineEvent[] = linkedResult?.rows ?? [];
 
         if (linkedRows.length > 1) {
@@ -80,7 +80,7 @@ export function useCausalNarrative(event: TimelineEvent | null) {
       }
 
       // Strategy 2: Fallback to ±15 minute time window
-      const { data, error } = await supabase.rpc("get_county_timeline" as any, {
+      const { data, error } = await (supabase.rpc as Function)("get_county_timeline", {
         p_from: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString(),
         p_to: new Date().toISOString(),
         p_types: null,
@@ -95,7 +95,7 @@ export function useCausalNarrative(event: TimelineEvent | null) {
 
       if (error) throw error;
 
-      const result = data as any;
+      const result = data as unknown as { rows?: TimelineEvent[] };
       const rows: TimelineEvent[] = result?.rows ?? [];
 
       let before: TimelineEvent | null = null;

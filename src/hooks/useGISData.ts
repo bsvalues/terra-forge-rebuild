@@ -164,7 +164,7 @@ export function useCreateDataSource() {
     mutationFn: async (source: Partial<GISDataSource>) => {
       const { data, error } = await supabase
         .from("gis_data_sources")
-        .insert(source as any)
+        .insert([{ name: source.name!, source_type: source.source_type!, ...source }])
         .select()
         .single();
 

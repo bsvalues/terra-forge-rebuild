@@ -61,7 +61,7 @@ export function useAppealAuditLog(statusFilter: string, dateRange: "7d" | "30d" 
 
       const { data, error } = await query;
       if (error) throw error;
-      return data as any[];
+      return data ?? [];
     },
   });
 }
