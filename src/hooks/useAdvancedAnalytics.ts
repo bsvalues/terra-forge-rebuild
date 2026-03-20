@@ -36,7 +36,8 @@ export function useRatioTrendSpark(salesStart: string, salesEnd: string, yearsBa
             p_tax_year: year,
             p_sales_start_date: salesStart,
             p_sales_end_date: salesEnd,
-          });
+            p_outlier_method: "iqr",
+          } as any);
           if (error) return null;
           const stats = Array.isArray(data) ? data[0] : data;
           if (!stats || stats.sample_size === 0) return null;
