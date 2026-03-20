@@ -161,7 +161,7 @@ export function useCreateNeighborhood() {
       const countyId = profile?.county_id ?? "";
       const { data, error } = await supabase
         .from("neighborhoods")
-        .insert({
+        .insert([{
           hood_cd: input.hood_cd,
           hood_name: input.hood_name || null,
           year: input.year,
@@ -170,7 +170,7 @@ export function useCreateNeighborhood() {
           property_classes: input.property_classes || [],
           description: input.description || null,
           status: "registered",
-        } as any)
+        }])
         .select()
         .single();
       if (error) throw error;
