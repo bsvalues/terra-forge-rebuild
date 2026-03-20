@@ -137,14 +137,14 @@ export function useSaveNarrative(parcelId: string | null) {
       if (!parcelId) throw new Error("No parcel selected");
       const { data, error } = await supabase
         .from("dossier_narratives")
-        .insert({
+        .insert([{
           parcel_id: parcelId,
           title: params.title,
           content: params.content,
           narrative_type: params.narrativeType,
           ai_generated: params.aiGenerated,
           model_used: params.modelUsed || null,
-        } as any)
+        }])
         .select()
         .single();
       if (error) throw error;
@@ -155,7 +155,7 @@ export function useSaveNarrative(parcelId: string | null) {
         eventType: "evidence_attached",
         eventData: { narrativeType: params.narrativeType, title: params.title, aiGenerated: params.aiGenerated },
         artifactType: "narrative",
-        artifactId: (data as any).id,
+        artifactId: data.id,
       });
 
       return data;
