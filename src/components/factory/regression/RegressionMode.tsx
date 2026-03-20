@@ -7,7 +7,7 @@ import { BatchApplyPanel } from "./BatchApplyPanel";
 import { BatchNoticePanel } from "./BatchNoticePanel";
 import { RecentBatchesPanel } from "./RecentBatchesPanel";
 import { RollReadinessPanel } from "./RollReadinessPanel";
-import { BarChart3 } from "lucide-react";
+import { BarChart3, AlertTriangle } from "lucide-react";
 import { useState } from "react";
 import { ScopeHeader } from "@/components/trust";
 import { Badge } from "@/components/ui/badge";
