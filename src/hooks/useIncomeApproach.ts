@@ -64,7 +64,7 @@ export function useIncomeProperties(neighborhoodCode: string | null) {
       if (parcelIds.length === 0) return [];
 
       const { data, error } = await supabase
-        .from("income_properties" as any)
+        .from("income_properties")
         .select("*")
         .in("parcel_id", parcelIds.slice(0, 500))
         .order("income_year", { ascending: false });
