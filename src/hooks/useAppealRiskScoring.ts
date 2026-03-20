@@ -84,7 +84,7 @@ export function useRiskSummary() {
   return useQuery({
     queryKey: RISK_SUMMARY_KEY,
     queryFn: async () => {
-      const { data, error } = await supabase.rpc("get_appeal_risk_summary" as any);
+      const { data, error } = await supabase.rpc("get_appeal_risk_summary" as "get_revaluation_progress");
       if (error) throw error;
       return data as unknown as RiskSummary;
     },
