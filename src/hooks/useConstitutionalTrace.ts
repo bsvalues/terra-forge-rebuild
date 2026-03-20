@@ -65,7 +65,7 @@ export function useValueLineage(parcelId?: string, limit = 50) {
     queryKey: ["constitutional-lineage", parcelId, limit],
     queryFn: async () => {
       let query = supabase
-        .from("slco_value_lineage" as any)
+        .from("slco_value_lineage")
         .select("*")
         .order("created_at", { ascending: false })
         .limit(limit);
@@ -89,7 +89,7 @@ export function useWriteLaneViolations(limit = 50) {
     queryKey: ["write-lane-violations", limit],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("write_lane_violations" as any)
+        .from("write_lane_violations")
         .select("*")
         .order("created_at", { ascending: false })
         .limit(limit);
@@ -112,7 +112,7 @@ export function useLogWriteLaneViolation() {
       context?: Record<string, any>;
     }) => {
       const { error } = await supabase
-        .from("write_lane_violations" as any)
+        .from("write_lane_violations")
         .insert(violation as any);
       if (error) throw error;
     },
@@ -129,7 +129,7 @@ export function useAppealAuditTrail(parcelId?: string, limit = 50) {
     queryKey: ["appeal-audit-trail", parcelId, limit],
     queryFn: async () => {
       let query = supabase
-        .from("appeal_audit_trail" as any)
+        .from("appeal_audit_trail")
         .select("*")
         .limit(limit);
 
@@ -152,7 +152,7 @@ export function useLineageSummary(limit = 100) {
     queryKey: ["slco-lineage-summary", limit],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("slco_lineage_summary" as any)
+        .from("slco_lineage_summary")
         .select("*")
         .limit(limit);
 

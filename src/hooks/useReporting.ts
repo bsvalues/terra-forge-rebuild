@@ -204,7 +204,7 @@ async function executeReportQuery(
       return { rows, rowCount: rows.length, summary: aggregateRows(rows, "exemption_type", "exemption_amount") };
     }
     case "sales": {
-      const { data, error } = await supabase.from("sales" as any).select("*").limit(1000);
+      const { data, error } = await supabase.from("sales").select("*").limit(1000);
       if (error) {
         // sales table may not exist — return empty
         return { rows: [], rowCount: 0, summary: { groups: [], totalRows: 0 } };

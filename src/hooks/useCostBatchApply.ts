@@ -40,7 +40,7 @@ export function useCostApproachRuns(neighborhoodCode: string | null) {
     staleTime: 60_000,
     queryFn: async (): Promise<CostApproachRunRow[]> => {
       const { data, error } = await supabase
-        .from("cost_approach_runs" as any)
+        .from("cost_approach_runs")
         .select("*")
         .eq("neighborhood_code", neighborhoodCode!)
         .order("created_at", { ascending: false })
@@ -157,7 +157,7 @@ export function useSaveCostRun() {
       stats: { median: number | null; cod: number | null; mean: number | null; matched: number; processed: number };
     }) => {
       const { data: profile } = await supabase.from("profiles").select("county_id").single();
-      const { error } = await supabase.from("cost_approach_runs" as any).insert({
+      const { error } = await supabase.from("cost_approach_runs").insert({
         county_id: profile?.county_id ?? "",
         neighborhood_code: neighborhoodCode,
         schedule_id: scheduleId,

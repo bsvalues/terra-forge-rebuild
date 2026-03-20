@@ -59,7 +59,7 @@ export function useSecurityAudit(enabled = true) {
 
       // Fetch last 7 days of trace events
       const { data: events7d, error } = await supabase
-        .from("trace_events" as any)
+        .from("trace_events")
         .select("id, event_type, source_module, actor_id, created_at, event_data, parcel_id")
         .gte("created_at", d7)
         .order("created_at", { ascending: false })

@@ -131,7 +131,7 @@ async function fetchSLCOPipelineState(): Promise<SLCOPipelineState> {
 
   // Query pipeline_events for latest stage statuses
   const { data: pipelineEvents } = await supabase
-    .from("pipeline_events" as any)
+    .from("pipeline_events")
     .select("stage, status, rows_affected, finished_at")
     .order("created_at", { ascending: false })
     .limit(50);

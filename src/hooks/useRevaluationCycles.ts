@@ -52,7 +52,7 @@ export function useRevaluationCycles() {
     queryKey: [...QUERY_KEY, countyId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("revaluation_cycles" as any)
+        .from("revaluation_cycles")
         .select("*")
         .eq("county_id", countyId!)
         .order("created_at", { ascending: false });

@@ -64,7 +64,7 @@ export function useIncomeProperties(neighborhoodCode: string | null) {
       if (parcelIds.length === 0) return [];
 
       const { data, error } = await supabase
-        .from("income_properties" as any)
+        .from("income_properties")
         .select("*")
         .in("parcel_id", parcelIds.slice(0, 500))
         .order("income_year", { ascending: false });
@@ -81,7 +81,7 @@ export function useIncomeApproachRuns(neighborhoodCode: string | null) {
     staleTime: 60_000,
     queryFn: async (): Promise<IncomeApproachRunRow[]> => {
       const { data, error } = await supabase
-        .from("income_approach_runs" as any)
+        .from("income_approach_runs")
         .select("*")
         .eq("neighborhood_code", neighborhoodCode!)
         .order("created_at", { ascending: false })
@@ -109,7 +109,7 @@ export function useUpsertIncomeProperty() {
       notes?: string;
     }) => {
       const { data: profile } = await supabase.from("profiles").select("county_id").single();
-      const { error } = await supabase.from("income_properties" as any).upsert(
+      const { error } = await supabase.from("income_properties").upsert(
         {
           county_id: profile?.county_id ?? "",
           parcel_id: input.parcel_id,
@@ -138,7 +138,7 @@ export function useDeleteIncomeProperty() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("income_properties" as any).delete().eq("id", id);
+      const { error } = await supabase.from("income_properties").delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -198,7 +198,7 @@ export function useBatchIncomeApply() {
 
       // 2. Get income data
       const { data: incomeData } = await supabase
-        .from("income_properties" as any)
+        .from("income_properties")
         .select("*")
         .in("parcel_id", parcelIds.slice(0, 500));
       const incomeMap = new Map<string, IncomePropertyRow>();
@@ -298,7 +298,7 @@ export function useSaveIncomeRun() {
       stats: { processed: number; withIncome: number; medianCapRate: number | null; medianGrm: number | null; medianRatio: number | null; cod: number | null };
     }) => {
       const { data: profile } = await supabase.from("profiles").select("county_id").single();
-      const { error } = await supabase.from("income_approach_runs" as any).insert({
+      const { error } = await supabase.from("income_approach_runs").insert({
         county_id: profile?.county_id ?? "",
         neighborhood_code: neighborhoodCode,
         parcels_processed: stats.processed,

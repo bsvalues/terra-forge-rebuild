@@ -18,7 +18,7 @@ export function useAuditTimeline() {
       const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
       const { data, error } = await supabase
-        .from("trace_events" as any)
+        .from("trace_events")
         .select("created_at")
         .gte("created_at", sevenDaysAgo.toISOString())
         .order("created_at", { ascending: true });

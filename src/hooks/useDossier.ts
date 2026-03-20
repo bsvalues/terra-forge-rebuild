@@ -15,7 +15,7 @@ export function useDossierDocuments(parcelId: string | null) {
     queryKey: ["dossier-documents", parcelId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("dossier_documents" as any)
+        .from("dossier_documents")
         .select("*")
         .eq("parcel_id", parcelId!)
         .order("created_at", { ascending: false });
@@ -49,7 +49,7 @@ export function useUploadDocument(parcelId: string | null) {
 
       // Insert document record
       const { data, error } = await supabase
-        .from("dossier_documents" as any)
+        .from("dossier_documents")
         .insert({
           parcel_id: parcelId,
           file_name: file.name,
@@ -93,7 +93,7 @@ export function useDeleteDocument(parcelId: string | null) {
     mutationFn: async (doc: { id: string; file_path: string }) => {
       await supabase.storage.from("dossier-files").remove([doc.file_path]);
       const { error } = await supabase
-        .from("dossier_documents" as any)
+        .from("dossier_documents")
         .delete()
         .eq("id", doc.id);
       if (error) throw error;
@@ -113,7 +113,7 @@ export function useDossierNarratives(parcelId: string | null) {
     queryKey: ["dossier-narratives", parcelId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("dossier_narratives" as any)
+        .from("dossier_narratives")
         .select("*")
         .eq("parcel_id", parcelId!)
         .order("created_at", { ascending: false });
@@ -136,7 +136,7 @@ export function useSaveNarrative(parcelId: string | null) {
     }) => {
       if (!parcelId) throw new Error("No parcel selected");
       const { data, error } = await supabase
-        .from("dossier_narratives" as any)
+        .from("dossier_narratives")
         .insert({
           parcel_id: parcelId,
           title: params.title,
@@ -178,7 +178,7 @@ export function useDeleteNarrative(parcelId: string | null) {
   return useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
-        .from("dossier_narratives" as any)
+        .from("dossier_narratives")
         .delete()
         .eq("id", id);
       if (error) throw error;
@@ -198,7 +198,7 @@ export function useDossierPackets(parcelId: string | null) {
     queryKey: ["dossier-packets", parcelId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("dossier_packets" as any)
+        .from("dossier_packets")
         .select("*")
         .eq("parcel_id", parcelId!)
         .order("created_at", { ascending: false });
@@ -220,7 +220,7 @@ export function useAssemblePacket(parcelId: string | null) {
     }) => {
       if (!parcelId) throw new Error("No parcel selected");
       const { data, error } = await supabase
-        .from("dossier_packets" as any)
+        .from("dossier_packets")
         .insert({
           parcel_id: parcelId,
           title: params.title,
@@ -267,7 +267,7 @@ export function useFinalizePacket(parcelId: string | null) {
     mutationFn: async (packetId: string) => {
       if (!parcelId) throw new Error("No parcel selected");
       const { data, error } = await supabase
-        .from("dossier_packets" as any)
+        .from("dossier_packets")
         .update({
           status: "finalized",
           finalized_at: new Date().toISOString(),
@@ -310,7 +310,7 @@ export function usePacketContents(packet: any | null) {
     queryFn: async () => {
       if (!docIds.length) return [];
       const { data, error } = await supabase
-        .from("dossier_documents" as any)
+        .from("dossier_documents")
         .select("*")
         .in("id", docIds);
       if (error) throw error;
@@ -324,7 +324,7 @@ export function usePacketContents(packet: any | null) {
     queryFn: async () => {
       if (!narIds.length) return [];
       const { data, error } = await supabase
-        .from("dossier_narratives" as any)
+        .from("dossier_narratives")
         .select("*")
         .in("id", narIds);
       if (error) throw error;

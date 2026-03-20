@@ -136,7 +136,7 @@ function useParcelTraceEvents(parcelId: string | null) {
     queryKey: ["p360-trace", parcelId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("trace_events" as any)
+        .from("trace_events")
         .select("*")
         .eq("parcel_id", parcelId!)
         .order("created_at", { ascending: false })

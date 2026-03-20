@@ -27,7 +27,7 @@ export function useQualityPipelineEvents() {
     queryKey: ["quality-pipeline-events"],
     queryFn: async () => {
       const { data } = await supabase
-        .from("pipeline_events" as any)
+        .from("pipeline_events")
         .select("*")
         .eq("stage", "quality_scored")
         .order("created_at", { ascending: false })

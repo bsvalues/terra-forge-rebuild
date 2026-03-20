@@ -21,7 +21,7 @@ export function useNeighborhoodYear(year?: number) {
     queryKey: ["neighborhoods-year", effectiveYear],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("neighborhoods" as any)
+        .from("neighborhoods")
         .select("hood_cd, hood_name, year")
         .eq("year", effectiveYear)
         .order("hood_cd");
