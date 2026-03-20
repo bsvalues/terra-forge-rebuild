@@ -167,7 +167,7 @@ export function VEIDashboard() {
     return { status: "concern", label: "Strong Regressivity", color: "vei-concern" };
   };
 
-  const getAppealsStatus = (rate: number) => {
+  const getAppealsStatus = (rate: number): { status: VEIStatus; label: string; color: string } => {
     if (rate <= 3) return { status: "excellent", label: "Low Concentration", color: "vei-excellent" };
     if (rate <= 5) return { status: "good", label: "Moderate", color: "vei-good" };
     if (rate <= 8) return { status: "caution", label: "High-Value Clustering", color: "vei-caution" };
