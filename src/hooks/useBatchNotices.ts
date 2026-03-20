@@ -109,19 +109,19 @@ export function useCreateBatchNoticeJob() {
       // 2. Create batch job record
       const { data: job, error: jErr } = await supabase
         .from("batch_notice_jobs")
-        .insert({
+        .insert([{
           county_id: countyId,
           neighborhood_code: params.neighborhoodCode || null,
           property_class: params.propertyClass || null,
-          filters: {
+          filters: JSON.parse(JSON.stringify({
             neighborhoodCode: params.neighborhoodCode,
             propertyClass: params.propertyClass,
             useAI: params.useAI,
             aiLimit: params.aiLimit,
-          },
+          })),
           total_parcels: parcels.length,
           status: "running",
-        } as any)
+        }])
         .select()
         .single();
 
@@ -160,7 +160,7 @@ export function useCreateBatchNoticeJob() {
             body = generateTemplate(p);
           }
 
-          await supabase.from("notices").insert({
+          await supabase.from("notices").insert([{
             parcel_id: p.id,
             county_id: countyId,
             notice_type: "assessment_change",
@@ -169,8 +169,8 @@ export function useCreateBatchNoticeJob() {
             status: "draft",
             ai_drafted: isAI,
             batch_job_id: job.id,
-            metadata: { batch: true },
-          } as any);
+            metadata: JSON.parse(JSON.stringify({ batch: true })),
+          }]);
 
           generated++;
         } catch {
@@ -185,9 +185,9 @@ export function useCreateBatchNoticeJob() {
           notices_generated: generated,
           notices_failed: failed,
           ai_drafted_count: aiDrafted,
-          status: "completed",
+          status: "completed" as const,
           completed_at: new Date().toISOString(),
-        } as any)
+        })
         .eq("id", job.id);
 
       await emitTraceEvent({

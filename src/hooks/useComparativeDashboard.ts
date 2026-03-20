@@ -78,7 +78,7 @@ export function useComparisonSnapshots() {
   return useQuery({
     queryKey: ["comparison-snapshots"],
     queryFn: async () => {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from("comparison_snapshots")
         .select("*")
         .order("tax_year", { ascending: false })
@@ -101,12 +101,14 @@ export function useGenerateSnapshot() {
       neighborhoodCode?: string;
       propertyClass?: string;
     }) => {
-      const { data, error } = await (supabase as any).rpc("generate_comparison_snapshot", {
-        p_county_id: params.countyId,
-        p_tax_year: params.taxYear,
-        p_label: params.label || null,
-        p_neighborhood_code: params.neighborhoodCode || null,
-        p_property_class: params.propertyClass || null,
+      const { data, error } = await supabase.functions.invoke("generate-comparison-snapshot", {
+        body: {
+          county_id: params.countyId,
+          tax_year: params.taxYear,
+          label: params.label || null,
+          neighborhood_code: params.neighborhoodCode || null,
+          property_class: params.propertyClass || null,
+        },
       });
       if (error) throw error;
       return data as string;
@@ -125,7 +127,7 @@ export function useDeleteSnapshot() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from("comparison_snapshots")
         .delete()
         .eq("id", id);

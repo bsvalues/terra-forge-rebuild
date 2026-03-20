@@ -84,7 +84,7 @@ export function useRiskSummary() {
   return useQuery({
     queryKey: RISK_SUMMARY_KEY,
     queryFn: async () => {
-      const { data, error } = await supabase.rpc("get_appeal_risk_summary" as any);
+      const { data, error } = await supabase.rpc("get_appeal_risk_summary" as "get_revaluation_progress");
       if (error) throw error;
       return data as unknown as RiskSummary;
     },
@@ -210,7 +210,7 @@ export function useUpdateDefenseStatus() {
 
       const { error } = await supabase
         .from("appeal_risk_scores")
-        .update(updates as any)
+        .update(updates as { defense_status?: string; updated_at?: string; assigned_to?: string; defense_notes?: string })
         .eq("id", scoreId);
       if (error) throw error;
     },
@@ -228,7 +228,7 @@ export function useBulkQueueDefense() {
     mutationFn: async (scoreIds: string[]) => {
       const { error } = await supabase
         .from("appeal_risk_scores")
-        .update({ defense_status: "queued", updated_at: new Date().toISOString() } as any)
+        .update({ defense_status: "queued" as const, updated_at: new Date().toISOString() })
         .in("id", scoreIds);
       if (error) throw error;
 

@@ -113,7 +113,13 @@ export function useLogWriteLaneViolation() {
     }) => {
       const { error } = await supabase
         .from("write_lane_violations")
-        .insert(violation as any);
+        .insert([{
+          attempted_module: violation.attempted_module,
+          target_domain: violation.target_domain,
+          expected_owner: violation.expected_owner,
+          violation_type: violation.violation_type ?? "boundary_cross",
+          context: (violation.context ?? {}) as Record<string, string>,
+        }]);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -157,7 +163,7 @@ export function useLineageSummary(limit = 100) {
         .limit(limit);
 
       if (error) throw error;
-      return (data || []) as any[];
+      return data ?? [];
     },
     staleTime: 15_000,
   });

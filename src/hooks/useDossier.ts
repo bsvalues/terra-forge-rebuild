@@ -20,7 +20,7 @@ export function useDossierDocuments(parcelId: string | null) {
         .eq("parcel_id", parcelId!)
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return data as any[];
+      return data ?? [];
     },
     enabled: !!parcelId,
   });
@@ -50,7 +50,7 @@ export function useUploadDocument(parcelId: string | null) {
       // Insert document record
       const { data, error } = await supabase
         .from("dossier_documents")
-        .insert({
+        .insert([{
           parcel_id: parcelId,
           file_name: file.name,
           file_path: filePath,
@@ -58,7 +58,7 @@ export function useUploadDocument(parcelId: string | null) {
           mime_type: file.type,
           document_type: documentType,
           description: description || null,
-        } as any)
+        }])
         .select()
         .single();
       if (error) throw error;
@@ -69,7 +69,7 @@ export function useUploadDocument(parcelId: string | null) {
         eventType: "document_added",
         eventData: { fileName: file.name, documentType },
         artifactType: "document",
-        artifactId: (data as any).id,
+        artifactId: data.id,
       });
 
       return data;
@@ -118,7 +118,7 @@ export function useDossierNarratives(parcelId: string | null) {
         .eq("parcel_id", parcelId!)
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return data as any[];
+      return data ?? [];
     },
     enabled: !!parcelId,
   });
@@ -137,14 +137,14 @@ export function useSaveNarrative(parcelId: string | null) {
       if (!parcelId) throw new Error("No parcel selected");
       const { data, error } = await supabase
         .from("dossier_narratives")
-        .insert({
+        .insert([{
           parcel_id: parcelId,
           title: params.title,
           content: params.content,
           narrative_type: params.narrativeType,
           ai_generated: params.aiGenerated,
           model_used: params.modelUsed || null,
-        } as any)
+        }])
         .select()
         .single();
       if (error) throw error;
@@ -155,7 +155,7 @@ export function useSaveNarrative(parcelId: string | null) {
         eventType: "evidence_attached",
         eventData: { narrativeType: params.narrativeType, title: params.title, aiGenerated: params.aiGenerated },
         artifactType: "narrative",
-        artifactId: (data as any).id,
+        artifactId: data.id,
       });
 
       return data;
@@ -203,7 +203,7 @@ export function useDossierPackets(parcelId: string | null) {
         .eq("parcel_id", parcelId!)
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return data as any[];
+      return data ?? [];
     },
     enabled: !!parcelId,
   });
@@ -221,14 +221,14 @@ export function useAssemblePacket(parcelId: string | null) {
       if (!parcelId) throw new Error("No parcel selected");
       const { data, error } = await supabase
         .from("dossier_packets")
-        .insert({
+        .insert([{
           parcel_id: parcelId,
           title: params.title,
           packet_type: params.packetType,
           document_ids: params.documentIds,
           narrative_ids: params.narrativeIds,
           status: "draft",
-        } as any)
+        }])
         .select()
         .single();
       if (error) throw error;
@@ -243,7 +243,7 @@ export function useAssemblePacket(parcelId: string | null) {
           narrativeCount: params.narrativeIds.length,
         },
         artifactType: "packet",
-        artifactId: (data as any).id,
+        artifactId: data.id,
       });
 
       return data;
@@ -269,9 +269,9 @@ export function useFinalizePacket(parcelId: string | null) {
       const { data, error } = await supabase
         .from("dossier_packets")
         .update({
-          status: "finalized",
+          status: "finalized" as const,
           finalized_at: new Date().toISOString(),
-        } as any)
+        })
         .eq("id", packetId)
         .select()
         .single();
@@ -301,7 +301,7 @@ export function useFinalizePacket(parcelId: string | null) {
   });
 }
 
-export function usePacketContents(packet: any | null) {
+export function usePacketContents(packet: { id: string; document_ids?: string[]; narrative_ids?: string[] } | null) {
   const docIds: string[] = packet?.document_ids || [];
   const narIds: string[] = packet?.narrative_ids || [];
 
@@ -314,7 +314,7 @@ export function usePacketContents(packet: any | null) {
         .select("*")
         .in("id", docIds);
       if (error) throw error;
-      return data as any[];
+      return data ?? [];
     },
     enabled: !!packet && docIds.length > 0,
   });
@@ -328,7 +328,7 @@ export function usePacketContents(packet: any | null) {
         .select("*")
         .in("id", narIds);
       if (error) throw error;
-      return data as any[];
+      return data ?? [];
     },
     enabled: !!packet && narIds.length > 0,
   });
