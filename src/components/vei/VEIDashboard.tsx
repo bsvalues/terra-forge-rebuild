@@ -126,7 +126,9 @@ export function VEIDashboard() {
   const highTierAppealsRate = appealsData.find((a) => a.tier.includes("Q4"))?.rate ?? 0;
 
   // Status helpers
-  const getPRDStatus = (prd: number) => {
+  type VEIStatus = "excellent" | "good" | "caution" | "concern";
+
+  const getPRDStatus = (prd: number): { status: VEIStatus; label: string; color: string } => {
     const deviation = Math.abs(prd - 1);
     if (deviation <= 0.02) return { status: "excellent", label: "Excellent", color: "vei-excellent" };
     if (deviation <= 0.05) return { status: "good", label: "Good", color: "vei-good" };
