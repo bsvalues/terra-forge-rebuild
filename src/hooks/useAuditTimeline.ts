@@ -32,7 +32,7 @@ export function useAuditTimeline() {
         bucketMap.set(key, 0);
       }
 
-      for (const row of data as any[]) {
+      for (const row of data) {
         const key = new Date(row.created_at).toISOString().split("T")[0];
         if (bucketMap.has(key)) {
           bucketMap.set(key, (bucketMap.get(key) || 0) + 1);
