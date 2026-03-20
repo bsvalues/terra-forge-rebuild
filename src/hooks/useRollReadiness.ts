@@ -46,12 +46,14 @@ export interface RollReadinessData {
 }
 
 export function useRollReadiness() {
+  const countyId = useActiveCountyId();
+
   return useQuery<RollReadinessData>({
-    queryKey: ["roll-readiness-command"],
+    queryKey: ["roll-readiness-command", countyId],
     queryFn: async () => {
       const currentYear = new Date().getFullYear();
 
-      // ── Parallel data fetch ──
+      // ── Parallel data fetch (all county-scoped) ──
       const [
         { count: totalParcels },
         { data: assessments },
@@ -65,17 +67,17 @@ export function useRollReadiness() {
         { count: withNbhd },
         { count: withValue },
       ] = await Promise.all([
-        supabase.from("parcels").select("*", { count: "exact", head: true }),
-        supabase.from("assessments").select("parcel_id, certified").eq("tax_year", currentYear),
-        supabase.from("parcels").select("id, neighborhood_code, assessed_value, latitude, property_class"),
-        supabase.from("calibration_runs").select("neighborhood_code, r_squared, status").eq("status", "applied"),
-        supabase.from("appeals").select("*", { count: "exact", head: true }).in("status", ["filed", "pending", "scheduled"]),
+        supabase.from("parcels").select("*", { count: "exact", head: true }).eq("county_id", countyId!),
+        supabase.from("assessments").select("parcel_id, certified").eq("county_id", countyId!).eq("tax_year", currentYear),
+        supabase.from("parcels").select("id, neighborhood_code, assessed_value, latitude, property_class").eq("county_id", countyId!),
+        supabase.from("calibration_runs").select("neighborhood_code, r_squared, status").eq("county_id", countyId!).eq("status", "applied"),
+        supabase.from("appeals").select("*", { count: "exact", head: true }).eq("county_id", countyId!).in("status", ["filed", "pending", "scheduled"]),
         supabase.from("permits").select("*", { count: "exact", head: true }).in("status", ["applied", "pending"]),
         supabase.from("exemptions").select("*", { count: "exact", head: true }).eq("status", "pending"),
-        supabase.from("parcels").select("*", { count: "exact", head: true }).not("latitude", "is", null),
-        supabase.from("parcels").select("*", { count: "exact", head: true }).not("property_class", "is", null),
-        supabase.from("parcels").select("*", { count: "exact", head: true }).not("neighborhood_code", "is", null),
-        supabase.from("parcels").select("*", { count: "exact", head: true }).gt("assessed_value", 0),
+        supabase.from("parcels").select("*", { count: "exact", head: true }).eq("county_id", countyId!).not("latitude", "is", null),
+        supabase.from("parcels").select("*", { count: "exact", head: true }).eq("county_id", countyId!).not("property_class", "is", null),
+        supabase.from("parcels").select("*", { count: "exact", head: true }).eq("county_id", countyId!).not("neighborhood_code", "is", null),
+        supabase.from("parcels").select("*", { count: "exact", head: true }).eq("county_id", countyId!).gt("assessed_value", 0),
       ]);
 
       const total = totalParcels || 0;
