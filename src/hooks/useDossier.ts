@@ -269,9 +269,9 @@ export function useFinalizePacket(parcelId: string | null) {
       const { data, error } = await supabase
         .from("dossier_packets")
         .update({
-          status: "finalized",
+          status: "finalized" as const,
           finalized_at: new Date().toISOString(),
-        } as any)
+        })
         .eq("id", packetId)
         .select()
         .single();
