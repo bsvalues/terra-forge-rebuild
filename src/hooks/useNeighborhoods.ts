@@ -6,6 +6,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { emitTraceEventAsync } from "@/services/terraTrace";
+import { useActiveCountyId } from "@/hooks/useActiveCounty";
 
 export interface NeighborhoodRow {
   id: string;
@@ -50,30 +51,37 @@ const QUERY_KEY = ["neighborhoods"];
 
 /** Fetch all neighborhoods for the current year */
 export function useNeighborhoods(year?: number) {
+  const countyId = useActiveCountyId();
+
   return useQuery({
-    queryKey: [...QUERY_KEY, year],
+    queryKey: [...QUERY_KEY, countyId, year],
     queryFn: async () => {
       let query = supabase
         .from("neighborhoods")
         .select("*")
+        .eq("county_id", countyId!)
         .order("hood_cd", { ascending: true });
       if (year) query = query.eq("year", year);
       const { data, error } = await query;
       if (error) throw error;
       return (data || []) as NeighborhoodRow[];
     },
+    enabled: !!countyId,
     staleTime: 120_000,
   });
 }
 
 /** Aggregate parcel stats per neighborhood */
 export function useNeighborhoodStats() {
+  const countyId = useActiveCountyId();
+
   return useQuery({
-    queryKey: ["neighborhood-stats"],
+    queryKey: ["neighborhood-stats", countyId],
     queryFn: async () => {
       const { data: parcels, error } = await supabase
         .from("parcels")
         .select("neighborhood_code, assessed_value, building_area, year_built")
+        .eq("county_id", countyId!)
         .not("neighborhood_code", "is", null);
       if (error) throw error;
 
@@ -117,6 +125,7 @@ export function useNeighborhoodStats() {
 
       return stats.sort((a, b) => b.parcel_count - a.parcel_count);
     },
+    enabled: !!countyId,
     staleTime: 120_000,
   });
 }

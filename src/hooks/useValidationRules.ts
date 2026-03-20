@@ -4,6 +4,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { emitTraceEventAsync } from "@/services/terraTrace";
+import { useActiveCountyId } from "@/hooks/useActiveCounty";
 
 // ── Types ──────────────────────────────────────────────────────
 
@@ -193,11 +194,15 @@ export function useRunValidation() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (rules: ValidationRule[]): Promise<ValidationResult[]> => {
-      // Fetch parcels for validation (limit 1000)
-      const { data: parcels, error } = await supabase
+      // Fetch parcels for validation (county-scoped, limit 1000)
+      const { data: profile } = await supabase.from("profiles").select("county_id").single();
+      const cId = profile?.county_id;
+      let pq = supabase
         .from("parcels")
         .select("id, parcel_number, assessed_value, land_value, improvement_value, building_area, land_area, year_built, bedrooms, bathrooms, neighborhood_code, property_class, address, latitude, longitude")
         .limit(1000);
+      if (cId) pq = pq.eq("county_id", cId);
+      const { data: parcels, error } = await pq;
 
       if (error) throw error;
       if (!parcels || parcels.length === 0) return [];

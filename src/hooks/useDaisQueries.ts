@@ -120,11 +120,14 @@ export function useParcelSearch(searchTerm: string) {
     queryKey: ["parcels-search", searchTerm],
     queryFn: async () => {
       if (!searchTerm || searchTerm.length < 2) return [];
-      const { data, error } = await supabase
+      const { data: profile } = await supabase.from("profiles").select("county_id").single();
+      let q = supabase
         .from("parcels")
         .select("id, parcel_number, address, city")
         .or(`parcel_number.ilike.%${searchTerm}%,address.ilike.%${searchTerm}%`)
         .limit(10);
+      if (profile?.county_id) q = q.eq("county_id", profile.county_id);
+      const { data, error } = await q;
       if (error) throw error;
       return data;
     },

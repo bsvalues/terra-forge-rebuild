@@ -4,6 +4,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useActiveCountyId } from "@/hooks/useActiveCounty";
 
 export interface SmartAction {
   id: string;
@@ -38,8 +39,10 @@ function extractProvenance(block: Record<string, any> | undefined): SmartAction[
 }
 
 export function useSmartActions(): SmartAction[] {
+  const countyId = useActiveCountyId();
+
   const { data: actions } = useQuery({
-    queryKey: ["smart-quick-actions"],
+    queryKey: ["smart-quick-actions", countyId],
     queryFn: async (): Promise<SmartAction[]> => {
       const result: SmartAction[] = [];
 
@@ -97,6 +100,7 @@ export function useSmartActions(): SmartAction[] {
       const { data: nbhdParcels } = await supabase
         .from("parcels")
         .select("neighborhood_code")
+        .eq("county_id", countyId!)
         .not("neighborhood_code", "is", null)
         .limit(5000);
 
@@ -123,6 +127,7 @@ export function useSmartActions(): SmartAction[] {
       const { data: parcels } = await supabase
         .from("parcels")
         .select("neighborhood_code")
+        .eq("county_id", countyId!)
         .not("neighborhood_code", "is", null)
         .limit(5000);
 
@@ -131,6 +136,7 @@ export function useSmartActions(): SmartAction[] {
       const { data: calibRuns } = await supabase
         .from("calibration_runs")
         .select("neighborhood_code")
+        .eq("county_id", countyId!)
         .limit(1000);
 
       const calibratedNbhds = new Set((calibRuns || []).map((r) => r.neighborhood_code));
@@ -308,6 +314,7 @@ export function useSmartActions(): SmartAction[] {
       result.sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
       return result.slice(0, 7);
     },
+    enabled: !!countyId,
     staleTime: 120_000,
   });
 
