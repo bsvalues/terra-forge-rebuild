@@ -27,6 +27,10 @@ export function useTodaySummary() {
         p_search: null,
         p_limit: 1000,
         p_offset: 0,
+        p_link_key: null,
+        p_link_value: null,
+        p_window_center: null,
+        p_window_minutes: 10,
       });
 
       if (error) throw error;

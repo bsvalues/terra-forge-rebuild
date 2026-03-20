@@ -5758,33 +5758,21 @@ export type Database = {
       geomfromewkt: { Args: { "": string }; Returns: unknown }
       get_appeal_owner_email: { Args: { p_appeal_id: string }; Returns: string }
       get_appeal_risk_summary: { Args: { p_county_id?: string }; Returns: Json }
-      get_county_timeline:
-        | {
-            Args: {
-              p_from?: string
-              p_limit?: number
-              p_offset?: number
-              p_search?: string
-              p_to?: string
-              p_types?: string[]
-            }
-            Returns: Json
-          }
-        | {
-            Args: {
-              p_from?: string
-              p_limit?: number
-              p_link_key?: string
-              p_link_value?: string
-              p_offset?: number
-              p_search?: string
-              p_to?: string
-              p_types?: string[]
-              p_window_center?: string
-              p_window_minutes?: number
-            }
-            Returns: Json
-          }
+      get_county_timeline: {
+        Args: {
+          p_from?: string
+          p_limit?: number
+          p_link_key?: string
+          p_link_value?: string
+          p_offset?: number
+          p_search?: string
+          p_to?: string
+          p_types?: string[]
+          p_window_center?: string
+          p_window_minutes?: number
+        }
+        Returns: Json
+      }
       get_county_vitals: { Args: never; Returns: Json }
       get_geometry_health_report:
         | { Args: never; Returns: Json }
