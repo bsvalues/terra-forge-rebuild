@@ -50,21 +50,31 @@ const AVAILABLE_VARIABLES = [
 
 export function useCalibration(neighborhoodCode: string | null) {
   const queryClient = useQueryClient();
+  const countyId = useActiveCountyId();
   const [selectedVars, setSelectedVars] = useState<string[]>(["building_area", "year_built"]);
   const [result, setResult] = useState<CalibrationResult | null>(null);
 
   const runMutation = useMutation({
     mutationFn: async () => {
       if (!neighborhoodCode) throw new Error("Select a neighborhood first");
+      if (!countyId) throw new Error("No county assigned to your profile");
       if (selectedVars.length === 0) throw new Error("Select at least one variable");
 
       const { data, error } = await supabase.functions.invoke("regression-calibrate", {
-        body: { neighborhood_code: neighborhoodCode, variables: selectedVars },
+        body: { neighborhood_code: neighborhoodCode, county_id: countyId, variables: selectedVars },
       });
 
       if (error) throw error;
       if (data?.error) {
         const hint = data?.debug?.hint || "";
+        const salesCount = data?.debug?.parcels_with_sales ?? 0;
+        if (salesCount === 0) {
+          throw new Error(
+            `No qualified sales found in neighborhood ${neighborhoodCode}. ` +
+            `Calibration requires at least 3 parcels with sales data. ` +
+            `Import sales data first via Home → Data Ops.`
+          );
+        }
         throw new Error(`${data.error}${hint ? ` — ${hint}` : ""}`);
       }
       return data as CalibrationResult;
