@@ -143,7 +143,7 @@ export function VEIDashboard() {
     return { status: "concern", label: "Concern", color: "vei-concern" };
   };
 
-  const getPRBStatus = (prb: number) => {
+  const getPRBStatus = (prb: number): { status: VEIStatus; label: string; color: string } => {
     const absPrb = Math.abs(prb);
     if (absPrb <= 0.02) return { status: "excellent", label: "No Bias", color: "vei-excellent" };
     if (absPrb <= 0.05) return { status: "good", label: "Minimal Bias", color: "vei-good" };
