@@ -50,7 +50,7 @@ export function CertificationReadinessWidget() {
     queryKey: ["cert-readiness-events"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("certification_events" as any)
+        .from("certification_events")
         .select("*")
         .order("certified_at", { ascending: false })
         .limit(5);
