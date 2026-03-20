@@ -184,6 +184,7 @@ export const LEGACY_REDIRECTS: LegacyRedirect[] = [
   { legacyId: "appeal-insights", targetModule: "home", targetView: "appeal-insights" },
   { legacyId: "slco-pipeline", targetModule: "home", targetView: "slco-pipeline" },
   { legacyId: "settings", targetModule: "home", targetView: "settings" },
+  { legacyId: "data-ops", targetModule: "home", targetView: "data-ops" },
   { legacyId: "webhooks", targetModule: "home", targetView: "webhooks" },
   { legacyId: "data-doctor", targetModule: "home", targetView: "data-doctor" },
   // Factory absorbs these
