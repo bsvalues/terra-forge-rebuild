@@ -81,7 +81,7 @@ export function useIncomeApproachRuns(neighborhoodCode: string | null) {
     staleTime: 60_000,
     queryFn: async (): Promise<IncomeApproachRunRow[]> => {
       const { data, error } = await supabase
-        .from("income_approach_runs" as any)
+        .from("income_approach_runs")
         .select("*")
         .eq("neighborhood_code", neighborhoodCode!)
         .order("created_at", { ascending: false })
