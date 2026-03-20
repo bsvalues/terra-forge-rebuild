@@ -245,14 +245,57 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Run OLS
-    const X = observations.map((o) => o.features);
+    // Pre-flight: drop zero-variance or perfectly-correlated columns to prevent singular matrix
+    let X = observations.map((o) => o.features);
     const y = observations.map((o) => o.sale_price);
+    const activeLabelIndices: number[] = [0]; // always keep intercept (col 0)
+    const droppedVars: string[] = [];
 
+    for (let col = 1; col < X[0].length; col++) {
+      const vals = X.map((row) => row[col]);
+      const mn = vals.reduce((a, b) => a + b, 0) / vals.length;
+      const variance = vals.reduce((s, v) => s + (v - mn) ** 2, 0) / vals.length;
+      if (variance < 1e-10) {
+        droppedVars.push(finalVariables[col - 1]);
+        continue;
+      }
+      // Check for perfect correlation with earlier kept columns
+      let dominated = false;
+      for (const kept of activeLabelIndices) {
+        if (kept === 0) continue;
+        const keptVals = X.map((row) => row[kept]);
+        const keptMn = keptVals.reduce((a, b) => a + b, 0) / keptVals.length;
+        let cov = 0, varA = 0, varB = 0;
+        for (let i = 0; i < vals.length; i++) {
+          const da = vals[i] - mn, db = keptVals[i] - keptMn;
+          cov += da * db; varA += da * da; varB += db * db;
+        }
+        const r = (varA > 0 && varB > 0) ? Math.abs(cov / Math.sqrt(varA * varB)) : 0;
+        if (r > 0.9999) { dominated = true; break; }
+      }
+      if (dominated) {
+        droppedVars.push(finalVariables[col - 1]);
+        continue;
+      }
+      activeLabelIndices.push(col);
+    }
+
+    // Rebuild X with only active columns
+    X = X.map((row) => activeLabelIndices.map((ci) => row[ci]));
+    const activeVariables = activeLabelIndices.slice(1).map((ci) => finalVariables[ci - 1]);
+
+    if (activeLabelIndices.length < 2) {
+      return new Response(JSON.stringify({
+        error: "All variables had zero variance or perfect collinearity. Cannot run regression.",
+        debug: { dropped: droppedVars, finalVariables, sample_size: observations.length },
+      }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    // Run OLS
     const result = solveOLS(X, y);
 
     // Build coefficient labels
-    const labels = ["intercept", ...finalVariables];
+    const labels = ["intercept", ...activeVariables];
     const coefficients = labels.map((label, i) => ({
       variable: label,
       coefficient: result.coefficients[i],
@@ -271,8 +314,9 @@ Deno.serve(async (req) => {
 
     const response = {
       neighborhood_code,
-      variables: finalVariables,
+      variables: activeVariables,
       variables_requested: variables,
+      variables_dropped: droppedVars.length > 0 ? droppedVars : undefined,
       sample_size: observations.length,
       r_squared: result.rSquared,
       rmse: result.rmse,
@@ -285,7 +329,7 @@ Deno.serve(async (req) => {
         rmse: result.rmse,
         f_statistic: result.fStatistic,
         sample_size: observations.length,
-        variables_count: variables.length,
+        variables_count: activeVariables.length,
       },
     };
 
