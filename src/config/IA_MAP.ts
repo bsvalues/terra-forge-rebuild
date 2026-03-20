@@ -200,6 +200,8 @@ export const LEGACY_REDIRECTS: LegacyRedirect[] = [
   { legacyId: "ledger", targetModule: "registry", targetView: "ledger" },
   { legacyId: "catalog", targetModule: "registry", targetView: "catalog" },
   { legacyId: "models", targetModule: "registry", targetView: "models" },
+  // Revaluation actions → Factory calibration
+  { legacyId: "launch-reval", targetModule: "factory", targetView: "calibration" },
 ];
 
 // ── Helpers ───────────────────────────────────────────────────────

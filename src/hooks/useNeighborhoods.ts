@@ -148,13 +148,15 @@ export function useCreateNeighborhood() {
       property_classes?: string[];
       description?: string;
     }) => {
+      const { data: profile } = await supabase.from("profiles").select("county_id").single();
+      const countyId = profile?.county_id ?? "";
       const { data, error } = await supabase
         .from("neighborhoods")
         .insert({
           hood_cd: input.hood_cd,
           hood_name: input.hood_name || null,
           year: input.year,
-          county_id: "benton-county",
+          county_id: countyId,
           model_type: input.model_type || "linear",
           property_classes: input.property_classes || [],
           description: input.description || null,
@@ -189,11 +191,13 @@ export function useBulkRegisterNeighborhoods() {
 
   return useMutation({
     mutationFn: async (codes: string[]) => {
+      const { data: profile } = await supabase.from("profiles").select("county_id").single();
+      const countyId = profile?.county_id ?? "";
       const year = new Date().getFullYear();
       const rows = codes.map(code => ({
         hood_cd: code,
         year,
-        county_id: "benton-county",
+        county_id: countyId,
         status: "registered",
       }));
       const { data, error } = await supabase
