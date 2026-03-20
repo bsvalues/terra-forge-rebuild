@@ -70,7 +70,7 @@ export function useNeighborhoodLeaderboard() {
         .select("parcel_id")
         .in("status", ["applied", "pending"]);
 
-      const permitsByParcel = new Set(((permits as any[]) || []).map((p: any) => p.parcel_id));
+      const permitsByParcel = new Set((permits ?? []).map((p) => p.parcel_id));
 
       const scores: NeighborhoodScore[] = [];
       for (const [code, parcelIds] of nbhdMap) {

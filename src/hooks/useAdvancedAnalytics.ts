@@ -32,12 +32,12 @@ export function useRatioTrendSpark(salesStart: string, salesEnd: string, yearsBa
 
       const results = await Promise.all(
         years.map(async (year) => {
-          const { data, error } = await supabase.rpc("compute_ratio_statistics", {
+          const { data, error } = await (supabase.rpc as Function)("compute_ratio_statistics", {
             p_tax_year: year,
             p_sales_start_date: salesStart,
             p_sales_end_date: salesEnd,
             p_outlier_method: "iqr",
-          } as Record<string, unknown>);
+          });
           if (error) return null;
           const stats = Array.isArray(data) ? data[0] : data;
           if (!stats || stats.sample_size === 0) return null;

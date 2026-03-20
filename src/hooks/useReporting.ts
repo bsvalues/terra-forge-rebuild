@@ -209,7 +209,7 @@ async function executeReportQuery(
         // sales table may not exist — return empty
         return { rows: [], rowCount: 0, summary: { groups: [], totalRows: 0 } };
       }
-      const rows = (data ?? []) as any[];
+      const rows = data ?? [];
       return { rows, rowCount: rows.length, summary: aggregateRows(rows, groupBy, "sale_price") };
     }
     case "assessment_ratios": {

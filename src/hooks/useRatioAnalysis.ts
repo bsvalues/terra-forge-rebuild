@@ -43,13 +43,13 @@ export function useRatioAnalysis(params: RatioAnalysisParams = {}) {
     staleTime: 2 * 60 * 1000, // 2 min — refresh after data imports or calibration runs
     refetchOnWindowFocus: true,
     queryFn: async () => {
-      const { data, error } = await supabase.rpc("compute_ratio_statistics", {
+      const { data, error } = await (supabase.rpc as Function)("compute_ratio_statistics", {
         p_tax_year: taxYear,
         p_sales_start_date: salesStartDate,
         p_sales_end_date: salesEndDate,
         p_neighborhood_code: neighborhoodCode,
         p_outlier_method: outlierMethod,
-      } as any);
+      });
 
       if (error) throw error;
       
@@ -62,27 +62,27 @@ export function useRatioAnalysis(params: RatioAnalysisParams = {}) {
         const { data: userData } = await supabase.auth.getUser();
         const operatorId = userData?.user?.id;
         if (operatorId) {
-          supabase.from("model_receipts").insert({
+          supabase.from("model_receipts").insert([{
             model_type: "ratio_study",
             model_version: `vei-ondemand-${outlierMethod}-v1`,
             operator_id: operatorId,
-            inputs: {
+            inputs: JSON.parse(JSON.stringify({
               tax_year: taxYear,
               sales_start_date: salesStartDate,
               sales_end_date: salesEndDate,
               neighborhood_code: neighborhoodCode,
               outlier_method: outlierMethod,
-            } as any,
-            outputs: {
+            })),
+            outputs: JSON.parse(JSON.stringify({
               sample_size: stats.sample_size,
               median_ratio: stats.median_ratio,
               cod: stats.cod,
               prd: stats.prd,
               prb: stats.prb,
               tier_slope: stats.tier_slope,
-            } as any,
-            metadata: { source: "VEIDashboard", computed_at: new Date().toISOString() } as any,
-          }).then(() => {});
+            })),
+            metadata: JSON.parse(JSON.stringify({ source: "VEIDashboard", computed_at: new Date().toISOString() })),
+          }]).then(() => {});
         }
       }
 
@@ -198,13 +198,13 @@ export function useNeighborhoodRatioComparison(
       // Compute stats for each neighborhood
       const results = await Promise.all(
         uniqueCodes.slice(0, 20).map(async (code) => {
-          const { data, error } = await supabase.rpc("compute_ratio_statistics", {
+          const { data, error } = await (supabase.rpc as Function)("compute_ratio_statistics", {
             p_tax_year: taxYear,
             p_sales_start_date: salesStartDate,
             p_sales_end_date: salesEndDate,
             p_neighborhood_code: code,
             p_outlier_method: "iqr",
-          } as any);
+          });
 
           if (error) return null;
           const stats = Array.isArray(data) ? data[0] : data;

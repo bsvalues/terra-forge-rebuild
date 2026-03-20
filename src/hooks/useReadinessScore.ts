@@ -110,7 +110,7 @@ export function useReadinessScore() {
   return useQuery({
     queryKey: ["readiness-score"],
     queryFn: async (): Promise<ReadinessScoreData> => {
-      const { data, error } = await supabase.rpc("compute_readiness_score" as any);
+      const { data, error } = await (supabase.rpc as Function)("compute_readiness_score");
       if (error) throw error;
       return data as unknown as ReadinessScoreData;
     },

@@ -85,7 +85,7 @@ export function useCreateWorkflowTemplate() {
     }) => {
       const { data, error } = await supabase
         .from("workflow_templates")
-        .insert(template as any)
+        .insert([{ ...template, steps: JSON.parse(JSON.stringify(template.steps)), trigger_config: JSON.parse(JSON.stringify(template.trigger_config ?? {})) }])
         .select()
         .single();
       if (error) throw error;
@@ -131,10 +131,11 @@ export function useStartWorkflow() {
     }) => {
       const { data, error } = await supabase
         .from("workflow_instances")
-        .insert({
+        .insert([{
           ...params,
           status: "active",
-        } as any)
+          context: JSON.parse(JSON.stringify(params.context ?? {})),
+        }])
         .select()
         .single();
       if (error) throw error;
@@ -169,9 +170,9 @@ export function useAdvanceWorkflowStep() {
         .from("workflow_instances")
         .update({
           current_step: nextStep,
-          step_results: newResults as any,
+          step_results: JSON.parse(JSON.stringify(newResults)),
           updated_at: new Date().toISOString(),
-        } as any)
+        })
         .eq("id", params.instanceId);
 
       if (error) throw error;

@@ -36,8 +36,8 @@ export function useRevalNoticeCandidates(cycleId: string | null, minChangePct: n
     queryKey: ["reval-notice-candidates", cycleId, minChangePct],
     queryFn: async () => {
       if (!cycleId) return null;
-      const { data, error } = await supabase.rpc(
-        "get_revaluation_notice_candidates" as any,
+      const { data, error } = await (supabase.rpc as Function)(
+        "get_revaluation_notice_candidates",
         { p_cycle_id: cycleId, p_min_change_pct: minChangePct }
       );
       if (error) throw error;

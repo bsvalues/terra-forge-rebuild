@@ -38,8 +38,8 @@ export function useRevaluationProgress(cycleId: string | null) {
     queryKey: ["revaluation-progress", cycleId],
     queryFn: async () => {
       if (!cycleId) return null;
-      const { data, error } = await supabase.rpc(
-        "get_revaluation_progress" as any,
+      const { data, error } = await (supabase.rpc as Function)(
+        "get_revaluation_progress",
         { p_cycle_id: cycleId }
       );
       if (error) throw error;
@@ -64,12 +64,12 @@ export function useCompleteRevaluationCycle() {
     string
   >({
     mutationFn: async (cycleId: string) => {
-      const { data, error } = await supabase.rpc(
-        "complete_revaluation_cycle" as any,
+      const { data, error } = await (supabase.rpc as Function)(
+        "complete_revaluation_cycle",
         { p_cycle_id: cycleId }
       );
       if (error) throw error;
-      const result = data as any;
+      const result = data as unknown as { cycle_id: string; status: string; parcels_certified: number; certification_pct: number; error?: string };
       if (result?.error) throw new Error(result.error);
       return result;
     },

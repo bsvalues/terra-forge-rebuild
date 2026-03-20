@@ -135,7 +135,7 @@ export function useDiscoverNeighborhoods() {
   return useQuery<DiscoveredNeighborhood[]>({
     queryKey: ["neighborhood-discovery"],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc("discover_unregistered_neighborhoods" as any);
+      const { data, error } = await (supabase.rpc as Function)("discover_unregistered_neighborhoods");
       if (error) throw error;
       return (data as unknown as DiscoveredNeighborhood[]) || [];
     },
@@ -161,7 +161,7 @@ export function useCreateNeighborhood() {
       const countyId = profile?.county_id ?? "";
       const { data, error } = await supabase
         .from("neighborhoods")
-        .insert({
+        .insert([{
           hood_cd: input.hood_cd,
           hood_name: input.hood_name || null,
           year: input.year,
@@ -170,7 +170,7 @@ export function useCreateNeighborhood() {
           property_classes: input.property_classes || [],
           description: input.description || null,
           status: "registered",
-        } as any)
+        }])
         .select()
         .single();
       if (error) throw error;
@@ -211,7 +211,7 @@ export function useBulkRegisterNeighborhoods() {
       }));
       const { data, error } = await supabase
         .from("neighborhoods")
-        .upsert(rows as any, { onConflict: "county_id,hood_cd,year" })
+        .upsert(rows as Array<{ hood_cd: string; year: number; county_id: string; status: string }>, { onConflict: "county_id,hood_cd,year" })
         .select();
       if (error) throw error;
       await emitTraceEventAsync({

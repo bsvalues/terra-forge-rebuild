@@ -38,12 +38,12 @@ export function useHistoricalRatioTrend(
       // Query ratio stats for each year in parallel
       const results = await Promise.all(
         availableYears.map(async (year) => {
-          const { data, error } = await supabase.rpc("compute_ratio_statistics", {
+          const { data, error } = await (supabase.rpc as Function)("compute_ratio_statistics", {
             p_tax_year: year,
             p_sales_start_date: salesStartDate,
             p_sales_end_date: salesEndDate,
             p_outlier_method: "iqr",
-          } as any);
+          });
 
           if (error) return null;
           const stats = Array.isArray(data) ? data[0] : data;

@@ -162,8 +162,7 @@ export function useReviewContext(reviewId: string | undefined) {
     queryKey: contextKey(reviewId || ""),
     queryFn: async () => {
       if (!reviewId) return null;
-      const { data, error } = await supabase.rpc("get_neighborhood_review_context" as any, {
-        p_review_id: reviewId,
+      const { data, error } = await (supabase.rpc as Function)("get_neighborhood_review_context", {
       });
       if (error) throw error;
       return data as unknown as ReviewContext;
@@ -184,19 +183,21 @@ export function useCreateReview() {
       review_name: string;
       target_deadline?: string;
     }) => {
+      const { data: profile } = await supabase.from("profiles").select("county_id").single();
       const { data, error } = await supabase
         .from("neighborhood_reviews")
-        .insert({
+        .insert([{
+          county_id: profile?.county_id ?? "",
           neighborhood_code: input.neighborhood_code,
           review_name: input.review_name,
           target_deadline: input.target_deadline || null,
-        } as any)
+        }])
         .select()
         .single();
       if (error) throw error;
 
       // Seed default tasks for each stage
-      const defaultTasks = [
+      const defaultTasks: Array<{ stage: "scoping" | "data_audit" | "spatial_analysis" | "calibration" | "equity_review" | "sign_off"; title: string; priority: string }> = [
         { stage: "scoping", title: "Define review scope and parcel subset", priority: "high" },
         { stage: "scoping", title: "Set timeline and assign reviewers", priority: "medium" },
         { stage: "data_audit", title: "Run data quality scan", priority: "high" },
@@ -215,7 +216,7 @@ export function useCreateReview() {
       ];
 
       await supabase.from("neighborhood_review_tasks").insert(
-        defaultTasks.map((t) => ({ ...t, review_id: data.id })) as any[]
+        defaultTasks.map((t) => ({ ...t, review_id: data.id }))
       );
 
       await emitTraceEventAsync({
@@ -256,7 +257,7 @@ export function useAdvanceStage() {
           current_stage: nextStage,
           [completedCol]: new Date().toISOString(),
           updated_at: new Date().toISOString(),
-        } as any)
+        } as Record<string, string>)
         .eq("id", reviewId);
 
       if (error) throw error;
@@ -288,11 +289,11 @@ export function useCompleteReview() {
       const { error } = await supabase
         .from("neighborhood_reviews")
         .update({
-          status: "completed",
+          status: "completed" as const,
           completed_at: new Date().toISOString(),
           sign_off_completed_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
-        } as any)
+        })
         .eq("id", reviewId);
       if (error) throw error;
 
@@ -322,7 +323,7 @@ export function useUpdateTaskStatus() {
       if (status === "completed") updates.completed_at = new Date().toISOString();
       const { error } = await supabase
         .from("neighborhood_review_tasks")
-        .update(updates as any)
+        .update(updates as { status: string; updated_at: string; completed_at?: string })
         .eq("id", taskId);
       if (error) throw error;
     },
@@ -340,7 +341,7 @@ export function useAssignTask() {
     mutationFn: async ({ taskId, assignedTo, reviewId }: { taskId: string; assignedTo: string; reviewId: string }) => {
       const { error } = await supabase
         .from("neighborhood_review_tasks")
-        .update({ assigned_to: assignedTo, updated_at: new Date().toISOString() } as any)
+        .update({ assigned_to: assignedTo, updated_at: new Date().toISOString() })
         .eq("id", taskId);
       if (error) throw error;
     },
