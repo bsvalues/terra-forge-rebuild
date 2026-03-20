@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { invalidateFactory } from "@/lib/queryInvalidation";
 import { showChangeReceipt } from "@/lib/changeReceipt";
+import { useActiveCountyId } from "@/hooks/useActiveCounty";
 
 export interface CoefficientResult {
   variable: string;
