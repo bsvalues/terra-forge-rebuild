@@ -159,7 +159,7 @@ Deno.serve(async (req) => {
     const parcelIds = parcels.map((p) => p.id);
 
     // Fetch qualified sales in batches to avoid URL length limits
-    const BATCH_SIZE = 200;
+    const BATCH_SIZE = 50; // Keep small to avoid URL length limits with UUIDs
     const allSales: { parcel_id: string; sale_price: number; sale_date?: string }[] = [];
     for (let i = 0; i < parcelIds.length; i += BATCH_SIZE) {
       const batch = parcelIds.slice(i, i + BATCH_SIZE);
