@@ -52,9 +52,11 @@ export function useRecordCertificationEvent() {
       blocker_snapshot?: Record<string, unknown>;
       notes?: string;
     }) => {
+      const { data: profile } = await supabase.from("profiles").select("county_id").single();
       const { data, error } = await supabase
         .from("certification_events")
         .insert({
+          county_id: profile?.county_id ?? "",
           event_type: params.event_type,
           neighborhood_code: params.neighborhood_code || null,
           parcels_certified: params.parcels_certified,
