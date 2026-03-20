@@ -56,7 +56,7 @@ export function useCausalNarrative(event: TimelineEvent | null) {
           p_window_minutes: 10,
         });
 
-        const linkedResult = linkedData as any;
+        const linkedResult = linkedData as unknown as { rows?: TimelineEvent[] };
         const linkedRows: TimelineEvent[] = linkedResult?.rows ?? [];
 
         if (linkedRows.length > 1) {
