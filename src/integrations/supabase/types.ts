@@ -5520,6 +5520,10 @@ export type Database = {
         }
         Returns: Json
       }
+      backfill_neighborhood_by_proximity: {
+        Args: { p_county_id: string; p_limit?: number }
+        Returns: Json
+      }
       backfill_parcel_wgs84_from_raw: {
         Args: { p_county_id: string; p_limit?: number }
         Returns: Json
