@@ -85,7 +85,7 @@ export function useCreateWorkflowTemplate() {
     }) => {
       const { data, error } = await supabase
         .from("workflow_templates")
-        .insert(template as any)
+        .insert([template])
         .select()
         .single();
       if (error) throw error;
