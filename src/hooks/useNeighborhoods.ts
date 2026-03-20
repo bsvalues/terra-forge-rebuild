@@ -135,7 +135,7 @@ export function useDiscoverNeighborhoods() {
   return useQuery<DiscoveredNeighborhood[]>({
     queryKey: ["neighborhood-discovery"],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc("discover_unregistered_neighborhoods" as any);
+      const { data, error } = await (supabase.rpc as Function)("discover_unregistered_neighborhoods");
       if (error) throw error;
       return (data as unknown as DiscoveredNeighborhood[]) || [];
     },
