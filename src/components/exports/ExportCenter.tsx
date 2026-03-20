@@ -1,11 +1,11 @@
-// TerraFusion OS — Export Center
-// Unified data export dashboard with dataset selection, filters, and format options
+// TerraFusion OS — Export Center (Phase 148: IAAO Export + Excel)
+// "I exported the data and it came back with friends." — Ralph, Export Wrangler
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Download, FileJson, FileSpreadsheet, Database, Filter,
-  CheckCircle2, Loader2, AlertTriangle, Calendar, Layers
+  Download, FileJson, FileSpreadsheet, FileText, Database, Filter,
+  CheckCircle2, Loader2, AlertTriangle, Calendar, Layers, Shield
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -115,7 +115,26 @@ export function ExportCenter() {
             </CardContent>
           </Card>
 
-          {/* Filters */}
+          {/* IAAO Info Banner */}
+          {selectedDataset === "iaao_ratio_study" && (
+            <Card className="border-primary/30 bg-primary/5">
+              <CardContent className="pt-4 pb-3">
+                <div className="flex items-start gap-2">
+                  <Shield className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                  <div className="text-xs space-y-1">
+                    <p className="font-medium text-foreground">IAAO Standard on Ratio Studies</p>
+                    <p className="text-muted-foreground">
+                      Exports include per-parcel assessment ratios plus a summary row with COD, PRD, and PRB statistics.
+                      Excel format includes a dedicated IAAO Summary sheet with pass/fail indicators against IAAO benchmarks
+                      (COD ≤ 15%, PRD 0.98–1.03, PRB ±0.05).
+                    </p>
+                    <p className="text-muted-foreground">Recommended format: <span className="text-foreground font-medium">Excel (.xlsx)</span></p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           <Card className="border-border/60">
             <CardHeader className="pb-3">
               <CardTitle className="text-base flex items-center gap-2">
@@ -186,26 +205,23 @@ export function ExportCenter() {
             <CardContent className="pt-5">
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                 <div className="flex gap-2">
-                  <button
-                    onClick={() => setFormat("csv")}
-                    className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium border transition-all ${
-                      format === "csv"
-                        ? "bg-primary text-primary-foreground border-primary"
-                        : "bg-muted/30 text-muted-foreground border-border/40 hover:bg-muted/60"
-                    }`}
-                  >
-                    <FileSpreadsheet className="w-4 h-4" /> CSV
-                  </button>
-                  <button
-                    onClick={() => setFormat("json")}
-                    className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium border transition-all ${
-                      format === "json"
-                        ? "bg-primary text-primary-foreground border-primary"
-                        : "bg-muted/30 text-muted-foreground border-border/40 hover:bg-muted/60"
-                    }`}
-                  >
-                    <FileJson className="w-4 h-4" /> JSON
-                  </button>
+                  {([
+                    { key: "csv" as const, icon: FileSpreadsheet, label: "CSV" },
+                    { key: "json" as const, icon: FileJson, label: "JSON" },
+                    { key: "xlsx" as const, icon: FileText, label: "Excel" },
+                  ]).map(({ key, icon: Icon, label }) => (
+                    <button
+                      key={key}
+                      onClick={() => setFormat(key)}
+                      className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium border transition-all ${
+                        format === key
+                          ? "bg-primary text-primary-foreground border-primary"
+                          : "bg-muted/30 text-muted-foreground border-border/40 hover:bg-muted/60"
+                      }`}
+                    >
+                      <Icon className="w-4 h-4" /> {label}
+                    </button>
+                  ))}
                 </div>
                 <div className="flex-1" />
                 <Button
