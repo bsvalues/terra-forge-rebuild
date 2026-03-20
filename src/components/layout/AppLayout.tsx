@@ -38,6 +38,7 @@ const SLCOPipelineHub = lazy(() => import("@/components/slco-pipeline").then(m =
 const SLCODemoLanding = lazy(() => import("@/components/slco-pipeline").then(m => ({ default: m.SLCODemoLanding })));
 const WebhookNotificationHub = lazy(() => import("@/components/slco-pipeline").then(m => ({ default: m.WebhookNotificationHub })));
 const DataDoctorDashboard = lazy(() => import("@/components/slco-pipeline").then(m => ({ default: m.DataDoctorDashboard })));
+const DataOpsPanel = lazy(() => import("@/components/admin/DataOpsPanel").then(m => ({ default: m.DataOpsPanel })));
 const RevaluationLaunchPanel = lazy(() => import("@/components/revaluation/RevaluationLaunchPanel").then(m => ({ default: m.RevaluationLaunchPanel })));
 const RevaluationProgressTracker = lazy(() => import("@/components/revaluation/RevaluationProgressTracker").then(m => ({ default: m.RevaluationProgressTracker })));
 const RevaluationReportDashboard = lazy(() => import("@/components/revaluation/RevaluationReportDashboard").then(m => ({ default: m.RevaluationReportDashboard })));
