@@ -66,13 +66,24 @@ export function useCalibration(neighborhoodCode: string | null) {
 
       if (error) throw error;
       if (data?.error) {
-        const hint = data?.debug?.hint || "";
-        const salesCount = data?.debug?.parcels_with_sales ?? 0;
+        const debug = data?.debug;
+        const hint = debug?.hint || "";
+        const salesCount = debug?.parcels_with_sales ?? 0;
+        const totalParcels = debug?.parcels_in_neighborhood ?? 0;
+        const usableVars = debug?.usable_variables ?? [];
+
         if (salesCount === 0) {
           throw new Error(
-            `No qualified sales found in neighborhood ${neighborhoodCode}. ` +
+            `No qualified sales found in neighborhood "${neighborhoodCode}". ` +
             `Calibration requires at least 3 parcels with sales data. ` +
             `Import sales data first via Home → Data Ops.`
+          );
+        }
+        if (salesCount < 4) {
+          throw new Error(
+            `Neighborhood "${neighborhoodCode}" has only ${salesCount} parcel(s) with sales ` +
+            `(need ≥ ${(usableVars.length || selectedVars.length) + 2}). ` +
+            `Choose a larger neighborhood or generate more synthetic sales.`
           );
         }
         throw new Error(`${data.error}${hint ? ` — ${hint}` : ""}`);
