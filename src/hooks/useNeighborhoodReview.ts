@@ -185,11 +185,11 @@ export function useCreateReview() {
     }) => {
       const { data, error } = await supabase
         .from("neighborhood_reviews")
-        .insert({
+        .insert([{
           neighborhood_code: input.neighborhood_code,
           review_name: input.review_name,
           target_deadline: input.target_deadline || null,
-        } as any)
+        }])
         .select()
         .single();
       if (error) throw error;
