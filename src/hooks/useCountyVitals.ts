@@ -79,7 +79,10 @@ export interface CountyVitals {
 }
 
 async function fetchCountyVitals(): Promise<CountyVitals> {
-  const { data, error } = await supabase.rpc("get_county_vitals");
+  // Pass null for global (all-county) vitals; county-scoped available via p_county_id
+  const { data, error } = await supabase.rpc("get_county_vitals", {
+    p_county_id: null,
+  });
   if (error) throw error;
 
   const raw = data as Record<string, any>;
