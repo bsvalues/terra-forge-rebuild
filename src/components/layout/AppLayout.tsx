@@ -379,6 +379,10 @@ export function AppLayout({ initialParcel: routeParcel, initialModule, initialFa
                 <SegmentRevaluationDashboard />
               </div>
             );
+          case "iaao-compliance":
+            return (
+              <IAAOComplianceDashboard />
+            );
           default:
             // "calibration" or null → FactoryLayout
             return <FactoryLayout initialMode={initialFactoryMode} />;
