@@ -24,6 +24,7 @@ export interface ScatterPoint {
 export interface CalibrationResult {
   neighborhood_code: string;
   variables: string[];
+  variables_dropped?: string[];
   sample_size: number;
   r_squared: number;
   rmse: number;

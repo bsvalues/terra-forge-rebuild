@@ -7,7 +7,7 @@ import { BatchApplyPanel } from "./BatchApplyPanel";
 import { BatchNoticePanel } from "./BatchNoticePanel";
 import { RecentBatchesPanel } from "./RecentBatchesPanel";
 import { RollReadinessPanel } from "./RollReadinessPanel";
-import { BarChart3 } from "lucide-react";
+import { BarChart3, AlertTriangle } from "lucide-react";
 import { useState } from "react";
 import { ScopeHeader } from "@/components/trust";
 import { Badge } from "@/components/ui/badge";
@@ -104,6 +104,23 @@ export function RegressionMode({ neighborhoodCode }: RegressionModeProps) {
       <div className="space-y-6">
         {hook.result ? (
           <>
+            {hook.result.variables_dropped && hook.result.variables_dropped.length > 0 && (
+              <div className="flex items-start gap-2 px-3 py-2 rounded-lg bg-[hsl(var(--tf-warning)/0.1)] border border-[hsl(var(--tf-warning)/0.25)]">
+                <AlertTriangle className="w-4 h-4 text-[hsl(var(--tf-warning))] shrink-0 mt-0.5" />
+                <div className="text-xs text-[hsl(var(--tf-warning))]">
+                  <span className="font-medium">Variables auto-dropped</span>
+                  <span className="text-muted-foreground ml-1">
+                    (zero variance or collinearity):
+                  </span>
+                  {" "}
+                  {hook.result.variables_dropped.map((v) => (
+                    <Badge key={v} variant="outline" className="text-[10px] py-0 mx-0.5 border-[hsl(var(--tf-warning)/0.4)] text-[hsl(var(--tf-warning))]">
+                      {v}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
             <CalibrationDiagnostics diagnostics={hook.result.diagnostics} />
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
               <CoefficientGrid coefficients={hook.result.coefficients} />
