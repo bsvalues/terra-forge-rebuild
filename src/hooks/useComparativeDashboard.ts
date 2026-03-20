@@ -101,7 +101,7 @@ export function useGenerateSnapshot() {
       neighborhoodCode?: string;
       propertyClass?: string;
     }) => {
-      const { data, error } = await (supabase as any).rpc("generate_comparison_snapshot", {
+      const { data, error } = await supabase.rpc("generate_comparison_snapshot" as "get_revaluation_progress", {
         p_county_id: params.countyId,
         p_tax_year: params.taxYear,
         p_label: params.label || null,
