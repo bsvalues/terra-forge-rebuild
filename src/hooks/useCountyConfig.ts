@@ -4,6 +4,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { emitTraceEventAsync } from "@/services/terraTrace";
+import { useActiveCountyId } from "@/hooks/useActiveCounty";
 
 // ── Typed County Config Schema ────────────────────────────────────
 export interface CountyConfig {
@@ -77,25 +78,29 @@ export interface CountyRecord {
 
 // ── Read Hook ─────────────────────────────────────────────────────
 export function useCountyConfig() {
+  const countyId = useActiveCountyId();
+
   return useQuery<CountyRecord | null>({
-    queryKey: ["county-config"],
+    queryKey: ["county-config", countyId],
     queryFn: async () => {
+      if (!countyId) return null;
+
       const { data, error } = await supabase
         .from("counties")
         .select("id, name, state, fips_code, config, created_at, updated_at")
-        .limit(1)
+        .eq("id", countyId)
         .maybeSingle();
 
       if (error) throw error;
       if (!data) return null;
 
-      // Merge stored config with defaults for any missing keys
       const storedConfig = (data.config as Partial<CountyConfig>) ?? {};
       return {
         ...data,
         config: { ...DEFAULT_CONFIG, ...storedConfig },
       } as CountyRecord;
     },
+    enabled: !!countyId,
     staleTime: 2 * 60 * 1000,
   });
 }

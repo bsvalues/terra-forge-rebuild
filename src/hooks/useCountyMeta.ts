@@ -3,6 +3,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useActiveCountyId } from "@/hooks/useActiveCounty";
 
 export interface CountyMeta {
   name: string;
@@ -15,25 +16,25 @@ function shortName(name: string): string {
 }
 
 export function useCountyMeta(): CountyMeta & { shortName: string } | null {
+  const countyId = useActiveCountyId();
+
   const { data } = useQuery<(CountyMeta & { shortName: string }) | null>({
-    queryKey: ["county-meta"],
+    queryKey: ["county-meta", countyId],
     queryFn: async () => {
-      // Prefer Salt Lake County (SLCO) as the active dev server county
-      const { data } = await supabase
+      if (!countyId) return null;
+
+      const { data, error } = await supabase
         .from("counties")
         .select("name, state")
-        .eq("fips_code", "49035")
+        .eq("id", countyId)
         .maybeSingle();
-      if (data) return { ...data, shortName: shortName(data.name) } as CountyMeta & { shortName: string };
-      // Fallback to first county
-      const { data: fallback } = await supabase
-        .from("counties")
-        .select("name, state")
-        .limit(1)
-        .maybeSingle();
-      if (fallback) return { ...fallback, shortName: shortName(fallback.name) } as CountyMeta & { shortName: string };
-      return null;
+
+      if (error) throw error;
+      if (!data) return null;
+
+      return { ...data, shortName: shortName(data.name) } as CountyMeta & { shortName: string };
     },
+    enabled: !!countyId,
     staleTime: 5 * 60 * 1000,
   });
 

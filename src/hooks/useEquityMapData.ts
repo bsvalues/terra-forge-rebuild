@@ -1,23 +1,17 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import proj4 from "proj4";
+import { useActiveCountyId } from "@/hooks/useActiveCounty";
 
-// EPSG:2286 — NAD83 / Washington South (ftUS)
 proj4.defs("EPSG:2286", "+proj=lcc +lat_0=45.3333333333333 +lon_0=-120.5 +lat_1=47.3333333333333 +lat_2=45.8333333333333 +x_0=500000.0001016001 +y_0=0 +datum=NAD83 +units=us-ft +no_defs");
 
-/**
- * Detect if coordinates are State Plane (large values) vs WGS84 (small values)
- * and convert accordingly.
- */
 function toWgs84(latCol: number, lngCol: number): [number, number] {
   if (Math.abs(latCol) > 1000 || Math.abs(lngCol) > 1000) {
-    // EPSG:2286 expects [easting, northing]; lngCol=easting, latCol=northing
     const result = proj4("EPSG:2286", "WGS84", [lngCol, latCol]);
     const [lng, lat] = result;
     if (Math.abs(lat) <= 90 && Math.abs(lng) <= 180) {
       return [lat, lng];
     }
-    // Try swapped if first attempt gives invalid coords
     const [lng2, lat2] = proj4("EPSG:2286", "WGS84", [latCol, lngCol]);
     console.log("proj4 swap attempt:", { latCol, lngCol, lat2, lng2 });
     return [lat2, lng2];
@@ -50,17 +44,18 @@ export interface NeighborhoodOverlay {
   boundingBox: { minLat: number; maxLat: number; minLng: number; maxLng: number };
 }
 
-/**
- * Fetch parcels with coordinates and their sale ratios for map pins
- */
 export function useParcelPins(studyPeriodId?: string, limit = 1000) {
+  const countyId = useActiveCountyId();
+
   return useQuery({
-    queryKey: ["parcel-pins", studyPeriodId, limit],
+    queryKey: ["parcel-pins", countyId, studyPeriodId, limit],
     queryFn: async (): Promise<ParcelPin[]> => {
-      // Get parcels with coordinates
+      if (!countyId) return [];
+
       const { data: parcels, error } = await supabase
         .from("parcels")
         .select("id, parcel_number, address, assessed_value, latitude, longitude, neighborhood_code, property_class")
+        .eq("county_id", countyId)
         .not("latitude", "is", null)
         .not("longitude", "is", null)
         .limit(limit);
@@ -68,7 +63,6 @@ export function useParcelPins(studyPeriodId?: string, limit = 1000) {
       if (error) throw error;
       if (!parcels?.length) return [];
 
-      // Compute ratios from qualified sales in batches to avoid URL length limits
       const parcelIds = parcels.map((p) => p.id);
       const BATCH = 100;
       const allSales: { parcel_id: string; sale_price: number }[] = [];
@@ -78,6 +72,7 @@ export function useParcelPins(studyPeriodId?: string, limit = 1000) {
           .from("sales")
           .select("parcel_id, sale_price")
           .eq("is_qualified", true)
+          .eq("county_id", countyId)
           .in("parcel_id", batch)
           .gt("sale_price", 0);
         if (sales) allSales.push(...sales);
@@ -107,21 +102,23 @@ export function useParcelPins(studyPeriodId?: string, limit = 1000) {
         };
       });
     },
+    enabled: !!countyId,
     staleTime: 120000,
   });
 }
 
-/**
- * Compute neighborhood-level equity overlays with bounding boxes
- */
 export function useNeighborhoodOverlays(studyPeriodId?: string) {
+  const countyId = useActiveCountyId();
+
   return useQuery({
-    queryKey: ["neighborhood-overlays", studyPeriodId],
+    queryKey: ["neighborhood-overlays", countyId, studyPeriodId],
     queryFn: async (): Promise<NeighborhoodOverlay[]> => {
-      // Get all parcels with sales ratios grouped by neighborhood
+      if (!countyId) return [];
+
       const { data: parcels, error } = await supabase
         .from("parcels")
         .select("id, assessed_value, neighborhood_code, latitude, longitude")
+        .eq("county_id", countyId)
         .not("latitude", "is", null)
         .not("longitude", "is", null)
         .not("neighborhood_code", "is", null);
@@ -138,12 +135,12 @@ export function useNeighborhoodOverlays(studyPeriodId?: string) {
           .from("sales")
           .select("parcel_id, sale_price")
           .eq("is_qualified", true)
+          .eq("county_id", countyId)
           .in("parcel_id", batch)
           .gt("sale_price", 0);
         if (sales) allSales.push(...sales);
       }
 
-      // Build ratio map
       const ratioByParcel = new Map<string, number>();
       const parcelValueMap = new Map(parcels.map((p) => [p.id, p.assessed_value]));
       for (const s of allSales) {
@@ -153,7 +150,6 @@ export function useNeighborhoodOverlays(studyPeriodId?: string) {
         }
       }
 
-      // Group by neighborhood
       const groups: Record<string, { ratios: number[]; lats: number[]; lngs: number[]; totalParcels: number }> = {};
       for (const p of parcels) {
         const code = p.neighborhood_code!;
@@ -176,9 +172,6 @@ export function useNeighborhoodOverlays(studyPeriodId?: string) {
           const avgRatio = g.ratios.reduce((a, b) => a + b, 0) / g.ratios.length;
           const avgDev = g.ratios.reduce((a, r) => a + Math.abs(r - medianRatio), 0) / g.ratios.length;
           const cod = (avgDev / medianRatio) * 100;
-
-          // PRD = mean / weighted mean
-          // We don't have weights here easily, so approximate
           const prd = avgRatio / medianRatio;
 
           return {
@@ -200,6 +193,7 @@ export function useNeighborhoodOverlays(studyPeriodId?: string) {
           };
         });
     },
+    enabled: !!countyId,
     staleTime: 120000,
   });
 }

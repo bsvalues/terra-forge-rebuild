@@ -44,8 +44,8 @@ function deriveSyncHealth(sources: Array<{ sync_status?: string | null; last_syn
 }
 
 const HEALTH_CONFIG: Record<SyncHealth, { icon: typeof CheckCircle2; dotClass: string; label: string }> = {
-  healthy: { icon: CheckCircle2, dotClass: "bg-emerald-500", label: "All systems synced" },
-  stale: { icon: Clock, dotClass: "bg-amber-500", label: "Sync stale (>24h)" },
+  healthy: { icon: CheckCircle2, dotClass: "bg-primary", label: "All systems synced" },
+  stale: { icon: Clock, dotClass: "bg-accent", label: "Sync stale (>24h)" },
   failed: { icon: XCircle, dotClass: "bg-destructive", label: "Sync errors detected" },
   unknown: { icon: AlertTriangle, dotClass: "bg-muted-foreground", label: "No sync data" },
 };

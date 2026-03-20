@@ -1,35 +1,45 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
+import { useActiveCountyId } from "@/hooks/useActiveCounty";
 
 export type StudyPeriod = Tables<"study_periods">;
 export type AssessmentRatio = Tables<"assessment_ratios">;
 export type Appeal = Tables<"appeals">;
 
-// Fetch all study periods ordered by start date
 export function useStudyPeriods() {
+  const countyId = useActiveCountyId();
+
   return useQuery({
-    queryKey: ["study-periods"],
+    queryKey: ["study-periods", countyId],
     queryFn: async () => {
+      if (!countyId) return [] as StudyPeriod[];
+
       const { data, error } = await supabase
         .from("study_periods")
         .select("*")
+        .eq("county_id", countyId)
         .order("start_date", { ascending: false });
 
       if (error) throw error;
       return data as StudyPeriod[];
     },
+    enabled: !!countyId,
   });
 }
 
-// Fetch active/current study period
 export function useActiveStudyPeriod() {
+  const countyId = useActiveCountyId();
+
   return useQuery({
-    queryKey: ["study-periods", "active"],
+    queryKey: ["study-periods", "active", countyId],
     queryFn: async () => {
+      if (!countyId) return null;
+
       const { data, error } = await supabase
         .from("study_periods")
         .select("*")
+        .eq("county_id", countyId)
         .eq("status", "active")
         .order("start_date", { ascending: false })
         .limit(1)
@@ -38,6 +48,7 @@ export function useActiveStudyPeriod() {
       if (error) throw error;
       return data as StudyPeriod | null;
     },
+    enabled: !!countyId,
   });
 }
 

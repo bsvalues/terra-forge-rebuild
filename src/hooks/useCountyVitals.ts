@@ -5,6 +5,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useActiveCountyId } from "@/hooks/useActiveCounty";
 
 export type DefensibilityVerdict = "strong" | "watch" | "at_risk";
 
@@ -74,20 +75,16 @@ export interface CountyVitals {
   };
   dataQuality: DataQualityVitals;
   defensibility: DefensibilityScore;
-  /** ISO timestamp of when this snapshot was fetched */
   fetchedAt: string;
 }
 
-async function fetchCountyVitals(): Promise<CountyVitals> {
-  // Pass null for global (all-county) vitals; county-scoped available via p_county_id
+async function fetchCountyVitals(countyId: string): Promise<CountyVitals> {
   const { data, error } = await supabase.rpc("get_county_vitals", {
-    p_county_id: null,
+    p_county_id: countyId,
   });
   if (error) throw error;
 
   const raw = data as Record<string, any>;
-
-  // Map RPC shape to CountyVitals interface
   const total = raw.parcels?.total ?? 0;
   const coordsCount = raw.parcels?.withCoordinates ?? raw.parcels?.withCoords ?? 0;
   const classCount = raw.parcels?.withClass ?? 0;
@@ -97,21 +94,14 @@ async function fetchCountyVitals(): Promise<CountyVitals> {
   const classPct = total > 0 ? Math.round((classCount / total) * 100) : 0;
   const nbhdPct = total > 0 ? Math.round((nbhdCount / total) * 100) : 0;
 
-  // Assessments — may or may not be in RPC
   const assessTotal = raw.assessments?.total ?? 0;
   const certCount = raw.assessments?.certified ?? 0;
-
-  // Workflows — may or may not be in RPC
   const pendingAppeals = raw.appeals?.pending ?? raw.workflows?.pendingAppeals ?? 0;
   const openPermits = raw.workflows?.openPermits ?? 0;
   const pendingExemptions = raw.workflows?.pendingExemptions ?? 0;
-
-  // Calibration detail from defensibility
   const calibDetail = raw.defensibility?.detail ?? raw.calibration?.detail ?? {};
   const calibRSquared = calibDetail.avgRSquared ?? null;
   const calibratedNbhds = calibDetail.calibratedNeighborhoods ?? 0;
-
-  // Calibration run count — use calibratable as proxy if runCount absent
   const calibRunCount = raw.calibration?.runCount ?? calibratedNbhds;
 
   return {
@@ -162,9 +152,12 @@ async function fetchCountyVitals(): Promise<CountyVitals> {
 }
 
 export function useCountyVitals() {
+  const countyId = useActiveCountyId();
+
   return useQuery<CountyVitals>({
-    queryKey: ["county-vitals"],
-    queryFn: fetchCountyVitals,
+    queryKey: ["county-vitals", countyId],
+    queryFn: () => fetchCountyVitals(countyId as string),
+    enabled: !!countyId,
     staleTime: 60_000,
     refetchOnWindowFocus: false,
   });
