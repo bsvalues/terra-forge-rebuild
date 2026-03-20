@@ -1,6 +1,6 @@
-// TerraFusion OS — Spatial Healing Edge Function
-// Fetches SLCO parcel centroids + LIR characteristics from UGRC SGID ArcGIS FeatureServer
-// and backfills coordinates, property class, building area, year built, city into parcels table.
+// TerraFusion OS — Spatial Healing Edge Function (v2)
+// Fetches SLCO parcel centroids + LIR characteristics from UGRC SGID
+// Uses bulk_spatial_heal RPC for high-performance updates
 // "I healed the parcels. They were broken inside." — Ralph Wiggum
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
@@ -14,8 +14,7 @@ const corsHeaders = {
 const UGRC_LIR_URL =
   "https://services1.arcgis.com/99lidPhWCzftIe9K/ArcGIS/rest/services/Parcels_SaltLake_LIR/FeatureServer/0/query";
 
-const PAGE_SIZE = 2000; // ArcGIS max
-const BATCH_SIZE = 500; // DB update batch
+const PAGE_SIZE = 2000;
 
 interface UGRCFeature {
   attributes: {
@@ -51,7 +50,7 @@ function computeCentroid(rings: number[][][]): { lng: number; lat: number } | nu
 async function fetchPage(offset: number): Promise<{ features: UGRCFeature[]; exceededTransferLimit: boolean }> {
   const params = new URLSearchParams({
     where: "1=1",
-    outFields: "OBJECTID,PARCEL_ID,PARCEL_ADD,PARCEL_CITY,BLDG_SQFT,BUILT_YR,PROP_CLASS,PARCEL_ACRES,TOTAL_MKT_VALUE,LAND_MKT_VALUE",
+    outFields: "OBJECTID,PARCEL_ID,PARCEL_ADD,PARCEL_CITY,BLDG_SQFT,BUILT_YR,PROP_CLASS,PARCEL_ACRES",
     returnGeometry: "true",
     outSR: "4326",
     resultOffset: String(offset),
@@ -77,13 +76,13 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const authHeader = req.headers.get("authorization");
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
 
     // Verify caller is authenticated
+    const authHeader = req.headers.get("authorization");
     if (authHeader) {
       const token = authHeader.replace("Bearer ", "");
       const { data: { user }, error: authErr } = await supabase.auth.getUser(token);
@@ -99,52 +98,40 @@ Deno.serve(async (req) => {
     const action = body.action || "run";
     const countyId = body.county_id || "00000000-0000-0000-0000-000000000002";
     const startOffset = body.start_offset || 0;
-    const maxPages = body.max_pages || 5; // default: 5 pages = 10k parcels per invocation
+    const maxPages = body.max_pages || 10;
 
+    // ── Status action ──────────────────────────────────────────────
     if (action === "status") {
-      // Return current healing stats
-      const { count: totalParcels } = await supabase
-        .from("parcels")
-        .select("id", { count: "exact", head: true })
-        .eq("county_id", countyId);
+      const { data, error } = await supabase.rpc("get_county_vitals", { p_county_id: countyId });
+      
+      // Quick counts for spatial-specific stats
+      const [coordsRes, classRes, sqftRes] = await Promise.all([
+        supabase.from("parcels").select("id", { count: "exact", head: true })
+          .eq("county_id", countyId).not("latitude_wgs84", "is", null),
+        supabase.from("parcels").select("id", { count: "exact", head: true })
+          .eq("county_id", countyId).not("property_class", "is", null),
+        supabase.from("parcels").select("id", { count: "exact", head: true })
+          .eq("county_id", countyId).not("building_area", "is", null).gt("building_area", 0),
+      ]);
 
-      const { count: withCoords } = await supabase
-        .from("parcels")
-        .select("id", { count: "exact", head: true })
-        .eq("county_id", countyId)
-        .not("latitude_wgs84", "is", null);
-
-      const { count: withClass } = await supabase
-        .from("parcels")
-        .select("id", { count: "exact", head: true })
-        .eq("county_id", countyId)
-        .not("property_class", "is", null);
-
-      const { count: withSqft } = await supabase
-        .from("parcels")
-        .select("id", { count: "exact", head: true })
-        .eq("county_id", countyId)
-        .not("building_area", "is", null)
-        .gt("building_area", 0);
-
+      const total = data?.parcels_total || 0;
       return new Response(JSON.stringify({
         ok: true,
         stats: {
-          total_parcels: totalParcels || 0,
-          with_coords: withCoords || 0,
-          with_property_class: withClass || 0,
-          with_building_area: withSqft || 0,
-          missing_coords: (totalParcels || 0) - (withCoords || 0),
+          total_parcels: total,
+          with_coords: coordsRes.count || 0,
+          with_property_class: classRes.count || 0,
+          with_building_area: sqftRes.count || 0,
+          missing_coords: total - (coordsRes.count || 0),
         },
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // ── Run healing ────────────────────────────────────────────────
+    // ── Run healing via bulk RPC ────────────────────────────────────
     let offset = startOffset;
     let totalFetched = 0;
-    let totalMatched = 0;
     let totalUpdated = 0;
     let pagesProcessed = 0;
 
@@ -155,74 +142,44 @@ Deno.serve(async (req) => {
       totalFetched += features.length;
       pagesProcessed++;
 
-      // Extract parcel IDs to match against our DB
-      const parcelIds = features
-        .map((f) => f.attributes.PARCEL_ID)
-        .filter(Boolean);
+      // Build JSONB update array for the RPC
+      const updates = features
+        .filter((f) => f.attributes.PARCEL_ID)
+        .map((f) => {
+          const centroid = f.geometry?.rings ? computeCentroid(f.geometry.rings) : null;
+          const rec: Record<string, unknown> = {
+            parcel_number: f.attributes.PARCEL_ID,
+          };
+          if (centroid) {
+            rec.lat = centroid.lat;
+            rec.lng = centroid.lng;
+            rec.coord_source = "ugrc_lir_centroid";
+          }
+          if (f.attributes.PARCEL_CITY) rec.city = f.attributes.PARCEL_CITY;
+          if (f.attributes.PROP_CLASS) rec.property_class = f.attributes.PROP_CLASS;
+          if (f.attributes.BLDG_SQFT && f.attributes.BLDG_SQFT > 0) {
+            rec.building_area = f.attributes.BLDG_SQFT;
+          }
+          if (f.attributes.BUILT_YR && f.attributes.BUILT_YR > 1700) {
+            rec.year_built = f.attributes.BUILT_YR;
+          }
+          if (f.attributes.PARCEL_ACRES && f.attributes.PARCEL_ACRES > 0) {
+            rec.lot_size = f.attributes.PARCEL_ACRES;
+          }
+          if (f.attributes.PARCEL_ADD) rec.address = f.attributes.PARCEL_ADD;
+          return rec;
+        });
 
-      // Look up our internal parcel UUIDs
-      const { data: dbParcels } = await supabase
-        .from("parcels")
-        .select("id, parcel_number")
-        .eq("county_id", countyId)
-        .in("parcel_number", parcelIds);
+      // Call the bulk RPC
+      const { data: result, error: rpcErr } = await supabase.rpc("bulk_spatial_heal", {
+        p_county_id: countyId,
+        p_updates: updates,
+      });
 
-      if (!dbParcels || dbParcels.length === 0) {
-        offset += PAGE_SIZE;
-        if (!exceededTransferLimit) break;
-        continue;
-      }
-
-      totalMatched += dbParcels.length;
-
-      // Build lookup: parcel_number → internal UUID
-      const idMap = new Map(dbParcels.map((p) => [p.parcel_number, p.id]));
-
-      // Build update payloads
-      const updates: Record<string, unknown>[] = [];
-      for (const feat of features) {
-        const internalId = idMap.get(feat.attributes.PARCEL_ID);
-        if (!internalId) continue;
-
-        const centroid = feat.geometry?.rings ? computeCentroid(feat.geometry.rings) : null;
-
-        const update: Record<string, unknown> = { id: internalId };
-
-        if (centroid) {
-          update.latitude_wgs84 = centroid.lat;
-          update.longitude_wgs84 = centroid.lng;
-          update.coord_source = "ugrc_lir_centroid";
-        }
-        if (feat.attributes.PARCEL_CITY) update.city = feat.attributes.PARCEL_CITY;
-        if (feat.attributes.PROP_CLASS) update.property_class = feat.attributes.PROP_CLASS;
-        if (feat.attributes.BLDG_SQFT && feat.attributes.BLDG_SQFT > 0) {
-          update.building_area = feat.attributes.BLDG_SQFT;
-        }
-        if (feat.attributes.BUILT_YR && feat.attributes.BUILT_YR > 1700) {
-          update.year_built = feat.attributes.BUILT_YR;
-        }
-        if (feat.attributes.PARCEL_ACRES && feat.attributes.PARCEL_ACRES > 0) {
-          update.lot_size = feat.attributes.PARCEL_ACRES;
-        }
-        if (feat.attributes.PARCEL_ADD) {
-          update.address = feat.attributes.PARCEL_ADD;
-        }
-
-        updates.push(update);
-      }
-
-      // Batch upsert in chunks of BATCH_SIZE
-      for (let i = 0; i < updates.length; i += BATCH_SIZE) {
-        const batch = updates.slice(i, i + BATCH_SIZE);
-        const { error: upsertErr } = await supabase
-          .from("parcels")
-          .upsert(batch as any, { onConflict: "id" });
-
-        if (upsertErr) {
-          console.error("Batch upsert error:", upsertErr);
-        } else {
-          totalUpdated += batch.length;
-        }
+      if (rpcErr) {
+        console.error("RPC error:", rpcErr);
+      } else {
+        totalUpdated += (result as any)?.updated || 0;
       }
 
       offset += PAGE_SIZE;
@@ -235,7 +192,6 @@ Deno.serve(async (req) => {
         summary: {
           pages_processed: pagesProcessed,
           total_fetched: totalFetched,
-          total_matched: totalMatched,
           total_updated: totalUpdated,
           next_offset: offset,
           has_more: pagesProcessed === maxPages,
