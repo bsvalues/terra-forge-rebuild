@@ -39,8 +39,10 @@ function extractProvenance(block: Record<string, any> | undefined): SmartAction[
 }
 
 export function useSmartActions(): SmartAction[] {
+  const countyId = useActiveCountyId();
+
   const { data: actions } = useQuery({
-    queryKey: ["smart-quick-actions"],
+    queryKey: ["smart-quick-actions", countyId],
     queryFn: async (): Promise<SmartAction[]> => {
       const result: SmartAction[] = [];
 
