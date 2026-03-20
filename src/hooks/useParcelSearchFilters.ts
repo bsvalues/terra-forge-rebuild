@@ -3,6 +3,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useActiveCountyId } from "@/hooks/useActiveCounty";
 
 interface ParcelSearchFilters {
   address: string;
@@ -14,12 +15,17 @@ interface ParcelSearchFilters {
 }
 
 export function useParcelSearchQuery(filters: ParcelSearchFilters, page: number, pageSize: number = 50) {
+  const countyId = useActiveCountyId();
+
   return useQuery({
-    queryKey: ["parcels-search", filters, page],
+    queryKey: ["parcels-search", countyId, filters, page],
     queryFn: async () => {
+      if (!countyId) return { parcels: [], totalCount: 0 };
+
       let query = supabase
         .from("parcels")
         .select("*", { count: "exact" })
+        .eq("county_id", countyId)
         .order("assessed_value", { ascending: false })
         .range(page * pageSize, (page + 1) * pageSize - 1);
 
@@ -46,45 +52,61 @@ export function useParcelSearchQuery(filters: ParcelSearchFilters, page: number,
       if (error) throw error;
       return { parcels: data || [], totalCount: count || 0 };
     },
+    enabled: !!countyId,
     staleTime: 30000,
   });
 }
 
 export function useParcelFilterOptions() {
+  const countyId = useActiveCountyId();
+
   return useQuery({
-    queryKey: ["parcel-filter-options"],
+    queryKey: ["parcel-filter-options", countyId],
     queryFn: async () => {
+      if (!countyId) return { cities: [] as string[] };
+
       const { data: cityData } = await supabase
         .from("parcels")
         .select("city")
+        .eq("county_id", countyId)
         .not("city", "is", null)
         .limit(1000);
 
-      const cities = [...new Set((cityData || []).map((p) => p.city).filter(Boolean))];
+      const cities = [...new Set((cityData || []).map((p) => p.city).filter(Boolean))] as string[];
       return { cities };
     },
+    enabled: !!countyId,
     staleTime: 60000,
   });
 }
 
 export function useParcelFilterDistincts() {
+  const countyId = useActiveCountyId();
+
   return useQuery({
-    queryKey: ["parcel-filter-distincts"],
+    queryKey: ["parcel-filter-distincts", countyId],
     queryFn: async () => {
+      if (!countyId) {
+        return { neighborhoods: [] as string[], propertyClasses: [] as string[], cities: [] as string[] };
+      }
+
       const [nbhResult, classResult, cityResult] = await Promise.all([
         supabase
           .from("parcels")
           .select("neighborhood_code")
+          .eq("county_id", countyId)
           .not("neighborhood_code", "is", null)
           .limit(500),
         supabase
           .from("parcels")
           .select("property_class")
+          .eq("county_id", countyId)
           .not("property_class", "is", null)
           .limit(100),
         supabase
           .from("parcels")
           .select("city")
+          .eq("county_id", countyId)
           .not("city", "is", null)
           .limit(100),
       ]);
@@ -101,6 +123,7 @@ export function useParcelFilterDistincts() {
 
       return { neighborhoods, propertyClasses, cities };
     },
+    enabled: !!countyId,
     staleTime: 120_000,
   });
 }
