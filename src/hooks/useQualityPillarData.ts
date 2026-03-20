@@ -6,15 +6,19 @@ import { supabase } from "@/integrations/supabase/client";
 import { useActiveCountyId } from "@/hooks/useActiveCounty";
 
 export function useQualityParcels() {
+  const countyId = useActiveCountyId();
+
   return useQuery({
-    queryKey: ["quality-parcels"],
+    queryKey: ["quality-parcels", countyId],
     queryFn: async () => {
       const { data } = await supabase
         .from("parcels")
         .select("id, parcel_number, address, assessed_value, latitude, longitude, neighborhood_code, year_built, building_area")
+        .eq("county_id", countyId!)
         .limit(1000);
       return data || [];
     },
+    enabled: !!countyId,
   });
 }
 

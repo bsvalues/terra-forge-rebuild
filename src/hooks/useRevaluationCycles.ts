@@ -46,16 +46,20 @@ const QUERY_KEY = ["revaluation-cycles"];
 
 /** Fetch all revaluation cycles */
 export function useRevaluationCycles() {
+  const countyId = useActiveCountyId();
+
   return useQuery<RevaluationCycle[]>({
-    queryKey: QUERY_KEY,
+    queryKey: [...QUERY_KEY, countyId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("revaluation_cycles" as any)
         .select("*")
+        .eq("county_id", countyId!)
         .order("created_at", { ascending: false });
       if (error) throw error;
       return (data as unknown as RevaluationCycle[]) || [];
     },
+    enabled: !!countyId,
     staleTime: 60_000,
   });
 }
