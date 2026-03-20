@@ -210,7 +210,7 @@ export function useUpdateDefenseStatus() {
 
       const { error } = await supabase
         .from("appeal_risk_scores")
-        .update(updates as any)
+        .update(updates as { defense_status?: string; updated_at?: string; assigned_to?: string; defense_notes?: string })
         .eq("id", scoreId);
       if (error) throw error;
     },
