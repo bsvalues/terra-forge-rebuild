@@ -295,7 +295,7 @@ Deno.serve(async (req) => {
     const result = solveOLS(X, y);
 
     // Build coefficient labels
-    const labels = ["intercept", ...finalVariables];
+    const labels = ["intercept", ...activeVariables];
     const coefficients = labels.map((label, i) => ({
       variable: label,
       coefficient: result.coefficients[i],
@@ -314,8 +314,9 @@ Deno.serve(async (req) => {
 
     const response = {
       neighborhood_code,
-      variables: finalVariables,
+      variables: activeVariables,
       variables_requested: variables,
+      variables_dropped: droppedVars.length > 0 ? droppedVars : undefined,
       sample_size: observations.length,
       r_squared: result.rSquared,
       rmse: result.rmse,
@@ -328,7 +329,7 @@ Deno.serve(async (req) => {
         rmse: result.rmse,
         f_statistic: result.fStatistic,
         sample_size: observations.length,
-        variables_count: variables.length,
+        variables_count: activeVariables.length,
       },
     };
 
