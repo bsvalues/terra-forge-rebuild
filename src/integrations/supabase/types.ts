@@ -5528,6 +5528,10 @@ export type Database = {
         Args: { p_county_id: string; p_limit?: number }
         Returns: Json
       }
+      bulk_spatial_heal: {
+        Args: { p_county_id: string; p_updates: Json }
+        Returns: Json
+      }
       bulk_update_parcel_centroids: {
         Args: { p_county_id: string; p_data: Json }
         Returns: number
