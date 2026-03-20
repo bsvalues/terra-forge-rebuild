@@ -4,7 +4,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { emitTraceEvent } from "@/services/terraTrace";
-import * as ExcelJS from "exceljs";
+// ExcelJS is lazy-loaded only when xlsx format is requested (~940KB savings)
 
 // ── Types ──────────────────────────────────────────────────────────
 export type ExportFormat = "csv" | "json" | "xlsx";
