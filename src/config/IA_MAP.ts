@@ -24,6 +24,12 @@ import {
   GitCompareArrows,
   Clock,
   Filter,
+  Zap,
+  FileText,
+  Scale,
+  AlertTriangle,
+  Settings,
+  Eye,
   type LucideIcon,
 } from "lucide-react";
 
