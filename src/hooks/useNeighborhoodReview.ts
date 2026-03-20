@@ -197,7 +197,7 @@ export function useCreateReview() {
       if (error) throw error;
 
       // Seed default tasks for each stage
-      const defaultTasks = [
+      const defaultTasks: Array<{ stage: "scoping" | "data_audit" | "spatial_analysis" | "calibration" | "equity_review" | "sign_off"; title: string; priority: string }> = [
         { stage: "scoping", title: "Define review scope and parcel subset", priority: "high" },
         { stage: "scoping", title: "Set timeline and assign reviewers", priority: "medium" },
         { stage: "data_audit", title: "Run data quality scan", priority: "high" },
@@ -216,7 +216,7 @@ export function useCreateReview() {
       ];
 
       await supabase.from("neighborhood_review_tasks").insert(
-        defaultTasks.map((t) => ({ ...t, review_id: data.id })) as Array<{ stage: string; title: string; priority: string; review_id: string }>
+        defaultTasks.map((t) => ({ ...t, review_id: data.id }))
       );
 
       await emitTraceEventAsync({

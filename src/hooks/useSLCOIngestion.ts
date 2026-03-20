@@ -165,9 +165,10 @@ async function fetchSLCOPipelineState(): Promise<SLCOPipelineState> {
   });
 
   // Build stage status from pipeline events
-  const stageMap = new Map<string, Record<string, unknown>>();
-  (pipelineEvents ?? []).forEach((ev: Record<string, unknown>) => {
-    if (!stageMap.has(ev.stage)) stageMap.set(ev.stage, ev);
+  const stageMap = new Map<string, { stage: string; status: string; rows_affected?: number; finished_at?: string }>();
+  (pipelineEvents ?? []).forEach((ev) => {
+    const e = ev as { stage: string; status: string; rows_affected?: number; finished_at?: string };
+    if (!stageMap.has(e.stage)) stageMap.set(e.stage, e);
   });
 
   const stages: PipelineStageRow[] = PIPELINE_STAGES.map((def) => {

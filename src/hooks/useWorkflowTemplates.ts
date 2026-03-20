@@ -134,6 +134,7 @@ export function useStartWorkflow() {
         .insert([{
           ...params,
           status: "active",
+          context: JSON.parse(JSON.stringify(params.context ?? {})),
         }])
         .select()
         .single();
