@@ -1,11 +1,11 @@
-// TerraFusion OS — Export Center
-// Unified data export dashboard with dataset selection, filters, and format options
+// TerraFusion OS — Export Center (Phase 148: IAAO Export + Excel)
+// "I exported the data and it came back with friends." — Ralph, Export Wrangler
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Download, FileJson, FileSpreadsheet, Database, Filter,
-  CheckCircle2, Loader2, AlertTriangle, Calendar, Layers
+  Download, FileJson, FileSpreadsheet, FileText, Database, Filter,
+  CheckCircle2, Loader2, AlertTriangle, Calendar, Layers, Shield
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
