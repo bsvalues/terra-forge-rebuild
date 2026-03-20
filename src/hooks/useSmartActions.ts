@@ -314,6 +314,7 @@ export function useSmartActions(): SmartAction[] {
       result.sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
       return result.slice(0, 7);
     },
+    enabled: !!countyId,
     staleTime: 120_000,
   });
 
