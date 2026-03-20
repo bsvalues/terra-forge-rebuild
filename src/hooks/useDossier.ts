@@ -221,14 +221,14 @@ export function useAssemblePacket(parcelId: string | null) {
       if (!parcelId) throw new Error("No parcel selected");
       const { data, error } = await supabase
         .from("dossier_packets")
-        .insert({
+        .insert([{
           parcel_id: parcelId,
           title: params.title,
           packet_type: params.packetType,
           document_ids: params.documentIds,
           narrative_ids: params.narrativeIds,
           status: "draft",
-        } as any)
+        }])
         .select()
         .single();
       if (error) throw error;
@@ -243,7 +243,7 @@ export function useAssemblePacket(parcelId: string | null) {
           narrativeCount: params.narrativeIds.length,
         },
         artifactType: "packet",
-        artifactId: (data as any).id,
+        artifactId: data.id,
       });
 
       return data;
