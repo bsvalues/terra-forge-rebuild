@@ -116,14 +116,14 @@ export function ParcelFiltersPanel({
           <div className="space-y-1">
             <Label className="text-xs text-muted-foreground">City</Label>
             <Select
-              value={filters.city || ""}
-              onValueChange={(v) => updateFilter("city", v || undefined)}
+              value={filters.city || "__all__"}
+              onValueChange={(v) => updateFilter("city", v === "__all__" ? undefined : v)}
             >
               <SelectTrigger className="h-8 text-xs bg-tf-substrate">
                 <SelectValue placeholder="Any" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Any</SelectItem>
+                <SelectItem value="__all__">Any</SelectItem>
                 {cities.map((c) => (
                   <SelectItem key={c} value={c}>
                     {c}
