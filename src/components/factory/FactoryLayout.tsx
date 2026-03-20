@@ -1,7 +1,10 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { NeighborhoodSelector } from "./NeighborhoodSelector";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useActiveCountyId } from "@/hooks/useActiveCounty";
 import { FactoryDashboardHeader } from "./FactoryDashboardHeader";
 import { RegressionMode } from "./regression/RegressionMode";
 import { CostMode } from "./cost/CostMode";
