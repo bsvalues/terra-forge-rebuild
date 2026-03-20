@@ -303,7 +303,7 @@ export function VEIDashboard() {
             title="Median Ratio"
             value={medianRatio.toFixed(3)}
             subtitle="Level of Appraisal"
-            status={medianStatus.status as any}
+            status={medianStatus.status}
             statusLabel={medianStatus.label}
             icon={Target}
             target="1.000"
@@ -314,7 +314,7 @@ export function VEIDashboard() {
             title="COD"
             value={`${(ratioStats.cod ?? 0).toFixed(1)}%`}
             subtitle="Uniformity"
-            status={codStatus.status as any}
+            status={codStatus.status}
             statusLabel={codStatus.label}
             icon={Activity}
             target="≤15%"
@@ -325,7 +325,7 @@ export function VEIDashboard() {
             title="PRD"
             value={(ratioStats.prd ?? 1.0).toFixed(3)}
             subtitle="Vertical Equity"
-            status={prdStatus.status as any}
+            status={prdStatus.status}
             statusLabel={prdStatus.label}
             icon={TrendingUp}
             target="0.98–1.03"
@@ -336,7 +336,7 @@ export function VEIDashboard() {
             title="PRB"
             value={prb.toFixed(3)}
             subtitle="Price-Related Bias"
-            status={prbStatus.status as any}
+            status={prbStatus.status}
             statusLabel={prbStatus.label}
             icon={Percent}
             target="±0.05"
@@ -346,7 +346,7 @@ export function VEIDashboard() {
             title="Tier Slope"
             value={tierSlope >= 0 ? `+${tierSlope.toFixed(2)}` : tierSlope.toFixed(2)}
             subtitle="Q1→Q4 Spread"
-            status={tierSlopeStatus.status as any}
+            status={tierSlopeStatus.status}
             statusLabel={tierSlopeStatus.label}
             icon={BarChart3}
             target="~0.00"
@@ -357,7 +357,7 @@ export function VEIDashboard() {
             title="Appeals Rate"
             value={`${highTierAppealsRate.toFixed(1)}%`}
             subtitle="Q4 Concentration"
-            status={appealsStatus.status as any}
+            status={appealsStatus.status}
             statusLabel={appealsStatus.label}
             icon={AlertTriangle}
             target="<5%"
@@ -440,7 +440,7 @@ export function VEIDashboard() {
 
         {/* Neighborhood Comparison Grid */}
         <motion.div variants={itemVariants}>
-          <NeighborhoodComparisonGrid data={nbhdComparison as any} isLoading={isLoadingNbhd} />
+          <NeighborhoodComparisonGrid data={nbhdComparison as NeighborhoodRow[]} isLoading={isLoadingNbhd} />
         </motion.div>
 
         {/* Footer Info */}
