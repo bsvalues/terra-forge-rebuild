@@ -113,12 +113,12 @@ export function useCreateBatchNoticeJob() {
           county_id: countyId,
           neighborhood_code: params.neighborhoodCode || null,
           property_class: params.propertyClass || null,
-          filters: {
+          filters: JSON.parse(JSON.stringify({
             neighborhoodCode: params.neighborhoodCode,
             propertyClass: params.propertyClass,
             useAI: params.useAI,
             aiLimit: params.aiLimit,
-          } as Record<string, unknown>,
+          })),
           total_parcels: parcels.length,
           status: "running",
         }])
