@@ -131,10 +131,10 @@ export function useStartWorkflow() {
     }) => {
       const { data, error } = await supabase
         .from("workflow_instances")
-        .insert({
+        .insert([{
           ...params,
           status: "active",
-        } as any)
+        }])
         .select()
         .single();
       if (error) throw error;
