@@ -98,7 +98,7 @@ export async function emitPipelineEvent(params: {
   finishedAt?: string;
 }) {
   const now = new Date().toISOString();
-  const { error } = await supabase.from("pipeline_events").insert({
+  const { error } = await supabase.from("pipeline_events").insert([{
     county_id: params.countyId,
     stage: params.stage,
     status: params.status,
@@ -109,7 +109,7 @@ export async function emitPipelineEvent(params: {
     details: params.details ?? {},
     started_at: params.startedAt ?? now,
     finished_at: params.finishedAt ?? (params.status !== "running" ? now : undefined),
-  });
+  }]);
   if (error) {
     // Never throw — pipeline events are observability, not critical path
     console.warn("[pipeline_events] emit failed:", error.message);

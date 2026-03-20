@@ -55,7 +55,7 @@ export function useRecordCertificationEvent() {
       const { data: profile } = await supabase.from("profiles").select("county_id").single();
       const { data, error } = await supabase
         .from("certification_events")
-        .insert({
+        .insert([{
           county_id: profile?.county_id ?? "",
           event_type: params.event_type,
           neighborhood_code: params.neighborhood_code || null,
@@ -65,7 +65,7 @@ export function useRecordCertificationEvent() {
           readiness_score: params.readiness_score || null,
           blocker_snapshot: params.blocker_snapshot || {},
           notes: params.notes || null,
-        })
+        }])
         .select()
         .single();
       if (error) throw error;
