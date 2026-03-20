@@ -50,7 +50,7 @@ export function useUploadDocument(parcelId: string | null) {
       // Insert document record
       const { data, error } = await supabase
         .from("dossier_documents")
-        .insert({
+        .insert([{
           parcel_id: parcelId,
           file_name: file.name,
           file_path: filePath,
@@ -58,7 +58,7 @@ export function useUploadDocument(parcelId: string | null) {
           mime_type: file.type,
           document_type: documentType,
           description: description || null,
-        } as any)
+        }])
         .select()
         .single();
       if (error) throw error;
@@ -69,7 +69,7 @@ export function useUploadDocument(parcelId: string | null) {
         eventType: "document_added",
         eventData: { fileName: file.name, documentType },
         artifactType: "document",
-        artifactId: (data as any).id,
+        artifactId: data.id,
       });
 
       return data;
