@@ -47,6 +47,7 @@ const NeighborhoodReviewOrchestrator = lazy(() => import("@/components/review").
 const AppealRiskDashboard = lazy(() => import("@/components/appeal-risk").then(m => ({ default: m.AppealRiskDashboard })));
 const ComparativeDashboard = lazy(() => import("@/components/comparative").then(m => ({ default: m.ComparativeDashboard })));
 const OwnerPortal = lazy(() => import("@/components/owner-portal").then(m => ({ default: m.OwnerPortal })));
+const IAAOComplianceDashboard = lazy(() => import("@/components/iaao").then(m => ({ default: m.IAAOComplianceDashboard })));
 
 // Workbench views
 const PropertyWorkbench = lazy(() => import("@/components/workbench").then(m => ({ default: m.PropertyWorkbench })));
