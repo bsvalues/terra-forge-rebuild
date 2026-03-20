@@ -203,7 +203,7 @@ export function useDossierPackets(parcelId: string | null) {
         .eq("parcel_id", parcelId!)
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return data as any[];
+      return data ?? [];
     },
     enabled: !!parcelId,
   });
