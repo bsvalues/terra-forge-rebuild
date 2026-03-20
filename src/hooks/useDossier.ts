@@ -301,7 +301,7 @@ export function useFinalizePacket(parcelId: string | null) {
   });
 }
 
-export function usePacketContents(packet: any | null) {
+export function usePacketContents(packet: { id: string; document_ids?: string[]; narrative_ids?: string[] } | null) {
   const docIds: string[] = packet?.document_ids || [];
   const narIds: string[] = packet?.narrative_ids || [];
 
