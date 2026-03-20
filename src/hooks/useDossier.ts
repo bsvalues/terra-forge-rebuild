@@ -328,7 +328,7 @@ export function usePacketContents(packet: { id: string; document_ids?: string[];
         .select("*")
         .in("id", narIds);
       if (error) throw error;
-      return data as any[];
+      return data ?? [];
     },
     enabled: !!packet && narIds.length > 0,
   });

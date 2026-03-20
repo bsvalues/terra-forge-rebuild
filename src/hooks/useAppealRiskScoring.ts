@@ -228,7 +228,7 @@ export function useBulkQueueDefense() {
     mutationFn: async (scoreIds: string[]) => {
       const { error } = await supabase
         .from("appeal_risk_scores")
-        .update({ defense_status: "queued", updated_at: new Date().toISOString() } as any)
+        .update({ defense_status: "queued" as const, updated_at: new Date().toISOString() })
         .in("id", scoreIds);
       if (error) throw error;
 

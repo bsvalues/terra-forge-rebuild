@@ -101,12 +101,14 @@ export function useGenerateSnapshot() {
       neighborhoodCode?: string;
       propertyClass?: string;
     }) => {
-      const { data, error } = await supabase.rpc("generate_comparison_snapshot" as "get_revaluation_progress", {
-        p_county_id: params.countyId,
-        p_tax_year: params.taxYear,
-        p_label: params.label || null,
-        p_neighborhood_code: params.neighborhoodCode || null,
-        p_property_class: params.propertyClass || null,
+      const { data, error } = await supabase.functions.invoke("generate-comparison-snapshot", {
+        body: {
+          county_id: params.countyId,
+          tax_year: params.taxYear,
+          label: params.label || null,
+          neighborhood_code: params.neighborhoodCode || null,
+          property_class: params.propertyClass || null,
+        },
       });
       if (error) throw error;
       return data as string;

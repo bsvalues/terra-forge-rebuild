@@ -185,9 +185,9 @@ export function useCreateBatchNoticeJob() {
           notices_generated: generated,
           notices_failed: failed,
           ai_drafted_count: aiDrafted,
-          status: "completed",
+          status: "completed" as const,
           completed_at: new Date().toISOString(),
-        } as any)
+        })
         .eq("id", job.id);
 
       await emitTraceEvent({

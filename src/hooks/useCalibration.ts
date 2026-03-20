@@ -114,8 +114,8 @@ export function useCalibration(neighborhoodCode: string | null) {
         r_squared: result.r_squared,
         rmse: result.rmse,
         sample_size: result.sample_size,
-        coefficients: result.coefficients as any,
-        diagnostics: result.diagnostics as any,
+        coefficients: JSON.parse(JSON.stringify(result.coefficients)),
+        diagnostics: JSON.parse(JSON.stringify(result.diagnostics)),
         variables: result.variables,
       });
 
