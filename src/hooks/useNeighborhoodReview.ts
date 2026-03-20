@@ -162,8 +162,7 @@ export function useReviewContext(reviewId: string | undefined) {
     queryKey: contextKey(reviewId || ""),
     queryFn: async () => {
       if (!reviewId) return null;
-      const { data, error } = await supabase.rpc("get_neighborhood_review_context" as any, {
-        p_review_id: reviewId,
+      const { data, error } = await (supabase.rpc as Function)("get_neighborhood_review_context", {
       });
       if (error) throw error;
       return data as unknown as ReviewContext;
