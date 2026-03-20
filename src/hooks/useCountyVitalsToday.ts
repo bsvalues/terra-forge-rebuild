@@ -20,7 +20,7 @@ export function useTodaySummary() {
       const todayStart = new Date();
       todayStart.setHours(0, 0, 0, 0);
 
-      const { data, error } = await supabase.rpc("get_county_timeline" as any, {
+      const { data, error } = await supabase.rpc("get_county_timeline" as "get_revaluation_progress", {
         p_from: todayStart.toISOString(),
         p_to: new Date().toISOString(),
         p_types: null,
