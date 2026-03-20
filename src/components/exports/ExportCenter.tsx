@@ -115,7 +115,26 @@ export function ExportCenter() {
             </CardContent>
           </Card>
 
-          {/* Filters */}
+          {/* IAAO Info Banner */}
+          {selectedDataset === "iaao_ratio_study" && (
+            <Card className="border-primary/30 bg-primary/5">
+              <CardContent className="pt-4 pb-3">
+                <div className="flex items-start gap-2">
+                  <Shield className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                  <div className="text-xs space-y-1">
+                    <p className="font-medium text-foreground">IAAO Standard on Ratio Studies</p>
+                    <p className="text-muted-foreground">
+                      Exports include per-parcel assessment ratios plus a summary row with COD, PRD, and PRB statistics.
+                      Excel format includes a dedicated IAAO Summary sheet with pass/fail indicators against IAAO benchmarks
+                      (COD ≤ 15%, PRD 0.98–1.03, PRB ±0.05).
+                    </p>
+                    <p className="text-muted-foreground">Recommended format: <span className="text-foreground font-medium">Excel (.xlsx)</span></p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           <Card className="border-border/60">
             <CardHeader className="pb-3">
               <CardTitle className="text-base flex items-center gap-2">
