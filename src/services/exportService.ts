@@ -241,6 +241,7 @@ async function buildIaaoRatioStudy(
 
 // ── Excel Serializer ──────────────────────────────────────────────
 async function toXlsx(rows: Record<string, unknown>[], dataset: string): Promise<Blob> {
+  const ExcelJS = await import("exceljs");
   const workbook = new ExcelJS.Workbook();
   workbook.creator = "TerraFusion OS";
   workbook.created = new Date();
