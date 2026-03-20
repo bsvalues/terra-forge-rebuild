@@ -4,7 +4,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { emitTraceEvent } from "@/services/terraTrace";
-import * as ExcelJS from "exceljs";
+// ExcelJS is lazy-loaded only when xlsx format is requested (~940KB savings)
 
 // ── Types ──────────────────────────────────────────────────────────
 export type ExportFormat = "csv" | "json" | "xlsx";
@@ -241,6 +241,7 @@ async function buildIaaoRatioStudy(
 
 // ── Excel Serializer ──────────────────────────────────────────────
 async function toXlsx(rows: Record<string, unknown>[], dataset: string): Promise<Blob> {
+  const ExcelJS = await import("exceljs");
   const workbook = new ExcelJS.Workbook();
   workbook.creator = "TerraFusion OS";
   workbook.created = new Date();
