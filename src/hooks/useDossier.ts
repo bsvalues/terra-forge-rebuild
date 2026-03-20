@@ -314,7 +314,7 @@ export function usePacketContents(packet: { id: string; document_ids?: string[];
         .select("*")
         .in("id", docIds);
       if (error) throw error;
-      return data as any[];
+      return data ?? [];
     },
     enabled: !!packet && docIds.length > 0,
   });
