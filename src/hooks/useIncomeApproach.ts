@@ -298,7 +298,7 @@ export function useSaveIncomeRun() {
       stats: { processed: number; withIncome: number; medianCapRate: number | null; medianGrm: number | null; medianRatio: number | null; cod: number | null };
     }) => {
       const { data: profile } = await supabase.from("profiles").select("county_id").single();
-      const { error } = await supabase.from("income_approach_runs" as any).insert({
+      const { error } = await supabase.from("income_approach_runs").insert({
         county_id: profile?.county_id ?? "",
         neighborhood_code: neighborhoodCode,
         parcels_processed: stats.processed,

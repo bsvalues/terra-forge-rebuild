@@ -22,7 +22,14 @@ export function BatchIncomeApplyPanel({ neighborhoodCode }: BatchIncomeApplyPane
 
   const [defaults, setDefaults] = useState({ capRate: 0.08, grm: 10 });
   const [results, setResults] = useState<BatchIncomeResult[] | null>(null);
-  const [stats, setStats] = useState<any>(null);
+  const [stats, setStats] = useState<{
+    processed: number;
+    withIncome: number;
+    medianCapRate: number | null;
+    medianGrm: number | null;
+    medianRatio: number | null;
+    cod: number | null;
+  } | null>(null);
 
   const handleRun = () => {
     if (!neighborhoodCode) return;
