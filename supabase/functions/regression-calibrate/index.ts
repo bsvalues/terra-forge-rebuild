@@ -130,15 +130,26 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Fetch parcels in this neighborhood scoped to county
-    const { data: parcels, error: pErr } = await supabase
-      .from("parcels")
-      .select("id, building_area, land_area, year_built, bedrooms, bathrooms, assessed_value")
-      .eq("county_id", county_id)
-      .eq("neighborhood_code", neighborhood_code);
+    // Fetch parcels in this neighborhood scoped to county (paginated to avoid 1000-row limit)
+    let allParcels: any[] = [];
+    let offset = 0;
+    const PAGE = 1000;
+    while (true) {
+      const { data: page, error: pErr } = await supabase
+        .from("parcels")
+        .select("id, building_area, land_area, year_built, bedrooms, bathrooms, assessed_value")
+        .eq("county_id", county_id)
+        .eq("neighborhood_code", neighborhood_code)
+        .range(offset, offset + PAGE - 1);
+      if (pErr) throw pErr;
+      if (!page?.length) break;
+      allParcels.push(...page);
+      if (page.length < PAGE) break;
+      offset += PAGE;
+    }
+    const parcels = allParcels;
 
-    if (pErr) throw pErr;
-    if (!parcels?.length) {
+    if (!parcels.length) {
       return new Response(JSON.stringify({ error: "No parcels found for neighborhood" }), {
         status: 404,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -147,16 +158,22 @@ Deno.serve(async (req) => {
 
     const parcelIds = parcels.map((p) => p.id);
 
-    // Fetch qualified sales
-    const { data: sales, error: sErr } = await supabase
-      .from("sales")
-      .select("parcel_id, sale_price")
-      .in("parcel_id", parcelIds)
-      .eq("is_qualified", true)
-      .gt("sale_price", 0)
-      .order("sale_date", { ascending: false });
-
-    if (sErr) throw sErr;
+    // Fetch qualified sales in batches to avoid URL length limits
+    const BATCH_SIZE = 50; // Keep small to avoid URL length limits with UUIDs
+    const allSales: { parcel_id: string; sale_price: number; sale_date?: string }[] = [];
+    for (let i = 0; i < parcelIds.length; i += BATCH_SIZE) {
+      const batch = parcelIds.slice(i, i + BATCH_SIZE);
+      const { data: batchSales, error: sErr } = await supabase
+        .from("sales")
+        .select("parcel_id, sale_price, sale_date")
+        .in("parcel_id", batch)
+        .eq("is_qualified", true)
+        .gt("sale_price", 0)
+        .order("sale_date", { ascending: false });
+      if (sErr) throw sErr;
+      if (batchSales) allSales.push(...batchSales);
+    }
+    const sales = allSales;
 
     // De-dupe: latest sale per parcel
     const latestSales = new Map<string, number>();
