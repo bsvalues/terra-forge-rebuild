@@ -109,7 +109,7 @@ export function useUpsertIncomeProperty() {
       notes?: string;
     }) => {
       const { data: profile } = await supabase.from("profiles").select("county_id").single();
-      const { error } = await supabase.from("income_properties" as any).upsert(
+      const { error } = await supabase.from("income_properties").upsert(
         {
           county_id: profile?.county_id ?? "",
           parcel_id: input.parcel_id,
