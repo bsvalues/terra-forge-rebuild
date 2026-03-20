@@ -136,7 +136,7 @@ export function VEIDashboard() {
     return { status: "concern", label: "Concern", color: "vei-concern" };
   };
 
-  const getCODStatus = (cod: number) => {
+  const getCODStatus = (cod: number): { status: VEIStatus; label: string; color: string } => {
     if (cod <= 10) return { status: "excellent", label: "Excellent", color: "vei-excellent" };
     if (cod <= 15) return { status: "good", label: "Good", color: "vei-good" };
     if (cod <= 20) return { status: "caution", label: "Caution", color: "vei-caution" };
