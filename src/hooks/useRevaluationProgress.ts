@@ -38,8 +38,8 @@ export function useRevaluationProgress(cycleId: string | null) {
     queryKey: ["revaluation-progress", cycleId],
     queryFn: async () => {
       if (!cycleId) return null;
-      const { data, error } = await supabase.rpc(
-        "get_revaluation_progress" as any,
+      const { data, error } = await (supabase.rpc as Function)(
+        "get_revaluation_progress",
         { p_cycle_id: cycleId }
       );
       if (error) throw error;
