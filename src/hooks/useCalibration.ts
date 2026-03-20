@@ -47,6 +47,7 @@ const AVAILABLE_VARIABLES = [
   { id: "year_built", label: "Year Built" },
   { id: "bedrooms", label: "Bedrooms" },
   { id: "bathrooms", label: "Bathrooms" },
+  { id: "assessed_value", label: "Assessed Value ($)" },
 ] as const;
 
 export function useCalibration(neighborhoodCode: string | null) {
