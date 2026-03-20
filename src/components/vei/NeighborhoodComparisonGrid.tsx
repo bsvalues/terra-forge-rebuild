@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { MapPin, ArrowUpDown, AlertTriangle, CheckCircle } from "lucide-react";
 import type { RatioStatistics } from "@/hooks/useRatioAnalysis";
 
-interface NeighborhoodRow {
+export interface NeighborhoodRow {
   neighborhood_code: string;
   sample_size: number;
   median_ratio: number | null;

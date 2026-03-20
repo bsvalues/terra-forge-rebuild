@@ -11,7 +11,7 @@ import { VEIDashboardSkeleton } from "./VEIDashboardSkeleton";
 import { VEIEmptyState } from "./VEIEmptyState";
 import { TaxYearSelector } from "./TaxYearSelector";
 import { SalesWindowSelector } from "./SalesWindowSelector";
-import { NeighborhoodComparisonGrid } from "./NeighborhoodComparisonGrid";
+import { NeighborhoodComparisonGrid, type NeighborhoodRow } from "./NeighborhoodComparisonGrid";
 import { 
   PRDDrilldownDialog, 
   CODDrilldownDialog, 
@@ -126,7 +126,9 @@ export function VEIDashboard() {
   const highTierAppealsRate = appealsData.find((a) => a.tier.includes("Q4"))?.rate ?? 0;
 
   // Status helpers
-  const getPRDStatus = (prd: number) => {
+  type VEIStatus = "excellent" | "good" | "caution" | "concern";
+
+  const getPRDStatus = (prd: number): { status: VEIStatus; label: string; color: string } => {
     const deviation = Math.abs(prd - 1);
     if (deviation <= 0.02) return { status: "excellent", label: "Excellent", color: "vei-excellent" };
     if (deviation <= 0.05) return { status: "good", label: "Good", color: "vei-good" };
@@ -134,14 +136,14 @@ export function VEIDashboard() {
     return { status: "concern", label: "Concern", color: "vei-concern" };
   };
 
-  const getCODStatus = (cod: number) => {
+  const getCODStatus = (cod: number): { status: VEIStatus; label: string; color: string } => {
     if (cod <= 10) return { status: "excellent", label: "Excellent", color: "vei-excellent" };
     if (cod <= 15) return { status: "good", label: "Good", color: "vei-good" };
     if (cod <= 20) return { status: "caution", label: "Caution", color: "vei-caution" };
     return { status: "concern", label: "Concern", color: "vei-concern" };
   };
 
-  const getPRBStatus = (prb: number) => {
+  const getPRBStatus = (prb: number): { status: VEIStatus; label: string; color: string } => {
     const absPrb = Math.abs(prb);
     if (absPrb <= 0.02) return { status: "excellent", label: "No Bias", color: "vei-excellent" };
     if (absPrb <= 0.05) return { status: "good", label: "Minimal Bias", color: "vei-good" };
@@ -149,7 +151,7 @@ export function VEIDashboard() {
     return { status: "concern", label: "Significant Bias", color: "vei-concern" };
   };
 
-  const getMedianRatioStatus = (ratio: number) => {
+  const getMedianRatioStatus = (ratio: number): { status: VEIStatus; label: string; color: string } => {
     const deviation = Math.abs(ratio - 1);
     if (deviation <= 0.02) return { status: "excellent", label: "On Target", color: "vei-excellent" };
     if (deviation <= 0.05) return { status: "good", label: "Acceptable", color: "vei-good" };
@@ -157,7 +159,7 @@ export function VEIDashboard() {
     return { status: "concern", label: "Off Target", color: "vei-concern" };
   };
 
-  const getTierSlopeStatus = (slope: number) => {
+  const getTierSlopeStatus = (slope: number): { status: VEIStatus; label: string; color: string } => {
     const absSlope = Math.abs(slope);
     if (absSlope <= 0.02) return { status: "excellent", label: "Neutral", color: "vei-excellent" };
     if (absSlope <= 0.05) return { status: "good", label: "Slight Bias", color: "vei-good" };
@@ -165,7 +167,7 @@ export function VEIDashboard() {
     return { status: "concern", label: "Strong Regressivity", color: "vei-concern" };
   };
 
-  const getAppealsStatus = (rate: number) => {
+  const getAppealsStatus = (rate: number): { status: VEIStatus; label: string; color: string } => {
     if (rate <= 3) return { status: "excellent", label: "Low Concentration", color: "vei-excellent" };
     if (rate <= 5) return { status: "good", label: "Moderate", color: "vei-good" };
     if (rate <= 8) return { status: "caution", label: "High-Value Clustering", color: "vei-caution" };
@@ -301,7 +303,7 @@ export function VEIDashboard() {
             title="Median Ratio"
             value={medianRatio.toFixed(3)}
             subtitle="Level of Appraisal"
-            status={medianStatus.status as any}
+            status={medianStatus.status}
             statusLabel={medianStatus.label}
             icon={Target}
             target="1.000"
@@ -312,7 +314,7 @@ export function VEIDashboard() {
             title="COD"
             value={`${(ratioStats.cod ?? 0).toFixed(1)}%`}
             subtitle="Uniformity"
-            status={codStatus.status as any}
+            status={codStatus.status}
             statusLabel={codStatus.label}
             icon={Activity}
             target="≤15%"
@@ -323,7 +325,7 @@ export function VEIDashboard() {
             title="PRD"
             value={(ratioStats.prd ?? 1.0).toFixed(3)}
             subtitle="Vertical Equity"
-            status={prdStatus.status as any}
+            status={prdStatus.status}
             statusLabel={prdStatus.label}
             icon={TrendingUp}
             target="0.98–1.03"
@@ -334,7 +336,7 @@ export function VEIDashboard() {
             title="PRB"
             value={prb.toFixed(3)}
             subtitle="Price-Related Bias"
-            status={prbStatus.status as any}
+            status={prbStatus.status}
             statusLabel={prbStatus.label}
             icon={Percent}
             target="±0.05"
@@ -344,7 +346,7 @@ export function VEIDashboard() {
             title="Tier Slope"
             value={tierSlope >= 0 ? `+${tierSlope.toFixed(2)}` : tierSlope.toFixed(2)}
             subtitle="Q1→Q4 Spread"
-            status={tierSlopeStatus.status as any}
+            status={tierSlopeStatus.status}
             statusLabel={tierSlopeStatus.label}
             icon={BarChart3}
             target="~0.00"
@@ -355,7 +357,7 @@ export function VEIDashboard() {
             title="Appeals Rate"
             value={`${highTierAppealsRate.toFixed(1)}%`}
             subtitle="Q4 Concentration"
-            status={appealsStatus.status as any}
+            status={appealsStatus.status}
             statusLabel={appealsStatus.label}
             icon={AlertTriangle}
             target="<5%"
@@ -438,7 +440,7 @@ export function VEIDashboard() {
 
         {/* Neighborhood Comparison Grid */}
         <motion.div variants={itemVariants}>
-          <NeighborhoodComparisonGrid data={nbhdComparison as any} isLoading={isLoadingNbhd} />
+          <NeighborhoodComparisonGrid data={nbhdComparison as NeighborhoodRow[]} isLoading={isLoadingNbhd} />
         </motion.div>
 
         {/* Footer Info */}
