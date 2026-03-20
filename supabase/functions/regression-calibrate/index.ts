@@ -147,16 +147,22 @@ Deno.serve(async (req) => {
 
     const parcelIds = parcels.map((p) => p.id);
 
-    // Fetch qualified sales
-    const { data: sales, error: sErr } = await supabase
-      .from("sales")
-      .select("parcel_id, sale_price")
-      .in("parcel_id", parcelIds)
-      .eq("is_qualified", true)
-      .gt("sale_price", 0)
-      .order("sale_date", { ascending: false });
-
-    if (sErr) throw sErr;
+    // Fetch qualified sales in batches to avoid URL length limits
+    const BATCH_SIZE = 200;
+    const allSales: { parcel_id: string; sale_price: number; sale_date?: string }[] = [];
+    for (let i = 0; i < parcelIds.length; i += BATCH_SIZE) {
+      const batch = parcelIds.slice(i, i + BATCH_SIZE);
+      const { data: batchSales, error: sErr } = await supabase
+        .from("sales")
+        .select("parcel_id, sale_price, sale_date")
+        .in("parcel_id", batch)
+        .eq("is_qualified", true)
+        .gt("sale_price", 0)
+        .order("sale_date", { ascending: false });
+      if (sErr) throw sErr;
+      if (batchSales) allSales.push(...batchSales);
+    }
+    const sales = allSales;
 
     // De-dupe: latest sale per parcel
     const latestSales = new Map<string, number>();
