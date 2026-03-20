@@ -198,7 +198,7 @@ export function useBatchIncomeApply() {
 
       // 2. Get income data
       const { data: incomeData } = await supabase
-        .from("income_properties" as any)
+        .from("income_properties")
         .select("*")
         .in("parcel_id", parcelIds.slice(0, 500));
       const incomeMap = new Map<string, IncomePropertyRow>();
