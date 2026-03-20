@@ -62,27 +62,27 @@ export function useRatioAnalysis(params: RatioAnalysisParams = {}) {
         const { data: userData } = await supabase.auth.getUser();
         const operatorId = userData?.user?.id;
         if (operatorId) {
-          supabase.from("model_receipts").insert({
+          supabase.from("model_receipts").insert([{
             model_type: "ratio_study",
             model_version: `vei-ondemand-${outlierMethod}-v1`,
             operator_id: operatorId,
-            inputs: {
+            inputs: JSON.parse(JSON.stringify({
               tax_year: taxYear,
               sales_start_date: salesStartDate,
               sales_end_date: salesEndDate,
               neighborhood_code: neighborhoodCode,
               outlier_method: outlierMethod,
-            } as any,
-            outputs: {
+            })),
+            outputs: JSON.parse(JSON.stringify({
               sample_size: stats.sample_size,
               median_ratio: stats.median_ratio,
               cod: stats.cod,
               prd: stats.prd,
               prb: stats.prb,
               tier_slope: stats.tier_slope,
-            } as any,
-            metadata: { source: "VEIDashboard", computed_at: new Date().toISOString() } as any,
-          }).then(() => {});
+            })),
+            metadata: JSON.parse(JSON.stringify({ source: "VEIDashboard", computed_at: new Date().toISOString() })),
+          }]).then(() => {});
         }
       }
 
