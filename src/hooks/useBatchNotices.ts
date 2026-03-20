@@ -169,7 +169,7 @@ export function useCreateBatchNoticeJob() {
             status: "draft",
             ai_drafted: isAI,
             batch_job_id: job.id,
-            metadata: { batch: true } as Record<string, unknown>,
+            metadata: JSON.parse(JSON.stringify({ batch: true })),
           }]);
 
           generated++;
