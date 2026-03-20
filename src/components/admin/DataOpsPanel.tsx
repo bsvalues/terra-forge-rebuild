@@ -39,6 +39,9 @@ export function DataOpsPanel() {
           <TabsTrigger value="layers" className="gap-1.5">
             <Layers className="w-3.5 h-3.5" />GIS Layers
           </TabsTrigger>
+          <TabsTrigger value="sales" className="gap-1.5">
+            <DollarSign className="w-3.5 h-3.5" />Sales Import
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="ingest" className="mt-4">
@@ -52,6 +55,9 @@ export function DataOpsPanel() {
         </TabsContent>
         <TabsContent value="layers" className="mt-4">
           <GISLayersPanel layers={layers} isLoading={isLoadingLayers} />
+        </TabsContent>
+        <TabsContent value="sales" className="mt-4">
+          <RedfinSalesIngest />
         </TabsContent>
       </Tabs>
     </div>

@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Upload, FileSpreadsheet, CheckCircle2, XCircle, AlertTriangle, ExternalLink } from "lucide-react";
-import { useRedfinPreview, useRedfinCommit, type RedfIngestResult } from "@/hooks/useRedfin SalesIngest";
+import { useRedfinPreview, useRedfinCommit, type RedfIngestResult } from "@/hooks/useRedfinSalesIngest";
 
 export function RedfinSalesIngest() {
   const [csvText, setCsvText] = useState<string | null>(null);
