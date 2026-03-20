@@ -164,7 +164,7 @@ Deno.serve(async (req) => {
             rec.year_built = f.attributes.BUILT_YR;
           }
           if (f.attributes.PARCEL_ACRES && f.attributes.PARCEL_ACRES > 0) {
-            rec.lot_size = f.attributes.PARCEL_ACRES;
+            rec.land_area = f.attributes.PARCEL_ACRES;
           }
           if (f.attributes.PARCEL_ADD) rec.address = f.attributes.PARCEL_ADD;
           return rec;
