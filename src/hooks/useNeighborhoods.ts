@@ -51,18 +51,22 @@ const QUERY_KEY = ["neighborhoods"];
 
 /** Fetch all neighborhoods for the current year */
 export function useNeighborhoods(year?: number) {
+  const countyId = useActiveCountyId();
+
   return useQuery({
-    queryKey: [...QUERY_KEY, year],
+    queryKey: [...QUERY_KEY, countyId, year],
     queryFn: async () => {
       let query = supabase
         .from("neighborhoods")
         .select("*")
+        .eq("county_id", countyId!)
         .order("hood_cd", { ascending: true });
       if (year) query = query.eq("year", year);
       const { data, error } = await query;
       if (error) throw error;
       return (data || []) as NeighborhoodRow[];
     },
+    enabled: !!countyId,
     staleTime: 120_000,
   });
 }
