@@ -183,9 +183,11 @@ export function useCreateReview() {
       review_name: string;
       target_deadline?: string;
     }) => {
+      const { data: profile } = await supabase.from("profiles").select("county_id").single();
       const { data, error } = await supabase
         .from("neighborhood_reviews")
         .insert([{
+          county_id: profile?.county_id ?? "",
           neighborhood_code: input.neighborhood_code,
           review_name: input.review_name,
           target_deadline: input.target_deadline || null,
