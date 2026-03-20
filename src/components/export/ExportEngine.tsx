@@ -1,8 +1,9 @@
 // TerraFusion OS — Export Engine (Swarm B)
 // Generates CSV/Excel exports from ratio study, roll readiness, and BOE packet data
+// "The spreadsheet grew legs and walked into production." — Ralph, Spreadsheet Wrangler
 
 import { toast } from "sonner";
-import ExcelJS from "exceljs";
+// ExcelJS is lazy-loaded only when xlsx export is requested (~940KB savings)
 
 export interface ExportableDataset {
   title: string;
