@@ -78,7 +78,7 @@ export function useComparisonSnapshots() {
   return useQuery({
     queryKey: ["comparison-snapshots"],
     queryFn: async () => {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from("comparison_snapshots")
         .select("*")
         .order("tax_year", { ascending: false })
