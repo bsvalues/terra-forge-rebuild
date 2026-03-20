@@ -308,6 +308,12 @@ export function AppLayout({ initialParcel: routeParcel, initialModule, initialFa
             );
           case "settings":
             return <CountyConfigPanel />;
+          case "data-ops":
+            return (
+              <div className="p-6 max-w-7xl mx-auto">
+                <DataOpsPanel />
+              </div>
+            );
           case "sync":
             return (
               <div className="p-6 max-w-7xl mx-auto">
