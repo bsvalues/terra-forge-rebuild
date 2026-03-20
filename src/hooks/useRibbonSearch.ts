@@ -50,14 +50,18 @@ export function useRibbonParcelSearch(query: string) {
 }
 
 export function useRibbonStudyPeriods() {
+  const countyId = useActiveCountyId();
+
   return useQuery({
-    queryKey: ["study-periods-ribbon"],
+    queryKey: ["study-periods-ribbon", countyId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let q = supabase
         .from("study_periods")
         .select("id, name, status, start_date, end_date, description")
         .order("start_date", { ascending: false })
         .limit(10);
+      if (countyId) q = q.eq("county_id", countyId);
+      const { data, error } = await q;
       if (error) throw error;
       return (data || []) as RibbonStudyPeriod[];
     },
