@@ -42,7 +42,8 @@ export function useHistoricalRatioTrend(
             p_tax_year: year,
             p_sales_start_date: salesStartDate,
             p_sales_end_date: salesEndDate,
-          });
+            p_outlier_method: "iqr",
+          } as any);
 
           if (error) return null;
           const stats = Array.isArray(data) ? data[0] : data;
