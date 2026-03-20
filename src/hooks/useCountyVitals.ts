@@ -79,16 +79,9 @@ export interface CountyVitals {
 }
 
 async function fetchCountyVitals(): Promise<CountyVitals> {
-  // Get user's county_id first for scoped vitals
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("county_id")
-    .single();
-
-  const countyId = profile?.county_id ?? undefined;
-
+  // Pass null for global (all-county) vitals; county-scoped available via p_county_id
   const { data, error } = await supabase.rpc("get_county_vitals", {
-    p_county_id: countyId,
+    p_county_id: null,
   });
   if (error) throw error;
 
