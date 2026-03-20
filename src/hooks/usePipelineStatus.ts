@@ -98,7 +98,7 @@ export async function emitPipelineEvent(params: {
   finishedAt?: string;
 }) {
   const now = new Date().toISOString();
-  const { error } = await supabase.from("pipeline_events" as any).insert({
+  const { error } = await supabase.from("pipeline_events").insert({
     county_id: params.countyId,
     stage: params.stage,
     status: params.status,

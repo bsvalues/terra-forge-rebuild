@@ -32,7 +32,7 @@ export function useWatchlist() {
     queryKey: WATCHLIST_KEY,
     queryFn: async (): Promise<WatchlistItem[]> => {
       const { data, error } = await supabase
-        .from("parcel_watchlist" as any)
+        .from("parcel_watchlist")
         .select(`
           id, user_id, parcel_id, county_id, note, priority, created_at, updated_at,
           parcels:parcel_id (parcel_number, address, assessed_value, neighborhood_code, property_class)
@@ -74,7 +74,7 @@ export function useAddToWatchlist() {
   return useMutation({
     mutationFn: async (params: { parcelId: string; note?: string; priority?: WatchlistPriority }) => {
       const { data, error } = await supabase
-        .from("parcel_watchlist" as any)
+        .from("parcel_watchlist")
         .insert({
           parcel_id: params.parcelId,
           note: params.note || null,
@@ -104,7 +104,7 @@ export function useRemoveFromWatchlist() {
   return useMutation({
     mutationFn: async (params: { watchlistId: string; parcelId: string }) => {
       const { error } = await supabase
-        .from("parcel_watchlist" as any)
+        .from("parcel_watchlist")
         .delete()
         .eq("id", params.watchlistId);
 
@@ -131,7 +131,7 @@ export function useUpdateWatchlistItem() {
       if (params.priority !== undefined) updates.priority = params.priority;
 
       const { error } = await supabase
-        .from("parcel_watchlist" as any)
+        .from("parcel_watchlist")
         .update(updates)
         .eq("id", params.id);
 

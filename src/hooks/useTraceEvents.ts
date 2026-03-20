@@ -10,7 +10,7 @@ export function useTraceEvents(parcelId?: string | null, limit = 20) {
     queryKey: ["terra-trace-feed", parcelId, limit],
     queryFn: async () => {
       let query = supabase
-        .from("trace_events" as any)
+        .from("trace_events")
         .select("*")
         .order("created_at", { ascending: false })
         .limit(limit);

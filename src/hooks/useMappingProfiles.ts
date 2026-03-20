@@ -163,7 +163,7 @@ export function useMappingProfiles(datasetType: string) {
     queryKey: ["mapping-profiles", datasetType],
     queryFn: async () => {
       const { data: profs, error: pe } = await supabase
-        .from("ingest_mapping_profiles" as any)
+        .from("ingest_mapping_profiles")
         .select("*")
         .eq("dataset_type", datasetType)
         .order("is_default", { ascending: false })
@@ -174,7 +174,7 @@ export function useMappingProfiles(datasetType: string) {
       const profilesWithRules: MappingProfile[] = await Promise.all(
         (profs ?? []).map(async (p: any) => {
           const { data: rules } = await supabase
-            .from("ingest_mapping_rules" as any)
+            .from("ingest_mapping_rules")
             .select("*")
             .eq("profile_id", p.id);
           return { ...p, rules: rules ?? [] };
@@ -199,7 +199,7 @@ export function useMappingProfiles(datasetType: string) {
     }) => {
       // Upsert profile
       const { data: prof, error: pe } = await supabase
-        .from("ingest_mapping_profiles" as any)
+        .from("ingest_mapping_profiles")
         .insert({
           dataset_type: datasetType,
           name,
@@ -223,7 +223,7 @@ export function useMappingProfiles(datasetType: string) {
 
       if (rules.length > 0) {
         const { error: re } = await supabase
-          .from("ingest_mapping_rules" as any)
+          .from("ingest_mapping_rules")
           .insert(rules);
         if (re) throw re;
       }
@@ -247,7 +247,7 @@ export function useMappingProfiles(datasetType: string) {
   const deleteProfileMutation = useMutation({
     mutationFn: async (profileId: string) => {
       const { error } = await supabase
-        .from("ingest_mapping_profiles" as any)
+        .from("ingest_mapping_profiles")
         .delete()
         .eq("id", profileId);
       if (error) throw error;
@@ -262,12 +262,12 @@ export function useMappingProfiles(datasetType: string) {
     mutationFn: async (profileId: string) => {
       // Clear all defaults for this type first
       await supabase
-        .from("ingest_mapping_profiles" as any)
+        .from("ingest_mapping_profiles")
         .update({ is_default: false })
         .eq("dataset_type", datasetType);
 
       const { error } = await supabase
-        .from("ingest_mapping_profiles" as any)
+        .from("ingest_mapping_profiles")
         .update({ is_default: true })
         .eq("id", profileId);
       if (error) throw error;

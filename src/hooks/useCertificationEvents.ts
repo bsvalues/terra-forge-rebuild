@@ -27,7 +27,7 @@ export function useCertificationEvents(taxYear?: number) {
     queryKey: ["certification-events", year],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("certification_events" as any)
+        .from("certification_events")
         .select("*")
         .eq("tax_year", year)
         .order("certified_at", { ascending: false });
@@ -53,7 +53,7 @@ export function useRecordCertificationEvent() {
       notes?: string;
     }) => {
       const { data, error } = await supabase
-        .from("certification_events" as any)
+        .from("certification_events")
         .insert({
           event_type: params.event_type,
           neighborhood_code: params.neighborhood_code || null,

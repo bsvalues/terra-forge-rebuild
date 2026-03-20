@@ -218,7 +218,7 @@ export function useSmartActions(): SmartAction[] {
       // ── Low-confidence mapping rules (Learning SLA) ──
       const sevenDaysAgo = new Date(Date.now() - 7 * 86400_000).toISOString();
       const { data: lowConfRules } = await supabase
-        .from("ingest_mapping_rules" as any)
+        .from("ingest_mapping_rules")
         .select("*")
         .eq("confidence_override", "low")
         .gte("created_at", sevenDaysAgo)
@@ -239,7 +239,7 @@ export function useSmartActions(): SmartAction[] {
 
       // ── Missing default mapping profiles ──
       const { data: allProfiles } = await supabase
-        .from("ingest_mapping_profiles" as any)
+        .from("ingest_mapping_profiles")
         .select("dataset_type, is_default")
         .limit(100);
 

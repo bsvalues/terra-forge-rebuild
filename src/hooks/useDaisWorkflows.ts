@@ -36,7 +36,7 @@ export function usePermitsWorkflowQuery(statusFilter: string) {
     queryKey: ["permits-workflow", statusFilter],
     queryFn: async () => {
       let query = supabase
-        .from("permits" as any)
+        .from("permits")
         .select(`
           *,
           parcel:parcels!permits_parcel_id_fkey(id, parcel_number, address, city)

@@ -66,7 +66,7 @@ export function useNeighborhoodLeaderboard() {
       const appealsByParcel = new Set((appeals || []).map(a => a.parcel_id));
 
       const { data: permits } = await supabase
-        .from("permits" as any)
+        .from("permits")
         .select("parcel_id")
         .in("status", ["applied", "pending"]);
 
