@@ -151,7 +151,7 @@ export function VEIDashboard() {
     return { status: "concern", label: "Significant Bias", color: "vei-concern" };
   };
 
-  const getMedianRatioStatus = (ratio: number) => {
+  const getMedianRatioStatus = (ratio: number): { status: VEIStatus; label: string; color: string } => {
     const deviation = Math.abs(ratio - 1);
     if (deviation <= 0.02) return { status: "excellent", label: "On Target", color: "vei-excellent" };
     if (deviation <= 0.05) return { status: "good", label: "Acceptable", color: "vei-good" };
