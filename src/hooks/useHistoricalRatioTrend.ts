@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useActiveCountyId } from "@/hooks/useActiveCounty";
 import type { RatioStatistics } from "./useRatioAnalysis";
 
 export interface YearlyRatioStats extends RatioStatistics {
