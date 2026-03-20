@@ -255,7 +255,7 @@ export function useAdvanceStage() {
           current_stage: nextStage,
           [completedCol]: new Date().toISOString(),
           updated_at: new Date().toISOString(),
-        } as any)
+        } as Record<string, string>)
         .eq("id", reviewId);
 
       if (error) throw error;
