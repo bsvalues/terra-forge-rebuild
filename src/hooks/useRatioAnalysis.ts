@@ -43,13 +43,13 @@ export function useRatioAnalysis(params: RatioAnalysisParams = {}) {
     staleTime: 2 * 60 * 1000, // 2 min — refresh after data imports or calibration runs
     refetchOnWindowFocus: true,
     queryFn: async () => {
-      const { data, error } = await supabase.rpc("compute_ratio_statistics", {
+      const { data, error } = await (supabase.rpc as Function)("compute_ratio_statistics", {
         p_tax_year: taxYear,
         p_sales_start_date: salesStartDate,
         p_sales_end_date: salesEndDate,
         p_neighborhood_code: neighborhoodCode,
         p_outlier_method: outlierMethod,
-      } as any);
+      });
 
       if (error) throw error;
       
