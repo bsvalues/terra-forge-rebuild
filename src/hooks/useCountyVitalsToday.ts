@@ -35,8 +35,8 @@ export function useTodaySummary() {
 
       if (error) throw error;
 
-      const result = data as any;
-      const rows: any[] = result?.rows ?? [];
+      const result = data as unknown as { rows?: Array<{ event_type: string }> };
+      const rows = result?.rows ?? [];
 
       const counts: TodaySummary = {
         imports: 0,

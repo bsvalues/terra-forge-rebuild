@@ -91,7 +91,7 @@ export function useCreateNotice() {
 
       const { data, error } = await supabase
         .from("notices")
-        .insert(insertPayload as any)
+        .insert([insertPayload])
         .select()
         .single();
 

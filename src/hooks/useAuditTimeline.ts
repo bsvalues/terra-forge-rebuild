@@ -49,7 +49,7 @@ export function useAuditTimeline() {
         });
       }
 
-      const total = (data as any[]).length;
+      const total = data.length;
 
       const last3 = buckets.slice(-3).reduce((s, b) => s + b.count, 0);
       const prior4 = buckets.slice(0, 4).reduce((s, b) => s + b.count, 0);

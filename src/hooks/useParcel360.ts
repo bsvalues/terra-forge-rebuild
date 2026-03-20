@@ -142,7 +142,7 @@ function useParcelTraceEvents(parcelId: string | null) {
         .order("created_at", { ascending: false })
         .limit(20);
       if (error) throw error;
-      return data as any[];
+      return data ?? [];
     },
     enabled: !!parcelId,
     staleTime: 10_000,

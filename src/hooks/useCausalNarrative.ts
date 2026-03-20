@@ -95,7 +95,7 @@ export function useCausalNarrative(event: TimelineEvent | null) {
 
       if (error) throw error;
 
-      const result = data as any;
+      const result = data as unknown as { rows?: TimelineEvent[] };
       const rows: TimelineEvent[] = result?.rows ?? [];
 
       let before: TimelineEvent | null = null;

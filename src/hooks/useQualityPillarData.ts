@@ -32,7 +32,7 @@ export function useQualityPipelineEvents() {
         .eq("stage", "quality_scored")
         .order("created_at", { ascending: false })
         .limit(10);
-      return (data || []) as any[];
+      return data ?? [];
     },
   });
 }
