@@ -75,7 +75,7 @@ export function useCreateNotice() {
     }) => {
       assertWriteLane("notices", "dais");
 
-      const insertPayload: Record<string, unknown> = {
+      const insertPayload = {
         parcel_id: params.parcel_id,
         county_id: params.county_id,
         notice_type: params.notice_type,
@@ -83,10 +83,10 @@ export function useCreateNotice() {
         recipient_address: params.recipient_address || null,
         subject: params.subject,
         body: params.body,
-        status: "draft",
+        status: "draft" as const,
         ai_drafted: params.ai_drafted || false,
         calibration_run_id: params.calibration_run_id || null,
-        metadata: params.metadata || {},
+        metadata: JSON.parse(JSON.stringify(params.metadata || {})),
       };
 
       const { data, error } = await supabase

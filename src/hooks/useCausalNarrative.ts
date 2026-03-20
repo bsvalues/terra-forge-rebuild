@@ -80,7 +80,7 @@ export function useCausalNarrative(event: TimelineEvent | null) {
       }
 
       // Strategy 2: Fallback to ±15 minute time window
-      const { data, error } = await supabase.rpc("get_county_timeline" as "get_revaluation_progress", {
+      const { data, error } = await (supabase.rpc as Function)("get_county_timeline", {
         p_from: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString(),
         p_to: new Date().toISOString(),
         p_types: null,

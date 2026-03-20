@@ -82,7 +82,7 @@ export function useCountyTimeline({
       const from = rangeToDate(range);
       const to = new Date().toISOString();
 
-      const { data, error } = await supabase.rpc("get_county_timeline" as "get_revaluation_progress", {
+      const { data, error } = await (supabase.rpc as Function)("get_county_timeline", {
         p_from: from,
         p_to: to,
         p_types: types,
