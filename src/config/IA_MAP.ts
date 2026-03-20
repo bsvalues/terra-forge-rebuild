@@ -109,6 +109,7 @@ export const IA_MODULES: ModuleDefinition[] = [
       { id: "data-doctor", label: "Data Doctor", icon: Shield, scope: "county" },
       { id: "webhooks", label: "Webhook Hub", icon: Radar, scope: "county" },
       { id: "settings", label: "Settings", icon: Target, scope: "county" },
+      { id: "data-ops", label: "Data Ops", icon: Database, scope: "county" },
     ],
   },
   {
