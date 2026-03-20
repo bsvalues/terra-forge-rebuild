@@ -64,8 +64,8 @@ export function useCompleteRevaluationCycle() {
     string
   >({
     mutationFn: async (cycleId: string) => {
-      const { data, error } = await supabase.rpc(
-        "complete_revaluation_cycle" as any,
+      const { data, error } = await (supabase.rpc as Function)(
+        "complete_revaluation_cycle",
         { p_cycle_id: cycleId }
       );
       if (error) throw error;
