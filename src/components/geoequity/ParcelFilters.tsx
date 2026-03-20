@@ -96,14 +96,14 @@ export function ParcelFiltersPanel({
           <div className="space-y-1">
             <Label className="text-xs text-muted-foreground">Neighborhood</Label>
             <Select
-              value={filters.neighborhood || ""}
-              onValueChange={(v) => updateFilter("neighborhood", v || undefined)}
+              value={filters.neighborhood || "__all__"}
+              onValueChange={(v) => updateFilter("neighborhood", v === "__all__" ? undefined : v)}
             >
               <SelectTrigger className="h-8 text-xs bg-tf-substrate">
                 <SelectValue placeholder="Any" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Any</SelectItem>
+                <SelectItem value="__all__">Any</SelectItem>
                 {neighborhoods.map((n) => (
                   <SelectItem key={n} value={n}>
                     {n}
