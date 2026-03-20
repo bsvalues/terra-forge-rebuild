@@ -71,7 +71,7 @@ export function usePipelineStatus() {
   return useQuery({
     queryKey: ["pipeline-status", countyId],
     queryFn: async (): Promise<PipelineStatusResult> => {
-      const { data, error } = await supabase.rpc("get_pipeline_status" as any, {
+      const { data, error } = await (supabase.rpc as Function)("get_pipeline_status", {
         p_county_id: countyId,
       });
       if (error) throw error;

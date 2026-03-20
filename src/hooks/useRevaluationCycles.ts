@@ -75,8 +75,8 @@ export function useLaunchRevaluation() {
     neighborhoods?: string[];
   }>({
     mutationFn: async ({ cycleName, taxYear, neighborhoods }) => {
-      const { data, error } = await supabase.rpc(
-        "launch_revaluation_cycle" as any,
+      const { data, error } = await (supabase.rpc as Function)(
+        "launch_revaluation_cycle",
         {
           p_cycle_name: cycleName || "Annual Revaluation",
           p_tax_year: taxYear || new Date().getFullYear(),

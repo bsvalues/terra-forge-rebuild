@@ -215,7 +215,7 @@ export function useMappingProfiles(datasetType: string) {
       const rules = Object.entries(mapping)
         .filter(([, target]) => target && target !== "__skip__")
         .map(([source_header, target_field]) => ({
-          profile_id: (prof as any).id,
+          profile_id: prof.id,
           source_header: normalizeHeader(source_header),
           target_field,
           transform: transforms?.[source_header]?.join(",") || null,

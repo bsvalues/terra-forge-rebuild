@@ -21,7 +21,7 @@ export function useTraceEvents(parcelId?: string | null, limit = 20) {
 
       const { data, error } = await query;
       if (error) throw error;
-      return (data || []) as any[];
+      return data ?? [];
     },
   });
 }

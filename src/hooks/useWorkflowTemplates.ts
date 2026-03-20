@@ -169,9 +169,9 @@ export function useAdvanceWorkflowStep() {
         .from("workflow_instances")
         .update({
           current_step: nextStep,
-          step_results: newResults as any,
+          step_results: JSON.parse(JSON.stringify(newResults)),
           updated_at: new Date().toISOString(),
-        } as any)
+        })
         .eq("id", params.instanceId);
 
       if (error) throw error;

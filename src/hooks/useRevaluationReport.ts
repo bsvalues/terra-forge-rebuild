@@ -56,8 +56,8 @@ export function useRevaluationReport(cycleId: string | null) {
     queryKey: ["revaluation-report", cycleId],
     queryFn: async () => {
       if (!cycleId) return null;
-      const { data, error } = await supabase.rpc(
-        "get_revaluation_report" as any,
+      const { data, error } = await (supabase.rpc as Function)(
+        "get_revaluation_report",
         { p_cycle_id: cycleId }
       );
       if (error) throw error;

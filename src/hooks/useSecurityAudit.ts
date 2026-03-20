@@ -67,8 +67,8 @@ export function useSecurityAudit(enabled = true) {
 
       if (error) throw error;
 
-      const allEvents = (events7d ?? []) as any[];
-      const events24h = allEvents.filter((e: any) => e.created_at >= h24);
+      const allEvents = events7d ?? [];
+      const events24h = allEvents.filter((e) => e.created_at >= h24);
 
       // Module breakdown (last 7d)
       const moduleMap = new Map<string, number>();

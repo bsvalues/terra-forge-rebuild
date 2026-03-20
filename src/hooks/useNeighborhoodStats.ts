@@ -24,8 +24,8 @@ export function useNeighborhoodStats(year?: number) {
   return useQuery<NeighborhoodStat[]>({
     queryKey: ["neighborhood-stats", countyId, effectiveYear],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc(
-        "get_neighborhood_stats" as any,
+      const { data, error } = await (supabase.rpc as Function)(
+        "get_neighborhood_stats",
         { p_year: effectiveYear, p_county_id: countyId }
       );
       if (error) throw error;

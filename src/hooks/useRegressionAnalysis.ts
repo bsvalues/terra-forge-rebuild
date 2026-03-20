@@ -185,19 +185,19 @@ export function useRunRegressionAnalysis() {
             model_version: "multiple-regression-v1",
             operator_id: operatorId,
             study_period_id: studyPeriodId,
-            inputs: {
+            inputs: JSON.parse(JSON.stringify({
               n: result.modelStats.n,
               k: result.modelStats.k,
               variables: result.coefficients.map(c => c.variable),
-            } as any,
-            outputs: {
+            })),
+            outputs: JSON.parse(JSON.stringify({
               r_squared: result.modelStats.rSquared,
               r_squared_adj: result.modelStats.rSquaredAdj,
               f_statistic: result.modelStats.fStatistic,
               rmse: result.modelStats.rmse,
               significant_vars: result.coefficients.filter(c => c.significant).map(c => c.variable),
-            } as any,
-            metadata: { source: "RegressionStudio", equation: result.equation, computed_at: result.computedAt } as any,
+            })),
+            metadata: JSON.parse(JSON.stringify({ source: "RegressionStudio", equation: result.equation, computed_at: result.computedAt })),
           });
         }
       } catch (e) {

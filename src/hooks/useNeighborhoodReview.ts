@@ -339,7 +339,7 @@ export function useAssignTask() {
     mutationFn: async ({ taskId, assignedTo, reviewId }: { taskId: string; assignedTo: string; reviewId: string }) => {
       const { error } = await supabase
         .from("neighborhood_review_tasks")
-        .update({ assigned_to: assignedTo, updated_at: new Date().toISOString() } as any)
+        .update({ assigned_to: assignedTo, updated_at: new Date().toISOString() })
         .eq("id", taskId);
       if (error) throw error;
     },

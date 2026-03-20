@@ -24,12 +24,12 @@ export function useRatioDistribution(
     queryKey: ["ratio-distribution", taxYear, salesStartDate, salesEndDate, outlierMethod],
     staleTime: 5 * 60 * 1000,
     queryFn: async () => {
-      const { data, error } = await supabase.rpc("compute_ratio_distribution", {
+      const { data, error } = await (supabase.rpc as Function)("compute_ratio_distribution", {
         p_tax_year: taxYear,
         p_sales_start_date: salesStartDate,
         p_sales_end_date: salesEndDate,
         p_outlier_method: outlierMethod,
-      } as any);
+      });
 
       if (error) throw error;
       return (data as RatioDistributionBucket[]) || [];

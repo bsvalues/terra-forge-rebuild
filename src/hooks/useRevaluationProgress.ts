@@ -69,7 +69,7 @@ export function useCompleteRevaluationCycle() {
         { p_cycle_id: cycleId }
       );
       if (error) throw error;
-      const result = data as any;
+      const result = data as unknown as { cycle_id: string; status: string; parcels_certified: number; certification_pct: number; error?: string };
       if (result?.error) throw new Error(result.error);
       return result;
     },

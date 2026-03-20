@@ -211,7 +211,7 @@ export function useBulkRegisterNeighborhoods() {
       }));
       const { data, error } = await supabase
         .from("neighborhoods")
-        .upsert(rows as any, { onConflict: "county_id,hood_cd,year" })
+        .upsert(rows as Array<{ hood_cd: string; year: number; county_id: string; status: string }>, { onConflict: "county_id,hood_cd,year" })
         .select();
       if (error) throw error;
       await emitTraceEventAsync({

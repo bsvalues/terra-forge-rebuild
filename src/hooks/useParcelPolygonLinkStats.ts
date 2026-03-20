@@ -15,8 +15,8 @@ export function useParcelPolygonLinkStats(countyId: string) {
   return useQuery({
     queryKey: ["parcel-polygon-link-stats", countyId],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc(
-        "get_parcel_polygon_link_stats" as any,
+      const { data, error } = await (supabase.rpc as Function)(
+        "get_parcel_polygon_link_stats",
         { p_county_id: countyId }
       );
       if (error) throw error;
