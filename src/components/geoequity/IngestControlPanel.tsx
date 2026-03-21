@@ -451,17 +451,7 @@ export function IngestControlPanel({ dataSources = [] }: IngestControlPanelProps
                     className="gap-1"
                   >
                     {isStarting ? (
-
-                  {!showNewForm && jobs.length === 0 && !isLoading && (
-                    <div className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
-                      No polygon ingest jobs yet. Start with Benton parcels, then jurisdictions, taxing districts, and neighborhoods.
-                    </div>
-                  )}
-
-                  {jobs.map((job) => (
-                    <JobCard key={job.id} job={job} />
-                  ))}
-                </CardContent>
+                      <Loader2 className="w-3 h-3 animate-spin" />
                     ) : (
                       <Play className="w-3 h-3" />
                     )}
