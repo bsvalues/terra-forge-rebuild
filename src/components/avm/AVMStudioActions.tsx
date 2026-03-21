@@ -52,7 +52,7 @@ function useApplyAVMToAssessments() {
         const batch = rows.slice(i, i + 100);
         const { error } = await supabase
           .from("assessments")
-          .upsert(batch, { onConflict: "parcel_id,assessment_year" });
+          .upsert(batch, { onConflict: "parcel_id,tax_year" });
         if (error) throw error;
         inserted += batch.length;
       }
