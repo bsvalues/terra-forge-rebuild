@@ -162,8 +162,8 @@ function RCNPreview() {
 function CostSchedulesTab() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { role } = useUserRole();
-  const canEdit = role === "admin" || role === "analyst";
+  const { isAdmin, isAnalyst } = useUserRole();
+  const canEdit = isAdmin || isAnalyst;
 
   const [newRow, setNewRow] = useState({
     property_class: "R1",
