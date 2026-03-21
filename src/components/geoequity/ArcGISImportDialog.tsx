@@ -25,6 +25,7 @@ import {
   Info,
 } from "lucide-react";
 import { GISDataSource } from "@/hooks/useGISData";
+import { BENTON_PARCEL_FIELD_CANDIDATES } from "@/config/bentonGISSources";
 import { invokeArcGISSync } from "@/services/ingestService";
 import { toast } from "sonner";
 
@@ -52,7 +53,7 @@ export function ArcGISImportDialog({
   const [mode, setMode] = useState<"url" | "saved">("url");
   const [arcgisUrl, setArcgisUrl] = useState("");
   const [selectedSourceId, setSelectedSourceId] = useState("");
-  const [parcelNumberField, setParcelNumberField] = useState("PARCEL_ID");
+  const [parcelNumberField, setParcelNumberField] = useState(BENTON_PARCEL_FIELD_CANDIDATES[0]);
   const [importing, setImporting] = useState(false);
   const [progress, setProgress] = useState(0);
   const [result, setResult] = useState<SyncResult | null>(null);
@@ -153,7 +154,8 @@ export function ArcGISImportDialog({
                 className="bg-tf-substrate border-tf-border font-mono text-sm"
               />
               <p className="text-xs text-muted-foreground">
-                Paste the full URL to a parcel layer endpoint (FeatureServer or MapServer)
+                  Paste the full URL to a parcel layer endpoint (FeatureServer or MapServer).
+                  For Benton, try `geo_id` first, then `prop_id`, `PIN`, or `APN` depending on the service schema.
               </p>
             </div>
           ) : (
@@ -180,14 +182,18 @@ export function ArcGISImportDialog({
           {/* Parcel Number Field */}
           <div className="space-y-2">
             <Label>Parcel Number Field Name</Label>
-            <Input
-              placeholder="PARCEL_ID"
-              value={parcelNumberField}
-              onChange={(e) => setParcelNumberField(e.target.value)}
-              className="bg-tf-substrate border-tf-border"
-            />
+            <Select value={parcelNumberField} onValueChange={setParcelNumberField}>
+              <SelectTrigger className="bg-tf-substrate border-tf-border">
+                <SelectValue placeholder="Choose parcel field" />
+              </SelectTrigger>
+              <SelectContent className="bg-tf-elevated border-tf-border">
+                {BENTON_PARCEL_FIELD_CANDIDATES.map((fieldName) => (
+                  <SelectItem key={fieldName} value={fieldName}>{fieldName}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             <p className="text-xs text-muted-foreground">
-              Field in ArcGIS containing parcel numbers (e.g., PARCEL_ID, PIN, APN)
+              Field in ArcGIS containing parcel numbers (e.g., PARCEL_ID, PIN, APN, geo_id, prop_id)
             </p>
           </div>
 
@@ -199,6 +205,10 @@ export function ArcGISImportDialog({
               <p className="text-muted-foreground text-xs mt-1">
                 Fetches parcel geometries from ArcGIS, calculates centroids, and updates
                 matching parcels in your database with lat/lng coordinates.
+              </p>
+              <p className="text-muted-foreground text-xs mt-2">
+                This dialog is for parcel centroid sync only. Boundary and polygon layers such as
+                jurisdictions, taxing districts, and neighborhoods should use the polygon ingest flow.
               </p>
             </div>
           </div>

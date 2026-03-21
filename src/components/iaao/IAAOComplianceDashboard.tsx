@@ -4,6 +4,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { useIAAOCompliance, IAAO_THRESHOLDS, type ComplianceGrade, type NeighborhoodCompliance } from "@/hooks/useIAAOCompliance";
+import { IAAOReportExportButton } from "./IAAOReportExportButton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -162,12 +163,17 @@ export function IAAOComplianceDashboard() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
       >
-        <h1 className="text-2xl sm:text-3xl font-light tracking-tight text-foreground">
-          IAAO Compliance Monitor
-        </h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Neighborhood-level ratio study compliance against IAAO Standard on Mass Appraisal
-        </p>
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-light tracking-tight text-foreground">
+              IAAO Compliance Monitor
+            </h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              Neighborhood-level ratio study compliance against IAAO Standard on Mass Appraisal
+            </p>
+          </div>
+          <IAAOReportExportButton />
+        </div>
       </motion.div>
 
       {/* Top Row: Score + County Metrics */}

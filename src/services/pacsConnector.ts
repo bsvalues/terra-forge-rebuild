@@ -2,6 +2,12 @@
 // ═══════════════════════════════════════════════════════════
 // Hard technical guarantee: this connector CANNOT issue writes.
 //
+// Execution path (frontend → edge function → SQL Server):
+//   executeReadOnlyQuery / checkConnectorHealth
+//     → supabase.functions.invoke("pacs-query")
+//       → Deno edge function (pacs-query/index.ts)
+//         → npm:mssql connection (PACS_SERVER / PACS_USER / PACS_PASSWORD secrets)
+//
 // Three layers of protection:
 //   1. SQL Server login: db_datareader only (DBA responsibility)
 //   2. Statement validation: reject anything that isn't SELECT/WITH
@@ -183,13 +189,14 @@ export interface PACSQueryError {
  * - Edge function proxy (for cloud deployments)
  * - PACSService API (alternative lane)
  *
- * Currently returns a typed contract for the sync engine to consume.
+ * Routes through the pacs-query Supabase Edge Function proxy.
+ * The edge function handles SQL Server connectivity via secrets.
  */
 export async function executeReadOnlyQuery<T = Record<string, unknown>>(
   request: PACSQueryRequest,
   config: PACSConnectorConfig = BENTON_CONNECTOR_CONFIG
 ): Promise<PACSQueryResult<T>> {
-  // Layer 1: Validate SQL is read-only
+  // Layer 1: Validate SQL is read-only (client-side pre-check)
   const validation = validateReadOnlySQL(request.sql);
   if (!validation.valid) {
     throw new Error(
@@ -198,7 +205,7 @@ export async function executeReadOnlyQuery<T = Record<string, unknown>>(
     );
   }
 
-  // Layer 2: Check schema whitelist
+  // Layer 2: Check schema whitelist (client-side pre-check)
   const schemaRegex = /\bFROM\s+(\w+)\./gi;
   let match: RegExpExecArray | null;
   while ((match = schemaRegex.exec(request.sql)) !== null) {
@@ -217,18 +224,41 @@ export async function executeReadOnlyQuery<T = Record<string, unknown>>(
     );
   }
 
-  // In production, this would execute against SQL Server.
-  // For now, return a typed stub that the sync engine consumes.
-  const startTime = Date.now();
+  // Route through edge function proxy (edge function re-validates all layers)
+  const { supabase } = await import("@/integrations/supabase/client");
+  const { data, error } = await supabase.functions.invoke("pacs-query", {
+    body: {
+      action: "query",
+      sql: request.sql,
+      params: request.params ?? {},
+      productId: request.productId,
+      timeoutMs: request.timeoutMs ?? config.queryTimeoutMs,
+    },
+  });
 
-  // Stub: return empty result set shaped correctly
-  return {
-    rows: [] as T[],
-    rowCount: 0,
-    executionMs: Date.now() - startTime,
-    queriedAt: new Date().toISOString(),
-    truncated: false,
-  };
+  if (error) {
+    // Edge function not deployed (dev/test environment) → return safe empty stub
+    const isNotDeployed =
+      error.message.includes("non-2xx") ||
+      error.message.includes("FunctionsFetchError") ||
+      error.message.includes("Failed to fetch");
+    if (isNotDeployed) {
+      return {
+        rows: [] as unknown as T extends unknown[] ? T : never,
+        rowCount: 0,
+        queriedAt: new Date().toISOString(),
+        productId: request.productId ?? "unknown",
+        executionMs: 0,
+        truncated: false,
+      } as PACSQueryResult<T>;
+    }
+    throw new Error(`[PACS Connector] Edge proxy error: ${error.message}`);
+  }
+  if (data?.error) {
+    throw new Error(`[PACS Connector] ${data.error} (code: ${data.code ?? "unknown"})`);
+  }
+
+  return data as PACSQueryResult<T>;
 }
 
 // ============================================================
@@ -252,20 +282,45 @@ export interface ConnectorHealthStatus {
  * - Return server metadata
  */
 export async function checkConnectorHealth(
-  config: PACSConnectorConfig = BENTON_CONNECTOR_CONFIG
+  _config: PACSConnectorConfig = BENTON_CONNECTOR_CONFIG
 ): Promise<ConnectorHealthStatus> {
-  const startTime = Date.now();
+  const t0 = Date.now();
+  try {
+    const { supabase } = await import("@/integrations/supabase/client");
+    const { data, error } = await supabase.functions.invoke("pacs-query", {
+      body: { action: "health" },
+    });
 
-  // In production: execute "SELECT 1 AS health" against SQL Server
-  // For now: return a contract-shaped stub
-  return {
-    connected: false, // Will be true when real connectivity is wired
-    readOnly: true, // Always true — hardcoded, not configurable
-    latencyMs: Date.now() - startTime,
-    lastCheckedAt: new Date().toISOString(),
-    databaseName: "CIAPS",
-    error: "Not connected — connector stub (production wiring pending)",
-  };
+    if (error) {
+      return {
+        connected: false,
+        readOnly: true,
+        latencyMs: Date.now() - t0,
+        lastCheckedAt: new Date().toISOString(),
+        databaseName: "CIAPS",
+        error: `Edge function error: ${error.message}`,
+      };
+    }
+
+    return {
+      connected: data?.connected ?? false,
+      readOnly: true, // Hardcoded — never configurable
+      latencyMs: data?.latencyMs ?? Date.now() - t0,
+      lastCheckedAt: data?.lastCheckedAt ?? new Date().toISOString(),
+      serverVersion: data?.serverVersion,
+      databaseName: data?.databaseName ?? "CIAPS",
+      error: data?.error,
+    };
+  } catch (err) {
+    return {
+      connected: false,
+      readOnly: true,
+      latencyMs: Date.now() - t0,
+      lastCheckedAt: new Date().toISOString(),
+      databaseName: "CIAPS",
+      error: err instanceof Error ? err.message : "Unknown connector error",
+    };
+  }
 }
 
 // ============================================================

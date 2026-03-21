@@ -2,17 +2,27 @@
 > **Purpose**: Track implementation progress against plan.md.
 
 **Created**: 2026-02-07  
-**Last Updated**: 2026-03-14  
+**Last Updated**: 2026-03-22  
 **Agent**: Cloud Coach
 
 ---
 
 ## Current State Summary
 
-**Active Phase**: Phase 65 — Webhook Delivery Dispatch Engine (COMPLETE)  
-**Last Completed Task**: 65.2 — Client-side dispatch wiring + UI dispatch dialog  
-**Next Task**: Phase 66 planning  
-**Blockers**: None
+**Active Focus**: Benton County, WA — Phase 90 complete  
+**Last Completed Task**: Phase 90 (PACS Sync Intelligence) — 3 deliverables complete  
+**Next Task**: Phase 91 — next capability expansion  
+**Blockers**: None.
+
+| 90 | PACS Sync Intelligence | ✅ COMPLETE | 3/3 | `src/hooks/usePACSDelta.ts` — delta report hook (connectivity check via `checkConnectorHealth`, COUNT(*) per DRIFT_PRODUCT against PACS SQL Server + TF canonical tables, allSettled for resilience, 5-min refetch); `src/components/admin/PACSLiveMonitor.tsx` — operational monitor panel (connection badge with latency, 4 stat cards, per-product drift table with in-sync/drifted/stale/offline status badges, Sync All Products button calling useRunBentonPACSSeed, animated sync progress + per-product result collapsible, quality gate results panel); AdminDashboard 10th tab "PACS Sync" wired (Wifi icon, cyan accent); all variant/className TypeScript errors resolved |
+
+**County Focus Note**: SLCO assets remain in the repo as reusable prototype infrastructure, but active delivery has pivoted back to Benton County WA.
+
+**Execution Plan**: Benton bootstrap and end-to-end seeding plan created in `docs/phase-83-benton-bootstrap-execution-plan.md`.
+
+**In Progress**: Benton GIS ingest is generalized for parcel vs boundary datasets; GIS Ops now exposes Benton ingest jobs, saved ArcGIS sources, and live layer controls from the main dashboard; Benton FGDB classes are now confirmed authoritatively through Python 3.12 + OpenFileGDB (`Parcel`, `CityLimits`, district layers, `RevalArea`, Benton address-point candidates); Benton bootstrap order is now surfaced in onboarding; Sync now exposes live bootstrap status, an executable Benton preflight runner, and a bootstrap initializer that can ensure the Benton tenant and active study period exist.
+
+| 66 | Production-Grade Rate Limiting | ✅ COMPLETE | 4/4 | webhook_provider_health + webhook_dispatch_queue tables (persistent token buckets, circuit state, queued delivery jobs, updated_at triggers, county-scoped RLS), webhook-dispatch edge function hardened with provider-key token bucket enforcement, half-open/open breaker transitions, batch overflow queueing, ready-queue drain + provider metrics actions, WebhookNotificationHub provider health board (token utilization, circuit status, queue pressure, drain control), endpoint-level provider config fields stored in metadata |
 
 | 65 | Webhook Delivery Dispatch Engine | ✅ COMPLETE | 2/2 | webhook-dispatch edge function (HMAC-SHA256 signing, exponential backoff retry up to 5 attempts, timeout control, concurrent multi-endpoint delivery, delivery status recording), useDispatchWebhookEvent hook (invokes edge function with auth), DispatchEventDialog UI (event type picker, JSON payload editor, fire button with delivery result toast), integrated into WebhookNotificationHub header |
 

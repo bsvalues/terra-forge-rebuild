@@ -5,10 +5,37 @@ import { BalanceRadar } from "./charts/BalanceRadar";
 import { SacredFlowChart } from "./charts/SacredFlowChart";
 import { QuantumOscillator } from "./charts/QuantumOscillator";
 import { CostForgeActions } from "./CostForgeActions";
+import { CostScheduleManager } from "./CostScheduleManager";
+import { CostApproachRunner } from "./CostApproachRunner";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export function CostForgeDashboard() {
   return (
-    <div className="p-6 space-y-6">
+    <div className="space-y-0">
+      <Tabs defaultValue="schedules">
+        <div className="px-6 pt-5 border-b border-border/40 flex items-center justify-between">
+          <div>
+            <h2 className="text-xl font-semibold text-foreground">Cost Forge</h2>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Cost approach schedules, depreciation tables, and RCN analysis
+            </p>
+          </div>
+          <TabsList className="mb-[-1px]">
+            <TabsTrigger value="schedules" className="text-xs">Schedules</TabsTrigger>
+            <TabsTrigger value="runner" className="text-xs">Runner</TabsTrigger>
+            <TabsTrigger value="legacy" className="text-xs text-muted-foreground">Legacy View</TabsTrigger>
+          </TabsList>
+        </div>
+
+        <TabsContent value="schedules" className="mt-0">
+          <CostScheduleManager />
+        </TabsContent>
+
+        <TabsContent value="runner" className="mt-0">
+          <CostApproachRunner />
+        </TabsContent>
+
+        <TabsContent value="legacy" className="mt-0 p-6 space-y-6">
       {/* Header Section */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
@@ -70,6 +97,8 @@ export function CostForgeDashboard() {
           <SacredFlowChart />
         </motion.div>
       </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

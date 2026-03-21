@@ -428,10 +428,47 @@ async function executeTool(
 // ============================================================
 // Sub-Agent Executor — runs a single task
 // ============================================================
+// Phase 81.4: Emit swarm trace event for each sub-agent execution
+// ============================================================
+async function emitSwarmTrace(
+  task: SubAgentTask,
+  result: SubAgentResult,
+  serviceClient: ReturnType<typeof createServiceClient>,
+  countyId: string,
+  userId: string,
+  swarmCorrelationId: string,
+): Promise<void> {
+  try {
+    await serviceClient.from("trace_events").insert({
+      county_id: countyId,
+      actor_id: userId,
+      source_module: "terrapilot",
+      event_type: `swarm_${task.tool}`,
+      agent_id: task.agent,
+      correlation_id: swarmCorrelationId,
+      event_data: {
+        task_id: task.id,
+        agent: task.agent,
+        tool: task.tool,
+        write_lane: task.write_lane,
+        status: result.status,
+        execution_ms: result.execution_time_ms,
+        hitl: result.status === "hitl_required",
+      },
+    });
+  } catch (_err) {
+    // Non-critical: trace emit failure must not block the response
+    console.error("[Swarm Trace] Failed to emit trace event:", _err);
+  }
+}
+
+// ============================================================
 async function executeSubAgent(
   task: SubAgentTask,
   serviceClient: ReturnType<typeof createServiceClient>,
   countyId: string,
+  userId: string,
+  swarmCorrelationId: string,
 ): Promise<SubAgentResult> {
   const start = Date.now();
   try {
@@ -439,16 +476,21 @@ async function executeSubAgent(
     const status = data.requires_confirmation ? "hitl_required" as const
       : data.error ? "error" as const
       : "success" as const;
-    return {
+    const result: SubAgentResult = {
       task_id: task.id, agent: task.agent, tool: task.tool,
       status, data, execution_time_ms: Date.now() - start,
     };
+    // Phase 81.4: swarm provenance trace
+    await emitSwarmTrace(task, result, serviceClient, countyId, userId, swarmCorrelationId);
+    return result;
   } catch (err) {
-    return {
+    const result: SubAgentResult = {
       task_id: task.id, agent: task.agent, tool: task.tool,
       status: "error", data: { error: err instanceof Error ? err.message : "unknown" },
       execution_time_ms: Date.now() - start,
     };
+    await emitSwarmTrace(task, result, serviceClient, countyId, userId, swarmCorrelationId);
+    return result;
   }
 }
 
@@ -459,6 +501,8 @@ async function executeParallelTasks(
   plan: DispatchPlan,
   serviceClient: ReturnType<typeof createServiceClient>,
   countyId: string,
+  userId: string,
+  swarmCorrelationId: string,
   emitPhase: (phase: Record<string, unknown>) => void,
 ): Promise<SubAgentResult[]> {
   const levels = topologicalSort(plan.tasks);
@@ -476,7 +520,7 @@ async function executeParallelTasks(
     });
 
     const levelResults = await Promise.all(
-      level.map(task => executeSubAgent(task, serviceClient, countyId))
+      level.map(task => executeSubAgent(task, serviceClient, countyId, userId, swarmCorrelationId))
     );
     allResults.push(...levelResults);
   }
@@ -789,6 +833,20 @@ serve(async (req) => {
           status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
+
+      // Phase 84.2: enforce analyst+ for write confirmations
+      const { data: roleRows } = await serviceClient
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", auth.userId);
+      const roles: string[] = (roleRows ?? []).map((r: { role: string }) => r.role);
+      const isAnalystOrAbove = roles.includes("admin") || roles.includes("analyst");
+      if (!isAnalystOrAbove) {
+        return new Response(JSON.stringify({ error: "Insufficient permissions: analyst or admin role required to execute write operations." }), {
+          status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
       const result = await executeConfirmedWrite(tool_name, args, serviceClient, auth.userId, auth.countyId);
       return new Response(result, { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
@@ -835,7 +893,8 @@ serve(async (req) => {
     });
 
     // Execute all tasks
-    const results = await executeParallelTasks(plan, serviceClient, auth.countyId, emitPhase);
+    const swarmCorrelationId = crypto.randomUUID();
+    const results = await executeParallelTasks(plan, serviceClient, auth.countyId, auth.userId, swarmCorrelationId, emitPhase);
     emitPhase({ phase: "synthesizing", message: "Merging results..." });
 
     // Extract tool call results for frontend rendering

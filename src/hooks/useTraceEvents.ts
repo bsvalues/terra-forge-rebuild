@@ -47,6 +47,45 @@ export function useLegacyModelReceipts(parcelId?: string | null, limit = 20) {
   });
 }
 
+// ────────────────────────────────────────────────────────────
+// Filtered query for AuditTimeline (Phase 81.3)
+// ────────────────────────────────────────────────────────────
+
+export interface TraceEventsFilter {
+  countyId?: string;
+  sourceModule?: string;
+  eventType?: string;
+  parcelId?: string;
+  limit?: number;
+}
+
+export function useTraceEventsFiltered(filter: TraceEventsFilter = {}) {
+  const { countyId, sourceModule, eventType, parcelId, limit = 100 } = filter;
+  return useQuery({
+    queryKey: ["trace-events-filtered", countyId, sourceModule, eventType, parcelId, limit],
+    queryFn: async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let q: any = supabase
+        .from("trace_events")
+        .select(
+          "id, created_at, source_module, event_type, event_data, parcel_id, actor_id, sequence_number, event_hash, prev_hash, agent_id, redacted, correlation_id"
+        )
+        .order("sequence_number", { ascending: false, nullsFirst: false })
+        .limit(limit);
+
+      if (countyId) q = q.eq("county_id", countyId);
+      if (sourceModule) q = q.eq("source_module", sourceModule);
+      if (eventType) q = q.ilike("event_type", `%${eventType}%`);
+      if (parcelId) q = q.ilike("parcel_id", `%${parcelId}%`);
+
+      const { data, error } = await q;
+      if (error) throw error;
+      return data ?? [];
+    },
+    staleTime: 10_000,
+  });
+}
+
 export function useTraceRealtimeSubscription(parcelId?: string | null, limit = 20) {
   const queryClient = useQueryClient();
 

@@ -8,18 +8,25 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import {
   Upload,
   FileJson,
-  Map,
   Database,
   CheckCircle,
   AlertCircle,
   Loader2,
 } from "lucide-react";
 import { useParseGISFile } from "@/hooks/useGISData";
+import { BENTON_GIS_SOURCE_MAP, type BentonGISDatasetId } from "@/config/bentonGISSources";
 import { toast } from "sonner";
 
 interface GISImportDialogProps {
@@ -31,11 +38,19 @@ export function GISImportDialog({ open, onOpenChange }: GISImportDialogProps) {
   const [activeTab, setActiveTab] = useState<"file" | "url">("file");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [layerName, setLayerName] = useState("");
+  const [datasetPreset, setDatasetPreset] = useState<BentonGISDatasetId | "custom">("custom");
   const [importing, setImporting] = useState(false);
   const [progress, setProgress] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const parseGISFile = useParseGISFile();
+
+  const handlePresetChange = (value: BentonGISDatasetId | "custom") => {
+    setDatasetPreset(value);
+    if (value === "custom") return;
+    const preset = BENTON_GIS_SOURCE_MAP.find((entry) => entry.id === value);
+    if (preset) setLayerName(`Benton ${preset.label}`);
+  };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -80,11 +95,9 @@ export function GISImportDialog({ open, onOpenChange }: GISImportDialogProps) {
   };
 
   const getSupportedFormats = () => [
-    { ext: ".shp", name: "Shapefile", icon: <Map className="w-4 h-4" /> },
     { ext: ".geojson", name: "GeoJSON", icon: <FileJson className="w-4 h-4" /> },
     { ext: ".json", name: "JSON", icon: <FileJson className="w-4 h-4" /> },
     { ext: ".csv", name: "CSV (with coords)", icon: <Database className="w-4 h-4" /> },
-    { ext: ".kml", name: "KML", icon: <Map className="w-4 h-4" /> },
   ];
 
   return (
@@ -117,7 +130,7 @@ export function GISImportDialog({ open, onOpenChange }: GISImportDialogProps) {
                 type="file"
                 ref={fileInputRef}
                 className="hidden"
-                accept=".shp,.shx,.dbf,.prj,.geojson,.json,.csv,.kml"
+                accept=".geojson,.json,.csv"
                 onChange={handleFileSelect}
               />
 
@@ -138,13 +151,37 @@ export function GISImportDialog({ open, onOpenChange }: GISImportDialogProps) {
                     Click or drag files to upload
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Supports Shapefile, GeoJSON, CSV, KML
+                    Supports GeoJSON, JSON, and CSV with coordinates
                   </p>
                 </>
               )}
             </div>
 
             {/* Layer Name */}
+            <div className="space-y-2">
+              <Label>Benton Dataset Preset</Label>
+              <Select value={datasetPreset} onValueChange={(value) => handlePresetChange(value as BentonGISDatasetId | "custom")}>
+                <SelectTrigger className="bg-tf-substrate border-tf-border">
+                  <SelectValue placeholder="Choose Benton dataset" />
+                </SelectTrigger>
+                <SelectContent className="bg-tf-elevated border-tf-border">
+                  <SelectItem value="custom">Custom Layer</SelectItem>
+                  {BENTON_GIS_SOURCE_MAP.filter((entry) => entry.preferredIngestPath === "gis-parse").map((entry) => (
+                    <SelectItem key={entry.id} value={entry.id}>{entry.label}</SelectItem>
+                  ))}
+                  {BENTON_GIS_SOURCE_MAP.filter((entry) => entry.preferredIngestPath !== "gis-parse").map((entry) => (
+                    <SelectItem key={entry.id} value={entry.id}>{entry.label} (export first)</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {datasetPreset !== "custom" && (
+                <p className="text-xs text-muted-foreground">
+                  Selected Benton preset will help standardize layer naming. For FGDB-backed Benton layers,
+                  export to GeoJSON before using this upload flow.
+                </p>
+              )}
+            </div>
+
             <div className="space-y-2">
               <Label>Layer Name</Label>
               <Input
@@ -168,6 +205,17 @@ export function GISImportDialog({ open, onOpenChange }: GISImportDialogProps) {
                     <span>{fmt.name}</span>
                   </div>
                 ))}
+              </div>
+            </div>
+
+            <div className="material-bento rounded-lg p-4 flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 text-tf-sacred-gold flex-shrink-0 mt-0.5" />
+              <div className="text-sm">
+                <p className="font-medium text-foreground">Current Dev Limitation</p>
+                <p className="text-muted-foreground text-xs mt-1">
+                  Raw shapefiles, KML, and file geodatabases are not parsed directly yet.
+                  Export Benton GIS layers to GeoJSON first, or use the ArcGIS import path for live services.
+                </p>
               </div>
             </div>
 

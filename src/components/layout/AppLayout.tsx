@@ -34,7 +34,7 @@ const DataValidationPanel = lazy(() => import("@/components/validation").then(m 
 const NeighborhoodDirectoryPanel = lazy(() => import("@/components/neighborhoods").then(m => ({ default: m.NeighborhoodDirectoryPanel })));
 const CountyConfigPanel = lazy(() => import("@/components/settings").then(m => ({ default: m.CountyConfigPanel })));
 const AppealInsightsDashboard = lazy(() => import("@/components/appeal-insights").then(m => ({ default: m.AppealInsightsDashboard })));
-const SLCOPipelineHub = lazy(() => import("@/components/slco-pipeline").then(m => ({ default: m.SLCOPipelineHub })));
+const CountyPipelineHub = lazy(() => import("@/components/slco-pipeline").then(m => ({ default: m.SLCOPipelineHub })));
 const SLCODemoLanding = lazy(() => import("@/components/slco-pipeline").then(m => ({ default: m.SLCODemoLanding })));
 const WebhookNotificationHub = lazy(() => import("@/components/slco-pipeline").then(m => ({ default: m.WebhookNotificationHub })));
 const DataDoctorDashboard = lazy(() => import("@/components/slco-pipeline").then(m => ({ default: m.DataDoctorDashboard })));
@@ -67,6 +67,7 @@ const TrustRegistryPage = lazy(() => import("@/components/trust").then(m => ({ d
 const ValueAdjustmentLedger = lazy(() => import("@/components/ledger").then(m => ({ default: m.ValueAdjustmentLedger })));
 const DataCatalogPanel = lazy(() => import("@/components/catalog").then(m => ({ default: m.DataCatalogPanel })));
 const ModelRegistryPanel = lazy(() => import("@/components/models").then(m => ({ default: m.ModelRegistryPanel })));
+const AuditTimeline = lazy(() => import("@/components/workbench/AuditTimeline").then(m => ({ default: m.AuditTimeline })));
 
 // ── Loading fallback ───────────────────────────────────────────────
 function StageFallback() {
@@ -279,8 +280,9 @@ export function AppLayout({ initialParcel: routeParcel, initialModule, initialFa
             return <NeighborhoodDirectoryPanel />;
           case "appeal-insights":
             return <AppealInsightsDashboard />;
+          case "county-pipeline":
           case "slco-pipeline":
-            return <SLCOPipelineHub />;
+            return <CountyPipelineHub />;
           case "slco-demo":
             return <SLCODemoLanding onNavigate={handleNavigate} />;
           case "data-doctor":
@@ -398,6 +400,13 @@ export function AppLayout({ initialParcel: routeParcel, initialModule, initialFa
         }
         if (view === "models") {
           return <ModelRegistryPanel />;
+        }
+        if (view === "audit-chain") {
+          return (
+            <div className="p-6 max-w-5xl mx-auto h-[calc(100vh-10rem)]">
+              <AuditTimeline />
+            </div>
+          );
         }
         return (
           <div className="p-0">

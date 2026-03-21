@@ -14,6 +14,8 @@ Build order: **Phase 0 (Foundation) → Phase 1 (IDS) → Phase 2 (VEI) → Phas
 
 Strategy: **Keep UI shell, rebuild data layer.** Existing components provide navigation, layout, and visual design. The data hooks, state management, and backend integration need rebuilding from real data contracts.
 
+Current county focus: **Benton County, WA**. Salt Lake County work should be treated as reusable prototype infrastructure unless a task explicitly targets SLCO.
+
 ---
 
 ## Phase 0: Foundation

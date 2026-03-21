@@ -30,6 +30,7 @@ import {
   AlertTriangle,
   Settings,
   Eye,
+  Activity,
   type LucideIcon,
 } from "lucide-react";
 
@@ -93,6 +94,10 @@ export const IA_MODULES: ModuleDefinition[] = [
     allowedSuites: ["CountyVitals"],
     views: [
       { id: "dashboard", label: "Command Briefing", icon: Home, scope: "county" },
+      { id: "sync", label: "PACS Sync", icon: Database, scope: "county" },
+      { id: "county-pipeline", label: "County Pipeline", icon: BarChart3, scope: "county" },
+      { id: "data-doctor", label: "Data Doctor", icon: Shield, scope: "county" },
+      { id: "webhooks", label: "Webhooks", icon: Mail, scope: "county" },
       { id: "watchlist", label: "Watchlist", icon: Eye, scope: "county" },
       { id: "recents", label: "Recent Parcels", icon: Clock, scope: "county" },
       { id: "quality", label: "Data Quality", icon: Shield, scope: "county" },
@@ -159,6 +164,7 @@ export const IA_MODULES: ModuleDefinition[] = [
     allowedSuites: ["Registry"],
     views: [
       { id: "trust", label: "Audit Log", icon: BookOpen, scope: "run" },
+      { id: "audit-chain", label: "Audit Timeline", icon: Activity, scope: "run" },
       { id: "ledger", label: "Value Ledger", icon: GitCompareArrows, scope: "run" },
       { id: "catalog", label: "Data Catalog", icon: Database, scope: "county" },
       { id: "models", label: "Model Registry", icon: TrendingUp, scope: "run" },
@@ -187,7 +193,7 @@ export const LEGACY_REDIRECTS: LegacyRedirect[] = [
   { legacyId: "validation", targetModule: "home", targetView: "validation" },
   { legacyId: "neighborhoods", targetModule: "home", targetView: "neighborhoods" },
   { legacyId: "appeal-insights", targetModule: "home", targetView: "appeal-insights" },
-  { legacyId: "slco-pipeline", targetModule: "home", targetView: "slco-pipeline" },
+  { legacyId: "slco-pipeline", targetModule: "home", targetView: "county-pipeline" },
   { legacyId: "settings", targetModule: "home", targetView: "settings" },
   { legacyId: "data-ops", targetModule: "home", targetView: "data-ops" },
   { legacyId: "webhooks", targetModule: "home", targetView: "webhooks" },

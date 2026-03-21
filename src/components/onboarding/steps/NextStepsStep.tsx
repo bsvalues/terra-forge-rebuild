@@ -4,7 +4,13 @@ import {
   Upload, Database, Map, Sparkles, ArrowRight, CheckCircle2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  BENTON_BOOTSTRAP_STEPS,
+  isBentonCountyName,
+  type BentonBootstrapStep,
+} from "@/config/bentonBootstrapPlan";
 
 interface NextStepsStepProps {
   countyName: string;
@@ -46,7 +52,21 @@ const NEXT_STEPS = [
   },
 ];
 
+function getStepBadgeVariant(status: BentonBootstrapStep["status"]) {
+  switch (status) {
+    case "implemented":
+      return "bg-chart-2/15 text-chart-2 border-chart-2/30";
+    case "partial":
+      return "bg-chart-5/15 text-chart-5 border-chart-5/30";
+    default:
+      return "bg-muted text-muted-foreground border-border";
+  }
+}
+
 export function NextStepsStep({ countyName, onComplete }: NextStepsStepProps) {
+  const isBenton = isBentonCountyName(countyName);
+  const steps = isBenton ? BENTON_BOOTSTRAP_STEPS : NEXT_STEPS;
+
   return (
     <div className="space-y-6">
       <div className="text-center">
@@ -62,12 +82,14 @@ export function NextStepsStep({ countyName, onComplete }: NextStepsStepProps) {
           {countyName} is Ready!
         </h2>
         <p className="text-sm text-muted-foreground mt-1">
-          Your county is set up. Here's what to do next:
+          {isBenton
+            ? "Your county is set up. Follow the Benton bootstrap order to get PACS and GIS seeded cleanly."
+            : "Your county is set up. Here's what to do next:"}
         </p>
       </div>
 
       <div className="space-y-2">
-        {NEXT_STEPS.map((step, i) => (
+        {steps.map((step, i) => (
           <motion.div
             key={step.title}
             initial={{ opacity: 0, y: 10 }}
@@ -80,7 +102,14 @@ export function NextStepsStep({ countyName, onComplete }: NextStepsStepProps) {
                   <step.icon className={`w-4 h-4 ${step.color}`} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-foreground">{step.title}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-medium text-foreground">{step.title}</p>
+                    {"status" in step && (
+                      <Badge variant="outline" className={getStepBadgeVariant(step.status)}>
+                        {step.status}
+                      </Badge>
+                    )}
+                  </div>
                   <p className="text-xs text-muted-foreground line-clamp-1">{step.description}</p>
                 </div>
                 <ArrowRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />

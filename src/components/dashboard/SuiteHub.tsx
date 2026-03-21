@@ -72,6 +72,7 @@ const SUITE_REGISTRY: SuiteEntry[] = [
   { id: "vei", name: "Ratio Studies", mission: "Equity analysis — IAAO ratio studies, COD, PRD", icon: BarChart3, status: "native", target: "factory:vei", accentVar: "--suite-forge" },
   { id: "geoequity", name: "Spatial Analysis", mission: "Spatial equity — heatmaps, neighborhood analysis", icon: Globe, status: "native", target: "factory:geoequity", accentVar: "--suite-atlas" },
   { id: "ids", name: "Data Ingestion", mission: "Intelligent Data Suite — ingest, quality, routing", icon: Database, status: "native", target: "home:ids", accentVar: "--tf-transcend-cyan" },
+  { id: "sync", name: "PACS Sync", mission: "Benton County PACS/CIAPS sync, health, and orchestration", icon: Activity, status: "native", target: "home:sync", accentVar: "--tf-optimized-green" },
   { id: "quality", name: "Data Quality", mission: "Scoring, stale detection, neighborhood heatmap", icon: Shield, status: "native", target: "home:quality", accentVar: "--tf-transcend-cyan" },
   { id: "readiness", name: "Roll Readiness", mission: "Pre-certification checklist, go/no-go verdict", icon: CheckCircle2, status: "native", target: "home:readiness", accentVar: "--tf-optimized-green" },
   { id: "registry", name: "Audit Registry", mission: "Truth ledger — changes, catalog, runs, models", icon: FileText, status: "native", target: "registry:trust", accentVar: "--tf-transcend-cyan" },

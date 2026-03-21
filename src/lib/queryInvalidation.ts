@@ -78,3 +78,14 @@ export function invalidateNotices(qc: QueryClient) {
   qc.invalidateQueries({ queryKey: ["batch-notice-jobs"] });
   qc.invalidateQueries({ queryKey: ["notices-by-batch"] });
 }
+
+/** Invalidate source-registry and GIS caches used by Benton bootstrap flows. */
+export function invalidateBentonBootstrap(qc: QueryClient) {
+  qc.invalidateQueries({ queryKey: ["onboarding-status"] });
+  qc.invalidateQueries({ queryKey: ["available-counties"] });
+  qc.invalidateQueries({ queryKey: ["gis-data-sources"] });
+  qc.invalidateQueries({ queryKey: ["gis-layers"] });
+  qc.invalidateQueries({ queryKey: ["pipeline-status"] });
+  qc.invalidateQueries({ queryKey: ["data-sources"] });
+  invalidateCounty(qc);
+}

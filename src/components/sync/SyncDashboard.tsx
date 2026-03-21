@@ -24,6 +24,7 @@ import { useSystemHealth } from "@/hooks/useSystemHealth";
 import { DataSourceRegistry } from "./DataSourceRegistry";
 import { ConflictResolutionQueue } from "./ConflictResolutionQueue";
 import { SagaRunner } from "./SagaRunner";
+import { BentonBootstrapPanel } from "./BentonBootstrapPanel";
 import type { ServiceHealth } from "@/types/sync";
 import type { CircuitMetrics } from "@/services/circuitBreaker";
 import { cn } from "@/lib/utils";
@@ -200,6 +201,8 @@ export function SyncDashboard() {
           </div>
         )}
       </div>
+
+      <BentonBootstrapPanel />
 
       {/* SAGA Runner — live workflow execution */}
       <SagaRunner />

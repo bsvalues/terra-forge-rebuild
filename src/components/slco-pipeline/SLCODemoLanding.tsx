@@ -43,7 +43,7 @@ const QUICK_START_TEMPLATES = [
     icon: Database,
     title: "County Data Onboarding",
     desc: "First-time data import from UGRC, Recorder, and CAMA sources",
-    steps: ["Configure sources", "Run SLCO Pipeline", "Validate quality", "Publish data marts"],
+    steps: ["Configure sources", "Run County Pipeline", "Validate quality", "Publish data marts"],
     duration: "2-3 days",
     color: "text-emerald-400",
   },
@@ -251,8 +251,8 @@ export function SLCODemoLanding({ onNavigate }: SLCODemoLandingProps) {
               onAction={
                 i === activeStepIdx
                   ? () => {
-                      if (i === 0) onNavigate("slco-pipeline");
-                      else if (i === 1) onNavigate("slco-pipeline");
+                      if (i === 0) onNavigate("county-pipeline");
+                      else if (i === 1) onNavigate("county-pipeline");
                       else if (i === 2) onNavigate("data-doctor");
                       else if (i === 3) onNavigate("neighborhoods");
                       else onNavigate("launch-reval");
@@ -375,7 +375,7 @@ export function SLCODemoLanding({ onNavigate }: SLCODemoLandingProps) {
                                 e.stopPropagation();
                                  if (t.id === "annual-reval") onNavigate("dashboard");
                                  else if (t.id === "appeal-defense") onNavigate("appeal-risk");
-                                 else if (t.id === "data-onboard") onNavigate("slco-pipeline");
+                                 else if (t.id === "data-onboard") onNavigate("county-pipeline");
                                  else onNavigate("nbhd-review");
                               }}
                             >
@@ -397,7 +397,7 @@ export function SLCODemoLanding({ onNavigate }: SLCODemoLandingProps) {
       {/* ── Quick Navigation Grid ─────────────────────────────────── */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-9 gap-3">
          {[
-          { icon: Database, label: "SLCo Pipeline", view: "slco-pipeline", desc: "Ingestion & normalization" },
+          { icon: Database, label: "County Pipeline", view: "county-pipeline", desc: "Ingestion & normalization" },
           { icon: BarChart3, label: "Command Briefing", view: "dashboard", desc: "County overview" },
           { icon: Scale, label: "Appeal Insights", view: "appeal-insights", desc: "Filing trends & defense" },
           { icon: AlertTriangle, label: "Appeal Risk", view: "appeal-risk", desc: "Risk scoring & defense" },

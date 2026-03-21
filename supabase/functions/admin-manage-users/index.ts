@@ -106,6 +106,19 @@ serve(async (req) => {
 
       if (insertErr) throw insertErr;
 
+      // Phase 84.4: Emit role-change trace event
+      await serviceClient.from("trace_events").insert({
+        county_id: auth.countyId,
+        actor_id: auth.userId,
+        source_module: "os",
+        event_type: "role_assigned",
+        event_data: {
+          target_user_id: targetUserId,
+          role,
+          changed_by: auth.userId,
+        },
+      }).catch(() => { /* non-critical */ });
+
       return new Response(JSON.stringify({ success: true, action: "assigned", role }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -150,6 +163,19 @@ serve(async (req) => {
         .eq("role", role);
 
       if (deleteErr) throw deleteErr;
+
+      // Phase 84.4: Emit role-change trace event
+      await serviceClient.from("trace_events").insert({
+        county_id: auth.countyId,
+        actor_id: auth.userId,
+        source_module: "os",
+        event_type: "role_revoked",
+        event_data: {
+          target_user_id: targetUserId,
+          role,
+          changed_by: auth.userId,
+        },
+      }).catch(() => { /* non-critical */ });
 
       return new Response(JSON.stringify({ success: true, action: "revoked", role }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },

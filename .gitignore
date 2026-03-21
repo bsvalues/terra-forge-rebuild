@@ -1,3 +1,7 @@
+# Seed secrets — never commit
+scripts/.env.seed
+.env.seed
+
 # Logs
 logs
 *.log

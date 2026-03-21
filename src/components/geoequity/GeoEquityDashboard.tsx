@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
-  Globe, Map, Download, Search, BarChart3, MapPin, Database, CheckCircle2,
+  Globe, Map, Download, Search, BarChart3, MapPin, Database, CheckCircle2, TrendingUp,
 } from "lucide-react";
 import { StudyPeriodSelector } from "@/components/vei/StudyPeriodSelector";
 import { useStudyPeriods } from "@/hooks/useVEIData";
@@ -14,8 +14,14 @@ import { ParcelSearchPanel } from "./ParcelSearchPanel";
 import { CountyDataQualityReport } from "./CountyDataQualityReport";
 import { SyncStatusBadge } from "./SyncStatusBadge";
 import { useScrapeJobNotifications } from "@/hooks/useScrapeJobNotifications";
-import { useNeighborhoodGeoStats } from "@/hooks/useGISData";
+import { useGISDataSources, useGISLayers, useNeighborhoodGeoStats } from "@/hooks/useGISData";
 import { useCountyVitals } from "@/hooks/useCountyVitals";
+import { DataSourcesPanel } from "./DataSourcesPanel";
+import { GISLayersPanel } from "./GISLayersPanel";
+import { IngestControlPanel } from "./IngestControlPanel";
+import { ArcGISImportDialog } from "./ArcGISImportDialog";
+import { GISImportDialog } from "./GISImportDialog";
+import { VerticalEquityPanel } from "./VerticalEquityPanel";
 
 interface GeoEquityDashboardProps {
   onNavigateToWorkbench?: (parcel: { id: string; parcelNumber: string; address: string; assessedValue: number }) => void;
@@ -23,11 +29,15 @@ interface GeoEquityDashboardProps {
 
 export function GeoEquityDashboard({ onNavigateToWorkbench }: GeoEquityDashboardProps) {
   const [selectedPeriodId, setSelectedPeriodId] = useState<string | undefined>();
-  const [activeTab, setActiveTab] = useState<"heatmap" | "map" | "search" | "quality">("heatmap");
+  const [activeTab, setActiveTab] = useState<"heatmap" | "map" | "search" | "quality" | "ops" | "vertical">("heatmap");
   const [selectedNeighborhood, setSelectedNeighborhood] = useState<string | null>(null);
+  const [arcgisDialogOpen, setArcgisDialogOpen] = useState(false);
+  const [fileImportOpen, setFileImportOpen] = useState(false);
   const { data: studyPeriods, isLoading: isLoadingPeriods } = useStudyPeriods();
   const { data: neighborhoodStats = [], isLoading: isLoadingStats } = useNeighborhoodGeoStats(selectedPeriodId);
   const { data: vitals } = useCountyVitals();
+  const { data: dataSources = [], isLoading: isLoadingSources } = useGISDataSources();
+  const { data: layers = [], isLoading: isLoadingLayers } = useGISLayers();
 
   useScrapeJobNotifications();
 
@@ -76,6 +86,12 @@ export function GeoEquityDashboard({ onNavigateToWorkbench }: GeoEquityDashboard
           )}
           <SyncStatusBadge />
           <Button variant="outline" size="sm" className="gap-2"><Download className="w-4 h-4" />Export</Button>
+          <Button variant="outline" size="sm" className="gap-2" onClick={() => setArcgisDialogOpen(true)}>
+            <MapPin className="w-4 h-4" />ArcGIS Sync
+          </Button>
+          <Button variant="outline" size="sm" className="gap-2" onClick={() => setFileImportOpen(true)}>
+            <Database className="w-4 h-4" />Import Layer
+          </Button>
           <NotificationBell />
         </div>
       </motion.div>
@@ -107,6 +123,8 @@ export function GeoEquityDashboard({ onNavigateToWorkbench }: GeoEquityDashboard
           <TabsTrigger value="map" className="gap-2 data-[state=active]:bg-tf-cyan/20"><Map className="w-4 h-4" />Legacy Map</TabsTrigger>
           <TabsTrigger value="search" className="gap-2 data-[state=active]:bg-tf-optimized-green/20"><Search className="w-4 h-4" />Parcel Search</TabsTrigger>
           <TabsTrigger value="quality" className="gap-2 data-[state=active]:bg-tf-sacred-gold/20"><BarChart3 className="w-4 h-4" />Data Quality</TabsTrigger>
+          <TabsTrigger value="vertical" className="gap-2 data-[state=active]:bg-tf-sacred-gold/20"><TrendingUp className="w-4 h-4" />Vertical Equity</TabsTrigger>
+          <TabsTrigger value="ops" className="gap-2 data-[state=active]:bg-tf-cyan/20"><Database className="w-4 h-4" />GIS Ops</TabsTrigger>
         </TabsList>
 
         <TabsContent value="heatmap" className="mt-4">
@@ -128,7 +146,22 @@ export function GeoEquityDashboard({ onNavigateToWorkbench }: GeoEquityDashboard
         <TabsContent value="quality" className="mt-4">
           <CountyDataQualityReport />
         </TabsContent>
+
+        <TabsContent value="vertical" className="mt-4">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+            <VerticalEquityPanel />
+          </motion.div>
+        </TabsContent>
+
+        <TabsContent value="ops" className="mt-4 space-y-4">
+          <IngestControlPanel dataSources={dataSources} />
+          <DataSourcesPanel dataSources={dataSources} isLoading={isLoadingSources} />
+          <GISLayersPanel layers={layers} isLoading={isLoadingLayers} />
+        </TabsContent>
       </Tabs>
+
+      <ArcGISImportDialog open={arcgisDialogOpen} onOpenChange={setArcgisDialogOpen} dataSources={dataSources} />
+      <GISImportDialog open={fileImportOpen} onOpenChange={setFileImportOpen} />
     </div>
   );
 }

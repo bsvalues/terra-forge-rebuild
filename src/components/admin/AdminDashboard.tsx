@@ -11,6 +11,8 @@ import {
   Clock,
   Zap,
   Scale,
+  Map,
+  Wifi,
 } from "lucide-react";
 import { StudyPeriodManager } from "./StudyPeriodManager";
 import { ScrapeJobManager } from "./ScrapeJobManager";
@@ -20,6 +22,8 @@ import { IDSCommandCenter } from "@/components/ids";
 import { UserManagementPanel } from "./UserManagementPanel";
 import { AppealAuditLog } from "@/components/dais/AppealAuditLog";
 import { SecurityAuditDashboard } from "./SecurityAuditDashboard";
+import { BentonBootstrapPanel } from "./BentonBootstrapPanel";
+import { PACSLiveMonitor } from "./PACSLiveMonitor";
 
 export function AdminDashboard() {
    const [activeTab, setActiveTab] = useState("ids");
@@ -102,6 +106,20 @@ export function AdminDashboard() {
             <Shield className="w-4 h-4" />
             Security
           </TabsTrigger>
+          <TabsTrigger
+            value="benton"
+            className="gap-2 data-[state=active]:bg-blue-500/20 data-[state=active]:text-blue-400"
+          >
+            <Map className="w-4 h-4" />
+            Benton Bootstrap
+          </TabsTrigger>
+          <TabsTrigger
+            value="pacs-sync"
+            className="gap-2 data-[state=active]:bg-cyan-500/20 data-[state=active]:text-cyan-400"
+          >
+            <Wifi className="w-4 h-4" />
+            PACS Sync
+          </TabsTrigger>
         </TabsList>
 
          <TabsContent value="ids" className="mt-0">
@@ -146,6 +164,14 @@ export function AdminDashboard() {
           >
             <SecurityAuditDashboard />
           </motion.div>
+        </TabsContent>
+
+        <TabsContent value="benton" className="mt-0">
+          <BentonBootstrapPanel />
+        </TabsContent>
+
+        <TabsContent value="pacs-sync" className="mt-0">
+          <PACSLiveMonitor />
         </TabsContent>
       </Tabs>
     </div>

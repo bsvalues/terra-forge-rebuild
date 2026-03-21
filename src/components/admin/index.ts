@@ -4,3 +4,4 @@ export { ScrapeJobManager } from "./ScrapeJobManager";
 export { DataQualityDashboard } from "./DataQualityDashboard";
 export { ScheduledScrapeManager } from "./ScheduledScrapeManager";
 export { AdminDashboard } from "./AdminDashboard";
+export { BentonBootstrapPanel } from "./BentonBootstrapPanel";

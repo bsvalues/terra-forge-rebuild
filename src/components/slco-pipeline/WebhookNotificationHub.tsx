@@ -10,12 +10,16 @@ import {
   useDeleteWebhookEndpoint,
   useTestWebhookEndpoint,
   useDispatchWebhookEvent,
+  useWebhookProviderMetrics,
+  useDrainWebhookQueue,
   useWebhookStats,
   useWebhookRealtime,
   WEBHOOK_EVENT_TYPES,
+  getWebhookProviderConfig,
   type WebhookEndpoint,
   type WebhookDelivery,
 } from "@/hooks/useWebhookHub";
+import { useActiveCountyId } from "@/hooks/useActiveCounty";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -44,8 +48,23 @@ import {
   Loader2,
   Globe,
   Shield,
+  Gauge,
+  RefreshCw,
 } from "lucide-react";
 import { toast } from "sonner";
+
+function getProviderLabel(endpoint: Pick<WebhookEndpoint, "url" | "metadata">) {
+  const config = getWebhookProviderConfig(endpoint.metadata ?? {});
+  if (config.providerKey.trim()) {
+    return config.providerKey.trim();
+  }
+
+  try {
+    return new URL(endpoint.url).hostname;
+  } catch {
+    return "generic";
+  }
+}
 
 // ── Stats Cards ────────────────────────────────────────────────────
 function StatsRow() {
@@ -85,6 +104,12 @@ function CreateEndpointDialog() {
   const [url, setUrl] = useState("");
   const [secret, setSecret] = useState("");
   const [selectedEvents, setSelectedEvents] = useState<string[]>([]);
+  const [providerKey, setProviderKey] = useState("");
+  const [tokenBucketCapacity, setTokenBucketCapacity] = useState(60);
+  const [refillPerMinute, setRefillPerMinute] = useState(60);
+  const [queueOnThrottle, setQueueOnThrottle] = useState(true);
+  const [circuitFailureThreshold, setCircuitFailureThreshold] = useState(5);
+  const [circuitResetTimeoutMs, setCircuitResetTimeoutMs] = useState(30_000);
   const createMutation = useCreateWebhookEndpoint();
 
   const toggleEvent = (event: string) => {
@@ -99,7 +124,20 @@ function CreateEndpointDialog() {
       return;
     }
     createMutation.mutate(
-      { name: name.trim(), url: url.trim(), event_types: selectedEvents, secret: secret.trim() || undefined },
+      {
+        name: name.trim(),
+        url: url.trim(),
+        event_types: selectedEvents,
+        secret: secret.trim() || undefined,
+        metadata: {
+          providerKey: providerKey.trim() || undefined,
+          tokenBucketCapacity,
+          refillPerMinute,
+          queueOnThrottle,
+          circuitFailureThreshold,
+          circuitResetTimeoutMs,
+        },
+      },
       {
         onSuccess: () => {
           toast.success("Webhook endpoint created");
@@ -108,6 +146,12 @@ function CreateEndpointDialog() {
           setUrl("");
           setSecret("");
           setSelectedEvents([]);
+          setProviderKey("");
+          setTokenBucketCapacity(60);
+          setRefillPerMinute(60);
+          setQueueOnThrottle(true);
+          setCircuitFailureThreshold(5);
+          setCircuitResetTimeoutMs(30_000);
         },
         onError: (err) => toast.error(`Failed: ${err.message}`),
       }
@@ -155,6 +199,37 @@ function CreateEndpointDialog() {
               ))}
             </div>
           </div>
+          <div className="space-y-3 rounded-lg border border-border/50 bg-muted/20 p-3">
+            <div>
+              <Label>Provider Key</Label>
+              <Input value={providerKey} onChange={(e) => setProviderKey(e.target.value)} placeholder="Auto-detect from hostname" />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label>Bucket Capacity</Label>
+                <Input type="number" min={1} value={tokenBucketCapacity} onChange={(e) => setTokenBucketCapacity(Number(e.target.value) || 1)} />
+              </div>
+              <div>
+                <Label>Refill / Min</Label>
+                <Input type="number" min={1} value={refillPerMinute} onChange={(e) => setRefillPerMinute(Number(e.target.value) || 1)} />
+              </div>
+              <div>
+                <Label>Breaker Failures</Label>
+                <Input type="number" min={1} value={circuitFailureThreshold} onChange={(e) => setCircuitFailureThreshold(Number(e.target.value) || 1)} />
+              </div>
+              <div>
+                <Label>Reset Timeout (ms)</Label>
+                <Input type="number" min={1000} step={1000} value={circuitResetTimeoutMs} onChange={(e) => setCircuitResetTimeoutMs(Number(e.target.value) || 1000)} />
+              </div>
+            </div>
+            <div className="flex items-center justify-between rounded-md border border-border/50 px-3 py-2">
+              <div>
+                <div className="text-xs font-medium">Queue On Throttle</div>
+                <div className="text-[10px] text-muted-foreground">Persist overflow and throttled deliveries instead of failing fast.</div>
+              </div>
+              <Switch checked={queueOnThrottle} onCheckedChange={setQueueOnThrottle} />
+            </div>
+          </div>
           <Button onClick={handleCreate} disabled={createMutation.isPending} className="w-full">
             {createMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
             Create Endpoint
@@ -167,6 +242,7 @@ function CreateEndpointDialog() {
 
 // ── Dispatch Event Dialog ──────────────────────────────────────────
 function DispatchEventDialog() {
+  const countyId = useActiveCountyId();
   const [open, setOpen] = useState(false);
   const [eventType, setEventType] = useState("");
   const [payloadStr, setPayloadStr] = useState("{}");
@@ -185,10 +261,11 @@ function DispatchEventDialog() {
       return;
     }
     dispatchMutation.mutate(
-      { event_type: eventType, payload },
+      { event_type: eventType, payload, county_id: countyId ?? undefined },
       {
         onSuccess: (result) => {
-          toast.success(`Dispatched to ${result.dispatched} endpoint(s), ${result.delivered} delivered`);
+          const queueNote = result.queued > 0 ? `, ${result.queued} queued` : "";
+          toast.success(`Dispatched to ${result.dispatched} endpoint(s), ${result.delivered} delivered${queueNote}`);
           setOpen(false);
         },
         onError: (err) => toast.error(`Dispatch failed: ${err.message}`),
@@ -243,11 +320,160 @@ function DispatchEventDialog() {
   );
 }
 
+function ProviderHealthBoard({ countyId }: { countyId: string | null }) {
+  const { data, isLoading } = useWebhookProviderMetrics(countyId);
+  const drainMutation = useDrainWebhookQueue();
+
+  if (!countyId) {
+    return null;
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center rounded-lg border border-border/40 bg-muted/10 py-6">
+        <Loader2 className="h-4 w-4 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  const providers = data?.providers ?? [];
+  const queueSummary = data?.queueSummary;
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+            Provider Health
+          </h3>
+          <p className="text-[11px] text-muted-foreground mt-1">
+            Token buckets, circuit state, and queued dispatch pressure by external provider.
+          </p>
+        </div>
+        <Button
+          size="sm"
+          variant="outline"
+          className="gap-1.5"
+          disabled={drainMutation.isPending || (queueSummary?.ready ?? 0) === 0}
+          onClick={() =>
+            drainMutation.mutate(countyId, {
+              onSuccess: (result) => toast.success(`Drained ${result.drained} queued delivery job(s)`),
+              onError: (err) => toast.error(`Drain failed: ${err.message}`),
+            })
+          }
+        >
+          {drainMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
+          Drain Ready Queue
+        </Button>
+      </div>
+
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+        <Card className="border-border/50 bg-card/70 lg:col-span-2">
+          <CardContent className="p-3 flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-primary/10">
+              <Gauge className="h-4 w-4 text-primary" />
+            </div>
+            <div>
+              <div className="text-lg font-bold font-mono">{providers.length}</div>
+              <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Providers Tracked</div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="border-border/50 bg-card/70">
+          <CardContent className="p-3">
+            <div className="text-lg font-bold font-mono">{queueSummary?.queued ?? 0}</div>
+            <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Queued</div>
+          </CardContent>
+        </Card>
+        <Card className="border-border/50 bg-card/70">
+          <CardContent className="p-3">
+            <div className="text-lg font-bold font-mono">{queueSummary?.ready ?? 0}</div>
+            <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Ready To Drain</div>
+          </CardContent>
+        </Card>
+        <Card className="border-border/50 bg-card/70">
+          <CardContent className="p-3">
+            <div className="text-lg font-bold font-mono">{queueSummary?.processing ?? 0}</div>
+            <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Processing</div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {providers.length === 0 ? (
+        <div className="rounded-lg border border-dashed border-border/50 bg-muted/10 py-6 text-center text-sm text-muted-foreground">
+          No provider activity yet. Dispatch an event to initialize health tracking.
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+          {providers.map((provider) => (
+            <Card key={provider.providerKey} className="border-border/50 bg-card/80">
+              <CardContent className="p-4 space-y-3">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <div className="font-semibold text-sm">{provider.providerKey}</div>
+                    <div className="text-[10px] text-muted-foreground mt-0.5">
+                      {provider.activeEndpoints}/{provider.endpoints} active endpoints
+                    </div>
+                  </div>
+                  <Badge variant={provider.circuitState === "closed" ? "default" : "destructive"} className="text-[10px] capitalize">
+                    {provider.circuitState.replace("_", " ")}
+                  </Badge>
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between text-[10px] text-muted-foreground mb-1">
+                    <span>Token Bucket</span>
+                    <span className="font-mono">{provider.tokensAvailable.toFixed(1)} / {provider.tokenCapacity}</span>
+                  </div>
+                  <div className="h-2 rounded-full bg-muted/40 overflow-hidden">
+                    <div
+                      className="h-full bg-primary/80 transition-all"
+                      style={{ width: `${Math.max(4, Math.min(100, (provider.tokensAvailable / Math.max(provider.tokenCapacity, 1)) * 100))}%` }}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 text-[10px]">
+                  <div className="rounded-md border border-border/40 px-2 py-1.5">
+                    <div className="text-muted-foreground uppercase tracking-wide">Queued</div>
+                    <div className="font-mono text-sm">{provider.queuedRequests}</div>
+                  </div>
+                  <div className="rounded-md border border-border/40 px-2 py-1.5">
+                    <div className="text-muted-foreground uppercase tracking-wide">Ready</div>
+                    <div className="font-mono text-sm">{provider.readyQueued}</div>
+                  </div>
+                  <div className="rounded-md border border-border/40 px-2 py-1.5">
+                    <div className="text-muted-foreground uppercase tracking-wide">Delivered</div>
+                    <div className="font-mono text-sm">{provider.totalDelivered}</div>
+                  </div>
+                  <div className="rounded-md border border-border/40 px-2 py-1.5">
+                    <div className="text-muted-foreground uppercase tracking-wide">Failed</div>
+                    <div className="font-mono text-sm">{provider.totalFailed}</div>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap gap-2 text-[10px] text-muted-foreground">
+                  <span>Refill {provider.refillPerMinute}/min</span>
+                  <span>Load {provider.saturationPercent}%</span>
+                  {provider.openUntil ? <span>Open until {new Date(provider.openUntil).toLocaleTimeString()}</span> : null}
+                  {provider.lastFailureAt ? <span>Last fail {new Date(provider.lastFailureAt).toLocaleTimeString()}</span> : null}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Endpoint Card ──────────────────────────────────────────────────
 function EndpointCard({ endpoint }: { endpoint: WebhookEndpoint }) {
   const toggleMutation = useToggleWebhookEndpoint();
   const deleteMutation = useDeleteWebhookEndpoint();
   const testMutation = useTestWebhookEndpoint();
+  const providerConfig = getWebhookProviderConfig(endpoint.metadata ?? {});
+  const providerLabel = getProviderLabel(endpoint);
 
   return (
     <Card className="border-border/50 bg-card/80">
@@ -291,11 +517,13 @@ function EndpointCard({ endpoint }: { endpoint: WebhookEndpoint }) {
         </div>
 
         <div className="flex items-center justify-between pt-2 border-t border-border/30">
-          <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+          <div className="flex items-center gap-2 text-[10px] text-muted-foreground flex-wrap">
             <Shield className="h-3 w-3" />
             {endpoint.secret ? "HMAC signed" : "No signing"}
             <span className="mx-1">·</span>
             {endpoint.retry_count} retries · {endpoint.timeout_ms}ms timeout
+            <span className="mx-1">·</span>
+            {providerLabel} · {providerConfig.tokenBucketCapacity}/{providerConfig.refillPerMinute} tpm
           </div>
           <div className="flex gap-1">
             <Button
@@ -338,6 +566,8 @@ function DeliveryTimeline({ deliveries }: { deliveries: WebhookDelivery[] }) {
     delivered: { icon: CheckCircle2, color: "text-emerald-400" },
     failed: { icon: XCircle, color: "text-destructive" },
     pending: { icon: Clock, color: "text-amber-400" },
+    queued: { icon: Clock, color: "text-sky-400" },
+    retrying: { icon: Loader2, color: "text-amber-400" },
   };
 
   if (deliveries.length === 0) {
@@ -391,6 +621,7 @@ function DeliveryTimeline({ deliveries }: { deliveries: WebhookDelivery[] }) {
 
 // ── Main Hub ───────────────────────────────────────────────────────
 export function WebhookNotificationHub() {
+  const countyId = useActiveCountyId();
   useWebhookRealtime();
   const { data: endpoints, isLoading: epLoading } = useWebhookEndpoints();
   const { data: deliveries, isLoading: delLoading } = useWebhookDeliveries();
@@ -419,6 +650,10 @@ export function WebhookNotificationHub() {
       </CardHeader>
       <CardContent className="space-y-4">
         <StatsRow />
+
+        <Separator className="opacity-30" />
+
+        <ProviderHealthBoard countyId={countyId} />
 
         <Separator className="opacity-30" />
 

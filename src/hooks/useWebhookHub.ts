@@ -45,6 +45,53 @@ export interface WebhookStats {
   pendingCount: number;
 }
 
+export interface WebhookProviderConfig {
+  providerKey: string;
+  tokenBucketCapacity: number;
+  refillPerMinute: number;
+  queueOnThrottle: boolean;
+  circuitFailureThreshold: number;
+  circuitResetTimeoutMs: number;
+}
+
+export interface WebhookProviderMetric {
+  providerKey: string;
+  tokenCapacity: number;
+  tokensAvailable: number;
+  refillPerMinute: number;
+  circuitState: "closed" | "open" | "half_open";
+  totalRequests: number;
+  totalDelivered: number;
+  totalFailed: number;
+  queuedRequests: number;
+  openUntil: string | null;
+  lastRequestAt: string | null;
+  lastSuccessAt: string | null;
+  lastFailureAt: string | null;
+  endpoints: number;
+  activeEndpoints: number;
+  readyQueued: number;
+  processingQueued: number;
+  saturationPercent: number;
+}
+
+export interface WebhookQueueSummary {
+  queued: number;
+  processing: number;
+  delivered: number;
+  failed: number;
+  ready: number;
+}
+
+const DEFAULT_PROVIDER_CONFIG: WebhookProviderConfig = {
+  providerKey: "",
+  tokenBucketCapacity: 60,
+  refillPerMinute: 60,
+  queueOnThrottle: true,
+  circuitFailureThreshold: 5,
+  circuitResetTimeoutMs: 30_000,
+};
+
 // ── Supported event types ─────────────────────────────────────────
 export const WEBHOOK_EVENT_TYPES = [
   "pipeline.stage_complete",
@@ -58,6 +105,53 @@ export const WEBHOOK_EVENT_TYPES = [
   "export.completed",
   "quality.threshold_breach",
 ] as const;
+
+function getWebhookDispatchUrl() {
+  const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+  return `https://${projectId}.supabase.co/functions/v1/webhook-dispatch`;
+}
+
+async function invokeWebhookDispatch<T>(body: Record<string, unknown>): Promise<T> {
+  const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+  const { data: { session } } = await supabase.auth.getSession();
+  const response = await fetch(getWebhookDispatchUrl(), {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${session?.access_token ?? anonKey}`,
+      "apikey": anonKey,
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (!response.ok) {
+    throw new Error(await response.text());
+  }
+
+  return response.json() as Promise<T>;
+}
+
+export function getWebhookProviderConfig(metadata: Record<string, unknown> | null | undefined): WebhookProviderConfig {
+  const source = metadata ?? {};
+  return {
+    providerKey: typeof source.providerKey === "string" ? source.providerKey : DEFAULT_PROVIDER_CONFIG.providerKey,
+    tokenBucketCapacity: typeof source.tokenBucketCapacity === "number"
+      ? source.tokenBucketCapacity
+      : DEFAULT_PROVIDER_CONFIG.tokenBucketCapacity,
+    refillPerMinute: typeof source.refillPerMinute === "number"
+      ? source.refillPerMinute
+      : DEFAULT_PROVIDER_CONFIG.refillPerMinute,
+    queueOnThrottle: typeof source.queueOnThrottle === "boolean"
+      ? source.queueOnThrottle
+      : DEFAULT_PROVIDER_CONFIG.queueOnThrottle,
+    circuitFailureThreshold: typeof source.circuitFailureThreshold === "number"
+      ? source.circuitFailureThreshold
+      : DEFAULT_PROVIDER_CONFIG.circuitFailureThreshold,
+    circuitResetTimeoutMs: typeof source.circuitResetTimeoutMs === "number"
+      ? source.circuitResetTimeoutMs
+      : DEFAULT_PROVIDER_CONFIG.circuitResetTimeoutMs,
+  };
+}
 
 // ── Hooks ──────────────────────────────────────────────────────────
 
@@ -107,6 +201,7 @@ export function useCreateWebhookEndpoint() {
       secret?: string;
       retry_count?: number;
       timeout_ms?: number;
+      metadata?: Record<string, unknown>;
     }) => {
       const { data, error } = await supabase
         .from("webhook_endpoints")
@@ -117,6 +212,7 @@ export function useCreateWebhookEndpoint() {
           secret: input.secret || null,
           retry_count: input.retry_count ?? 3,
           timeout_ms: input.timeout_ms ?? 5000,
+          metadata: input.metadata ?? {},
         })
         .select()
         .single();
@@ -212,28 +308,46 @@ export function useDispatchWebhookEvent() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (input: { event_type: string; payload: Record<string, unknown>; county_id?: string }) => {
-      const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
-      const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-      const { data: { session } } = await supabase.auth.getSession();
-      const res = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/webhook-dispatch`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${session?.access_token ?? anonKey}`,
-            "apikey": anonKey,
-          },
-          body: JSON.stringify(input),
-        }
-      );
-      if (!res.ok) {
-        const err = await res.text();
-        throw new Error(err);
-      }
-      return res.json();
+      return invokeWebhookDispatch<{
+        dispatched: number;
+        delivered: number;
+        failed: number;
+        queued: number;
+        drained: number;
+      }>(input);
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["webhook-deliveries"] }),
+    onSuccess: (_, variables) => {
+      qc.invalidateQueries({ queryKey: ["webhook-deliveries"] });
+      qc.invalidateQueries({ queryKey: ["webhook-provider-metrics", variables.county_id] });
+    },
+  });
+}
+
+export function useWebhookProviderMetrics(countyId?: string | null) {
+  return useQuery({
+    queryKey: ["webhook-provider-metrics", countyId],
+    enabled: !!countyId,
+    refetchInterval: 15_000,
+    queryFn: async () => invokeWebhookDispatch<{
+      providers: WebhookProviderMetric[];
+      queueSummary: WebhookQueueSummary;
+      fetchedAt: string;
+    }>({ action: "provider_metrics", county_id: countyId }),
+  });
+}
+
+export function useDrainWebhookQueue() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (countyId: string) => invokeWebhookDispatch<{
+      drained: number;
+      delivered: number;
+      failed: number;
+    }>({ action: "drain_queue", county_id: countyId }),
+    onSuccess: (_, countyId) => {
+      qc.invalidateQueries({ queryKey: ["webhook-deliveries"] });
+      qc.invalidateQueries({ queryKey: ["webhook-provider-metrics", countyId] });
+    },
   });
 }
 

@@ -17,6 +17,28 @@ const TIME_BUDGET_MS = 25_000;
 const PAGE_BACKOFF_MS = 150;
 const MAX_PAGES_PER_CALL = 5;
 
+type DatasetKind = "parcel" | "boundary";
+
+const DATASET_CONFIG: Record<string, { kind: DatasetKind; label: string; parcelFieldFallbacks?: string[] }> = {
+  "benton-parcels": {
+    kind: "parcel",
+    label: "Benton Parcels",
+    parcelFieldFallbacks: ["geo_id", "PARCEL_ID", "parcel_number", "PIN", "APN", "prop_id"],
+  },
+  "benton-jurisdictions": {
+    kind: "boundary",
+    label: "Benton Jurisdictions",
+  },
+  "benton-taxing-districts": {
+    kind: "boundary",
+    label: "Benton Taxing Districts",
+  },
+  "benton-neighborhoods": {
+    kind: "boundary",
+    label: "Benton Neighborhoods",
+  },
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -126,6 +148,8 @@ async function handleStart(supabase: any, body: any, auth: any) {
     return jsonResponse({ error: "featureServerUrl and dataset required" }, 400);
   }
 
+  const datasetConfig = getDatasetConfig(dataset);
+
   try {
     const u = new URL(featureServerUrl);
     if (!["http:", "https:"].includes(u.protocol)) throw new Error("bad");
@@ -134,7 +158,7 @@ async function handleStart(supabase: any, body: any, auth: any) {
   }
 
   // Register layer (county-scoped, deterministic name)
-  const layerId = await ensureLayer(supabase, auth.countyId, dataset, featureServerUrl, parcelIdField);
+  const layerId = await ensureLayer(supabase, auth.countyId, dataset, datasetConfig, featureServerUrl, parcelIdField);
 
   // Create job
   const { data: job, error: jobErr } = await supabase
@@ -240,8 +264,9 @@ async function runIngestLoop(supabase: any, job: any, maxPages: number) {
   let hasMore = true;
   let timeBudgetExceeded = false;
 
+  const datasetConfig = getDatasetConfig(job.dataset);
   const outFields = [
-    job.parcel_id_field, "neighborhood_code", "GlobalID", "OBJECTID",
+    "*",
   ].join(",");
 
   while (hasMore && page < maxPages) {
@@ -291,11 +316,11 @@ async function runIngestLoop(supabase: any, job: any, maxPages: number) {
       }
 
       // Build bulk rows
-      const rows = buildBulkRows(features, job.parcel_id_field);
+      const rows = buildBulkRows(features, job.parcel_id_field, datasetConfig);
 
       if (rows.length > 0) {
         const { data: bulkRes, error: bulkErr } = await supabase.rpc(
-          "upsert_parcel_polygons_bulk",
+          "upsert_gis_features_bulk",
           { p_county_id: job.county_id, p_layer_id: job.layer_id, p_rows: rows }
         );
         if (bulkErr) throw new Error(`Bulk upsert: ${bulkErr.message}`);
@@ -443,49 +468,73 @@ async function runIngestLoop(supabase: any, job: any, maxPages: number) {
 
 // ─── HELPERS ───────────────────────────────────────────────
 
-function buildBulkRows(features: any[], parcelIdField: string) {
+function buildBulkRows(features: any[], parcelIdField: string, datasetConfig: { kind: DatasetKind; parcelFieldFallbacks?: string[] }) {
   const rows: any[] = [];
   for (const feature of features) {
     const props = feature.properties || {};
-    const parcelNumber = props[parcelIdField];
     const geom = feature.geometry;
-    if (!parcelNumber || !geom) continue;
+    if (!geom) continue;
     if (geom.type !== "Polygon" && geom.type !== "MultiPolygon") continue;
-
-    const parcelNumStr = String(parcelNumber).trim();
-    if (!parcelNumStr) continue;
 
     const multiGeom = geom.type === "Polygon"
       ? { type: "MultiPolygon", coordinates: [geom.coordinates] }
       : geom;
 
-    const sourceObjId = props.GlobalID || String(props.OBJECTID || "");
+    const sourceObjId = String(props.GlobalID || props.OBJECTID || props.FID || "").trim();
     if (!sourceObjId) continue;
+
+    const parcelNumStr = datasetConfig.kind === "parcel"
+      ? resolveParcelNumber(props, parcelIdField, datasetConfig.parcelFieldFallbacks || [])
+      : null;
+
+    if (datasetConfig.kind === "parcel" && !parcelNumStr) continue;
+
+    const normalizedProps = {
+      ...props,
+      dataset_kind: datasetConfig.kind,
+      source_object_id: sourceObjId,
+      neighborhood_code: props.neighborhood_code ?? props.hood_cd ?? null,
+    };
 
     rows.push({
       parcel_number: parcelNumStr,
       source_object_id: sourceObjId,
       geom: multiGeom,
-      props: {
-        [parcelIdField]: parcelNumStr,
-        neighborhood_code: props.neighborhood_code ?? null,
-        GlobalID: props.GlobalID ?? null,
-        OBJECTID: props.OBJECTID ?? null,
-      },
+      props: normalizedProps,
     });
   }
   return rows;
+}
+
+function resolveParcelNumber(props: Record<string, unknown>, parcelIdField: string, fallbackFields: string[]) {
+  const fields = [parcelIdField, ...fallbackFields];
+  for (const field of fields) {
+    const value = props[field];
+    if (value === undefined || value === null) continue;
+    const normalized = String(value).trim();
+    if (normalized) return normalized;
+  }
+  return null;
+}
+
+function getDatasetConfig(dataset: string) {
+  return DATASET_CONFIG[dataset] ?? {
+    kind: dataset.includes("parcel") ? "parcel" as const : "boundary" as const,
+    label: dataset,
+    parcelFieldFallbacks: ["geo_id", "PARCEL_ID", "parcel_number", "PIN", "APN", "prop_id"],
+  };
 }
 
 async function ensureLayer(
   supabase: any,
   countyId: string,
   dataset: string,
+  datasetConfig: { kind: DatasetKind; label: string },
   featureServerUrl: string,
   parcelIdField: string
 ) {
   // Deterministic, human-readable layer name per county+dataset
-  const layerName = `Parcels:${countyId.slice(0, 8)}:${dataset}`;
+  const layerName = `${datasetConfig.label}:${countyId.slice(0, 8)}:${dataset}`;
 
   // Match on layer_type + JSONB fields for county + source uniqueness
   const { data: existing } = await supabase
@@ -504,7 +553,7 @@ async function ensureLayer(
     .from("gis_layers")
     .insert({
       name: layerName,
-      layer_type: "polygon",
+      layer_type: datasetConfig.kind === "parcel" ? "parcel" : "boundary",
       srid: 4326,
       file_format: "arcgis_featureserver",
       properties_schema: {
@@ -512,6 +561,7 @@ async function ensureLayer(
         source_url: featureServerUrl,
         county_id: countyId,
         dataset,
+        dataset_kind: datasetConfig.kind,
       },
     })
     .select("id")
