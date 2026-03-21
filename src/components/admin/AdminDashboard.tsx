@@ -13,6 +13,7 @@ import {
   Scale,
   Map,
   Wifi,
+  Bell,
 } from "lucide-react";
 import { StudyPeriodManager } from "./StudyPeriodManager";
 import { ScrapeJobManager } from "./ScrapeJobManager";
@@ -24,6 +25,7 @@ import { AppealAuditLog } from "@/components/dais/AppealAuditLog";
 import { SecurityAuditDashboard } from "./SecurityAuditDashboard";
 import { BentonBootstrapPanel } from "./BentonBootstrapPanel";
 import { PACSLiveMonitor } from "./PACSLiveMonitor";
+import { AlertEngineDashboard } from "./AlertEngineDashboard";
 
 export function AdminDashboard() {
    const [activeTab, setActiveTab] = useState("ids");
@@ -120,6 +122,13 @@ export function AdminDashboard() {
             <Wifi className="w-4 h-4" />
             PACS Sync
           </TabsTrigger>
+          <TabsTrigger
+            value="alerts"
+            className="gap-2 data-[state=active]:bg-violet-500/20 data-[state=active]:text-violet-400"
+          >
+            <Bell className="w-4 h-4" />
+            Alerts
+          </TabsTrigger>
         </TabsList>
 
          <TabsContent value="ids" className="mt-0">
@@ -172,6 +181,10 @@ export function AdminDashboard() {
 
         <TabsContent value="pacs-sync" className="mt-0">
           <PACSLiveMonitor />
+        </TabsContent>
+
+        <TabsContent value="alerts" className="mt-0">
+          <AlertEngineDashboard />
         </TabsContent>
       </Tabs>
     </div>

@@ -9,10 +9,12 @@
 
 ## Current State Summary
 
-**Active Focus**: Benton County, WA — Phase 90 complete  
-**Last Completed Task**: Phase 90 (PACS Sync Intelligence) — 3 deliverables complete  
-**Next Task**: Phase 91 — next capability expansion  
+**Active Focus**: Benton County, WA — Phase 91 complete  
+**Last Completed Task**: Phase 91 (Notification Alert Engine) — 4 deliverables complete  
+**Next Task**: Phase 92  
 **Blockers**: None.
+
+| 91 | Notification Alert Engine Front-End | ✅ COMPLETE | 4/4 | `src/hooks/useRunAlerts.ts` — mutation hook that calls the `notification-alerts` edge function, returns `AlertRunResult` (success, notifications_created, ids), caches last-run record in component state, auto-invalidates `db-notifications` query on success; `src/hooks/useCountyNotifications.ts` — query hook for current-user county notifications (admin view), 200-row limit, 15 s stale time; `src/components/admin/AlertEngineDashboard.tsx` — full admin panel with 3 rule descriptor cards (Deadline/DQ Score/Assignment showing dedup window + live alert count), "Run Alert Checks" button with loading/success/error banners, recent notifications scroll list with severity icons and unread dots; AdminDashboard 11th tab "Alerts" wired (Bell icon, violet accent) |
 
 | 90 | PACS Sync Intelligence | ✅ COMPLETE | 3/3 | `src/hooks/usePACSDelta.ts` — delta report hook (connectivity check via `checkConnectorHealth`, COUNT(*) per DRIFT_PRODUCT against PACS SQL Server + TF canonical tables, allSettled for resilience, 5-min refetch); `src/components/admin/PACSLiveMonitor.tsx` — operational monitor panel (connection badge with latency, 4 stat cards, per-product drift table with in-sync/drifted/stale/offline status badges, Sync All Products button calling useRunBentonPACSSeed, animated sync progress + per-product result collapsible, quality gate results panel); AdminDashboard 10th tab "PACS Sync" wired (Wifi icon, cyan accent); all variant/className TypeScript errors resolved |
 
