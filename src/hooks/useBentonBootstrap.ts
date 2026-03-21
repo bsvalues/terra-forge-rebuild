@@ -500,7 +500,7 @@ async function executeBentonBootstrap(): Promise<BentonBootstrapExecutionResult>
   const [{ count: parcelCount }, { data: sourceRows }, { data: layerRows }, connectorHealth] = await Promise.all([
     supabase.from("parcels").select("id", { count: "exact", head: true }).eq("county_id", bentonCountyId!),
     supabase.from("gis_data_sources").select("id, source_type, connection_url"),
-    supabase.from("gis_layers").select("id, layer_type").eq("county_id", bentonCountyId!),
+    supabase.from("gis_layers").select("id, layer_type") as any,
     checkConnectorHealth(),
   ]);
 
