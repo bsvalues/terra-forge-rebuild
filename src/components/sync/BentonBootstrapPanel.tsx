@@ -115,7 +115,7 @@ export function BentonBootstrapPanel() {
               {executeBootstrap.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Rocket className="w-4 h-4" />}
               Initialize Benton
             </Button>
-            <Button size="sm" variant="outline" className="gap-2" onClick={() => pacsSeed.mutate()} disabled={pacsSeed.isPending}>
+            <Button size="sm" variant="outline" className="gap-2" onClick={() => pacsSeed.mutate({})} disabled={pacsSeed.isPending}>
               {pacsSeed.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4" />}
               Seed PACS
             </Button>
