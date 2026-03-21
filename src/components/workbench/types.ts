@@ -1,7 +1,7 @@
 // TerraFusion OS - Property Workbench Types
 
 export type WorkMode = "overview" | "valuation" | "mapping" | "admin" | "case";
-export type SuiteTab = "summary" | "forge" | "atlas" | "dais" | "dossier" | "pilot";
+export type SuiteTab = "summary" | "forge" | "atlas" | "dais" | "dossier" | "pilot" | "sketch";
 export type PilotMode = "pilot" | "muse";
 export type SystemState = "idle" | "boot" | "processing" | "alert" | "success";
 
@@ -99,6 +99,14 @@ export const SUITE_CONFIGS: Record<SuiteTab, SuiteConfig> = {
     icon: "Sparkles",
     mission: "AI copilot — guidance, drafting, synthesis",
     color: "tf-cyan",
+    writePermissions: [],
+  },
+  sketch: {
+    id: "sketch",
+    name: "Sketch",
+    icon: "PenTool",
+    mission: "Capture geometry — measurements, building sketches, plan traces",
+    color: "suite-forge",
     writePermissions: [],
   },
 };

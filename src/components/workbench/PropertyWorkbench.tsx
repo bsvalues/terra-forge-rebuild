@@ -21,6 +21,7 @@ import { AtlasTab } from "./tabs/AtlasTab";
 import { DaisTab } from "./tabs/DaisTab";
 import { DossierTab } from "./tabs/DossierTab";
 import { PilotTab } from "./tabs/PilotTab";
+import { SketchTab } from "./tabs/SketchTab";
 
 // Admin Dashboard
 import { AdminDashboard } from "@/components/admin";
@@ -39,6 +40,7 @@ const TAB_COMPONENTS: Record<SuiteTab, React.ComponentType> = {
   dais: DaisTab,
   dossier: DossierTab,
   pilot: PilotTab,
+  sketch: SketchTab,
 };
 
 interface WorkbenchContentProps {
@@ -77,7 +79,7 @@ function WorkbenchContent({ initialParcel, onParcelConsumed, initialTab, onTabCo
   // Handle initial tab deep-link from CommandBriefing
   useEffect(() => {
     if (initialTab) {
-      const validTabs: SuiteTab[] = ["summary", "forge", "atlas", "dais", "dossier", "pilot"];
+      const validTabs: SuiteTab[] = ["summary", "forge", "atlas", "dais", "dossier", "pilot", "sketch"];
       if (validTabs.includes(initialTab as SuiteTab)) {
         setActiveTab(initialTab as SuiteTab);
       }

@@ -5,7 +5,8 @@ import {
   Globe, 
   Building2, 
   FolderOpen, 
-  Sparkles 
+  Sparkles,
+  PenTool,
 } from "lucide-react";
 import { useWorkbench } from "./WorkbenchContext";
 import { SuiteTab, SUITE_CONFIGS } from "./types";
@@ -18,6 +19,7 @@ const ICONS = {
   Building2,
   FolderOpen,
   Sparkles,
+  PenTool,
 };
 
 interface SuiteTabNavigationProps {
@@ -27,7 +29,7 @@ interface SuiteTabNavigationProps {
 export function SuiteTabNavigation({ className }: SuiteTabNavigationProps) {
   const { activeTab, setActiveTab } = useWorkbench();
 
-  const tabs: SuiteTab[] = ["summary", "forge", "atlas", "dais", "dossier", "pilot"];
+  const tabs: SuiteTab[] = ["summary", "forge", "atlas", "dais", "dossier", "sketch", "pilot"];
 
   return (
     <nav className={cn("flex items-center border-b border-border/50", className)}>
