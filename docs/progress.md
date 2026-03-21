@@ -11,8 +11,9 @@
 
 **Active Focus**: Benton County, WA — Phase 91 complete  
 **Last Completed Task**: Phase 91 (Notification Alert Engine) — 4 deliverables complete  
-**Next Task**: Phase 92  
-**Blockers**: None.
+**Next Task**: Phase 92 (Sketch Workbench Integration)  
+**Blockers**: None.  
+**Execution Plan**: Phases 92–97 planned in `docs/phase-92-97-execution-plan.md` (3-wave parallel topology, 6 agent assignments)
 
 | 91 | Notification Alert Engine Front-End | ✅ COMPLETE | 4/4 | `src/hooks/useRunAlerts.ts` — mutation hook that calls the `notification-alerts` edge function, returns `AlertRunResult` (success, notifications_created, ids), caches last-run record in component state, auto-invalidates `db-notifications` query on success; `src/hooks/useCountyNotifications.ts` — query hook for current-user county notifications (admin view), 200-row limit, 15 s stale time; `src/components/admin/AlertEngineDashboard.tsx` — full admin panel with 3 rule descriptor cards (Deadline/DQ Score/Assignment showing dedup window + live alert count), "Run Alert Checks" button with loading/success/error banners, recent notifications scroll list with severity icons and unread dots; AdminDashboard 11th tab "Alerts" wired (Bell icon, violet accent) |
 
