@@ -1,6 +1,8 @@
+import { useRef } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Upload, FolderPlus, Grid3X3, List, Download, Search, Settings } from "lucide-react";
+import { Upload, FolderPlus, Grid3X3, List, Search, Settings, Loader2 } from "lucide-react";
+import { useAxiomUpload } from "@/hooks/useAxiomFS";
 
 interface AxiomFSActionsProps {
   viewMode: "lattice" | "list";
@@ -8,8 +10,28 @@ interface AxiomFSActionsProps {
 }
 
 export function AxiomFSActions({ viewMode, onViewModeChange }: AxiomFSActionsProps) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const upload = useAxiomUpload();
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+    for (const file of Array.from(files)) {
+      upload.mutate({ file });
+    }
+    e.target.value = "";
+  };
+
   return (
     <div className="flex items-center gap-2">
+      <input
+        ref={fileInputRef}
+        type="file"
+        multiple
+        className="hidden"
+        onChange={handleFileSelect}
+      />
+
       {/* View Toggle */}
       <div className="flex items-center bg-tf-elevated/50 rounded-lg p-1">
         <Button
@@ -33,8 +55,12 @@ export function AxiomFSActions({ viewMode, onViewModeChange }: AxiomFSActionsPro
       </div>
 
       <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-        <Button className="gap-2 btn-sovereign">
-          <Upload className="w-4 h-4" />
+        <Button
+          className="gap-2 btn-sovereign"
+          onClick={() => fileInputRef.current?.click()}
+          disabled={upload.isPending}
+        >
+          {upload.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
           Upload
         </Button>
       </motion.div>

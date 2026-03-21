@@ -12,6 +12,10 @@ import {
   Clock,
   Database,
   X,
+  Bell,
+  BellOff,
+  Share2,
+  Loader2,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -38,6 +42,7 @@ import {
   useUpdateFilter,
   useDeleteFilter,
   useMarkFilterUsed,
+  useFilterPreview,
   FILTER_FIELDS,
   OPERATOR_LABELS,
   type SavedFilter,
@@ -65,6 +70,10 @@ function FilterBuilderDialog({
     editFilter?.filter_config?.conditions ?? []
   );
   const [isPinned, setIsPinned] = useState(editFilter?.is_pinned ?? false);
+  const [alertOnChange, setAlertOnChange] = useState(editFilter?.alert_on_change ?? false);
+  const [isShared, setIsShared] = useState(editFilter?.is_shared ?? false);
+
+  const { count: previewCount, loading: previewLoading } = useFilterPreview(dataset, conditions);
 
   const fields = FILTER_FIELDS[dataset] ?? FILTER_FIELDS.parcels;
 
@@ -89,12 +98,12 @@ function FilterBuilderDialog({
     const config: FilterConfig = { conditions };
     if (editFilter) {
       updateFilter.mutate(
-        { id: editFilter.id, name, description, target_dataset: dataset, filter_config: config, is_pinned: isPinned },
+        { id: editFilter.id, name, description, target_dataset: dataset, filter_config: config, is_pinned: isPinned, alert_on_change: alertOnChange, is_shared: isShared },
         { onSuccess: () => onOpenChange(false) }
       );
     } else {
       createFilter.mutate(
-        { name, description, target_dataset: dataset, filter_config: config, is_pinned: isPinned },
+        { name, description, target_dataset: dataset, filter_config: config, is_pinned: isPinned, alert_on_change: alertOnChange, is_shared: isShared },
         { onSuccess: () => onOpenChange(false) }
       );
     }
@@ -195,6 +204,50 @@ function FilterBuilderDialog({
             </Button>
             <span className="text-xs text-muted-foreground">Pinned views appear at the top</span>
           </div>
+
+          {/* Alert toggle */}
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              variant={alertOnChange ? "default" : "outline"}
+              onClick={() => setAlertOnChange(!alertOnChange)}
+            >
+              {alertOnChange ? <Bell className="w-3 h-3 mr-1" /> : <BellOff className="w-3 h-3 mr-1" />}
+              {alertOnChange ? "Alerts on" : "No alerts"}
+            </Button>
+            <span className="text-xs text-muted-foreground">Notify when result count changes</span>
+          </div>
+
+          {/* Share toggle */}
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              variant={isShared ? "default" : "outline"}
+              onClick={() => setIsShared(!isShared)}
+            >
+              <Share2 className="w-3 h-3 mr-1" />
+              {isShared ? "Shared" : "Private"}
+            </Button>
+            <span className="text-xs text-muted-foreground">Shared views are visible to county colleagues</span>
+          </div>
+
+          {/* Live Preview */}
+          {conditions.length > 0 && (
+            <div className="flex items-center gap-2 p-3 rounded-lg bg-primary/5 border border-primary/20">
+              {previewLoading ? (
+                <Loader2 className="w-4 h-4 animate-spin text-primary" />
+              ) : (
+                <Database className="w-4 h-4 text-primary" />
+              )}
+              <span className="text-sm font-medium">
+                {previewLoading
+                  ? "Counting..."
+                  : previewCount !== null
+                    ? `${previewCount.toLocaleString()} matching records`
+                    : "Add filter values to preview"}
+              </span>
+            </div>
+          )}
         </div>
 
         <DialogFooter>
@@ -344,6 +397,12 @@ export function SavedFiltersPanel() {
                           <Badge variant="secondary" className="text-[10px]">
                             {filter.target_dataset}
                           </Badge>
+                          {filter.alert_on_change && (
+                            <Bell className="w-3 h-3 text-amber-500 flex-shrink-0" />
+                          )}
+                          {filter.is_shared && (
+                            <Share2 className="w-3 h-3 text-blue-500 flex-shrink-0" />
+                          )}
                         </div>
                         {filter.description && (
                           <p className="text-sm text-muted-foreground mt-1 truncate">{filter.description}</p>

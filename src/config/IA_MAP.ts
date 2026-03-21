@@ -31,6 +31,7 @@ import {
   Settings,
   Eye,
   Activity,
+  FolderTree,
   type LucideIcon,
 } from "lucide-react";
 
@@ -168,6 +169,7 @@ export const IA_MODULES: ModuleDefinition[] = [
       { id: "ledger", label: "Value Ledger", icon: GitCompareArrows, scope: "run" },
       { id: "catalog", label: "Data Catalog", icon: Database, scope: "county" },
       { id: "models", label: "Model Registry", icon: TrendingUp, scope: "run" },
+      { id: "axiomfs", label: "File System", icon: FolderTree, scope: "county" },
     ],
   },
 ];

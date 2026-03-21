@@ -68,6 +68,7 @@ const ValueAdjustmentLedger = lazy(() => import("@/components/ledger").then(m =>
 const DataCatalogPanel = lazy(() => import("@/components/catalog").then(m => ({ default: m.DataCatalogPanel })));
 const ModelRegistryPanel = lazy(() => import("@/components/models").then(m => ({ default: m.ModelRegistryPanel })));
 const AuditTimeline = lazy(() => import("@/components/workbench/AuditTimeline").then(m => ({ default: m.AuditTimeline })));
+const AxiomFSDashboard = lazy(() => import("@/components/axiomfs/AxiomFSDashboard").then(m => ({ default: m.AxiomFSDashboard })));
 
 // ── Loading fallback ───────────────────────────────────────────────
 function StageFallback() {
@@ -407,6 +408,9 @@ export function AppLayout({ initialParcel: routeParcel, initialModule, initialFa
               <AuditTimeline />
             </div>
           );
+        }
+        if (view === "axiomfs") {
+          return <AxiomFSDashboard />;
         }
         return (
           <div className="p-0">

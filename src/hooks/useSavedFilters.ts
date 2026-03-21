@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -25,6 +26,8 @@ export interface SavedFilter {
   target_dataset: string;
   filter_config: FilterConfig;
   is_pinned: boolean;
+  alert_on_change: boolean;
+  is_shared: boolean;
   last_used_at: string | null;
   result_count: number | null;
   created_at: string;
@@ -37,6 +40,8 @@ export type SavedFilterInsert = {
   target_dataset?: string;
   filter_config: FilterConfig;
   is_pinned?: boolean;
+  alert_on_change?: boolean;
+  is_shared?: boolean;
 };
 
 export type SavedFilterUpdate = Partial<SavedFilterInsert> & { id: string };
@@ -118,6 +123,8 @@ export function useCreateFilter() {
         target_dataset: input.target_dataset ?? "parcels",
         filter_config: JSON.parse(JSON.stringify(input.filter_config)),
         is_pinned: input.is_pinned ?? false,
+        alert_on_change: input.alert_on_change ?? false,
+        is_shared: input.is_shared ?? false,
       };
       const { data, error } = await supabase
         .from("saved_filters")
@@ -149,6 +156,8 @@ export function useUpdateFilter() {
       if (updates.target_dataset !== undefined) payload.target_dataset = updates.target_dataset;
       if (updates.filter_config !== undefined) payload.filter_config = JSON.parse(JSON.stringify(updates.filter_config));
       if (updates.is_pinned !== undefined) payload.is_pinned = updates.is_pinned;
+      if (updates.alert_on_change !== undefined) payload.alert_on_change = updates.alert_on_change;
+      if (updates.is_shared !== undefined) payload.is_shared = updates.is_shared;
 
       const { error } = await supabase.from("saved_filters").update(payload).eq("id", id);
       if (error) throw error;
@@ -199,4 +208,71 @@ export function useMarkFilterUsed() {
       qc.invalidateQueries({ queryKey: QUERY_KEY });
     },
   });
+}
+
+// ── Dataset → Table mapping ──────────────────────────────────────
+const DATASET_TABLE: Record<string, string> = {
+  parcels: "parcels",
+  sales: "sales",
+  appeals: "appeals",
+};
+
+// ── Operator → Supabase filter method mapping ────────────────────
+function applyCondition(
+  query: ReturnType<typeof supabase.from>,
+  cond: FilterCondition,
+) {
+  const { field, operator, value } = cond;
+  switch (operator) {
+    case "eq":       return query.eq(field, value as string);
+    case "neq":      return query.neq(field, value as string);
+    case "gt":       return query.gt(field, value as number);
+    case "gte":      return query.gte(field, value as number);
+    case "lt":       return query.lt(field, value as number);
+    case "lte":      return query.lte(field, value as number);
+    case "like":     return query.ilike(field, `%${value}%`);
+    case "in":       return query.in(field, Array.isArray(value) ? value : [value]);
+    case "is_null":  return query.is(field, null);
+    case "is_not_null": return query.not(field, "is", null);
+    default:         return query;
+  }
+}
+
+/** Debounced live count preview for filter conditions */
+export function useFilterPreview(dataset: string, conditions: FilterCondition[]) {
+  const [count, setCount] = useState<number | null>(null);
+  const [loading, setLoading] = useState(false);
+  const timerRef = useRef<ReturnType<typeof setTimeout>>();
+
+  useEffect(() => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+
+    const tableName = DATASET_TABLE[dataset];
+    if (!tableName || conditions.length === 0) {
+      setCount(null);
+      return;
+    }
+
+    setLoading(true);
+    timerRef.current = setTimeout(async () => {
+      try {
+        let q = supabase.from(tableName).select("*", { count: "exact", head: true }) as ReturnType<typeof supabase.from>;
+        for (const cond of conditions) {
+          if (cond.field && cond.value !== "" && cond.value !== null) {
+            q = applyCondition(q, cond);
+          }
+        }
+        const { count: c } = await q;
+        setCount(c ?? 0);
+      } catch {
+        setCount(null);
+      } finally {
+        setLoading(false);
+      }
+    }, 500);
+
+    return () => { if (timerRef.current) clearTimeout(timerRef.current); };
+  }, [dataset, JSON.stringify(conditions)]);
+
+  return { count, loading };
 }
