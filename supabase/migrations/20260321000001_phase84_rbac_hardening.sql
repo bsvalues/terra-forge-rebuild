@@ -16,6 +16,7 @@ DROP POLICY IF EXISTS "Authenticated users can insert assessments" ON public.ass
 DROP POLICY IF EXISTS "Authenticated users can update assessments" ON public.assessments;
 
 -- Analysts and admins can insert assessments
+DROP POLICY IF EXISTS "Analysts can insert assessments" ON public.assessments;
 CREATE POLICY "Analysts can insert assessments"
   ON public.assessments
   FOR INSERT
@@ -26,6 +27,7 @@ CREATE POLICY "Analysts can insert assessments"
   );
 
 -- Analysts and admins can update assessments
+DROP POLICY IF EXISTS "Analysts can update assessments" ON public.assessments;
 CREATE POLICY "Analysts can update assessments"
   ON public.assessments
   FOR UPDATE
@@ -40,6 +42,7 @@ CREATE POLICY "Analysts can update assessments"
   );
 
 -- Only admins can delete assessments
+DROP POLICY IF EXISTS "Admins can delete assessments" ON public.assessments;
 CREATE POLICY "Admins can delete assessments"
   ON public.assessments
   FOR DELETE
@@ -55,6 +58,7 @@ DROP POLICY IF EXISTS "Authenticated users can update appeals" ON public.appeals
 DROP POLICY IF EXISTS "Users can manage their own appeals" ON public.appeals;
 DROP POLICY IF EXISTS "County users can manage appeals" ON public.appeals;
 
+DROP POLICY IF EXISTS "Analysts can insert appeals" ON public.appeals;
 CREATE POLICY "Analysts can insert appeals"
   ON public.appeals
   FOR INSERT
@@ -64,6 +68,7 @@ CREATE POLICY "Analysts can insert appeals"
     OR public.has_role(auth.uid(), 'admin')
   );
 
+DROP POLICY IF EXISTS "Analysts can update appeals" ON public.appeals;
 CREATE POLICY "Analysts can update appeals"
   ON public.appeals
   FOR UPDATE
@@ -77,6 +82,7 @@ CREATE POLICY "Analysts can update appeals"
     OR public.has_role(auth.uid(), 'admin')
   );
 
+DROP POLICY IF EXISTS "Admins can delete appeals" ON public.appeals;
 CREATE POLICY "Admins can delete appeals"
   ON public.appeals
   FOR DELETE
@@ -91,6 +97,7 @@ DROP POLICY IF EXISTS "Authenticated users can insert exemptions" ON public.exem
 DROP POLICY IF EXISTS "Authenticated users can update exemptions" ON public.exemptions;
 DROP POLICY IF EXISTS "County users can manage exemptions" ON public.exemptions;
 
+DROP POLICY IF EXISTS "Analysts can insert exemptions" ON public.exemptions;
 CREATE POLICY "Analysts can insert exemptions"
   ON public.exemptions
   FOR INSERT
@@ -100,6 +107,7 @@ CREATE POLICY "Analysts can insert exemptions"
     OR public.has_role(auth.uid(), 'admin')
   );
 
+DROP POLICY IF EXISTS "Analysts can update exemptions" ON public.exemptions;
 CREATE POLICY "Analysts can update exemptions"
   ON public.exemptions
   FOR UPDATE
@@ -113,6 +121,7 @@ CREATE POLICY "Analysts can update exemptions"
     OR public.has_role(auth.uid(), 'admin')
   );
 
+DROP POLICY IF EXISTS "Admins can delete exemptions" ON public.exemptions;
 CREATE POLICY "Admins can delete exemptions"
   ON public.exemptions
   FOR DELETE
@@ -126,12 +135,14 @@ CREATE POLICY "Admins can delete exemptions"
 DROP POLICY IF EXISTS "Authenticated users can insert calibration_runs" ON public.calibration_runs;
 DROP POLICY IF EXISTS "Authenticated users can update calibration_runs" ON public.calibration_runs;
 
+DROP POLICY IF EXISTS "Admins can insert calibration_runs" ON public.calibration_runs;
 CREATE POLICY "Admins can insert calibration_runs"
   ON public.calibration_runs
   FOR INSERT
   TO authenticated
   WITH CHECK (public.has_role(auth.uid(), 'admin'));
 
+DROP POLICY IF EXISTS "Admins can update calibration_runs" ON public.calibration_runs;
 CREATE POLICY "Admins can update calibration_runs"
   ON public.calibration_runs
   FOR UPDATE

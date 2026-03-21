@@ -19,6 +19,7 @@ import {
 import { useWorkbench } from "@/components/workbench/WorkbenchContext";
 import { useAssessmentHistory, useParcelSales, useComparableSales } from "@/hooks/useParcelDetails";
 import { useModelReceipts, useDefenseTraceEvents, useDefenseAppeals } from "@/hooks/useDaisQueries";
+import { useAxiomUpload } from "@/hooks/useAxiomFS";
 import { invokeDefenseNarrative } from "@/services/ingestService";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
@@ -31,6 +32,8 @@ export function DefensePacketGenerator() {
   const { parcel, studyPeriod } = useWorkbench();
   const [status, setStatus] = useState<PacketStatus>("idle");
   const [narrative, setNarrative] = useState<string>("");
+
+  const axiomUpload = useAxiomUpload();
 
   const hasParcel = parcel.id !== null;
   const { data: assessments } = useAssessmentHistory(parcel.id);
@@ -72,6 +75,14 @@ export function DefensePacketGenerator() {
 
       setNarrative(data.narrative);
       setStatus("ready");
+
+      // Phase 94.4: Auto-save to AxiomFS dossier-files bucket
+      const timestamp = format(new Date(), "yyyy-MM-dd_HHmm");
+      const fileName = `defense-packets/${parcel.parcelNumber || "unknown"}_${timestamp}.md`;
+      const blob = new Blob([data.narrative], { type: "text/markdown" });
+      const file = new File([blob], fileName.split("/").pop()!, { type: "text/markdown" });
+      axiomUpload.mutate({ file, path: "defense-packets" });
+
       toast.success("Defense packet narrative generated");
     } catch (err: any) {
       console.error("Defense packet error:", err);

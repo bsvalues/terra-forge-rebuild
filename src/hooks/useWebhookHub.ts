@@ -205,15 +205,15 @@ export function useCreateWebhookEndpoint() {
     }) => {
       const { data, error } = await supabase
         .from("webhook_endpoints")
-        .insert([{
+        .insert({
           name: input.name,
           url: input.url,
           event_types: input.event_types,
           secret: input.secret || null,
           retry_count: input.retry_count ?? 3,
           timeout_ms: input.timeout_ms ?? 5000,
-          metadata: input.metadata ? JSON.parse(JSON.stringify(input.metadata)) : {},
-        }])
+          metadata: input.metadata ?? {},
+        })
         .select()
         .single();
       if (error) throw error;

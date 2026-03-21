@@ -1,0 +1,20 @@
+{
+	"folders": [
+		{
+			"path": ".."
+		},
+		{
+			"path": "../../terrafusion_os_1.0"
+		},
+		{
+			"path": "E:/"
+		},
+		{
+			"path": "../../terrafusion_os_1.0/QUARANTINE/top-level-dirs/BS_PACS"
+		},
+		{
+			"path": "../../terrafusion_os_1.0/QUARANTINE/top-level-dirs/workspaces/ARCGIS"
+		}
+	],
+	"settings": {}
+}

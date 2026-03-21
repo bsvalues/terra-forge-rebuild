@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
 import { 
   Settings, 
   Calendar, 
@@ -26,6 +27,7 @@ import { SecurityAuditDashboard } from "./SecurityAuditDashboard";
 import { BentonBootstrapPanel } from "./BentonBootstrapPanel";
 import { PACSLiveMonitor } from "./PACSLiveMonitor";
 import { AlertEngineDashboard } from "./AlertEngineDashboard";
+import { CountySwitcher } from "./CountySwitcher";
 
 export function AdminDashboard() {
    const [activeTab, setActiveTab] = useState("ids");
@@ -46,6 +48,9 @@ export function AdminDashboard() {
           <p className="text-sm text-muted-foreground">
             System configuration, data management, and operational controls
           </p>
+        </div>
+        <div className="ml-auto">
+          <CountySwitcher />
         </div>
       </motion.div>
 

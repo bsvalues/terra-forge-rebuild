@@ -76,7 +76,7 @@ except ImportError:
 
 # ── Configuration ─────────────────────────────────────────────────────────────
 
-SUPABASE_URL = os.getenv("SUPABASE_URL", "https://jzuculrmjuwrshramgye.supabase.co").rstrip("/")
+SUPABASE_URL = os.getenv("SUPABASE_URL", "https://udjoodlluygvlqccwade.supabase.co").rstrip("/")
 SERVICE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "")
 
 EXPORTS_DIR = Path(os.getenv("BENTON_EXPORTS", r"E:\Exports\Exports\dataextract"))
@@ -95,7 +95,7 @@ BENTON_NAME = "Benton County"
 BENTON_STATE = "WA"
 CURRENT_TAX_YEAR = 2026
 
-BATCH_SIZE = 500
+BATCH_SIZE = 200
 
 # Qualified sale ratio type codes (IAAO arm's-length criteria for Benton)
 # Empty/null sl_ratio_type_cd typically means arms-length in PACS
@@ -107,33 +107,43 @@ UNQUALIFIED_CODES = {
 
 # ── HTTP / REST helpers ───────────────────────────────────────────────────────
 
+from urllib3.util.retry import Retry
+from requests.adapters import HTTPAdapter
+
+_session = requests.Session()
+_retry = Retry(total=5, backoff_factor=1.0, status_forcelist=[429, 502, 503, 504],
+               allowed_methods=["POST", "GET"])
+_session.mount("https://", HTTPAdapter(max_retries=_retry))
+
 def _headers(return_repr: bool = False) -> dict[str, str]:
     h = {
         "apikey": SERVICE_KEY,
         "Authorization": f"Bearer {SERVICE_KEY}",
         "Content-Type": "application/json",
-        "Prefer": "return=representation" if return_repr else "return=minimal",
+        "Prefer": ("return=representation" if return_repr else "return=minimal") + ",resolution=merge-duplicates",
     }
     return h
 
 
 def _rest_get(path: str, params: dict | None = None) -> list:
     url = f"{SUPABASE_URL}/rest/v1/{path}"
-    resp = requests.get(url, headers=_headers(), params=params, timeout=60)
+    resp = _session.get(url, headers=_headers(), params=params, timeout=60)
     resp.raise_for_status()
     return resp.json()
 
 
-def _upsert_batch(table: str, rows: list, on_conflict: str) -> list:
+def _upsert_batch(table: str, rows: list, on_conflict: str, return_repr: bool = True) -> list:
     if not rows:
         return []
     url = f"{SUPABASE_URL}/rest/v1/{table}?on_conflict={on_conflict}"
-    resp = requests.post(url, headers=_headers(return_repr=True), json=rows, timeout=120)
+    resp = _session.post(url, headers=_headers(return_repr=return_repr), json=rows, timeout=120)
     if resp.status_code not in (200, 201):
         # Log first 300 chars of error context without leaking data
         snippet = resp.text[:300].replace(SERVICE_KEY, "***")
         raise RuntimeError(f"upsert {table} [{resp.status_code}]: {snippet}")
-    return resp.json()
+    if return_repr:
+        return resp.json()
+    return []
 
 
 def bulk_upsert(
@@ -142,6 +152,7 @@ def bulk_upsert(
     on_conflict: str,
     label: str = "",
     dry_run: bool = False,
+    return_repr: bool = True,
 ) -> list:
     if dry_run:
         print(f"  DRY-RUN {table}: {len(rows):,} rows (not written)")
@@ -150,12 +161,12 @@ def bulk_upsert(
     collected = []
     for i in range(0, total, BATCH_SIZE):
         batch = rows[i : i + BATCH_SIZE]
-        result = _upsert_batch(table, batch, on_conflict)
+        result = _upsert_batch(table, batch, on_conflict, return_repr=return_repr)
         collected.extend(result)
         pct = min(100, int((i + len(batch)) / total * 100))
         written = i + len(batch)
         print(f"  {label or table}: {pct}%  ({written:,}/{total:,})", end="\r", flush=True)
-        time.sleep(0.04)  # courtesy pause
+        time.sleep(0.15)  # courtesy pause — avoid rate limits
     print()
     return collected
 
@@ -377,7 +388,7 @@ def seed_parcels(
     situs = data["situs"]
     imprv = data["imprv"]
 
-    parcel_rows: list[dict] = []
+    parcel_map: dict[str, dict] = {}  # keyed by geo_id to deduplicate
     skipped = 0
 
     for prop_id, pv in prop_val.items():
@@ -421,7 +432,7 @@ def seed_parcels(
         if coord:
             lat, lng = coord[0], coord[1]
 
-        parcel_rows.append({
+        row = {
             "county_id": county_id,
             "parcel_number": geo_id,
             "address": address or "UNKNOWN",
@@ -438,19 +449,21 @@ def seed_parcels(
             "latitude": lat,
             "longitude": lng,
             "neighborhood_code": hood if hood else None,
-        })
+        }
 
-    print(f"  {len(parcel_rows):,} parcel rows prepared ({skipped} skipped — no geo_id)")
+        # Keep the record with the highest assessed value per geo_id
+        existing = parcel_map.get(geo_id)
+        if existing is None or (assessed or 0) > (existing.get("assessed_value") or 0):
+            parcel_map[geo_id] = row
 
-    returned = bulk_upsert("parcels", parcel_rows, "county_id,parcel_number", "parcels", dry_run)
+    parcel_rows = list(parcel_map.values())
+    print(f"  {len(parcel_rows):,} unique parcel rows prepared ({skipped} skipped — no geo_id)")
 
-    # Build geo_id → uuid map from returned rows
+    returned = bulk_upsert("parcels", parcel_rows, "county_id,parcel_number", "parcels", dry_run, return_repr=False)
+
+    # Fetch geo_id → uuid map (always fetch since we use return=minimal for speed)
     geo_to_uuid: dict[str, str] = {}
-    for r in returned:
-        geo_to_uuid[_s(r.get("parcel_number", ""))] = r.get("id", "")
-
-    if not dry_run and not geo_to_uuid:
-        # Fetch back if upsert used return=minimal
+    if not dry_run:
         print("  Fetching parcel UUIDs for join mapping ...")
         page_size = 1000
         offset = 0
@@ -482,7 +495,7 @@ def seed_assessments(data: dict, geo_to_uuid: dict[str, str], dry_run: bool):
     prop_val = data["prop_val"]
     roll_hist = data["roll_hist"]
 
-    assessment_rows: list[dict] = []
+    assessment_map: dict[str, dict] = {}  # key: parcel_id|tax_year
 
     # Current year from property_val
     for prop_id, pv in prop_val.items():
@@ -492,20 +505,25 @@ def seed_assessments(data: dict, geo_to_uuid: dict[str, str], dry_run: bool):
             continue
         land_val = _f(pv.get("land_hstd_val", 0)) + _f(pv.get("land_non_hstd_val", 0))
         imprv_val = _f(pv.get("imprv_hstd_val", 0)) + _f(pv.get("imprv_non_hstd_val", 0))
-        assessment_rows.append({
-            "parcel_id": parcel_id,
-            "tax_year": CURRENT_TAX_YEAR,
-            "land_value": land_val,
-            "improvement_value": imprv_val,
-            "certified": False,
-            "assessment_reason": "pacs_seed",
-        })
+        key = f"{parcel_id}|{CURRENT_TAX_YEAR}"
+        existing = assessment_map.get(key)
+        total = land_val + imprv_val
+        if existing is None or total > (existing.get("land_value", 0) + existing.get("improvement_value", 0)):
+            assessment_map[key] = {
+                "parcel_id": parcel_id,
+                "tax_year": CURRENT_TAX_YEAR,
+                "land_value": land_val,
+                "improvement_value": imprv_val,
+                "certified": False,
+                "assessment_reason": "annual",
+            }
 
+    assessment_rows = list(assessment_map.values())
     print(f"  {len(assessment_rows):,} current-year ({CURRENT_TAX_YEAR}) assessment rows")
     bulk_upsert("assessments", assessment_rows, "parcel_id,tax_year", "assessments (current)", dry_run)
 
     # Historical assessments from roll_value_history
-    hist_rows: list[dict] = []
+    hist_map: dict[str, dict] = {}
     for prop_id, history in roll_hist.items():
         # Need to look up geo_id for this prop_id
         # Use a reverse lookup from prop_val
@@ -520,15 +538,21 @@ def seed_assessments(data: dict, geo_to_uuid: dict[str, str], dry_run: bool):
             yr = _i(h.get("prop_val_yr", 0))
             if yr == 0 or yr == CURRENT_TAX_YEAR:
                 continue
-            hist_rows.append({
-                "parcel_id": parcel_id,
-                "tax_year": yr,
-                "land_value": _f(h.get("land_market", 0)),
-                "improvement_value": _f(h.get("improvements", 0)),
-                "certified": True,
-                "assessment_reason": "pacs_historical",
-            })
+            key = f"{parcel_id}|{yr}"
+            land_v = _f(h.get("land_market", 0))
+            imprv_v = _f(h.get("improvements", 0))
+            existing = hist_map.get(key)
+            if existing is None or (land_v + imprv_v) > (existing.get("land_value", 0) + existing.get("improvement_value", 0)):
+                hist_map[key] = {
+                    "parcel_id": parcel_id,
+                    "tax_year": yr,
+                    "land_value": land_v,
+                    "improvement_value": imprv_v,
+                    "certified": True,
+                    "assessment_reason": "annual",
+                }
 
+    hist_rows = list(hist_map.values())
     print(f"  {len(hist_rows):,} historical assessment rows")
     bulk_upsert("assessments", hist_rows, "parcel_id,tax_year", "assessments (history)", dry_run)
 
@@ -538,7 +562,7 @@ def seed_assessments(data: dict, geo_to_uuid: dict[str, str], dry_run: bool):
 def _insert_batch(table: str, rows: list) -> None:
     """Plain INSERT — no conflict resolution. Table must not have an auto-unique constraint for these."""
     url = f"{SUPABASE_URL}/rest/v1/{table}"
-    resp = requests.post(url, headers=_headers(return_repr=False), json=rows, timeout=120)
+    resp = _session.post(url, headers=_headers(return_repr=False), json=rows, timeout=120)
     if resp.status_code not in (200, 201):
         snippet = resp.text[:300].replace(SERVICE_KEY, "***")
         raise RuntimeError(f"insert {table} [{resp.status_code}]: {snippet}")
