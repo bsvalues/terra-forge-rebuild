@@ -105,8 +105,8 @@ export function NextStepsStep({ countyName, onComplete }: NextStepsStepProps) {
                   <div className="flex items-center gap-2">
                     <p className="text-sm font-medium text-foreground">{step.title}</p>
                     {"status" in step && (
-                      <Badge variant="outline" className={getStepBadgeVariant(step.status)}>
-                        {step.status}
+                      <Badge variant="outline" className={getStepBadgeVariant((step as BentonBootstrapStep).status)}>
+                        {String((step as BentonBootstrapStep).status)}
                       </Badge>
                     )}
                   </div>

@@ -325,7 +325,7 @@ export function IngestControlPanel({ dataSources = [] }: IngestControlPanelProps
       featureServerUrl,
       dataset: selectedDataset.ingestDatasetId,
       parcelIdField: selectedDataset?.geometryRole === "parcel" ? parcelIdField : undefined,
-      sourceId: selectedSourceId || undefined,
+      pageSize: 500,
     });
     toast.success("First batch complete");
     setShowNewForm(false);

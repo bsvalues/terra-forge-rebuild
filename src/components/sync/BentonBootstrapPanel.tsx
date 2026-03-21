@@ -119,7 +119,7 @@ export function BentonBootstrapPanel() {
               {pacsSeed.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4" />}
               Seed PACS
             </Button>
-            <Button size="sm" variant="outline" className="gap-2" onClick={() => gisSeed.mutate()} disabled={gisSeed.isPending}>
+            <Button size="sm" variant="outline" className="gap-2" onClick={() => gisSeed.mutate({})} disabled={gisSeed.isPending}>
               {gisSeed.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Layers className="w-4 h-4" />}
               Seed GIS
             </Button>

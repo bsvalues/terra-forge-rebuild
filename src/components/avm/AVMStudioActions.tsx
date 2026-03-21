@@ -87,8 +87,8 @@ function useApplyAVMToAssessments() {
 function ApplyAssessmentsDialog({ champion }: { champion: AVMRun | null }) {
   const [open, setOpen] = useState(false);
   const applyMutation = useApplyAVMToAssessments();
-  const { role } = useUserRole();
-  const canApply = role === "admin" || role === "analyst";
+  const { isAdmin, isAnalyst } = useUserRole();
+  const canApply = isAdmin || isAnalyst;
 
   if (!canApply) return null;
 

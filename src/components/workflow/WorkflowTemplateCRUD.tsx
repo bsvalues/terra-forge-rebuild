@@ -426,8 +426,8 @@ function LaunchInstanceDialog({
 export function WorkflowTemplateCRUD() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { role } = useUserRole();
-  const canEdit = role === "admin" || role === "analyst";
+  const { isAdmin, isAnalyst } = useUserRole();
+  const canEdit = isAdmin || isAnalyst;
 
   const { data: dbTemplates = [], isLoading } = useWorkflowTemplates();
 
