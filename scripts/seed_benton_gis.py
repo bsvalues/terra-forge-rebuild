@@ -158,8 +158,8 @@ def _export_to_geojson(fgdb: str, layer_name: str, output_path: str, max_feature
     return len(gdf)
 
 
-def _upload_to_storage(local_path: str, storage_path: str) -> str:
-    """Upload a GeoJSON file to Supabase Storage. Returns the storage path."""
+def _upload_to_storage(local_path: str, storage_path: str, max_retries: int = 3) -> str:
+    """Upload a GeoJSON file to Supabase Storage with retry. Returns the storage path."""
     url = f"{SUPABASE_URL}/storage/v1/object/{STORAGE_BUCKET}/{storage_path}"
     headers = {
         "apikey": SERVICE_ROLE_KEY,
@@ -168,13 +168,27 @@ def _upload_to_storage(local_path: str, storage_path: str) -> str:
         "x-upsert": "true",  # overwrite if exists (idempotent)
     }
 
-    with open(local_path, "rb") as f:
-        resp = requests.put(url, headers=headers, data=f, timeout=120)
+    file_size_mb = os.path.getsize(local_path) / (1024 * 1024)
+    timeout = max(120, int(file_size_mb * 10))  # 10s per MB, min 120s
 
-    if resp.status_code not in (200, 201):
-        raise RuntimeError(
-            f"Storage upload failed ({resp.status_code}): {resp.text[:200]}"
-        )
+    for attempt in range(1, max_retries + 1):
+        try:
+            with open(local_path, "rb") as f:
+                resp = requests.put(url, headers=headers, data=f, timeout=timeout)
+
+            if resp.status_code in (200, 201):
+                return storage_path
+
+            raise RuntimeError(
+                f"Storage upload failed ({resp.status_code}): {resp.text[:200]}"
+            )
+        except (requests.exceptions.ConnectionError, requests.exceptions.Timeout, OSError) as exc:
+            if attempt < max_retries:
+                wait = attempt * 5
+                print(f"\n    Upload attempt {attempt} failed ({exc.__class__.__name__}), retrying in {wait}s...", flush=True)
+                time.sleep(wait)
+            else:
+                raise
 
     return storage_path
 
