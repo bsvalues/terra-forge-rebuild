@@ -47,7 +47,11 @@ if missing:
 
 try:
     from dotenv import load_dotenv
-    load_dotenv()
+    # Try scripts/.env.seed first (has service role key), then repo root .env
+    _seed_env = Path(__file__).parent / ".env.seed"
+    if _seed_env.exists():
+        load_dotenv(_seed_env)
+    load_dotenv()  # repo root .env (won't overwrite already-set vars)
 except ImportError:
     pass  # python-dotenv is optional; env vars can come from shell
 

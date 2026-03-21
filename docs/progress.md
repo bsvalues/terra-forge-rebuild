@@ -9,10 +9,65 @@
 
 ## Current State Summary
 
-**Active Phase**: Phase 66 — Production-Grade Rate Limiting (COMPLETE)  
-**Last Completed Task**: 66.4 — Provider monitoring dashboard + queued dispatch controls  
-**Next Task**: Phase 67 planning  
+**Active Phase**: Phase 98 — Operational Activation & Bookkeeping  
+**Last Completed Task**: 97 — Owner Portal Enhancement (all phases 22–97 verified complete)  
+**Next Task**: Phase 98 execution (Wave 0: deploy + seed + backfill)  
 **Blockers**: None
+
+---
+
+## Phases 92–97: Activation Sprint (BACKFILL — verified 2026-03-21)
+
+| Phase | Name | Status | Evidence |
+|-------|------|--------|----------|
+| 97 | Owner Portal Enhancement | ✅ COMPLETE | Zero direct supabase.from() calls in OwnerPortal.tsx — all via useOwnerPortalLookup, useSubmitAppeal, useAppealStatus, useEvidenceUpload hooks. 4-step flow, print support, mobile CSS |
+| 96 | Multi-County Expansion | ✅ COMPLETE | Yakima County migration pushed (20260322000002), CountySwitcher has multi-tenant dropdown with FIPS/parcel counts, useCountyList hook, localStorage persistence |
+| 95 | TerraPilot Tool Expansion | ✅ COMPLETE | TOOL_AGENT_MAP has 26 tools including all 6 Phase 95 additions (run_alerts, get_pacs_delta, create_smart_view, open_sketch, upload_document, get_file_list). TOOL_WRITE_LANE entries match |
+| 94 | AxiomFS Real Storage Layer | ✅ COMPLETE | useAxiomFS hook queries dossier-files bucket with type/tag inference, tree building. AxiomFSDashboard imports it, sampleFiles=[] (no hardcoded data). AxiomFS wired in IA_MAP + AppLayout |
+| 93 | Smart Views Engine | ✅ COMPLETE | saved_views migration pushed (20260322000001). SavedFiltersPanel has full CRUD, preview count, pin/alert/share, condition builder. Wired at smart-views case in AppLayout |
+| 92 | Sketch → Workbench Integration | ✅ COMPLETE | SuiteTab type has "sketch", TAB_COMPONENTS has SketchTab, SuiteTabNavigation has PenTool icon. SketchModule renders 3 tiers (measure/sketch/plan_trace) |
+
+## Phases 90–91: PACS & Alerts (BACKFILL — verified 2026-03-21)
+
+| Phase | Name | Status | Evidence |
+|-------|------|--------|----------|
+| 91 | Alert Engine | ✅ COMPLETE | notification-alerts edge function (3 rules), useRunAlerts hook, AlertEngineDashboard UI, integrated into AdminDashboard |
+| 90 | PACS Live Connector | ✅ COMPLETE | pacs-query edge function, usePACSDelta hook (connection status, drift products), PACSLiveMonitor UI, integrated into AdminDashboard |
+
+## Phases 81–89: Trust & Domain Expansion (BACKFILL — verified 2026-03-21)
+
+| Phase | Name | Status | Evidence |
+|-------|------|--------|----------|
+| 89 | IAAO Reporting Engine | ✅ COMPLETE | useIAAOCompliance + useRatioStudy hooks, IAAOComplianceDashboard UI (factory:iaao-compliance view), ratio study with IAAO-standard metrics |
+| 88 | GeoEquity Mapping | ✅ COMPLETE | useEquityMapData + useEquityOverlays hooks, GeoEquityDashboard UI (factory:geoequity view), ratio choropleth + PRD analysis |
+| 87 | Income & Cost Approach UI | ✅ COMPLETE | useCostApproach + useCostSchedule + useIncomeApproach hooks, CostMode tabs in FactoryLayout (factory:calibration), cost schedule CRUD + batch apply |
+| 86 | AVM Pipeline | ✅ COMPLETE | useAvmPipeline + useAVMRuns hooks, AVMStudioDashboard UI (factory:avm view), avm-train edge function, model run history with metrics |
+| 85 | Notification & Alert System | ✅ COMPLETE | notifications table + migration (20260321000002), useDBNotifications + useRealtimeNotifications + useNotificationStore hooks, NotificationCenterPanel UI (home:activity view) |
+| 84 | RBAC Hardening | ✅ COMPLETE | RBAC migration pushed (20260321000001) with 11 RLS policies on assessments/appeals/exemptions/calibration_runs. useUserRole hook, admin-manage-users edge function |
+| 83 | County Onboarding Wizard | ✅ COMPLETE | useBentonBootstrap + useOnboardingStatus hooks, OnboardingWizard UI (5-step), county-setup edge function, Bootstrap preflight checks |
+| 82 | Workflow Automation Templates | ✅ COMPLETE | useWorkflowTemplates hook, workflowEngine.ts state machine service, workflow template CRUD + step execution |
+| 81 | TerraTrace Audit Spine | ✅ COMPLETE | useTraceEvents + useAuditTimeline + useTraceChainVerification hooks, AuditTimeline UI (registry:audit-chain view), hash-chain schema + verification function |
+
+## Phase 80: TerraPilot Swarm (BACKFILL)
+
+| Phase | Name | Status | Evidence |
+|-------|------|--------|----------|
+| 80 | TerraPilot Multi-Agent Swarm | ✅ COMPLETE | terrapilot-router edge function (topological sort, sub-agent dispatch, risk classification), terrapilot-chat sub-agent executor, TOOL_AGENT_MAP + TOOL_WRITE_LANE constitutional matrix, 26 tools across 5 agents |
+
+## Phases 67–70: SLCo Final Sprint (BACKFILL — superseded by existing code)
+
+| Phase | Name | Status | Evidence |
+|-------|------|--------|----------|
+| 70 | Final Roll Readiness | ✅ SUPERSEDED | useRollReadiness + useCertificationPipeline + useRollExport hooks, BatchNoticeDashboard UI, roll lock functionality exists in certification events |
+| 69 | Write-Lane Enforcement | ✅ SUPERSEDED | writeLane.ts (12 tests passing), write_lane_violations table, ConstitutionalTracePanel write-lane monitor |
+| 68 | Spatial Ratio Insights | ✅ SUPERSEDED | useRatioStudy + useEquityMapData + useEquityOverlays hooks, GeoEquityDashboard with ratio choropleth |
+| 67 | Automated Demo Seeding | ✅ SUPERSEDED | useSyntheticSales hook, seed_benton_pacs.py + seed_benton_gis.py scripts, Benton County fully seeded (84,920 parcels, 247K assessments, 205K sales) |
+
+## Phases 71–79: Renumbered / Absorbed
+
+> Phases 71–79 were absorbed into the 80–89 reorganization. No gap exists — the phase numbering jumped from 70 to 80 when the multi-agent execution plan was created.
+
+---
 
 | 66 | Production-Grade Rate Limiting | ✅ COMPLETE | 4/4 | webhook_provider_health + webhook_dispatch_queue tables (persistent token buckets, circuit state, queued delivery jobs, updated_at triggers, county-scoped RLS), webhook-dispatch edge function hardened with provider-key token bucket enforcement, half-open/open breaker transitions, batch overflow queueing, ready-queue drain + provider metrics actions, WebhookNotificationHub provider health board (token utilization, circuit status, queue pressure, drain control), endpoint-level provider config fields stored in metadata |
 
