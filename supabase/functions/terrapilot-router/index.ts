@@ -102,6 +102,9 @@ const TOOL_AGENT_MAP: Record<string, string> = {
   escalate_task: "dais", generate_notice: "dais", run_model: "forge",
   draft_notice: "dais", draft_appeal_response: "dais",
   explain_value_change: "forge", summarize_parcel_history: "os",
+  // Phase 95: New tool registrations
+  run_alerts: "os", get_pacs_delta: "os", create_smart_view: "os",
+  open_sketch: "os", upload_document: "dossier", get_file_list: "dossier",
 };
 
 const TOOL_WRITE_LANE: Record<string, string> = {
@@ -114,6 +117,9 @@ const TOOL_WRITE_LANE: Record<string, string> = {
   escalate_task: "tasks", generate_notice: "notices", run_model: "calibration",
   draft_notice: "read", draft_appeal_response: "read",
   explain_value_change: "read", summarize_parcel_history: "read",
+  // Phase 95: New tool write lanes
+  run_alerts: "read", get_pacs_delta: "read", create_smart_view: "read",
+  open_sketch: "read", upload_document: "documents", get_file_list: "read",
 };
 
 // Available tools list for the router's structured output
@@ -169,6 +175,14 @@ AVAILABLE TOOLS: ${AVAILABLE_TOOLS.join(", ")}
 
 TOOL → AGENT MAPPING:
 ${Object.entries(TOOL_AGENT_MAP).map(([t, a]) => `- ${t} → ${a}`).join("\n")}
+
+NEW TOOL DESCRIPTIONS:
+- run_alerts: Run the county alert engine — checks deadlines, DQ regression, unfinished assignments
+- get_pacs_delta: Check PACS SQL Server sync drift across all data products
+- create_smart_view: Save a parcel filter set as a named view for quick access
+- open_sketch: Navigate user to Sketch tab for a specific parcel
+- upload_document: Upload a file to the document management system (AxiomFS)
+- get_file_list: List all documents in the file system
 
 CURRENT CONTEXT:
 - Mode: ${context?.mode || "pilot"}
@@ -414,6 +428,76 @@ async function executeTool(
           serviceClient.from("appeals").select("*").eq("parcel_id", parcelId),
         ]);
         return { parcel: parcelRes.data, assessments: assessRes.data || [], sales: salesRes.data || [], appeals: appealsRes.data || [] };
+      }
+
+      // Phase 95: New tool implementations
+      case "run_alerts": {
+        const resp = await fetch(
+          `${Deno.env.get("SUPABASE_URL")}/functions/v1/notification-alerts`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ county_id: countyId }),
+          },
+        );
+        const result = await resp.json();
+        return { notifications_created: result.notifications_created ?? 0, alerts: result.alerts ?? [] };
+      }
+
+      case "get_pacs_delta": {
+        const { data: health } = await serviceClient
+          .from("pacs_connector_health")
+          .select("product, last_sync_at, record_count, drift_pct, status")
+          .order("product");
+        return { products: health || [], synced_at: new Date().toISOString() };
+      }
+
+      case "create_smart_view": {
+        const name = String(args.name || "Untitled View");
+        const conditions = args.conditions || [];
+        const dataset = String(args.dataset || "parcels");
+        const { data, error } = await serviceClient
+          .from("saved_filters")
+          .insert({
+            name,
+            target_dataset: dataset,
+            filter_config: { conditions },
+            county_id: countyId,
+          })
+          .select("id, name")
+          .single();
+        if (error) return { error: error.message };
+        return { view_id: data.id, name: data.name, created: true };
+      }
+
+      case "open_sketch": {
+        return {
+          action: "navigate",
+          target: "workbench",
+          tab: "sketch",
+          parcel_id: String(args.parcel_id || ""),
+        };
+      }
+
+      case "upload_document": {
+        // Document upload needs to be handled client-side (file binary)
+        return {
+          action: "client_upload",
+          bucket: "dossier-files",
+          suggested_path: String(args.path || ""),
+          message: "Use the AxiomFS upload button to select and upload files.",
+        };
+      }
+
+      case "get_file_list": {
+        const { data, error } = await serviceClient.storage
+          .from("dossier-files")
+          .list("", { limit: 100, sortBy: { column: "name", order: "asc" } });
+        if (error) return { error: error.message };
+        return { files: data || [], count: data?.length || 0 };
       }
 
       default:

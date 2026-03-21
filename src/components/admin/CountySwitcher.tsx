@@ -1,9 +1,9 @@
 // TerraFusion OS — County Switcher (Swarm C: Multi-County Tenancy)
-// Allows users to switch their active county context
+// Phase 96: Enhanced with parcel counts, status cards, localStorage persistence
 
 import { useAuthContext } from "@/contexts/AuthContext";
-import { useAllCounties, useCurrentCounty, useSwitchCounty } from "@/hooks/useCountySwitcher";
-import { Building2, Check, ChevronDown, Globe } from "lucide-react";
+import { useCountyList, useCurrentCounty, useSwitchCounty } from "@/hooks/useCountySwitcher";
+import { Building2, Check, ChevronDown, Globe, Database } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -17,7 +17,7 @@ import { toast } from "sonner";
 export function CountySwitcher() {
   const { profile, user } = useAuthContext();
 
-  const { data: counties = [] } = useAllCounties();
+  const { data: counties = [] } = useCountyList();
   const { data: currentCounty } = useCurrentCounty(profile?.county_id);
   const switchCounty = useSwitchCounty();
 
@@ -61,7 +61,7 @@ export function CountySwitcher() {
           <ChevronDown className="w-3 h-3 text-muted-foreground" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" className="w-64 bg-card border-border">
+      <DropdownMenuContent align="start" className="w-72 bg-card border-border">
         <div className="px-3 py-2 border-b border-border/50">
           <div className="flex items-center gap-2">
             <Globe className="w-3.5 h-3.5 text-muted-foreground" />
@@ -76,16 +76,21 @@ export function CountySwitcher() {
             <DropdownMenuItem
               key={county.id}
               onClick={() => !isActive && handleSwitch(county.id)}
-              className="gap-3 py-2.5"
+              className="gap-3 py-3"
             >
-              <Building2 className={`w-4 h-4 ${isActive ? "text-tf-cyan" : "text-muted-foreground"}`} />
+              <div className={`w-2 h-2 rounded-full flex-shrink-0 ${isActive ? "bg-emerald-500" : "bg-muted-foreground/30"}`} />
               <div className="flex-1 min-w-0">
                 <div className="text-sm font-medium text-foreground">{county.name}</div>
-                <div className="text-[10px] text-muted-foreground">
-                  FIPS: {county.fips_code} • {county.state}
+                <div className="flex items-center gap-3 text-[10px] text-muted-foreground mt-0.5">
+                  <span>FIPS {county.fips_code}</span>
+                  <span className="flex items-center gap-1">
+                    <Database className="w-2.5 h-2.5" />
+                    {county.parcel_count.toLocaleString()} parcels
+                  </span>
+                  <span>{county.study_period_count} periods</span>
                 </div>
               </div>
-              {isActive && <Check className="w-4 h-4 text-tf-cyan" />}
+              {isActive && <Check className="w-4 h-4 text-tf-cyan flex-shrink-0" />}
             </DropdownMenuItem>
           );
         })}
