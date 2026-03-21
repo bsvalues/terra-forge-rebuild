@@ -39,12 +39,11 @@ function useApplyAVMToAssessments() {
       const rows = run.predictions.map((p) => ({
         parcel_id: p.parcel_id,
         county_id: countyId,
-        assessed_value: Math.round(p.predicted),
-        market_value: Math.round(p.predicted),
-        assessment_year: new Date().getFullYear(),
-        source_reference: `avm_run:${run.id}`,
-        is_certified: false,
-        created_by: user.id,
+        tax_year: new Date().getFullYear(),
+        land_value: 0,
+        improvement_value: Math.round(p.predicted),
+        total_value: Math.round(p.predicted),
+        certified: false,
       }));
 
       // Insert in batches of 100
@@ -53,7 +52,7 @@ function useApplyAVMToAssessments() {
         const batch = rows.slice(i, i + 100);
         const { error } = await supabase
           .from("assessments")
-          .upsert(batch, { onConflict: "parcel_id,assessment_year" });
+          .upsert(batch, { onConflict: "parcel_id,tax_year" });
         if (error) throw error;
         inserted += batch.length;
       }
@@ -88,8 +87,8 @@ function useApplyAVMToAssessments() {
 function ApplyAssessmentsDialog({ champion }: { champion: AVMRun | null }) {
   const [open, setOpen] = useState(false);
   const applyMutation = useApplyAVMToAssessments();
-  const { role } = useUserRole();
-  const canApply = role === "admin" || role === "analyst";
+  const { isAdmin, isAnalyst } = useUserRole();
+  const canApply = isAdmin || isAnalyst;
 
   if (!canApply) return null;
 

@@ -53,7 +53,7 @@ export function ArcGISImportDialog({
   const [mode, setMode] = useState<"url" | "saved">("url");
   const [arcgisUrl, setArcgisUrl] = useState("");
   const [selectedSourceId, setSelectedSourceId] = useState("");
-  const [parcelNumberField, setParcelNumberField] = useState(BENTON_PARCEL_FIELD_CANDIDATES[0]);
+  const [parcelNumberField, setParcelNumberField] = useState<string>(BENTON_PARCEL_FIELD_CANDIDATES[0]);
   const [importing, setImporting] = useState(false);
   const [progress, setProgress] = useState(0);
   const [result, setResult] = useState<SyncResult | null>(null);

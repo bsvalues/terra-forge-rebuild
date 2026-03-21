@@ -293,7 +293,7 @@ export function IngestControlPanel({ dataSources = [] }: IngestControlPanelProps
   const [newDataset, setNewDataset] = useState<BentonGISDatasetId | "">("");
   const [newUrl, setNewUrl] = useState("");
   const [selectedSourceId, setSelectedSourceId] = useState("");
-  const [parcelIdField, setParcelIdField] = useState(BENTON_PARCEL_FIELD_CANDIDATES[0]);
+  const [parcelIdField, setParcelIdField] = useState<string>(BENTON_PARCEL_FIELD_CANDIDATES[0]);
 
   const activeJob = jobs.find((j) => j.status === "running" || j.status === "paused");
   const polygonDatasets = useMemo(
@@ -325,7 +325,7 @@ export function IngestControlPanel({ dataSources = [] }: IngestControlPanelProps
       featureServerUrl,
       dataset: selectedDataset.ingestDatasetId,
       parcelIdField: selectedDataset?.geometryRole === "parcel" ? parcelIdField : undefined,
-      sourceId: selectedSourceId || undefined,
+      pageSize: 500,
     });
     toast.success("First batch complete");
     setShowNewForm(false);
