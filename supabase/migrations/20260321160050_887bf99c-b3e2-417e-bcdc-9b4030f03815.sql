@@ -1,0 +1,1 @@
+UPDATE profiles SET county_id = '00000000-0000-0000-0000-000000000001', updated_at = now() WHERE user_id = 'e07ff573-e75c-4f27-9096-bbee589db304';
