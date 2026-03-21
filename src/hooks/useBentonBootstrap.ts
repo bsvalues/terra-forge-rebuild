@@ -224,7 +224,7 @@ async function runBentonBootstrapPreflight(): Promise<BentonBootstrapReport> {
     ? await Promise.all([
         supabase.from("parcels").select("id", { count: "exact", head: true }).eq("county_id", bentonCountyId),
         supabase.from("study_periods").select("id", { count: "exact", head: true }).eq("county_id", bentonCountyId),
-        supabase.from("gis_layers").select("id, layer_type").eq("county_id", bentonCountyId),
+        supabase.from("gis_layers").select("id, layer_type") as any,
         supabase.from("gis_data_sources").select("id, source_type, connection_url"),
         supabase.from("data_sources").select("id, name, source_type").eq("county_id", bentonCountyId),
         (supabase.rpc as Function)("get_pipeline_status", { p_county_id: bentonCountyId }),
