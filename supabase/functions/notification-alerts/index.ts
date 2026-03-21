@@ -1,10 +1,11 @@
-// TerraFusion OS — Phase 85.3: Notification Alert Rules Engine
+// TerraFusion OS — Phase 97: Notification Alert Rules Engine
 // POST /notification-alerts
 //
 // Scans for:
 //   1. Appeal hearings within 7 days → deadline notifications
 //   2. DQ score regression >5% → dq_alert notifications
 //   3. Pending workflow tasks assigned to user → assignment notifications
+//   4. Owner portal appeal submissions → portal_submission notifications
 //
 // Designed to be called:
 //   - Manually from the admin panel (fetch trigger)
@@ -209,6 +210,50 @@ serve(async (req) => {
         .single();
 
       if (n?.id) created.push(n.id);
+    }
+
+    // ──────────────────────────────────────────────────────────────
+    // 4. Owner Portal appeal submissions (source:owner_portal in last 1 hour)
+    // ──────────────────────────────────────────────────────────────
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+
+    const { data: portalAppeals } = await serviceClient
+      .from("appeals")
+      .select("id, parcel_id, appeal_date, owner_email, notes, parcels(parcel_number, address)")
+      .like("notes", "%[source:owner_portal]%")
+      .gte("created_at", oneHourAgo)
+      .limit(50);
+
+    for (const pa of (portalAppeals ?? [])) {
+      const parcel = (pa as { parcels?: { parcel_number?: string; address?: string } }).parcels;
+      const label = parcel ? `${parcel.parcel_number} — ${parcel.address || ""}` : `Appeal ${pa.id.slice(0, 8)}`;
+
+      for (const uid of notifyUserIds) {
+        // Deduplicate: one notification per appeal submission
+        const { count } = await serviceClient
+          .from("notifications" as any)
+          .select("id", { count: "exact", head: true })
+          .eq("user_id", uid)
+          .eq("notification_type", "portal_submission")
+          .like("body", `%${pa.id}%`);
+
+        if ((count ?? 0) > 0) continue;
+
+        const { data: n } = await serviceClient
+          .from("notifications" as any)
+          .insert({
+            user_id: uid,
+            county_id: countyId,
+            notification_type: "portal_submission",
+            title: "New Owner Portal Appeal",
+            body: `Owner filed appeal for ${label} via portal [appeal:${pa.id}]`,
+            severity: "warning",
+          })
+          .select("id")
+          .single();
+
+        if (n?.id) created.push(n.id);
+      }
     }
 
     return new Response(
