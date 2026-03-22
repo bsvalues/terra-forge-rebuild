@@ -9,6 +9,7 @@
 import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   HardHat,
@@ -17,10 +18,13 @@ import {
   AlertTriangle,
   Loader2,
   CheckCircle2,
+  Download,
+  ArrowRight,
 } from "lucide-react";
 import { useWorkbench } from "@/components/workbench/WorkbenchContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 /** Value impact multipliers by permit type */
 const PERMIT_IMPACT_RULES: Record<string, { label: string; multiplierRange: [number, number]; color: string }> = {
@@ -106,6 +110,27 @@ export function PermitImpactEstimator() {
     };
   }, [permits]);
 
+  const assessedValue = permits?.[0]?.parcel_assessed_value ?? 0;
+
+  const handleExportReport = () => {
+    if (!permits?.length) return;
+    const header = "Permit Type,Status,Impact Low,Impact High,Impact Pct\n";
+    const rows = permits.map(p => {
+      const rules = PERMIT_IMPACT_RULES[p.permit_type] || PERMIT_IMPACT_RULES.renovation;
+      return `${rules.label},${p.status},$${p.impactLow},$${p.impactHigh},${p.impactMidPct.toFixed(1)}%`;
+    }).join("\n");
+    const summary = `\nTotal Impact,$${totalImpact.low},$${totalImpact.high}`;
+    const beforeAfter = `\nBefore Value,$${assessedValue.toLocaleString()}\nAfter (Low),$${(assessedValue + totalImpact.low).toLocaleString()}\nAfter (High),$${(assessedValue + totalImpact.high).toLocaleString()}`;
+    const blob = new Blob([header + rows + summary + beforeAfter], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `permit-impact-${parcel.id?.slice(0, 8) ?? "report"}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success("Impact report exported");
+  };
+
   if (!parcel.id) {
     return (
       <div className="p-6 text-center">
@@ -154,12 +179,55 @@ export function PermitImpactEstimator() {
         </Card>
       </div>
 
+      {/* Before / After Value Comparison */}
+      {permits && permits.length > 0 && assessedValue > 0 && (
+        <Card className="material-bento border-border/50">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div className="text-center flex-1">
+                <div className="text-[10px] text-muted-foreground mb-1">Before</div>
+                <div className="text-lg font-medium text-foreground">
+                  ${assessedValue.toLocaleString()}
+                </div>
+              </div>
+              <ArrowRight className="w-5 h-5 text-muted-foreground mx-3" />
+              <div className="text-center flex-1">
+                <div className="text-[10px] text-muted-foreground mb-1">After (Low)</div>
+                <div className="text-lg font-medium text-tf-green">
+                  ${(assessedValue + totalImpact.low).toLocaleString()}
+                </div>
+              </div>
+              <span className="text-muted-foreground mx-1">–</span>
+              <div className="text-center flex-1">
+                <div className="text-[10px] text-muted-foreground mb-1">After (High)</div>
+                <div className="text-lg font-medium text-tf-amber">
+                  ${(assessedValue + totalImpact.high).toLocaleString()}
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Impact Rules Reference */}
       <Card className="material-bento border-border/50">
         <CardHeader className="pb-3">
-          <CardTitle className="text-base flex items-center gap-2">
-            <HardHat className="w-4 h-4 text-suite-dais" />
-            Permit Value Impact Estimates
+          <CardTitle className="text-base flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <HardHat className="w-4 h-4 text-suite-dais" />
+              Permit Value Impact Estimates
+            </div>
+            {permits && permits.length > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-7 text-[10px] gap-1"
+                onClick={handleExportReport}
+              >
+                <Download className="w-3 h-3" />
+                Export Report
+              </Button>
+            )}
           </CardTitle>
         </CardHeader>
         <CardContent>

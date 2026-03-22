@@ -16,11 +16,21 @@ import {
   ChevronRight,
   BarChart3,
   Target,
+  RefreshCw,
+  ArrowUpDown,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useWorkbench } from "@/components/workbench/WorkbenchContext";
+import { useRunRiskScan } from "@/hooks/useAppealRiskScoring";
 import { cn } from "@/lib/utils";
+
+interface NeighborhoodRisk {
+  code: string;
+  count: number;
+  avgScore: number;
+  criticalCount: number;
+}
 
 interface AppealRiskScore {
   id: string;
@@ -49,6 +59,9 @@ type TierFilter = "all" | "critical" | "high" | "medium" | "low";
 export function AppealRiskDashboard() {
   const { setParcel } = useWorkbench();
   const [tierFilter, setTierFilter] = useState<TierFilter>("all");
+  const [view, setView] = useState<"parcels" | "neighborhoods">("parcels");
+  const [sortNeighborhood, setSortNeighborhood] = useState<"avgScore" | "count">("avgScore");
+  const riskScan = useRunRiskScan();
 
   const { data: scores = [], isLoading } = useQuery({
     queryKey: ["appeal-risk-scores"],
@@ -77,6 +90,27 @@ export function AppealRiskDashboard() {
     return counts;
   }, [scores]);
 
+  /** Aggregate scores by neighborhood_code */
+  const neighborhoodRanking = useMemo<NeighborhoodRisk[]>(() => {
+    const map = new Map<string, { total: number; count: number; critical: number }>();
+    scores.forEach(s => {
+      const code = s.neighborhood_code || "Unknown";
+      const entry = map.get(code) || { total: 0, count: 0, critical: 0 };
+      entry.total += s.risk_score;
+      entry.count++;
+      if (s.risk_tier === "critical") entry.critical++;
+      map.set(code, entry);
+    });
+    const list: NeighborhoodRisk[] = Array.from(map.entries()).map(([code, v]) => ({
+      code,
+      count: v.count,
+      avgScore: Math.round(v.total / v.count),
+      criticalCount: v.critical,
+    }));
+    list.sort((a, b) => sortNeighborhood === "avgScore" ? b.avgScore - a.avgScore : b.count - a.count);
+    return list;
+  }, [scores, sortNeighborhood]);
+
   const handleNavigate = (score: AppealRiskScore) => {
     setParcel({
       id: score.parcel_id,
@@ -97,6 +131,30 @@ export function AppealRiskDashboard() {
               {scores.length} scored
             </Badge>
           </CardTitle>
+          <div className="flex items-center gap-1.5">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 text-[10px] px-2"
+              onClick={() => setView(view === "parcels" ? "neighborhoods" : "parcels")}
+            >
+              {view === "parcels" ? "Neighborhoods" : "Parcels"}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-7 text-[10px] px-2 gap-1"
+              disabled={riskScan.isPending}
+              onClick={() => riskScan.mutate({})}
+            >
+              {riskScan.isPending ? (
+                <Loader2 className="w-3 h-3 animate-spin" />
+              ) : (
+                <RefreshCw className="w-3 h-3" />
+              )}
+              Re-Score
+            </Button>
+          </div>
         </div>
 
         {/* Tier summary chips */}
@@ -142,6 +200,58 @@ export function AppealRiskDashboard() {
             <Shield className="w-8 h-8 mx-auto mb-2 text-muted-foreground/30" />
             <p className="text-sm text-muted-foreground">No risk scores found</p>
           </div>
+        ) : view === "neighborhoods" ? (
+          /* Neighborhood Risk Ranking Table */
+          <ScrollArea className="h-[380px]">
+            <div className="mb-2 flex items-center gap-2">
+              <span className="text-[10px] text-muted-foreground">Sort by:</span>
+              <button
+                onClick={() => setSortNeighborhood("avgScore")}
+                className={cn("text-[10px] px-2 py-0.5 rounded", sortNeighborhood === "avgScore" ? "bg-primary/20 text-primary" : "text-muted-foreground hover:bg-muted/50")}
+              >
+                Avg Score
+              </button>
+              <button
+                onClick={() => setSortNeighborhood("count")}
+                className={cn("text-[10px] px-2 py-0.5 rounded", sortNeighborhood === "count" ? "bg-primary/20 text-primary" : "text-muted-foreground hover:bg-muted/50")}
+              >
+                Count
+              </button>
+            </div>
+            <div className="space-y-1">
+              {neighborhoodRanking.map((n, i) => (
+                <motion.div
+                  key={n.code}
+                  initial={{ opacity: 0, y: 4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.02 }}
+                  className="flex items-center gap-3 p-2.5 rounded-lg border border-border/20 hover:bg-muted/20 transition-colors"
+                >
+                  <div className="w-6 text-center text-xs text-muted-foreground font-medium">
+                    {i + 1}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <span className="text-xs font-medium text-foreground">{n.code}</span>
+                    <span className="text-[10px] text-muted-foreground ml-2">{n.count} parcels</span>
+                  </div>
+                  <Badge variant="outline" className={cn(
+                    "text-[10px]",
+                    n.avgScore >= 70 ? "bg-destructive/15 text-destructive" :
+                    n.avgScore >= 50 ? "bg-chart-4/15 text-chart-4" :
+                    n.avgScore >= 30 ? "bg-chart-3/15 text-chart-3" :
+                    "bg-tf-green/15 text-tf-green"
+                  )}>
+                    avg {n.avgScore}
+                  </Badge>
+                  {n.criticalCount > 0 && (
+                    <Badge className="bg-destructive/15 text-destructive border-0 text-[9px]">
+                      {n.criticalCount} critical
+                    </Badge>
+                  )}
+                </motion.div>
+              ))}
+            </div>
+          </ScrollArea>
         ) : (
           <ScrollArea className="h-[380px]">
             <div className="space-y-1.5">

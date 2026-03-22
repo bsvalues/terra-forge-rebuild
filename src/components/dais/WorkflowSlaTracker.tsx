@@ -6,7 +6,7 @@
  * Highlights overdue and at-risk items with countdown timers.
  */
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -33,6 +33,8 @@ const SLA_DAYS: Record<string, number> = {
   exemption: 21,
 };
 
+type WorkflowTypeFilter = "all" | "appeal" | "permit" | "exemption";
+
 interface SlaItem {
   id: string;
   type: "appeal" | "permit" | "exemption";
@@ -47,6 +49,7 @@ interface SlaItem {
 }
 
 export function WorkflowSlaTracker() {
+  const [typeFilter, setTypeFilter] = useState<WorkflowTypeFilter>("all");
   // Fetch open appeals
   const { data: appeals, isLoading: loadingAppeals } = useQuery({
     queryKey: ["sla-open-appeals"],
@@ -159,6 +162,21 @@ export function WorkflowSlaTracker() {
   const overdueCount = items.filter((i) => i.urgency === "overdue").length;
   const criticalCount = items.filter((i) => i.urgency === "critical").length;
 
+  const filteredItems = useMemo(() => {
+    if (typeFilter === "all") return items;
+    return items.filter(i => i.type === typeFilter);
+  }, [items, typeFilter]);
+
+  const typeCounts = useMemo(() => {
+    const counts = { appeal: 0, permit: 0, exemption: 0 };
+    items.forEach(i => counts[i.type]++);
+    return counts;
+  }, [items]);
+
+  const onTimePct = items.length > 0
+    ? Math.round(((items.length - overdueCount) / items.length) * 100)
+    : 100;
+
   const URGENCY_STYLES = {
     overdue: "bg-destructive/20 text-destructive border-destructive/30",
     critical: "bg-amber-500/20 text-amber-400 border-amber-500/30",
@@ -196,6 +214,31 @@ export function WorkflowSlaTracker() {
             </Badge>
           </div>
         </CardTitle>
+        {/* SLA summary + type filter tabs */}
+        <div className="flex items-center justify-between mt-2">
+          <div className="flex items-center gap-1.5">
+            {(["all", "appeal", "permit", "exemption"] as const).map(t => (
+              <button
+                key={t}
+                onClick={() => setTypeFilter(t)}
+                className={cn(
+                  "px-2.5 py-1 rounded text-[10px] font-medium transition-colors",
+                  typeFilter === t
+                    ? "bg-primary/20 text-primary"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                )}
+              >
+                {t === "all" ? `All (${items.length})`
+                  : t === "appeal" ? `Appeals (${typeCounts.appeal})`
+                  : t === "permit" ? `Permits (${typeCounts.permit})`
+                  : `Exemptions (${typeCounts.exemption})`}
+              </button>
+            ))}
+          </div>
+          <Badge variant="outline" className="text-[10px]">
+            {onTimePct}% on-time
+          </Badge>
+        </div>
       </CardHeader>
       <CardContent>
         {isLoading ? (
@@ -210,7 +253,7 @@ export function WorkflowSlaTracker() {
         ) : (
           <ScrollArea className="max-h-[400px]">
             <div className="space-y-2">
-              {items.map((item, idx) => {
+              {filteredItems.map((item, idx) => {
                 const TypeIcon = TYPE_ICONS[item.type];
                 return (
                   <motion.div

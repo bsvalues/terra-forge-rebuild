@@ -25,10 +25,14 @@ import {
   Loader2,
   ChevronDown,
   ChevronUp,
+  FileText,
+  Send,
 } from "lucide-react";
 import { useWorkbench } from "@/components/workbench/WorkbenchContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { emitTraceEventAsync } from "@/services/terraTrace";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 /** Eligibility rule result for a single criterion */
@@ -68,6 +72,16 @@ const EXEMPTION_DEFS = [
     maxValue: null, allowedClasses: ["commercial", "COM", "C", "institutional", "INST"],
     requiresOwnerOccupied: false, stackable: false },
 ];
+
+/** Required documents per exemption type */
+const EXEMPTION_DOCS: Record<string, string[]> = {
+  homestead: ["Proof of ownership", "Government-issued ID", "Residency affidavit"],
+  senior: ["Proof of age (65+)", "Income verification", "Residency affidavit"],
+  disability: ["Disability certification letter", "Government-issued ID", "Residency proof"],
+  veteran: ["DD-214 or service record", "VA disability rating (if applicable)", "Government-issued ID"],
+  agricultural: ["Farm plan or use declaration", "Income from agricultural activity", "Property survey"],
+  nonprofit: ["IRS 501(c)(3) determination letter", "Articles of incorporation", "Property use statement"],
+};
 
 export function ExemptionEligibilityChecker() {
   const { parcel } = useWorkbench();
@@ -171,6 +185,21 @@ export function ExemptionEligibilityChecker() {
   const verdicts = EXEMPTION_DEFS.map(evaluate);
   const eligibleCount = verdicts.filter(v => v.eligible).length;
 
+  const handleSubmitRecommendation = async (verdict: EligibilityVerdict) => {
+    await emitTraceEventAsync({
+      sourceModule: "dais",
+      eventType: "data_exported",
+      eventData: {
+        action: "exemption_eligibility_check",
+        parcelId: parcel.id,
+        exemptionType: verdict.type,
+        eligible: verdict.eligible,
+        ruleResults: verdict.rules.map(r => ({ rule: r.rule, passed: r.passed })),
+      },
+    });
+    toast.success(`Eligibility recommendation submitted for ${verdict.label}`);
+  };
+
   if (!hasParcel) {
     return (
       <Card className="material-bento border-border/50">
@@ -268,6 +297,33 @@ export function ExemptionEligibilityChecker() {
                                 </div>
                               </div>
                             ))}
+
+                            {/* Document checklist */}
+                            {EXEMPTION_DOCS[v.type] && (
+                              <div className="mt-3 pt-2 border-t border-border/20">
+                                <div className="flex items-center gap-1.5 mb-1.5">
+                                  <FileText className="w-3 h-3 text-muted-foreground" />
+                                  <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">Required Documents</span>
+                                </div>
+                                {EXEMPTION_DOCS[v.type].map((doc, di) => (
+                                  <div key={di} className="flex items-center gap-2 text-xs text-muted-foreground ml-1">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-border shrink-0" />
+                                    {doc}
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+
+                            {/* Submit recommendation button */}
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="w-full mt-2 h-7 text-[10px] gap-1"
+                              onClick={() => handleSubmitRecommendation(v)}
+                            >
+                              <Send className="w-3 h-3" />
+                              Submit {v.eligible ? "Eligible" : "Ineligible"} Recommendation
+                            </Button>
                           </div>
                         </motion.div>
                       )}
