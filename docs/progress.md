@@ -2,17 +2,58 @@
 > **Purpose**: Track implementation progress against plan.md.
 
 **Created**: 2026-02-07  
-**Last Updated**: 2026-03-14  
-**Agent**: Cloud Coach
+**Last Updated**: 2026-03-21  
+**Agent**: GitHub Copilot (Claude Opus 4.6)
 
 ---
 
 ## Current State Summary
 
-**Active Phase**: Phase 98 — Operational Activation & Bookkeeping  
-**Last Completed Task**: 97 — Owner Portal Enhancement (all phases 22–97 verified complete)  
-**Next Task**: Phase 98 execution (Wave 0: deploy + seed + backfill)  
+**Active Phase**: ALL PHASES COMPLETE (22–129)  
+**Last Completed Task**: Phase 127 — Owner Communication Log (final wave)  
+**Next Task**: None — execution plan fully delivered  
 **Blockers**: None
+
+---
+
+## Phases 104–129: Enhancement Execution Plan (5 Waves — ALL COMPLETE)
+
+| Wave | Phases | Commit | Status |
+|------|--------|--------|--------|
+| 0 | 104, 105, 112, 122, 126, 129 | `4539380` | ✅ COMPLETE |
+| 1 | 109, 111, 113, 116, 124 | `9076ba0` | ✅ COMPLETE |
+| 2 | 114, 119, 115, 123 | `9218341` | ✅ COMPLETE |
+| 3 | 120, 121, 125 | `d0d3faf` | ✅ COMPLETE |
+| 4 | 127 | `e4d2fa9` | ✅ COMPLETE |
+
+### Wave 4 — Phase 127: Owner Communication Log
+- Migration: `owner_communications` table with RLS (phone/email/letter/in-person/notice/hearing)
+- Hook: `useOwnerCommunications` with filtered queries + `useAddCommunication` mutation
+- Component: search/filter by owner/type/direction, add form with direction+appeal linking
+- Write-lane: owner_communications → Dais
+
+### Wave 3 — Phases 120, 121, 125
+- ParcelTimeline: event type filter chips, click-to-expand detail grids
+- NeighborhoodCertificationWorkflow: batch certify with TerraTrace, overall progress bar
+- AppealOutcomePredictor: neighborhood comparison rates, legal disclaimer
+
+### Wave 2 — Phases 114, 119, 115, 123
+- AppealRiskDashboard: neighborhood risk ranking, re-score trigger
+- WorkflowSlaTracker: workflow type filter tabs, on-time % badge
+- ExemptionEligibilityChecker: document checklist, submit recommendation with TerraTrace
+- PermitImpactEstimator: before/after value comparison, CSV export
+
+### Wave 1 — Phases 109, 111, 113, 116, 124
+- Legend thresholds, gate drill-down, batch review, DQ categories, JSON export
+
+### Wave 0 — Phases 104, 105, 112, 122, 126, 129
+- TerraTrace events, CSV export, column sorting
+
+## Phases 98–103: Edge Functions & Demo Readiness (verified 2026-03-21)
+
+| Phase | Status | Evidence |
+|-------|--------|----------|
+| 98–103 | ✅ COMPLETE | 32 edge functions deployed, 144/144 tests, 0 TS errors |
 
 ---
 
