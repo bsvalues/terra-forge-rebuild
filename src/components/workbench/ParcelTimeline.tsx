@@ -6,8 +6,8 @@
  * sales, appeals, permits, and exemptions for the active parcel.
  */
 
-import { useMemo } from "react";
-import { motion } from "framer-motion";
+import { useMemo, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -19,6 +19,7 @@ import {
   FileCheck,
   ClipboardCheck,
   Loader2,
+  ChevronDown,
 } from "lucide-react";
 import { useWorkbench } from "@/components/workbench/WorkbenchContext";
 import { useAssessmentHistory, useParcelSales } from "@/hooks/useParcelDetails";
@@ -33,6 +34,7 @@ interface TimelineEvent {
   type: "assessment" | "sale" | "appeal" | "permit" | "exemption";
   title: string;
   detail: string;
+  extraFields?: Record<string, string>;
   icon: typeof Clock;
   color: string;
 }
@@ -45,9 +47,13 @@ const TYPE_CONFIG = {
   exemption: { icon: ClipboardCheck, color: "text-tf-gold", bg: "bg-tf-gold/20" },
 };
 
+type EventTypeFilter = "all" | "assessment" | "sale" | "appeal" | "permit" | "exemption";
+
 export function ParcelTimeline() {
   const { parcel } = useWorkbench();
   const hasParcel = parcel.id !== null;
+  const [typeFilter, setTypeFilter] = useState<EventTypeFilter>("all");
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const { data: assessments, isLoading: loadingA } = useAssessmentHistory(parcel.id);
   const { data: sales, isLoading: loadingS } = useParcelSales(parcel.id);
@@ -94,6 +100,12 @@ export function ParcelTimeline() {
         type: "assessment",
         title: `${a.tax_year} Assessment`,
         detail: `Total: $${(a.total_value ?? 0).toLocaleString()} (Land $${(a.land_value ?? 0).toLocaleString()} + Impr $${(a.improvement_value ?? 0).toLocaleString()})`,
+        extraFields: {
+          "Land Value": `$${(a.land_value ?? 0).toLocaleString()}`,
+          "Improvement Value": `$${(a.improvement_value ?? 0).toLocaleString()}`,
+          "Total Value": `$${(a.total_value ?? 0).toLocaleString()}`,
+          "Tax Year": String(a.tax_year),
+        },
         icon: DollarSign,
         color: "text-tf-cyan",
       });
@@ -106,6 +118,12 @@ export function ParcelTimeline() {
         type: "sale",
         title: `Sale — $${(s.sale_price ?? 0).toLocaleString()}`,
         detail: `${s.sale_type || "Standard"} · ${s.deed_type || "—"} · ${s.is_qualified ? "Qualified" : "Unqualified"}`,
+        extraFields: {
+          "Sale Price": `$${(s.sale_price ?? 0).toLocaleString()}`,
+          "Sale Type": s.sale_type || "Standard",
+          "Deed Type": s.deed_type || "—",
+          "Qualified": s.is_qualified ? "Yes" : "No",
+        },
         icon: TrendingUp,
         color: "text-tf-green",
       });
@@ -118,6 +136,13 @@ export function ParcelTimeline() {
         type: "appeal",
         title: `Appeal — ${ap.status}`,
         detail: `Original $${(ap.original_value ?? 0).toLocaleString()}${ap.final_value ? ` → Final $${ap.final_value.toLocaleString()}` : ""}`,
+        extraFields: {
+          "Original Value": `$${(ap.original_value ?? 0).toLocaleString()}`,
+          ...(ap.requested_value ? { "Requested Value": `$${ap.requested_value.toLocaleString()}` } : {}),
+          ...(ap.final_value ? { "Final Value": `$${ap.final_value.toLocaleString()}` } : {}),
+          "Status": ap.status,
+          ...(ap.resolution_type ? { "Resolution": ap.resolution_type } : {}),
+        },
         icon: Scale,
         color: "text-amber-400",
       });
@@ -130,6 +155,11 @@ export function ParcelTimeline() {
         type: "exemption",
         title: `${e.exemption_type} Exemption`,
         detail: `${e.status}${e.exemption_amount ? ` — $${e.exemption_amount.toLocaleString()}` : ""}`,
+        extraFields: {
+          "Type": e.exemption_type,
+          "Status": e.status,
+          ...(e.exemption_amount ? { "Amount": `$${e.exemption_amount.toLocaleString()}` } : {}),
+        },
         icon: ClipboardCheck,
         color: "text-tf-gold",
       });
@@ -137,6 +167,17 @@ export function ParcelTimeline() {
 
     return items.sort((a, b) => b.date.getTime() - a.date.getTime());
   }, [assessments, sales, appeals, exemptions]);
+
+  const filteredEvents = useMemo(() => {
+    if (typeFilter === "all") return events;
+    return events.filter(e => e.type === typeFilter);
+  }, [events, typeFilter]);
+
+  const typeCounts = useMemo(() => {
+    const counts: Record<string, number> = { assessment: 0, sale: 0, appeal: 0, permit: 0, exemption: 0 };
+    events.forEach(e => counts[e.type]++);
+    return counts;
+  }, [events]);
 
   if (!hasParcel) {
     return (
@@ -161,6 +202,27 @@ export function ParcelTimeline() {
             {events.length} events
           </Badge>
         </CardTitle>
+        {/* Event type filter chips */}
+        <div className="flex items-center gap-1.5 mt-2 flex-wrap">
+          {(["all", "assessment", "sale", "appeal", "exemption"] as const).map(t => {
+            const count = t === "all" ? events.length : typeCounts[t];
+            if (t !== "all" && count === 0) return null;
+            return (
+              <button
+                key={t}
+                onClick={() => setTypeFilter(t)}
+                className={cn(
+                  "px-2 py-0.5 rounded text-[10px] font-medium transition-colors",
+                  typeFilter === t
+                    ? "bg-primary/20 text-primary"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                )}
+              >
+                {t === "all" ? "All" : t.charAt(0).toUpperCase() + t.slice(1)} ({count})
+              </button>
+            );
+          })}
+        </div>
       </CardHeader>
       <CardContent>
         {isLoading ? (
@@ -179,16 +241,18 @@ export function ParcelTimeline() {
               <div className="absolute left-[11px] top-2 bottom-2 w-px bg-border/50" />
 
               <div className="space-y-3">
-                {events.map((ev, idx) => {
+                {filteredEvents.map((ev, idx) => {
                   const cfg = TYPE_CONFIG[ev.type];
                   const Icon = cfg.icon;
+                  const isExpanded = expandedId === ev.id;
                   return (
                     <motion.div
                       key={ev.id}
                       initial={{ opacity: 0, x: -12 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: idx * 0.03 }}
-                      className="relative flex items-start gap-3"
+                      className="relative flex items-start gap-3 cursor-pointer"
+                      onClick={() => setExpandedId(isExpanded ? null : ev.id)}
                     >
                       {/* Dot */}
                       <div
@@ -206,11 +270,36 @@ export function ParcelTimeline() {
                           <Badge variant="outline" className="text-[9px]">
                             {ev.type}
                           </Badge>
+                          <ChevronDown className={cn(
+                            "w-3 h-3 text-muted-foreground ml-auto transition-transform",
+                            isExpanded && "rotate-180"
+                          )} />
                         </div>
                         <p className="text-xs text-muted-foreground mt-0.5">{ev.detail}</p>
                         <p className="text-[10px] text-muted-foreground/60 mt-0.5">
                           {format(ev.date, "MMM d, yyyy")}
                         </p>
+
+                        {/* Expanded detail */}
+                        <AnimatePresence>
+                          {isExpanded && ev.extraFields && (
+                            <motion.div
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: "auto", opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              className="overflow-hidden"
+                            >
+                              <div className="mt-2 p-2 rounded bg-muted/30 border border-border/20 grid grid-cols-2 gap-x-4 gap-y-1">
+                                {Object.entries(ev.extraFields).map(([k, v]) => (
+                                  <div key={k} className="text-[10px]">
+                                    <span className="text-muted-foreground">{k}: </span>
+                                    <span className="text-foreground font-medium">{v}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
                       </div>
                     </motion.div>
                   );

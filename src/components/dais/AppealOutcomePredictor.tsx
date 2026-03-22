@@ -51,11 +51,25 @@ function useAppealPrediction(parcelId: string | null) {
         .eq("id", parcelId!)
         .single();
 
+      const neighborhoodCode = parcel?.neighborhood_code;
+
       // Get historical appeals for similar parcels
       const { data: appeals } = await supabase
         .from("appeals")
         .select("status, original_value, final_value, requested_value, resolution_type")
         .limit(200);
+
+      // Get neighborhood-specific appeals for comparison
+      let neighborhoodAppeals: typeof appeals = [];
+      if (neighborhoodCode) {
+        const { data: nbhdData } = await supabase
+          .from("appeals")
+          .select("status, original_value, final_value, requested_value, resolution_type, parcels!appeals_parcel_id_fkey(neighborhood_code)")
+          .limit(100);
+        neighborhoodAppeals = (nbhdData || []).filter(
+          (a: any) => a.parcels?.neighborhood_code === neighborhoodCode
+        );
+      }
 
       if (!appeals?.length) return null;
 
@@ -111,6 +125,18 @@ function useAppealPrediction(parcelId: string | null) {
           dismissedRate: Math.round(rates.dismissed * 100),
           avgReductionPct: avgReduction,
         },
+        neighborhoodStats: neighborhoodAppeals.length > 0 ? (() => {
+          const nbResolved = neighborhoodAppeals.filter((a: any) => a.final_value !== null);
+          const nbTotal = nbResolved.length || 1;
+          const nbUpheld = nbResolved.filter((a: any) => a.final_value === a.original_value).length;
+          const nbReduced = nbResolved.filter((a: any) => a.final_value !== null && a.final_value < a.original_value).length;
+          return {
+            total: neighborhoodAppeals.length,
+            neighborhoodCode: neighborhoodCode!,
+            upheldRate: Math.round((nbUpheld / nbTotal) * 100),
+            reducedRate: Math.round((nbReduced / nbTotal) * 100),
+          };
+        })() : null,
       };
     },
     staleTime: 60_000,
@@ -147,7 +173,7 @@ export function AppealOutcomePredictor() {
     );
   }
 
-  const { prediction, stats } = data;
+  const { prediction, stats, neighborhoodStats } = data;
 
   const outcomeColors = {
     upheld: "text-tf-green",
@@ -246,6 +272,41 @@ export function AppealOutcomePredictor() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Neighborhood Comparison */}
+      {neighborhoodStats && (
+        <Card className="material-bento border-border/50">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <Target className="w-4 h-4 text-muted-foreground" />
+              Neighborhood Comparison — {neighborhoodStats.neighborhoodCode}
+              <Badge variant="outline" className="text-[9px]">
+                {neighborhoodStats.total} appeals
+              </Badge>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="p-3 rounded-lg bg-muted/30 border border-border/30 text-center">
+                <div className="text-lg font-medium text-tf-green">{neighborhoodStats.upheldRate}%</div>
+                <div className="text-[10px] text-muted-foreground">Upheld in Neighborhood</div>
+              </div>
+              <div className="p-3 rounded-lg bg-muted/30 border border-border/30 text-center">
+                <div className="text-lg font-medium text-tf-amber">{neighborhoodStats.reducedRate}%</div>
+                <div className="text-[10px] text-muted-foreground">Reduced in Neighborhood</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Legal Disclaimer */}
+      <div className="px-1">
+        <p className="text-[10px] text-muted-foreground/60 leading-relaxed">
+          <AlertTriangle className="w-3 h-3 inline mr-1 align-text-bottom" />
+          <em>Statistical estimate based on historical appeal data — not legal advice. Actual outcomes depend on evidence, board composition, and case-specific factors. Consult qualified counsel for legal guidance.</em>
+        </p>
+      </div>
     </div>
   );
 }

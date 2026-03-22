@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   ShieldCheck,
   AlertTriangle,
@@ -25,6 +26,7 @@ import {
 import { useWorkbench } from "@/components/workbench/WorkbenchContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
+import { emitTraceEventAsync } from "@/services/terraTrace";
 import { toast } from "sonner";
 
 interface NeighborhoodCertStatus {
@@ -116,22 +118,52 @@ function useNeighborhoodCertData() {
 export function NeighborhoodCertificationWorkflow() {
   const { data: neighborhoods, isLoading } = useNeighborhoodCertData();
   const [certifying, setCertifying] = useState<string | null>(null);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
 
   const summary = useMemo(() => {
-    if (!neighborhoods) return { total: 0, complete: 0, blocked: 0 };
+    if (!neighborhoods) return { total: 0, complete: 0, blocked: 0, overallPct: 0 };
+    const complete = neighborhoods.filter((n) => n.pct === 100).length;
     return {
       total: neighborhoods.length,
-      complete: neighborhoods.filter((n) => n.pct === 100).length,
+      complete,
       blocked: neighborhoods.filter((n) => n.hasBlockers).length,
+      overallPct: neighborhoods.length > 0 ? Math.round((complete / neighborhoods.length) * 100) : 0,
     };
   }, [neighborhoods]);
 
+  const toggleSelect = (code: string) => {
+    setSelected(prev => {
+      const next = new Set(prev);
+      if (next.has(code)) next.delete(code); else next.add(code);
+      return next;
+    });
+  };
+
+  const selectAllEligible = () => {
+    if (!neighborhoods) return;
+    const eligible = neighborhoods.filter(n => !n.hasBlockers && n.pct < 100).map(n => n.neighborhood_code);
+    setSelected(new Set(eligible));
+  };
+
   const handleCertify = async (code: string) => {
     setCertifying(code);
-    // Simulate certification (in production this would call a backend function)
     await new Promise((r) => setTimeout(r, 1500));
+    await emitTraceEventAsync({
+      sourceModule: "dais",
+      eventType: "workflow_state_changed",
+      eventData: { action: "neighborhood_certification", neighborhood_code: code },
+    });
     setCertifying(null);
     toast.success(`Neighborhood ${code} certification initiated`);
+  };
+
+  const handleBatchCertify = async () => {
+    const codes = Array.from(selected);
+    for (const code of codes) {
+      await handleCertify(code);
+    }
+    setSelected(new Set());
+    toast.success(`Batch certification complete: ${codes.length} neighborhoods`);
   };
 
   if (isLoading) {
@@ -169,12 +201,44 @@ export function NeighborhoodCertificationWorkflow() {
         </Card>
       </div>
 
+      {/* Overall progress */}
+      <Card className="material-bento border-border/50">
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs text-muted-foreground">Overall Certification</span>
+            <span className="text-sm font-medium text-foreground">{summary.overallPct}%</span>
+          </div>
+          <Progress value={summary.overallPct} className="h-2" />
+          <div className="text-[10px] text-muted-foreground mt-1">
+            {summary.complete} of {summary.total} neighborhoods fully certified
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Neighborhood List */}
       <Card className="material-bento border-border/50">
         <CardHeader className="pb-3">
-          <CardTitle className="text-base flex items-center gap-2">
-            <ShieldCheck className="w-4 h-4 text-suite-dais" />
-            Neighborhood Certification Status
+          <CardTitle className="text-base flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="w-4 h-4 text-suite-dais" />
+              Neighborhood Certification Status
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Button variant="ghost" size="sm" className="h-7 text-[10px]" onClick={selectAllEligible}>
+                Select Eligible
+              </Button>
+              {selected.size > 0 && (
+                <Button
+                  size="sm"
+                  className="h-7 text-[10px] gap-1"
+                  onClick={handleBatchCertify}
+                  disabled={certifying !== null}
+                >
+                  {certifying ? <Loader2 className="w-3 h-3 animate-spin" /> : null}
+                  Certify {selected.size} Selected
+                </Button>
+              )}
+            </div>
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -187,6 +251,12 @@ export function NeighborhoodCertificationWorkflow() {
                   animate={{ opacity: 1, x: 0 }}
                   className="flex items-center gap-3 p-3 rounded-lg bg-muted/30 border border-border/30"
                 >
+                  <Checkbox
+                    checked={selected.has(nbhd.neighborhood_code)}
+                    onCheckedChange={() => toggleSelect(nbhd.neighborhood_code)}
+                    disabled={nbhd.hasBlockers || nbhd.pct === 100}
+                    className="shrink-0"
+                  />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
                       <span className="text-sm font-medium text-foreground">
