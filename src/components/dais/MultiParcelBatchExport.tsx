@@ -26,6 +26,7 @@ import {
   Loader2,
   CheckCircle2,
   Package,
+  AlertTriangle,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
@@ -93,6 +94,7 @@ export function MultiParcelBatchExport() {
     new Set(EXPORT_COLUMNS.filter((c) => c.default).map((c) => c.key))
   );
   const [exporting, setExporting] = useState(false);
+  const [exportFormat, setExportFormat] = useState<"csv" | "json">("csv");
 
   const { data: parcels, isLoading } = useExportParcels(nbhdFilter, classFilter);
 
@@ -110,9 +112,24 @@ export function MultiParcelBatchExport() {
     setExporting(true);
 
     const cols = EXPORT_COLUMNS.filter((c) => selectedCols.has(c.key));
-    const header = cols.map((c) => c.label).join(",");
-    const rows = parcels.map((p: any) =>
-      cols.map((c) => {
+
+    if (exportFormat === "json") {
+      const jsonData = parcels.map((p: any) => {
+        const row: Record<string, any> = {};
+        for (const c of cols) row[c.key] = p[c.key] ?? null;
+        return row;
+      });
+      const blob = new Blob([JSON.stringify(jsonData, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `parcel-export-${nbhdFilter}-${format(new Date(), "yyyy-MM-dd")}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } else {
+      const header = cols.map((c) => c.label).join(",");
+      const rows = parcels.map((p: any) =>
+        cols.map((c) => {
         const val = p[c.key];
         if (val === null || val === undefined) return "";
         if (typeof val === "string" && val.includes(",")) return `"${val}"`;
@@ -120,21 +137,32 @@ export function MultiParcelBatchExport() {
       }).join(",")
     );
 
-    const csv = [header, ...rows].join("\n");
-    const blob = new Blob([csv], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `parcel-export-${nbhdFilter}-${format(new Date(), "yyyy-MM-dd")}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
+      const csv = [header, ...rows].join("\n");
+      const blob = new Blob([csv], { type: "text/csv" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `parcel-export-${nbhdFilter}-${format(new Date(), "yyyy-MM-dd")}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
 
     setExporting(false);
-    toast.success(`Exported ${parcels.length} parcels to CSV`);
+    toast.success(`Exported ${parcels.length} parcels to ${exportFormat.toUpperCase()}`);
   };
 
   return (
     <div className="space-y-4">
+      {/* Row count warning */}
+      {parcels && parcels.length >= 1000 && (
+        <Card className="material-bento border-amber-500/30 bg-amber-500/5">
+          <CardContent className="p-3 flex items-center gap-2 text-xs text-amber-400">
+            <AlertTriangle className="w-4 h-4 shrink-0" />
+            <span>Query returned {parcels.length.toLocaleString()} parcels (limit 1,000). Apply filters to narrow results or contact admin for bulk exports exceeding 10,000 rows.</span>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Filters */}
       <Card className="material-bento border-border/50">
         <CardHeader className="pb-3">
@@ -144,7 +172,7 @@ export function MultiParcelBatchExport() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-3 gap-4">
             <div>
               <label className="text-xs text-muted-foreground mb-1 block">Neighborhood</label>
               <Select value={nbhdFilter} onValueChange={setNbhdFilter}>
@@ -171,6 +199,18 @@ export function MultiParcelBatchExport() {
                   <SelectItem value="commercial">Commercial</SelectItem>
                   <SelectItem value="industrial">Industrial</SelectItem>
                   <SelectItem value="agricultural">Agricultural</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="text-xs text-muted-foreground mb-1 block">Format</label>
+              <Select value={exportFormat} onValueChange={(v) => setExportFormat(v as "csv" | "json")}>
+                <SelectTrigger className="h-8 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="csv">CSV</SelectItem>
+                  <SelectItem value="json">JSON</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -233,7 +273,7 @@ export function MultiParcelBatchExport() {
               ) : (
                 <Download className="w-4 h-4" />
               )}
-              Export CSV
+              Export {exportFormat.toUpperCase()}
             </Button>
           </div>
         </CardContent>

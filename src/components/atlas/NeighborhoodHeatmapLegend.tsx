@@ -205,12 +205,19 @@ export function NeighborhoodHeatmapLegend() {
           </div>
         </ScrollArea>
 
-        {/* IAAO Legend */}
-        <div className="mt-3 pt-3 border-t border-border/30 flex flex-wrap gap-3 text-[10px] text-muted-foreground">
-          <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-sm bg-tf-green" /> IAAO Compliant</span>
-          <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-sm bg-chart-3" /> Marginal</span>
-          <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-sm bg-chart-4" /> Needs Review</span>
-          <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-sm bg-destructive" /> Non-Compliant</span>
+        {/* IAAO Legend with threshold values */}
+        <div className="mt-3 pt-3 border-t border-border/30 space-y-1.5">
+          <div className="flex flex-wrap gap-3 text-[10px] text-muted-foreground">
+            <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-sm bg-tf-green" /> IAAO Compliant</span>
+            <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-sm bg-chart-3" /> Marginal</span>
+            <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-sm bg-chart-4" /> Needs Review</span>
+            <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-sm bg-destructive" /> Non-Compliant</span>
+          </div>
+          <div className="text-[9px] text-muted-foreground/70">
+            {mode === "cod" && "Thresholds: ≤10 Excellent · ≤15 Good · ≤20 Marginal · >20 Poor"}
+            {mode === "prd" && "Thresholds: 0.98–1.03 Equitable · <0.98 Regressive · >1.03 Progressive"}
+            {mode === "ratio" && "Thresholds: 0.90–1.10 On Target · 0.85–1.15 Near · Outside Off Target"}
+          </div>
         </div>
       </CardContent>
     </Card>

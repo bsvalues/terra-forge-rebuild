@@ -1,13 +1,14 @@
 // TerraFusion OS — Phase 111: Certification Readiness Widget
 // Shows checklist progress toward roll certification with gate checks.
 
-import { useMemo } from "react";
-import { motion } from "framer-motion";
+import { useMemo, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import {
   ShieldCheck,
+  ChevronDown,
   CheckCircle2,
   XCircle,
   AlertTriangle,
@@ -32,6 +33,8 @@ interface GateCheck {
 }
 
 export function CertificationReadinessWidget() {
+  const [expandedGate, setExpandedGate] = useState<string | null>(null);
+
   // Fetch data for gate checks
   const { data: snapshots, isLoading: loadingSnapshots } = useQuery({
     queryKey: ["cert-readiness-snapshots"],
@@ -202,16 +205,35 @@ export function CertificationReadinessWidget() {
               initial={{ opacity: 0, x: -8 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: i * 0.05 }}
-              className="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-muted/20 transition-colors"
+              className="rounded-lg hover:bg-muted/20 transition-colors cursor-pointer"
+              onClick={() => setExpandedGate(expandedGate === gate.id ? null : gate.id)}
             >
-              {statusIcon(gate.status)}
-              <Icon className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
-              <div className="flex-1 min-w-0">
-                <div className="text-xs font-medium text-foreground">{gate.label}</div>
-                <div className="text-[10px] text-muted-foreground truncate">
-                  {gate.detail ?? gate.description}
+              <div className="flex items-center gap-3 px-2 py-2">
+                {statusIcon(gate.status)}
+                <Icon className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <div className="text-xs font-medium text-foreground">{gate.label}</div>
+                  <div className="text-[10px] text-muted-foreground truncate">
+                    {gate.detail ?? gate.description}
+                  </div>
                 </div>
+                <ChevronDown className={cn("w-3.5 h-3.5 text-muted-foreground transition-transform", expandedGate === gate.id && "rotate-180")} />
               </div>
+              <AnimatePresence>
+                {expandedGate === gate.id && gate.status !== "loading" && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    className="overflow-hidden"
+                  >
+                    <div className="px-2 pb-2 pl-11 text-[10px] text-muted-foreground space-y-0.5">
+                      <div>Threshold: {gate.description}</div>
+                      <div>Status: {gate.detail ?? "Checking…"}</div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </motion.div>
           );
         })}

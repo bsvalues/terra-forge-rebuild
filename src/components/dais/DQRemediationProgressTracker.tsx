@@ -9,6 +9,7 @@
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Progress } from "@/components/ui/progress";
 import {
@@ -20,11 +21,14 @@ import {
   Loader2,
   AlertTriangle,
   BarChart3,
+  Download,
+  Tag,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
+import { toast } from "sonner";
 
 export function DQRemediationProgressTracker() {
   // Fetch remediation batches
@@ -55,6 +59,30 @@ export function DQRemediationProgressTracker() {
     },
   });
 
+  // Fetch issue category breakdown
+  const { data: issueCategories } = useQuery({
+    queryKey: ["dq-issue-categories"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("dq_issue_registry")
+        .select("category, status, is_hard_blocker")
+        .limit(5000);
+      if (error) throw error;
+      const cats = new Map<string, { total: number; open: number; resolved: number; blockers: number }>();
+      for (const row of data || []) {
+        const cat = row.category || "uncategorized";
+        if (!cats.has(cat)) cats.set(cat, { total: 0, open: 0, resolved: 0, blockers: 0 });
+        const c = cats.get(cat)!;
+        c.total++;
+        if (row.status === "open") c.open++;
+        else c.resolved++;
+        if (row.is_hard_blocker) c.blockers++;
+      }
+      return Array.from(cats.entries()).map(([name, counts]) => ({ name, ...counts })).sort((a, b) => b.open - a.open);
+    },
+    staleTime: 60_000,
+  });
+
   const totalFixed = batches?.reduce((s, b) => s + (b.applied_count || 0), 0) ?? 0;
   const totalRejected = batches?.reduce((s, b) => s + (b.rejected_count || 0), 0) ?? 0;
   const totalRolledBack = batches?.reduce((s, b) => s + (b.rolled_back_count || 0), 0) ?? 0;
@@ -65,6 +93,36 @@ export function DQRemediationProgressTracker() {
     pending: "bg-amber-500/20 text-amber-400 border-amber-500/30",
     rolled_back: "bg-destructive/20 text-destructive border-destructive/30",
     reviewing: "bg-tf-cyan/20 text-tf-cyan border-tf-cyan/30",
+  };
+
+  const handleExportReport = () => {
+    const lines = [
+      "DQ Remediation Report",
+      `Generated: ${format(new Date(), "yyyy-MM-dd HH:mm")}`,
+      "",
+      "Summary",
+      `Fixes Applied,${totalFixed}`,
+      `Rejected,${totalRejected}`,
+      `Rolled Back,${totalRolledBack}`,
+      `Quality Score,${latestScore ?? "N/A"}%`,
+      "",
+      "Issue Categories",
+      "Category,Total,Open,Resolved,Blockers",
+      ...(issueCategories || []).map(c => `${c.name},${c.total},${c.open},${c.resolved},${c.blockers}`),
+      "",
+      "Batches",
+      "Name,Status,Tier,Applied,Rejected,Rolled Back,Date",
+      ...(batches || []).map(b => `${b.batch_name},${b.status},${b.fix_tier},${b.applied_count},${b.rejected_count},${b.rolled_back_count},${format(new Date(b.created_at), "yyyy-MM-dd")}`),
+    ];
+    const csv = lines.join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `dq-remediation-report-${format(new Date(), "yyyy-MM-dd")}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success("Remediation report exported");
   };
 
   return (
@@ -121,10 +179,16 @@ export function DQRemediationProgressTracker() {
       {/* Batch list */}
       <Card className="material-bento border-border/50">
         <CardHeader className="pb-3">
-          <CardTitle className="text-base flex items-center gap-2">
-            <Wrench className="w-4 h-4 text-tf-cyan" />
-            Remediation Batches
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Wrench className="w-4 h-4 text-tf-cyan" />
+              Remediation Batches
+            </CardTitle>
+            <Button variant="outline" size="sm" className="h-7 text-[10px] gap-1" onClick={handleExportReport}>
+              <Download className="w-3 h-3" />
+              Export Report
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           {isLoading ? (
@@ -196,6 +260,41 @@ export function DQRemediationProgressTracker() {
           )}
         </CardContent>
       </Card>
+
+      {/* Issue Category Breakdown */}
+      {issueCategories && issueCategories.length > 0 && (
+        <Card className="material-bento border-border/50">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <Tag className="w-4 h-4 text-muted-foreground" />
+              Issue Categories
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="space-y-2">
+              {issueCategories.map((cat) => {
+                const resolvedPct = cat.total > 0 ? Math.round((cat.resolved / cat.total) * 100) : 0;
+                return (
+                  <div key={cat.name} className="space-y-1">
+                    <div className="flex items-center justify-between text-xs">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-foreground capitalize">{cat.name.replace(/_/g, " ")}</span>
+                        {cat.blockers > 0 && (
+                          <Badge variant="outline" className="text-[9px] bg-destructive/10 text-destructive border-destructive/20">
+                            {cat.blockers} blockers
+                          </Badge>
+                        )}
+                      </div>
+                      <span className="text-muted-foreground">{cat.resolved}/{cat.total} resolved</span>
+                    </div>
+                    <Progress value={resolvedPct} className="h-1" />
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
