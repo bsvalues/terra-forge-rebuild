@@ -6,9 +6,10 @@
  * with color-coded cells for quick spatial pattern identification.
  */
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   MapPin,
@@ -16,6 +17,8 @@ import {
   Loader2,
   TrendingUp,
   TrendingDown,
+  ArrowUpDown,
+  Download,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
@@ -96,6 +99,39 @@ function getHeatColor(intensity: number): string {
 
 export function NeighborhoodValuationHeatmap() {
   const { data: metrics, isLoading } = useNeighborhoodValuationData();
+  type SortKey = "code" | "parcelCount" | "avgValue" | "medianValue" | "valueIntensity";
+  const [sortKey, setSortKey] = useState<SortKey>("avgValue");
+  const [sortAsc, setSortAsc] = useState(false);
+
+  const sorted = useMemo(() => {
+    if (!metrics) return [];
+    return [...metrics].sort((a, b) => {
+      const av = a[sortKey], bv = b[sortKey];
+      const cmp = typeof av === "string" ? (av as string).localeCompare(bv as string) : (av as number) - (bv as number);
+      return sortAsc ? cmp : -cmp;
+    });
+  }, [metrics, sortKey, sortAsc]);
+
+  const toggleSort = (key: SortKey) => {
+    if (sortKey === key) { setSortAsc(!sortAsc); }
+    else { setSortKey(key); setSortAsc(false); }
+  };
+
+  const handleExportCsv = () => {
+    if (!sorted.length) return;
+    const header = "Neighborhood,Parcels,Avg Value,Median Value,Min Value,Max Value,Heat %";
+    const rows = sorted.map((m) =>
+      `"${m.code}",${m.parcelCount},${m.avgValue},${m.medianValue},${m.minValue},${m.maxValue},${(m.valueIntensity * 100).toFixed(0)}`
+    );
+    const csv = [header, ...rows].join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "neighborhood-valuation-heatmap.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   const summary = useMemo(() => {
     if (!metrics?.length) return null;
@@ -161,26 +197,41 @@ export function NeighborhoodValuationHeatmap() {
       {/* Heatmap Table */}
       <Card className="material-bento border-border/50">
         <CardHeader className="pb-3">
-          <CardTitle className="text-base flex items-center gap-2">
-            <MapPin className="w-4 h-4 text-suite-atlas" />
-            Neighborhood Valuation Heatmap
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-base flex items-center gap-2">
+              <MapPin className="w-4 h-4 text-suite-atlas" />
+              Neighborhood Valuation Heatmap
+            </CardTitle>
+            <Button variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={handleExportCsv}>
+              <Download className="w-3 h-3" /> Export CSV
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           <ScrollArea className="h-[400px]">
             <table className="w-full text-xs">
               <thead>
                 <tr className="border-b border-border/30">
-                  <th className="text-left py-2 text-muted-foreground font-medium">Neighborhood</th>
-                  <th className="text-right py-2 text-muted-foreground font-medium">Parcels</th>
-                  <th className="text-right py-2 text-muted-foreground font-medium">Avg Value</th>
-                  <th className="text-right py-2 text-muted-foreground font-medium">Median</th>
+                  <th className="text-left py-2 text-muted-foreground font-medium cursor-pointer hover:text-foreground" onClick={() => toggleSort("code")}>
+                    Neighborhood {sortKey === "code" && <ArrowUpDown className="w-3 h-3 inline ml-0.5" />}
+                  </th>
+                  <th className="text-right py-2 text-muted-foreground font-medium cursor-pointer hover:text-foreground" onClick={() => toggleSort("parcelCount")}>
+                    Parcels {sortKey === "parcelCount" && <ArrowUpDown className="w-3 h-3 inline ml-0.5" />}
+                  </th>
+                  <th className="text-right py-2 text-muted-foreground font-medium cursor-pointer hover:text-foreground" onClick={() => toggleSort("avgValue")}>
+                    Avg Value {sortKey === "avgValue" && <ArrowUpDown className="w-3 h-3 inline ml-0.5" />}
+                  </th>
+                  <th className="text-right py-2 text-muted-foreground font-medium cursor-pointer hover:text-foreground" onClick={() => toggleSort("medianValue")}>
+                    Median {sortKey === "medianValue" && <ArrowUpDown className="w-3 h-3 inline ml-0.5" />}
+                  </th>
                   <th className="text-right py-2 text-muted-foreground font-medium">Range</th>
-                  <th className="text-center py-2 text-muted-foreground font-medium w-20">Heat</th>
+                  <th className="text-center py-2 text-muted-foreground font-medium cursor-pointer hover:text-foreground w-20" onClick={() => toggleSort("valueIntensity")}>
+                    Heat {sortKey === "valueIntensity" && <ArrowUpDown className="w-3 h-3 inline ml-0.5" />}
+                  </th>
                 </tr>
               </thead>
               <tbody>
-                {(metrics || []).map((m) => (
+                {sorted.map((m) => (
                   <tr key={m.code} className="border-b border-border/10 hover:bg-muted/20">
                     <td className="py-2 font-medium text-foreground">{m.code}</td>
                     <td className="py-2 text-right text-muted-foreground">{m.parcelCount}</td>
@@ -204,7 +255,7 @@ export function NeighborhoodValuationHeatmap() {
               </tbody>
             </table>
 
-            {(!metrics || metrics.length === 0) && (
+            {(!sorted || sorted.length === 0) && (
               <div className="text-center py-8 text-sm text-muted-foreground">
                 No neighborhood data available
               </div>

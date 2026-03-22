@@ -18,6 +18,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
+import { emitTraceEvent } from "@/services/terraTrace";
 
 interface CompareSlotProps {
   parcelId: string | null;
@@ -150,7 +151,14 @@ export function ParcelComparisonView() {
         .maybeSingle();
 
       if (data) {
-        side === "left" ? setLeftId(data.id) : setRightId(data.id);
+        const parcelId = data.id;
+        side === "left" ? setLeftId(parcelId) : setRightId(parcelId);
+        emitTraceEvent({
+          parcelId,
+          sourceModule: "forge",
+          eventType: "parcel_updated",
+          eventData: { action: "comparison_parcel_selected", side, query },
+        });
       }
     } finally {
       setSearching(false);

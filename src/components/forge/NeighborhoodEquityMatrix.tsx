@@ -6,15 +6,18 @@
  * across all neighborhoods for quick identification of outliers.
  */
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Grid3X3,
   Loader2,
   AlertTriangle,
   CheckCircle2,
+  ArrowUpDown,
+  Download,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
@@ -120,6 +123,39 @@ function getRatioClass(ratio: number): string {
 
 export function NeighborhoodEquityMatrix() {
   const { data: rows, isLoading } = useNeighborhoodEquityData();
+  type SortKey = "code" | "parcelCount" | "medianRatio" | "cod" | "prd" | "avgValue";
+  const [sortKey, setSortKey] = useState<SortKey>("cod");
+  const [sortAsc, setSortAsc] = useState(false);
+
+  const sorted = useMemo(() => {
+    if (!rows?.length) return [];
+    return [...rows].sort((a, b) => {
+      const av = a[sortKey], bv = b[sortKey];
+      const cmp = typeof av === "string" ? (av as string).localeCompare(bv as string) : (av as number) - (bv as number);
+      return sortAsc ? cmp : -cmp;
+    });
+  }, [rows, sortKey, sortAsc]);
+
+  const toggleSort = (key: SortKey) => {
+    if (sortKey === key) { setSortAsc(!sortAsc); }
+    else { setSortKey(key); setSortAsc(false); }
+  };
+
+  const handleExportCsv = () => {
+    if (!sorted.length) return;
+    const header = "Neighborhood,Sales,Median Ratio,COD,PRD,Avg Value,IAAO Compliant";
+    const csvRows = sorted.map((r) =>
+      `"${r.code}",${r.parcelCount},${r.medianRatio},${r.cod},${r.prd},${r.avgValue},${r.passesIAAO ? "Yes" : "No"}`
+    );
+    const csv = [header, ...csvRows].join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "neighborhood-equity-matrix.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   const summary = useMemo(() => {
     if (!rows?.length) return null;
@@ -175,27 +211,44 @@ export function NeighborhoodEquityMatrix() {
       {/* Equity Matrix Table */}
       <Card className="material-bento border-border/50">
         <CardHeader className="pb-3">
-          <CardTitle className="text-base flex items-center gap-2">
-            <Grid3X3 className="w-4 h-4 text-suite-forge" />
-            Cross-Neighborhood Equity Matrix
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Grid3X3 className="w-4 h-4 text-suite-forge" />
+              Cross-Neighborhood Equity Matrix
+            </CardTitle>
+            <Button variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={handleExportCsv}>
+              <Download className="w-3 h-3" /> Export CSV
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           <ScrollArea className="h-[400px]">
             <table className="w-full text-xs">
               <thead>
                 <tr className="border-b border-border/30">
-                  <th className="text-left py-2 text-muted-foreground font-medium">Neighborhood</th>
-                  <th className="text-right py-2 text-muted-foreground font-medium">Sales</th>
-                  <th className="text-right py-2 text-muted-foreground font-medium">Median Ratio</th>
-                  <th className="text-right py-2 text-muted-foreground font-medium">COD</th>
-                  <th className="text-right py-2 text-muted-foreground font-medium">PRD</th>
-                  <th className="text-right py-2 text-muted-foreground font-medium">Avg Value</th>
+                  <th className="text-left py-2 text-muted-foreground font-medium cursor-pointer hover:text-foreground" onClick={() => toggleSort("code")}>
+                    Neighborhood {sortKey === "code" && <ArrowUpDown className="w-3 h-3 inline ml-0.5" />}
+                  </th>
+                  <th className="text-right py-2 text-muted-foreground font-medium cursor-pointer hover:text-foreground" onClick={() => toggleSort("parcelCount")}>
+                    Sales {sortKey === "parcelCount" && <ArrowUpDown className="w-3 h-3 inline ml-0.5" />}
+                  </th>
+                  <th className="text-right py-2 text-muted-foreground font-medium cursor-pointer hover:text-foreground" onClick={() => toggleSort("medianRatio")}>
+                    Median Ratio {sortKey === "medianRatio" && <ArrowUpDown className="w-3 h-3 inline ml-0.5" />}
+                  </th>
+                  <th className="text-right py-2 text-muted-foreground font-medium cursor-pointer hover:text-foreground" onClick={() => toggleSort("cod")}>
+                    COD {sortKey === "cod" && <ArrowUpDown className="w-3 h-3 inline ml-0.5" />}
+                  </th>
+                  <th className="text-right py-2 text-muted-foreground font-medium cursor-pointer hover:text-foreground" onClick={() => toggleSort("prd")}>
+                    PRD {sortKey === "prd" && <ArrowUpDown className="w-3 h-3 inline ml-0.5" />}
+                  </th>
+                  <th className="text-right py-2 text-muted-foreground font-medium cursor-pointer hover:text-foreground" onClick={() => toggleSort("avgValue")}>
+                    Avg Value {sortKey === "avgValue" && <ArrowUpDown className="w-3 h-3 inline ml-0.5" />}
+                  </th>
                   <th className="text-center py-2 text-muted-foreground font-medium">IAAO</th>
                 </tr>
               </thead>
               <tbody>
-                {(rows || []).map((r) => (
+                {sorted.map((r) => (
                   <tr key={r.code} className="border-b border-border/10 hover:bg-muted/20">
                     <td className="py-2 font-medium text-foreground">{r.code}</td>
                     <td className="py-2 text-right text-muted-foreground">{r.parcelCount}</td>
@@ -227,7 +280,7 @@ export function NeighborhoodEquityMatrix() {
               </tbody>
             </table>
 
-            {(!rows || rows.length === 0) && (
+            {(!sorted || sorted.length === 0) && (
               <div className="text-center py-8 text-sm text-muted-foreground">
                 No assessment ratio data available
               </div>

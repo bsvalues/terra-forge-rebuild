@@ -24,7 +24,9 @@ import {
   Minus,
   Loader2,
   BarChart3,
+  Download,
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 
@@ -96,6 +98,23 @@ export function ComparativeSnapshotDiff() {
     ];
   }, [left, right]);
 
+  const handleExportCsv = () => {
+    if (!metrics.length || !left || !right) return;
+    const header = `Metric,${left.snapshot_label} (Baseline),${right.snapshot_label} (Current),Delta`;
+    const rows = metrics.map((m) => {
+      const delta = m.left !== null && m.right !== null ? m.right - m.left : null;
+      return `"${m.label}",${formatMetric(m.left, m.format)},${formatMetric(m.right, m.format)},${delta !== null ? formatMetric(delta, m.format) : "—"}`;
+    });
+    const csv = [header, ...rows].join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `snapshot-diff-${left.snapshot_label}-vs-${right.snapshot_label}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -156,10 +175,15 @@ export function ComparativeSnapshotDiff() {
       {left && right && (
         <Card className="material-bento border-border/50">
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm flex items-center gap-2">
-              <BarChart3 className="w-4 h-4 text-muted-foreground" />
-              Metric Diff: {left.snapshot_label} → {right.snapshot_label}
-            </CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <BarChart3 className="w-4 h-4 text-muted-foreground" />
+                Metric Diff: {left.snapshot_label} → {right.snapshot_label}
+              </CardTitle>
+              <Button variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={handleExportCsv}>
+                <Download className="w-3 h-3" /> Export CSV
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
             <ScrollArea className="h-[350px]">
