@@ -70,6 +70,10 @@ const ModelRegistryPanel = lazy(() => import("@/components/models").then(m => ({
 const AuditTimeline = lazy(() => import("@/components/workbench/AuditTimeline").then(m => ({ default: m.AuditTimeline })));
 const AxiomFSDashboard = lazy(() => import("@/components/axiomfs/AxiomFSDashboard").then(m => ({ default: m.AxiomFSDashboard })));
 
+// PACS views
+const QualityGateDashboard = lazy(() => import("@/components/pacs/QualityGateDashboard").then(m => ({ default: m.QualityGateDashboard })));
+const ParcelDossierPACS = lazy(() => import("@/components/pacs/ParcelDossierPACS").then(m => ({ default: m.ParcelDossierPACS })));
+
 // ── Loading fallback ───────────────────────────────────────────────
 function StageFallback() {
   return (
@@ -318,6 +322,12 @@ export function AppLayout({ initialParcel: routeParcel, initialModule, initialFa
                 <DataOpsPanel />
               </div>
             );
+          case "pacs-quality-gates":
+            return (
+              <div className="p-6 max-w-7xl mx-auto">
+                <QualityGateDashboard />
+              </div>
+            );
           case "sync":
             return (
               <div className="p-6 max-w-7xl mx-auto">
@@ -330,6 +340,13 @@ export function AppLayout({ initialParcel: routeParcel, initialModule, initialFa
 
       // ── WORKBENCH: Parcel 360 ────────────────────────────────
       case "workbench":
+        if (view === "pacs-dossier") {
+          return (
+            <div className="p-6 max-w-7xl mx-auto">
+              <ParcelDossierPACS propId={Number(pendingParcel?.id ?? 0)} />
+            </div>
+          );
+        }
         if (view === "field") {
           return <FieldStudioDashboard />;
         }

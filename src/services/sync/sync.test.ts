@@ -286,7 +286,7 @@ describe("runContractSync", () => {
     expect(result.county).toBe("Benton");
     expect(result.year).toBe(2025);
     expect(result.sourceLane).toBe("mock_connector");
-    expect(result.products.length).toBe(6);
+    expect(result.products.length).toBe(12);
     expect(result.status).toBe("success");
   });
 
@@ -348,7 +348,7 @@ describe("runContractSyncFromRegistry", () => {
     const registry = createBentonRegistry();
     const result = await runContractSyncFromRegistry(registry, 2025);
     expect(result.county).toBe("Benton");
-    expect(result.products.length).toBe(6);
+    expect(result.products.length).toBe(12);
   });
 });
 

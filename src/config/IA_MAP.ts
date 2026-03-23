@@ -119,6 +119,7 @@ export const IA_MODULES: ModuleDefinition[] = [
       { id: "scheduler", label: "Task Scheduler", icon: Clock, scope: "county" },
       { id: "activity", label: "Activity Feed", icon: Radar, scope: "county" },
       { id: "validation", label: "Validation Rules", icon: Target, scope: "county" },
+      { id: "pacs-quality-gates", label: "PACS Quality Gates", icon: ShieldCheck, scope: "county" },
       { id: "settings", label: "Settings", icon: Settings, scope: "county" },
     ],
   },
@@ -132,6 +133,7 @@ export const IA_MODULES: ModuleDefinition[] = [
     allowedSuites: ["Parcel360"],
     views: [
       { id: "property", label: "Property 360", icon: Search, scope: "parcel" },
+      { id: "pacs-dossier", label: "PACS Dossier", icon: Database, scope: "parcel" },
       { id: "field", label: "Field Studio", icon: Compass, scope: "parcel" },
       { id: "compare", label: "Compare", icon: GitCompareArrows, scope: "parcel" },
     ],
@@ -200,6 +202,8 @@ export const LEGACY_REDIRECTS: LegacyRedirect[] = [
   { legacyId: "data-ops", targetModule: "home", targetView: "data-ops" },
   { legacyId: "webhooks", targetModule: "home", targetView: "webhooks" },
   { legacyId: "data-doctor", targetModule: "home", targetView: "data-doctor" },
+  { legacyId: "pacs-quality-gates", targetModule: "home", targetView: "pacs-quality-gates" },
+  { legacyId: "pacs-dossier", targetModule: "workbench", targetView: "pacs-dossier" },
   // Factory absorbs these
   { legacyId: "vei", targetModule: "factory", targetView: "vei" },
   { legacyId: "geoequity", targetModule: "factory", targetView: "geoequity" },
