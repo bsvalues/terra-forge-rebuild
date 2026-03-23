@@ -5768,6 +5768,71 @@ export type Database = {
         }
         Relationships: []
       }
+      vw_assessment_yoy: {
+        Row: {
+          assessment_id: string | null
+          parcel_id: string | null
+          parcel_number: string | null
+          address: string | null
+          neighborhood_code: string | null
+          county_id: string | null
+          tax_year: number | null
+          prev_tax_year: number | null
+          total_value: number | null
+          land_value: number | null
+          improvement_value: number | null
+          certified: boolean | null
+          prev_total_value: number | null
+          prev_land_value: number | null
+          prev_improvement_value: number | null
+          total_delta: number | null
+          land_delta: number | null
+          improvement_delta: number | null
+          total_pct_change: number | null
+          land_pct_change: number | null
+          improvement_pct_change: number | null
+        }
+        Relationships: []
+      }
+      vw_assessment_yoy_summary: {
+        Row: {
+          tax_year: number | null
+          prev_tax_year: number | null
+          county_id: string | null
+          parcel_count: number | null
+          yoy_parcel_count: number | null
+          avg_total_delta: number | null
+          sum_total_delta: number | null
+          avg_pct_change: number | null
+          increased_count: number | null
+          decreased_count: number | null
+          unchanged_count: number | null
+          max_pct_increase: number | null
+          max_pct_decrease: number | null
+          total_roll_value: number | null
+          avg_value: number | null
+        }
+        Relationships: []
+      }
+      vw_assessment_top_movers: {
+        Row: {
+          parcel_id: string | null
+          parcel_number: string | null
+          address: string | null
+          neighborhood_code: string | null
+          county_id: string | null
+          tax_year: number | null
+          prev_tax_year: number | null
+          total_value: number | null
+          prev_total_value: number | null
+          total_delta: number | null
+          total_pct_change: number | null
+          land_delta: number | null
+          improvement_delta: number | null
+          abs_delta: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       _postgis_deprecate: {

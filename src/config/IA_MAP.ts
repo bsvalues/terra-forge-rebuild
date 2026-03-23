@@ -123,6 +123,7 @@ export const IA_MODULES: ModuleDefinition[] = [
       { id: "pacs-quality-gates", label: "PACS Quality Gates", icon: ShieldCheck, scope: "county" },
       { id: "reconciliation", label: "Data Reconciliation", icon: GitCompareArrows, scope: "county" },
       { id: "pacs-analytics", label: "PACS Analytics", icon: Activity, scope: "county" },
+      { id: "value-change", label: "Value Change Tracker", icon: TrendingUp, scope: "county" },
       { id: "settings", label: "Settings", icon: Settings, scope: "county" },
     ],
   },
@@ -209,6 +210,7 @@ export const LEGACY_REDIRECTS: LegacyRedirect[] = [
   { legacyId: "nbhd-rollup", targetModule: "home", targetView: "nbhd-rollup" },
   { legacyId: "reconciliation", targetModule: "home", targetView: "reconciliation" },
   { legacyId: "pacs-analytics", targetModule: "home", targetView: "pacs-analytics" },
+  { legacyId: "value-change", targetModule: "home", targetView: "value-change" },
   { legacyId: "pacs-dossier", targetModule: "workbench", targetView: "pacs-dossier" },
   // Factory absorbs these
   { legacyId: "vei", targetModule: "factory", targetView: "vei" },

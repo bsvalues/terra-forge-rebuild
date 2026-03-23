@@ -76,6 +76,7 @@ const ParcelDossierPACS = lazy(() => import("@/components/pacs/ParcelDossierPACS
 const NeighborhoodRollupDashboard = lazy(() => import("@/components/pacs/NeighborhoodRollupDashboard").then(m => ({ default: m.NeighborhoodRollupDashboard })));
 const ReconciliationDashboard = lazy(() => import("@/components/pacs/ReconciliationDashboard").then(m => ({ default: m.ReconciliationDashboard })));
 const PacsAnalyticsDashboard = lazy(() => import("@/components/pacs/PacsAnalyticsDashboard").then(m => ({ default: m.PacsAnalyticsDashboard })));
+const ValueChangeDashboard = lazy(() => import("@/components/assessment/ValueChangeDashboard").then(m => ({ default: m.ValueChangeDashboard })));
 
 // ── Loading fallback ───────────────────────────────────────────────
 function StageFallback() {
@@ -347,6 +348,12 @@ export function AppLayout({ initialParcel: routeParcel, initialModule, initialFa
             return (
               <div className="p-6 max-w-7xl mx-auto">
                 <PacsAnalyticsDashboard />
+              </div>
+            );
+          case "value-change":
+            return (
+              <div className="p-6 max-w-7xl mx-auto">
+                <ValueChangeDashboard />
               </div>
             );
           case "sync":
