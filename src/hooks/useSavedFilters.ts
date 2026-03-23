@@ -103,10 +103,12 @@ export function useSavedFilters() {
         .order("updated_at", { ascending: false });
 
       if (error) throw error;
-      return (data ?? []).map((d) => ({
+      return (data ?? []).map((d: any) => ({
         ...d,
         filter_config: d.filter_config as unknown as FilterConfig,
-      }));
+        alert_on_change: d.alert_on_change ?? false,
+        is_shared: d.is_shared ?? false,
+      })) as SavedFilter[];
     },
   });
 }
@@ -218,10 +220,7 @@ const DATASET_TABLE: Record<string, string> = {
 };
 
 // ── Operator → Supabase filter method mapping ────────────────────
-function applyCondition(
-  query: ReturnType<typeof supabase.from>,
-  cond: FilterCondition,
-) {
+function applyCondition(query: any, cond: FilterCondition) {
   const { field, operator, value } = cond;
   switch (operator) {
     case "eq":       return query.eq(field, value as string);
@@ -256,7 +255,7 @@ export function useFilterPreview(dataset: string, conditions: FilterCondition[])
     setLoading(true);
     timerRef.current = setTimeout(async () => {
       try {
-        let q = supabase.from(tableName).select("*", { count: "exact", head: true }) as ReturnType<typeof supabase.from>;
+        let q: any = (supabase.from as any)(tableName).select("*", { count: "exact", head: true });
         for (const cond of conditions) {
           if (cond.field && cond.value !== "" && cond.value !== null) {
             q = applyCondition(q, cond);
