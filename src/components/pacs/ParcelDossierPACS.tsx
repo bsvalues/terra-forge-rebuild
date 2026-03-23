@@ -4,8 +4,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { PacsOwnerPanel } from "./PacsOwnerPanel";
 import { PacsSalesPanel } from "./PacsSalesPanel";
 import { PacsPropertyPanel } from "./PacsPropertyPanel";
+import { PropertyProfilePanel } from "./PropertyProfilePanel";
 import { usePacsParcelBridge } from "@/hooks/usePacsParcelBridge";
-import { Users, DollarSign, Building, AlertTriangle } from "lucide-react";
+import { Users, DollarSign, Building, AlertTriangle, ClipboardList } from "lucide-react";
 
 interface ParcelDossierPACSProps {
   /** Supabase parcel UUID — auto-resolves to prop_id via bridge */
@@ -46,7 +47,7 @@ export function ParcelDossierPACS({ parcelId, propId: directPropId, geoId, hoodC
       </div>
 
       <Tabs defaultValue="ownership" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="ownership" className="flex items-center gap-1.5">
             <Users className="w-3.5 h-3.5" />
             Ownership
@@ -58,6 +59,10 @@ export function ParcelDossierPACS({ parcelId, propId: directPropId, geoId, hoodC
           <TabsTrigger value="property" className="flex items-center gap-1.5">
             <Building className="w-3.5 h-3.5" />
             Property
+          </TabsTrigger>
+          <TabsTrigger value="profile" className="flex items-center gap-1.5">
+            <ClipboardList className="w-3.5 h-3.5" />
+            Profile
           </TabsTrigger>
         </TabsList>
 
@@ -76,6 +81,12 @@ export function ParcelDossierPACS({ parcelId, propId: directPropId, geoId, hoodC
         <TabsContent value="property" className="mt-4">
           <Suspense fallback={<Skeleton className="h-64 rounded-2xl" />}>
             <PacsPropertyPanel propId={resolvedPropId} />
+          </Suspense>
+        </TabsContent>
+
+        <TabsContent value="profile" className="mt-4">
+          <Suspense fallback={<Skeleton className="h-64 rounded-2xl" />}>
+            <PropertyProfilePanel propId={resolvedPropId} />
           </Suspense>
         </TabsContent>
       </Tabs>

@@ -395,6 +395,7 @@ export const BENTON_QUALITY_GATES: Record<string, QualityGateDefinition[]> = {
   pacs_improvements: [gateOneRowPerPropId, gateImprovementYearBuilt],
   pacs_improvement_details: [gateOneRowPerPropId, gateImprovementYearBuilt],
   pacs_assessment_roll: [gateOneRowPerPropId, gateOwnerCoverage, gateValueSanity],
+  pacs_property_profiles: [gateOneRowPerPropId, gateImprovementYearBuilt, gateHoodCoverage],
 };
 
 // ============================================================
@@ -578,6 +579,21 @@ export const PACS_SCHEMA_EXPECTATIONS: SchemaExpectation[] = [
       { name: "yr_built", required: false, dataType: "numeric" },
       { name: "num_bedrooms", required: false, dataType: "numeric" },
       { name: "total_bath", required: false, dataType: "numeric" },
+    ],
+  },
+  {
+    table: "dbo.property_profile",
+    columns: [
+      { name: "prop_id", required: true, dataType: "int" },
+      { name: "prop_val_yr", required: true, dataType: "numeric" },
+      { name: "class_cd", required: false, dataType: "varchar" },
+      { name: "property_use_cd", required: false, dataType: "varchar" },
+      { name: "yr_blt", required: false, dataType: "numeric" },
+      { name: "living_area", required: false, dataType: "numeric" },
+      { name: "condition_cd", required: false, dataType: "varchar" },
+      { name: "neighborhood", required: false, dataType: "varchar" },
+      { name: "land_sqft", required: false, dataType: "numeric" },
+      { name: "appraised_val", required: false, dataType: "numeric" },
     ],
   },
 ];

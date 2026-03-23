@@ -331,6 +331,27 @@ export const SYNC_PRODUCTS: SyncProductDefinition[] = [
       confidenceReason: "Year-scoped, prop_type_cd IN ('R', 'MH') filter for real property",
     },
   },
+  {
+    id: "pacs_property_profiles",
+    name: "Property Profile (Classification/Building/Land/Site)",
+    description: "63-column property snapshot: classification, building, land, geographic, site, mobile home",
+    sourceTables: ["dbo.property_profile"],
+    targetTable: "pacs_property_profiles",
+    identityMode: "CURRENT_YEAR",
+    requiredFields: ["prop_id", "prop_val_yr"],
+    optionalFields: [
+      "class_cd", "property_use_cd", "yr_blt", "living_area",
+      "condition_cd", "neighborhood", "land_sqft", "land_acres",
+      "appraised_val", "zoning",
+    ],
+    deltaStrategies: ["full_refresh"],
+    qualityGates: ["pacs_property_profiles"],
+    piiRedactedColumns: ["mbl_hm_sn", "mbl_hm_hud_num", "mbl_hm_title_num"],
+    provenance: {
+      sourceSystem: "PACS/CIAPS dbo.property_profile",
+      confidenceReason: "Substantive year auto-detected, comprehensive 63-column view",
+    },
+  },
 ];
 
 // ============================================================

@@ -2,13 +2,14 @@
 """
 TerraFusion OS — PACS Domain Tables Seeder
 ============================================
-Seeds the 6 new PACS domain tables on Supabase:
+Seeds the 7 PACS domain tables on Supabase:
   • pacs_owners         — from Docker PACS (dbo.owner + dbo.account)
   • pacs_sales          — from E:\ CSV (ftp_dl_sales_chg_of_owner.csv)
   • pacs_land_details   — from Docker PACS (dbo.land_detail)
   • pacs_improvements   — from E:\ CSV (ftp_dl_imprv.csv)
   • pacs_improvement_details — from E:\ CSV (ftp_dl_imprv_detail.csv)
   • pacs_assessment_roll — from Docker PACS (dbo.property_val + dbo.owner + dbo.property)
+  • pacs_property_profiles — from Docker PACS (dbo.property_profile)
 
 Strategy:
   Docker PACS (tf-mssql): used for tables with 1000+ rows in pacs_oltp
@@ -436,6 +437,131 @@ def seed_assessment_roll(county_id: str, dry_run: bool) -> int:
                        "assessment_roll", dry_run)
 
 
+def seed_property_profiles(county_id: str, dry_run: bool) -> int:
+    """From Docker PACS: property_profile view (classification, building, land, site, mobile home)."""
+    print("\n── pacs_property_profiles (Docker PACS) ─────────────────────────")
+    sql = """
+    WITH substantive_year AS (
+      SELECT TOP 1 prop_val_yr FROM dbo.property_val
+      GROUP BY prop_val_yr HAVING COUNT(*) >= 1
+      ORDER BY prop_val_yr DESC
+    )
+    SELECT TOP 50000
+      pp.prop_id, pp.prop_val_yr, pp.sup_num,
+      pp.class_cd, pp.state_cd, pp.property_use_cd,
+      pp.imprv_type_cd, pp.imprv_det_sub_class_cd, pp.num_imprv,
+      pp.yr_blt, pp.actual_year_built, pp.eff_yr_blt, pp.actual_age,
+      pp.living_area, pp.condition_cd, pp.percent_complete,
+      pp.heat_ac_code,
+      pp.class_cd_highvalueimprov AS class_cd_hv,
+      pp.living_area_highvalueimprov AS living_area_hv,
+      pp.imprv_unit_price, pp.imprv_add_val, pp.appraised_val,
+      pp.land_type_cd, pp.land_sqft, pp.land_acres,
+      pp.land_total_acres, pp.land_useable_acres, pp.land_useable_sqft,
+      pp.land_front_feet, pp.land_depth, pp.land_num_lots, pp.land_total_sqft,
+      pp.land_unit_price, pp.main_land_unit_price, pp.main_land_total_adj,
+      pp.land_appr_method, pp.ls_table, pp.size_adj_pct,
+      pp.neighborhood, pp.region, pp.abs_subdv, pp.subset AS subset_cd,
+      pp.map_id, pp.sub_market_cd,
+      pp.zoning, pp.characteristic_zoning1, pp.characteristic_zoning2,
+      pp.characteristic_view, pp.visibility_access_cd,
+      pp.road_access, pp.utilities, pp.topography,
+      pp.school_id, pp.city_id, pp.last_appraisal_dt,
+      pp.mbl_hm_make, pp.mbl_hm_model, pp.mbl_hm_sn,
+      pp.mbl_hm_hud_num, pp.mbl_hm_title_num
+    FROM dbo.property_profile pp
+    CROSS JOIN substantive_year sy
+    WHERE pp.prop_val_yr = sy.prop_val_yr
+    ORDER BY pp.prop_id
+    """
+    print("  Querying PACS ... ", end="", flush=True)
+    rows = pacs_query(sql)
+    print(f"{len(rows):,} rows")
+
+    if not rows:
+        print("  WARN: No property profiles returned from PACS")
+        return 0
+
+    # Dedup by (prop_id, prop_val_yr, sup_num)
+    seen: dict[str, dict] = {}
+    for r in rows:
+        prop_id = int(r["prop_id"])
+        yr = _i(r.get("prop_val_yr"))
+        sup = _i(r.get("sup_num"), 0)
+        key = f"{prop_id}_{yr}_{sup}"
+        if key in seen:
+            continue
+        seen[key] = {
+            "county_id": county_id,
+            "prop_id": prop_id,
+            "prop_val_yr": yr,
+            "sup_num": sup,
+            "class_cd": _s(r.get("class_cd")) or None,
+            "state_cd": _s(r.get("state_cd")) or None,
+            "property_use_cd": _s(r.get("property_use_cd")) or None,
+            "imprv_type_cd": _s(r.get("imprv_type_cd")) or None,
+            "imprv_det_sub_class_cd": _s(r.get("imprv_det_sub_class_cd")) or None,
+            "num_imprv": _i(r.get("num_imprv")),
+            "yr_blt": _i(r.get("yr_blt")),
+            "actual_year_built": _i(r.get("actual_year_built")),
+            "eff_yr_blt": _i(r.get("eff_yr_blt")),
+            "actual_age": _i(r.get("actual_age")),
+            "living_area": _f(r.get("living_area")),
+            "condition_cd": _s(r.get("condition_cd")) or None,
+            "percent_complete": _f(r.get("percent_complete")),
+            "heat_ac_code": _s(r.get("heat_ac_code")) or None,
+            "class_cd_highvalue_imprv": _s(r.get("class_cd_hv")) or None,
+            "living_area_highvalue_imprv": _f(r.get("living_area_hv")),
+            "imprv_unit_price": _f(r.get("imprv_unit_price")),
+            "imprv_add_val": _f(r.get("imprv_add_val")),
+            "appraised_val": _f(r.get("appraised_val")),
+            "land_type_cd": _s(r.get("land_type_cd")) or None,
+            "land_sqft": _f(r.get("land_sqft")),
+            "land_acres": _f(r.get("land_acres")),
+            "land_total_acres": _f(r.get("land_total_acres")),
+            "land_useable_acres": _f(r.get("land_useable_acres")),
+            "land_useable_sqft": _f(r.get("land_useable_sqft")),
+            "land_front_feet": _f(r.get("land_front_feet")),
+            "land_depth": _f(r.get("land_depth")),
+            "land_num_lots": _i(r.get("land_num_lots")),
+            "land_total_sqft": _f(r.get("land_total_sqft")),
+            "land_unit_price": _f(r.get("land_unit_price")),
+            "main_land_unit_price": _f(r.get("main_land_unit_price")),
+            "main_land_total_adj": _f(r.get("main_land_total_adj")),
+            "land_appr_method": _s(r.get("land_appr_method")) or None,
+            "ls_table": _s(r.get("ls_table")) or None,
+            "size_adj_pct": _f(r.get("size_adj_pct")),
+            "neighborhood": _s(r.get("neighborhood")) or None,
+            "region": _s(r.get("region")) or None,
+            "abs_subdv": _s(r.get("abs_subdv")) or None,
+            "subset_cd": _s(r.get("subset_cd")) or None,
+            "map_id": _s(r.get("map_id")) or None,
+            "sub_market_cd": _s(r.get("sub_market_cd")) or None,
+            "zoning": _s(r.get("zoning")) or None,
+            "characteristic_zoning1": _s(r.get("characteristic_zoning1")) or None,
+            "characteristic_zoning2": _s(r.get("characteristic_zoning2")) or None,
+            "characteristic_view": _s(r.get("characteristic_view")) or None,
+            "visibility_access_cd": _s(r.get("visibility_access_cd")) or None,
+            "road_access": _s(r.get("road_access")) or None,
+            "utilities": _s(r.get("utilities")) or None,
+            "topography": _s(r.get("topography")) or None,
+            "school_id": _s(r.get("school_id")) or None,
+            "city_id": _s(r.get("city_id")) or None,
+            "last_appraisal_dt": _date(r.get("last_appraisal_dt")),
+            "mbl_hm_make": _s(r.get("mbl_hm_make")) or None,
+            "mbl_hm_model": _s(r.get("mbl_hm_model")) or None,
+            "mbl_hm_sn": _s(r.get("mbl_hm_sn")) or None,
+            "mbl_hm_hud_num": _s(r.get("mbl_hm_hud_num")) or None,
+            "mbl_hm_title_num": _s(r.get("mbl_hm_title_num")) or None,
+        }
+    records = list(seen.values())
+    print(f"  After dedup: {len(records):,} unique (prop_id, yr, sup)")
+
+    return bulk_upsert("pacs_property_profiles", records,
+                       "county_id,prop_id,prop_val_yr,sup_num",
+                       "property_profiles", dry_run)
+
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # Main
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -447,6 +573,7 @@ SEEDERS = {
     "improvements": seed_improvements,
     "improvement_details": seed_improvement_details,
     "assessment_roll": seed_assessment_roll,
+    "property_profiles": seed_property_profiles,
 }
 
 if __name__ == "__main__":

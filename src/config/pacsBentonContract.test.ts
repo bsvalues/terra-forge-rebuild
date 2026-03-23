@@ -21,7 +21,7 @@ describe("PACS Benton Contract", () => {
     const result = validateContract();
     expect(result.valid).toBe(true);
     expect(result.errors).toHaveLength(0);
-    expect(result.productCount).toBe(12);
+    expect(result.productCount).toBe(13);
   });
 
   it("all products have delta strategies", () => {
@@ -54,7 +54,7 @@ describe("PACS Benton Contract", () => {
   it("getContractSummary returns valid shape", () => {
     const summary = getContractSummary();
     expect(summary.county.countyName).toBe("Benton");
-    expect(summary.products).toHaveLength(12);
+    expect(summary.products).toHaveLength(13);
     expect(summary.validation.valid).toBe(true);
   });
 });
