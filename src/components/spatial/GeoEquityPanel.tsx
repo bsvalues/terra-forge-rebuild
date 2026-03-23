@@ -2,6 +2,7 @@
 // Renders a Leaflet map showing parcel assessment ratios colored by equity tier.
 
 import { useMemo, useState, useEffect, useRef } from "react";
+import { useWorkbench } from "@/components/workbench/WorkbenchContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -141,6 +142,23 @@ export function GeoEquityPanel() {
       map.fitBounds(bounds as L.LatLngBoundsExpression, { padding: [30, 30] });
     }
   }, [points]);
+
+  // Auto-center when Workbench parcel changes
+  const { parcel } = useWorkbench();
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    const lat = parcel?.latitude;
+    const lng = parcel?.longitude;
+    if (lat && lng) {
+      try {
+        map.flyTo([lat, lng], 17, { animate: true });
+      } catch (e) {
+        map.setView([lat, lng], 17);
+      }
+    }
+  }, [parcel?.latitude, parcel?.longitude]);
 
   const summary = useMemo(() => {
     const counts = { under: 0, fair: 0, over: 0, unknown: 0 };

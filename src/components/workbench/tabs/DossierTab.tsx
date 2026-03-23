@@ -9,6 +9,7 @@ import { DocumentUploadDialog } from "@/components/dossier/DocumentUploadDialog"
 import { NarrativeDraftingPanel } from "@/components/dossier/NarrativeDraftingPanel";
 import { PacketAssemblyPanel } from "@/components/dossier/PacketAssemblyPanel";
 import { ParcelAnnotations } from "@/components/dossier/ParcelAnnotations";
+import CostForgeTraceTab from "@/components/dossier/CostForgeTraceTab";
 
 export function DossierTab() {
   const [activeView, setActiveView] = useState("files");
@@ -61,6 +62,10 @@ export function DossierTab() {
             <StickyNote className="w-3.5 h-3.5" />
             Annotations
           </TabsTrigger>
+          <TabsTrigger value="traces" className="gap-2 text-xs">
+            <FileText className="w-3.5 h-3.5" />
+            Traces
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="files" className="mt-4">
@@ -76,6 +81,9 @@ export function DossierTab() {
         </TabsContent>
         <TabsContent value="annotations" className="mt-4">
           <ParcelAnnotations parcelId={parcelId} />
+        </TabsContent>
+        <TabsContent value="traces" className="mt-4">
+          <CostForgeTraceTab parcelId={parcelId} />
         </TabsContent>
       </Tabs>
 

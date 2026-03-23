@@ -1,0 +1,556 @@
+openapi: 3.0.3
+info:
+  title: Benton Public Dashboard API
+  version: 1.0.0
+  description: Public-safe aggregated endpoints for assessment transparency dashboard.
+servers:
+- url: /api/public-dashboard/v1
+paths:
+  /meta:
+    get:
+      summary: Metadata and refresh status
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Meta'
+  /filters:
+    get:
+      summary: Filter options
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Filters'
+  /kpis:
+    get:
+      summary: KPI cards
+      parameters:
+      - name: year
+        in: query
+        schema:
+          type: integer
+      - name: class
+        in: query
+        schema:
+          type: string
+      - name: ng
+        in: query
+        schema:
+          type: string
+      - name: tier
+        in: query
+        schema:
+          type: string
+      - name: time_window
+        in: query
+        schema:
+          type: string
+          enum:
+          - annual
+          - quarterly
+          - monthly
+      - name: price_band
+        in: query
+        schema:
+          type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KpiResponse'
+  /distribution:
+    get:
+      summary: Distribution bins
+      parameters:
+      - name: year
+        in: query
+        schema:
+          type: integer
+      - name: class
+        in: query
+        schema:
+          type: string
+      - name: ng
+        in: query
+        schema:
+          type: string
+      - name: tier
+        in: query
+        schema:
+          type: string
+      - name: time_window
+        in: query
+        schema:
+          type: string
+      - name: price_band
+        in: query
+        schema:
+          type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DistributionResponse'
+  /equity:
+    get:
+      summary: Equity metrics
+      parameters:
+      - name: year
+        in: query
+        schema:
+          type: integer
+      - name: class
+        in: query
+        schema:
+          type: string
+      - name: ng
+        in: query
+        schema:
+          type: string
+      - name: tier
+        in: query
+        schema:
+          type: string
+      - name: time_window
+        in: query
+        schema:
+          type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EquityResponse'
+  /time-stability:
+    get:
+      summary: Time-slice stability series
+      parameters:
+      - name: year
+        in: query
+        schema:
+          type: integer
+      - name: class
+        in: query
+        schema:
+          type: string
+      - name: ng
+        in: query
+        schema:
+          type: string
+      - name: tier
+        in: query
+        schema:
+          type: string
+      - name: slice
+        in: query
+        schema:
+          type: string
+          enum:
+          - monthly
+          - quarterly
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeStabilityResponse'
+  /drivers:
+    get:
+      summary: Aggregated drivers
+      parameters:
+      - name: year
+        in: query
+        schema:
+          type: integer
+      - name: class
+        in: query
+        schema:
+          type: string
+      - name: ng
+        in: query
+        schema:
+          type: string
+      - name: tier
+        in: query
+        schema:
+          type: string
+      - name: time_window
+        in: query
+        schema:
+          type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DriversResponse'
+  /map:
+    get:
+      summary: Neighborhood choropleth values
+      parameters:
+      - name: year
+        in: query
+        schema:
+          type: integer
+      - name: class
+        in: query
+        schema:
+          type: string
+      - name: tier
+        in: query
+        schema:
+          type: string
+      - name: time_window
+        in: query
+        schema:
+          type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MapResponse'
+  /bulletins/neighborhood/{ng_id}:
+    get:
+      summary: Neighborhood bulletin JSON
+      parameters:
+      - name: ng_id
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: year
+        in: query
+        schema:
+          type: integer
+      - name: class
+        in: query
+        schema:
+          type: string
+      - name: tier
+        in: query
+        schema:
+          type: string
+      - name: time_window
+        in: query
+        schema:
+          type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Bulletin'
+  /bulletins/neighborhood/{ng_id}.pdf:
+    get:
+      summary: Neighborhood bulletin PDF
+      parameters:
+      - name: ng_id
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: year
+        in: query
+        schema:
+          type: integer
+      - name: class
+        in: query
+        schema:
+          type: string
+      - name: tier
+        in: query
+        schema:
+          type: string
+      - name: time_window
+        in: query
+        schema:
+          type: string
+      responses:
+        '200':
+          description: PDF
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+components:
+  schemas:
+    Evidence:
+      type: object
+      properties:
+        n_sales:
+          type: integer
+        n_props:
+          type: integer
+        label:
+          type: string
+          enum:
+          - Strong
+          - Moderate
+          - Limited
+          - Suppressed
+        suppressed:
+          type: boolean
+        suppression_reason:
+          type: string
+        aggregation_level_used:
+          type: string
+          enum:
+          - county
+          - class
+          - neighborhood_group
+          - quality_tier
+      required:
+      - n_sales
+      - label
+      - suppressed
+    Meta:
+      type: object
+      properties:
+        release_id:
+          type: string
+        release_name:
+          type: string
+        last_refresh_utc:
+          type: string
+        suppression_policy:
+          type: object
+      required:
+      - release_id
+      - last_refresh_utc
+    Filters:
+      type: object
+      properties:
+        years:
+          type: array
+          items:
+            type: integer
+        classes:
+          type: array
+          items:
+            type: object
+            properties:
+              code:
+                type: string
+              name:
+                type: string
+        neighborhood_groups:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              name:
+                type: string
+        quality_tiers:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              name:
+                type: string
+        time_windows:
+          type: array
+          items:
+            type: string
+        price_bands:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              label:
+                type: string
+    KpiResponse:
+      type: object
+      properties:
+        segment:
+          type: object
+        evidence:
+          $ref: '#/components/schemas/Evidence'
+        kpis:
+          type: object
+          properties:
+            median_pct_change:
+              type: number
+            p10_pct_change:
+              type: number
+            p90_pct_change:
+              type: number
+            median_ratio:
+              type: number
+            cod:
+              type: number
+            prd:
+              type: number
+            prb:
+              type: number
+            time_stability_status:
+              type: string
+              enum:
+              - Pass
+              - Watch
+              - Flag
+              - Suppressed
+    DistributionResponse:
+      type: object
+      properties:
+        evidence:
+          $ref: '#/components/schemas/Evidence'
+        bins:
+          type: array
+          items:
+            type: object
+            properties:
+              label:
+                type: string
+              min:
+                type: number
+              max:
+                type: number
+              count:
+                type: integer
+    EquityResponse:
+      type: object
+      properties:
+        evidence:
+          $ref: '#/components/schemas/Evidence'
+        median_ratio:
+          type: number
+        cod:
+          type: number
+        prd:
+          type: number
+        prb:
+          type: number
+        notes:
+          type: string
+    TimeStabilityResponse:
+      type: object
+      properties:
+        evidence:
+          $ref: '#/components/schemas/Evidence'
+        status:
+          type: string
+          enum:
+          - Pass
+          - Watch
+          - Flag
+          - Suppressed
+        series:
+          type: array
+          items:
+            type: object
+            properties:
+              slice_label:
+                type: string
+              n_sales:
+                type: integer
+              median_ratio:
+                type: number
+              prb:
+                type: number
+    DriversResponse:
+      type: object
+      properties:
+        evidence:
+          $ref: '#/components/schemas/Evidence'
+        drivers:
+          type: array
+          items:
+            type: object
+            properties:
+              driver:
+                type: string
+              direction:
+                type: string
+                enum:
+                - Up
+                - Down
+                - Mixed
+              strength:
+                type: string
+                enum:
+                - High
+                - Medium
+                - Low
+              explain_plain:
+                type: string
+    MapResponse:
+      type: object
+      properties:
+        evidence:
+          $ref: '#/components/schemas/Evidence'
+        features:
+          type: array
+          items:
+            type: object
+            properties:
+              ng_id:
+                type: string
+              ng_name:
+                type: string
+              median_pct_change:
+                type: number
+              evidence_label:
+                type: string
+    Bulletin:
+      type: object
+      properties:
+        ng_id:
+          type: string
+        ng_name:
+          type: string
+        segment:
+          type: object
+        evidence:
+          $ref: '#/components/schemas/Evidence'
+        headline:
+          type: string
+        what_changed:
+          type: object
+        equity:
+          type: object
+        drivers:
+          type: array
+          items:
+            type: object
+        next_steps:
+          type: array
+          items:
+            type: string
+        methods_note:
+          type: string
+        downloads:
+          type: array
+          items:
+            type: object
+            properties:
+              label:
+                type: string
+              href:
+                type: string
+      required:
+      - ng_id
+      - ng_name
+      - evidence
+      - headline

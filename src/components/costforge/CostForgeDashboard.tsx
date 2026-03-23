@@ -7,6 +7,7 @@ import { QuantumOscillator } from "./charts/QuantumOscillator";
 import { CostForgeActions } from "./CostForgeActions";
 import { CostScheduleManager } from "./CostScheduleManager";
 import { CostApproachRunner } from "./CostApproachRunner";
+import DraftValuationWorkflow from "./DraftValuationWorkflow";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export function CostForgeDashboard() {
@@ -23,6 +24,7 @@ export function CostForgeDashboard() {
           <TabsList className="mb-[-1px]">
             <TabsTrigger value="schedules" className="text-xs">Schedules</TabsTrigger>
             <TabsTrigger value="runner" className="text-xs">Runner</TabsTrigger>
+            <TabsTrigger value="draft" className="text-xs">Draft</TabsTrigger>
             <TabsTrigger value="legacy" className="text-xs text-muted-foreground">Legacy View</TabsTrigger>
           </TabsList>
         </div>
@@ -33,6 +35,10 @@ export function CostForgeDashboard() {
 
         <TabsContent value="runner" className="mt-0">
           <CostApproachRunner />
+        </TabsContent>
+
+        <TabsContent value="draft" className="mt-0 p-4">
+          <DraftValuationWorkflow />
         </TabsContent>
 
         <TabsContent value="legacy" className="mt-0 p-6 space-y-6">

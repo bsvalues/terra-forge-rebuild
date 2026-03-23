@@ -21,6 +21,7 @@ import { useNavigate } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
 import { cn } from "@/lib/utils";
 import { SwarmActivityBar, type SwarmPhase } from "./SwarmActivityBar";
+import { buildParcelContext } from "@/services/pilotContextBuilder";
 
 interface ToolCallResult {
   tool_name: string;
@@ -117,6 +118,7 @@ export function TerraPilotChat({ fullscreen = false }: TerraPilotChatProps) {
   const [activeTools, setActiveTools] = useState<string[]>([]);
   const [confirmingAction, setConfirmingAction] = useState(false);
   const [swarmPhase, setSwarmPhase] = useState<SwarmPhase | null>(null);
+  const [parcelContextBlock, setParcelContextBlock] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
 
@@ -125,6 +127,26 @@ export function TerraPilotChat({ fullscreen = false }: TerraPilotChatProps) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages, activeTools]);
+
+  useEffect(() => {
+    let alive = true;
+    async function loadContext() {
+      if (!parcel.id) {
+        setParcelContextBlock("");
+        return;
+      }
+      try {
+        const contextText = await buildParcelContext(parcel.id);
+        if (alive) setParcelContextBlock(contextText);
+      } catch {
+        if (alive) setParcelContextBlock("");
+      }
+    }
+    loadContext();
+    return () => {
+      alive = false;
+    };
+  }, [parcel.id]);
 
   const handleNavigationAction = useCallback((result: Record<string, unknown>) => {
     if (result.action === "navigate" && result.parcel_id) {
@@ -227,6 +249,7 @@ export function TerraPilotChat({ fullscreen = false }: TerraPilotChatProps) {
         mode: pilotMode,
         parcel: parcel.id ? parcel : null,
         studyPeriod: studyPeriod.id ? studyPeriod : null,
+        parcelContextBlock: parcelContextBlock || null,
       };
 
       const token = await getAuthToken();

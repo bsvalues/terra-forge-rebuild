@@ -7,6 +7,7 @@ import { WatchlistPanel } from "@/components/workbench/WatchlistPanel";
 import { ParcelTimeline } from "@/components/workbench/ParcelTimeline";
 import { DataLineageViewer } from "@/components/workbench/DataLineageViewer";
 import { ParcelHistoryTimeline } from "@/components/workbench/ParcelHistoryTimeline";
+import { FullValueHistoryTimeline } from "@/components/workbench/FullValueHistoryTimeline";
 import { motion } from "framer-motion";
 import {
   TrendingUp,
@@ -294,6 +295,10 @@ function ParcelSummaryContent() {
           </div>
         </motion.div>
       )}
+
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.09 }}>
+        <FullValueHistoryTimeline parcelId={parcel.id} />
+      </motion.div>
 
       {/* Quick Stats */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="grid grid-cols-2 sm:grid-cols-4 gap-3">

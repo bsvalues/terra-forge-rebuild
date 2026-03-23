@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Hammer, TrendingUp, Activity, Brain, Layers, Microscope, Compass, Factory as FactoryIcon, ExternalLink, FlaskConical, DollarSign, BarChart3, MapPin, Undo2, Target, Grid3X3, BookOpen } from "lucide-react";
+import { Hammer, TrendingUp, Activity, Brain, Layers, Microscope, Compass, Factory as FactoryIcon, ExternalLink, FlaskConical, DollarSign, BarChart3, MapPin, Undo2, Target, Grid3X3, BookOpen, Database } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useLatestCalibrationRun } from "@/hooks/useFactoryMetrics";
 import { CompsView } from "./CompsView";
@@ -21,6 +21,8 @@ import { ValuationConfidenceVisualizer } from "@/components/forge/ValuationConfi
 import { NeighborhoodEquityMatrix } from "@/components/forge/NeighborhoodEquityMatrix";
 import { AssessmentMethodologyViewer } from "@/components/forge/AssessmentMethodologyViewer";
 import { ParcelComparisonDiff } from "@/components/forge/ParcelComparisonDiff";
+import { CostForgeDashboard } from "@/components/costforge/CostForgeDashboard";
+import { AscendParcelPanel } from "@/components/forge/AscendParcelPanel";
 import { 
   PRDDrilldownDialog, 
   CODDrilldownDialog, 
@@ -39,7 +41,7 @@ import {
   ArrowLeftRight,
 } from "lucide-react";
 
-type ForgeView = "vei" | "regression" | "avm" | "segments" | "anatomy" | "comps" | "avmrun" | "cost" | "ratio" | "compare" | "nbhd-ratio" | "adjustments" | "snapshots" | "confidence" | "equity-matrix" | "methodology" | "diff";
+type ForgeView = "vei" | "regression" | "avm" | "segments" | "anatomy" | "comps" | "avmrun" | "cost" | "ratio" | "compare" | "nbhd-ratio" | "adjustments" | "snapshots" | "confidence" | "equity-matrix" | "methodology" | "costforge" | "ascend" | "diff";
 
 export function ForgeTab() {
   const [activeView, setActiveView] = useState<ForgeView>("vei");
@@ -61,6 +63,8 @@ export function ForgeTab() {
     { id: "confidence", label: "Confidence", icon: Target },
     { id: "equity-matrix", label: "Equity Matrix", icon: Grid3X3 },
     { id: "methodology", label: "Methodology", icon: BookOpen },
+    { id: "costforge", label: "CostForge", icon: DollarSign },
+    { id: "ascend", label: "Legacy Data", icon: Database },
     { id: "diff", label: "Diff", icon: ArrowLeftRight },
   ];
 
@@ -152,6 +156,8 @@ export function ForgeTab() {
         {activeView === "confidence" && <div className="p-6"><ValuationConfidenceVisualizer /></div>}
         {activeView === "equity-matrix" && <div className="p-6"><NeighborhoodEquityMatrix /></div>}
         {activeView === "methodology" && <div className="p-6"><AssessmentMethodologyViewer /></div>}
+        {activeView === "costforge" && <CostForgeDashboard />}
+        {activeView === "ascend" && <div className="p-6"><AscendParcelPanel /></div>}
         {activeView === "diff" && <div className="p-6"><ParcelComparisonDiff /></div>}
       </div>
     </div>
