@@ -76,6 +76,7 @@ export function OnboardingWizard() {
             {step === "choose" && (
               <ChooseStep
                 availableCount={counties?.length ?? 0}
+                isLoadingCounties={countiesLoading}
                 onCreateNew={() => setStep("create")}
                 onJoinExisting={() => setStep("join")}
               />

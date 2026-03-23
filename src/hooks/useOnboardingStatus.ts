@@ -76,22 +76,57 @@ export function useListCounties() {
   return useQuery({
     queryKey: ["available-counties"],
     queryFn: async (): Promise<AvailableCounty[]> => {
-      const data = await invokeSetup("list_counties");
-      return data.counties ?? [];
+      // Query counties table directly — RLS allows SELECT for everyone
+      const { data, error } = await supabase
+        .from("counties")
+        .select("id, name, fips_code, state")
+        .order("name");
+      if (error) throw new Error(error.message);
+      return data ?? [];
     },
   });
 }
 
 export function useCreateCounty() {
   const qc = useQueryClient();
+  const { user } = useAuthContext();
   return useMutation({
     mutationFn: async (params: { name: string; fipsCode: string; state: string }) => {
-      return invokeSetup("create_county", params);
+      if (!user) throw new Error("Not authenticated");
+
+      // Check if county with same FIPS already exists
+      const { data: existing } = await supabase
+        .from("counties")
+        .select("id")
+        .eq("fips_code", params.fipsCode)
+        .maybeSingle();
+
+      let countyId: string;
+      let isNewCounty = false;
+
+      if (existing) {
+        countyId = existing.id;
+      } else {
+        const { data: newCounty, error: createErr } = await supabase
+          .from("counties")
+          .insert({ name: params.name, fips_code: params.fipsCode, state: params.state })
+          .select("id")
+          .single();
+        if (createErr) throw new Error(createErr.message);
+        countyId = newCounty.id;
+        isNewCounty = true;
+      }
+
+      // Assign user to county via RPC (SECURITY DEFINER bypasses county_id lock)
+      const { error: profileErr } = await supabase
+        .rpc("assign_user_county", { target_county_id: countyId });
+      if (profileErr) throw new Error(profileErr.message);
+
+      return { success: true, countyId, isNewCounty };
     },
     onSuccess: (data) => {
       toast.success(data.isNewCounty ? "County created!" : "Joined existing county");
       qc.invalidateQueries({ queryKey: ["onboarding-status"] });
-      // Force profile refresh by reloading
       window.location.reload();
     },
     onError: (err: Error) => {
@@ -102,9 +137,25 @@ export function useCreateCounty() {
 
 export function useJoinCounty() {
   const qc = useQueryClient();
+  const { user } = useAuthContext();
   return useMutation({
     mutationFn: async (countyId: string) => {
-      return invokeSetup("join_county", { countyId });
+      if (!user) throw new Error("Not authenticated");
+
+      // Verify county exists
+      const { data: county, error: fetchErr } = await supabase
+        .from("counties")
+        .select("id, name")
+        .eq("id", countyId)
+        .single();
+      if (fetchErr || !county) throw new Error("County not found");
+
+      // Assign user to county via RPC (SECURITY DEFINER bypasses county_id lock)
+      const { error: profileErr } = await supabase
+        .rpc("assign_user_county", { target_county_id: countyId });
+      if (profileErr) throw new Error(profileErr.message);
+
+      return { success: true, countyId, countyName: county.name };
     },
     onSuccess: (data) => {
       toast.success(`Joined ${data.countyName}`);
