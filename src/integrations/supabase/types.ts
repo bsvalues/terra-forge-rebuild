@@ -5721,6 +5721,53 @@ export type Database = {
         }
         Relationships: []
       }
+      vw_pacs_table_stats: {
+        Row: {
+          table_name: string | null
+          row_count: number | null
+          unique_props: number | null
+          total_value: number | null
+          avg_value: number | null
+        }
+        Relationships: []
+      }
+      vw_pacs_value_by_neighborhood: {
+        Row: {
+          neighborhood: string | null
+          property_count: number | null
+          total_appraised: number | null
+          avg_appraised: number | null
+          min_appraised: number | null
+          max_appraised: number | null
+          total_taxable: number | null
+          use_code_count: number | null
+        }
+        Relationships: []
+      }
+      vw_pacs_sales_by_year: {
+        Row: {
+          sale_year: number | null
+          sale_count: number | null
+          total_volume: number | null
+          avg_price: number | null
+          max_price: number | null
+          valid_price_count: number | null
+          avg_ratio: number | null
+        }
+        Relationships: []
+      }
+      vw_pacs_bridge_coverage: {
+        Row: {
+          total_parcels: number | null
+          linked_parcels: number | null
+          pacs_owner_props: number | null
+          pacs_assessed_props: number | null
+          pacs_sales_props: number | null
+          pacs_profile_props: number | null
+          link_coverage_pct: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       _postgis_deprecate: {
