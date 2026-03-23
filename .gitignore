@@ -1,3 +1,13 @@
+# Large binary files — too big for GitHub (>100 MB)
+docs/legacy/Backup.zip
+docs/legacy/Main_Property_Tables.xlsx
+docs/legacy/XMLs.zip
+docs/legacy/Asend and Proval.zip
+docs/legacy/Benton County Dashboard 2024full test.xlsx
+docs/BS_PACS.zip
+*.zip
+*.xlsx
+
 # Seed secrets — never commit
 scripts/.env.seed
 .env.seed
