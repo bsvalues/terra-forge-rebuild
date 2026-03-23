@@ -44,14 +44,14 @@ export function CostApproachRunner() {
   const derivedAge = Math.max(0, yearNow - toNum(form.year_built));
 
   const run = async () => {
-    await calculate(
-      {
+    await (calculate as any)(
+      ({
         prop_type: form.prop_type,
         year_built: toNum(form.year_built),
         area: toNum(form.area),
         county_id: BENTON_COUNTY_ID,
-      },
-      form.quality || undefined,
+      } as any),
+      (form.quality as any) || undefined,
       form.prop_type === "R" ? form.extWall || undefined : undefined,
       form.effLife ? toNum(form.effLife) : undefined
     );
@@ -154,7 +154,7 @@ export function CostApproachRunner() {
                 <SelectContent>
                   <SelectItem value="none">None</SelectItem>
                   {imprvTypeCodes.map((code) => (
-                    <SelectItem key={code} value={code}>{code}</SelectItem>
+                    <SelectItem key={String(code)} value={String(code)}>{String(code)}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -185,35 +185,35 @@ export function CostApproachRunner() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-sm">
               <div className="rounded-md border border-border/40 p-3">
                 <div className="text-xs text-muted-foreground">Base Unit Cost</div>
-                <div className="font-medium tabular-nums">{result.base_unit_cost?.toFixed(2) ?? "-"}</div>
+                <div className="font-medium tabular-nums">{(result as any).base_unit_cost?.toFixed(2) ?? "-"}</div>
               </div>
               <div className="rounded-md border border-border/40 p-3">
                 <div className="text-xs text-muted-foreground">Local Multiplier</div>
-                <div className="font-medium tabular-nums">{result.local_mult?.toFixed(4) ?? "-"}</div>
+                <div className="font-medium tabular-nums">{(result as any).local_mult?.toFixed(4) ?? "-"}</div>
               </div>
               <div className="rounded-md border border-border/40 p-3">
                 <div className="text-xs text-muted-foreground">Current Cost Mult</div>
-                <div className="font-medium tabular-nums">{result.current_cost_mult?.toFixed(4) ?? "-"}</div>
+                <div className="font-medium tabular-nums">{(result as any).current_cost_mult?.toFixed(4) ?? "-"}</div>
               </div>
               <div className="rounded-md border border-border/40 p-3">
                 <div className="text-xs text-muted-foreground">Area</div>
-                <div className="font-medium tabular-nums">{result.area?.toLocaleString() ?? "-"}</div>
+                <div className="font-medium tabular-nums">{(result as any).area?.toLocaleString() ?? "-"}</div>
               </div>
               <div className="rounded-md border border-border/40 p-3">
                 <div className="text-xs text-muted-foreground">RCN</div>
-                <div className="font-medium tabular-nums">{result.rcn?.toLocaleString(undefined, { maximumFractionDigits: 0 }) ?? "-"}</div>
+                <div className="font-medium tabular-nums">{(result as any).rcn?.toLocaleString(undefined, { maximumFractionDigits: 0 }) ?? "-"}</div>
               </div>
               <div className="rounded-md border border-border/40 p-3">
                 <div className="text-xs text-muted-foreground">Age / Eff Life</div>
-                <div className="font-medium tabular-nums">{result.age ?? "-"} / {result.eff_life ?? "-"}</div>
+                <div className="font-medium tabular-nums">{(result as any).age ?? "-"} / {(result as any).eff_life ?? "-"}</div>
               </div>
               <div className="rounded-md border border-border/40 p-3">
                 <div className="text-xs text-muted-foreground">Pct Good</div>
-                <div className="font-medium tabular-nums">{result.pct_good?.toFixed(4) ?? "-"}</div>
+                <div className="font-medium tabular-nums">{(result as any).pct_good?.toFixed(4) ?? "-"}</div>
               </div>
               <div className="rounded-md border border-primary/40 p-3 bg-primary/5">
                 <div className="text-xs text-muted-foreground">RCNLD</div>
-                <div className="font-semibold text-base tabular-nums">{result.rcnld?.toLocaleString(undefined, { maximumFractionDigits: 0 }) ?? "-"}</div>
+                <div className="font-semibold text-base tabular-nums">{(result as any).rcnld?.toLocaleString(undefined, { maximumFractionDigits: 0 }) ?? "-"}</div>
               </div>
             </div>
           </CardContent>

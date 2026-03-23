@@ -29,7 +29,7 @@
 //   vw_costforge_imprv_inputs
 // ═══════════════════════════════════════════════════════════════
 
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, fromAny } from "@/integrations/supabase/client";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -208,8 +208,7 @@ export async function lookupResidentialCost(
   extWallType: string,
   countyId: string = BENTON_COSTFORGE_CONFIG.defaultCountyId
 ): Promise<ResidentialScheduleRow | null> {
-  const { data, error } = await supabase
-    .from("costforge_residential_schedules")
+  const { data, error } = await fromAny("costforge_residential_schedules")
     .select("*")
     .eq("county_id", countyId)
     .eq("quality_grade", qualityGrade)
@@ -233,8 +232,7 @@ export async function lookupCommercialCost(
   qualityGrade: QualityGrade,
   countyId: string = BENTON_COSTFORGE_CONFIG.defaultCountyId
 ): Promise<CommercialScheduleRow | null> {
-  const { data, error } = await supabase
-    .from("costforge_commercial_schedules")
+  const { data, error } = await fromAny("costforge_commercial_schedules")
     .select("*")
     .eq("county_id", countyId)
     .eq("section_id", sectionId)
@@ -256,8 +254,7 @@ export async function lookupDepreciation(
   effectiveLifeYears: number,
   countyId: string = BENTON_COSTFORGE_CONFIG.defaultCountyId
 ): Promise<number | null> {
-  const { data, error } = await supabase
-    .from("costforge_depreciation")
+  const { data, error } = await fromAny("costforge_depreciation")
     .select("pct_good")
     .eq("county_id", countyId)
     .eq("property_type", propertyType)
@@ -277,8 +274,7 @@ export async function getDepreciationTable(
   propertyType: PropertyType,
   countyId: string = BENTON_COSTFORGE_CONFIG.defaultCountyId
 ): Promise<DepreciationRow[]> {
-  const { data, error } = await supabase
-    .from("costforge_depreciation")
+  const { data, error } = await fromAny("costforge_depreciation")
     .select("*")
     .eq("county_id", countyId)
     .eq("property_type", propertyType)
@@ -296,8 +292,7 @@ export async function getDepreciationTable(
 export async function getCostMultipliers(
   countyId: string = BENTON_COSTFORGE_CONFIG.defaultCountyId
 ): Promise<CostMultiplierRow[]> {
-  const { data, error } = await supabase
-    .from("costforge_cost_multipliers")
+  const { data, error } = await fromAny("costforge_cost_multipliers")
     .select("*")
     .eq("county_id", countyId)
     .order("multiplier_type")
@@ -315,8 +310,7 @@ export async function getHvacRefinements(
   sectionId: number,
   countyId: string = BENTON_COSTFORGE_CONFIG.defaultCountyId
 ): Promise<RefinementRow[]> {
-  const { data, error } = await supabase
-    .from("costforge_refinements")
+  const { data, error } = await fromAny("costforge_refinements")
     .select("*")
     .eq("county_id", countyId)
     .eq("refinement_type", "hvac")
@@ -334,8 +328,7 @@ export async function resolveTypeCode(
   imprvDetTypeCd: string,
   countyId: string = BENTON_COSTFORGE_CONFIG.defaultCountyId
 ): Promise<ImprvTypeCode | null> {
-  const { data, error } = await supabase
-    .from("costforge_imprv_type_codes")
+  const { data, error } = await fromAny("costforge_imprv_type_codes")
     .select("*")
     .eq("county_id", countyId)
     .eq("imprv_det_type_cd", imprvDetTypeCd)
@@ -352,8 +345,7 @@ export async function getAllTypeCodes(
   countyId: string = BENTON_COSTFORGE_CONFIG.defaultCountyId,
   activeOnly = true
 ): Promise<ImprvTypeCode[]> {
-  let query = supabase
-    .from("costforge_imprv_type_codes")
+  let query = fromAny("costforge_imprv_type_codes")
     .select("*")
     .eq("county_id", countyId)
     .order("imprv_det_type_cd");
@@ -487,8 +479,7 @@ export async function getCalcTrace(
   parcelId: string,
   countyId: string = BENTON_COSTFORGE_CONFIG.defaultCountyId
 ): Promise<CalcTraceRow[]> {
-  const { data, error } = await supabase
-    .from("costforge_calc_trace")
+  const { data, error } = await fromAny("costforge_calc_trace")
     .select("*")
     .eq("county_id", countyId)
     .eq("parcel_id", parcelId)
@@ -506,8 +497,7 @@ export async function getCalcTraceByLrsn(
   lrsn: number,
   countyId: string = BENTON_COSTFORGE_CONFIG.defaultCountyId
 ): Promise<CalcTraceRow[]> {
-  const { data, error } = await supabase
-    .from("costforge_calc_trace")
+  const { data, error } = await fromAny("costforge_calc_trace")
     .select("*")
     .eq("county_id", countyId)
     .eq("lrsn", lrsn)
@@ -525,8 +515,7 @@ export async function getCalcTraceByLrsn(
 export async function getCoverage(
   countyId: string = BENTON_COSTFORGE_CONFIG.defaultCountyId
 ): Promise<CostForgeCoverage | null> {
-  const { data, error } = await supabase
-    .from("vw_costforge_coverage")
+  const { data, error } = await fromAny("vw_costforge_coverage")
     .select("*")
     .eq("county_id", countyId)
     .maybeSingle();
@@ -543,8 +532,7 @@ export async function getCalcInputs(
   lrsn: number,
   countyId: string = BENTON_COSTFORGE_CONFIG.defaultCountyId
 ): Promise<CostForgeCalcInput[]> {
-  const { data, error } = await supabase
-    .from("vw_costforge_imprv_inputs")
+  const { data, error } = await fromAny("vw_costforge_imprv_inputs")
     .select("*")
     .eq("county_id", countyId)
     .eq("lrsn", lrsn);
@@ -572,8 +560,7 @@ export async function checkHealth(
   let healthy = true;
 
   for (const table of tables) {
-    const { count, error } = await supabase
-      .from(table)
+    const { count, error } = await fromAny(table)
       .select("id", { count: "exact", head: true })
       .eq("county_id", countyId);
 
