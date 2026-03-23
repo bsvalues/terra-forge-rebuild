@@ -23,12 +23,19 @@ jobs:
         with:
           version: latest
 
-      - name: Generate Supabase types
+      - name: Generate Supabase types via db-url
         env:
-          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-          SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: |
-          supabase gen types typescript --project-id "$SUPABASE_PROJECT_ID" --schema public > src/integrations/supabase/types.ts
+          # Use db-url if available (direct Postgres connection — no sbp_ token required)
+          if [ -n "$SUPABASE_DB_URL" ]; then
+            supabase gen types typescript --db-url "$SUPABASE_DB_URL" --schema public > src/integrations/supabase/types.ts
+          else
+            # Fallback: use Management API to generate types via project ID + access token
+            SUPABASE_ACCESS_TOKEN=${{ secrets.SUPABASE_ACCESS_TOKEN }} \
+            supabase gen types typescript --project-id udjoodlluygvlqccwade --schema public > src/integrations/supabase/types.ts
+          fi
 
       - name: Commit and push types
         env:
