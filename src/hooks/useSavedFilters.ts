@@ -103,10 +103,12 @@ export function useSavedFilters() {
         .order("updated_at", { ascending: false });
 
       if (error) throw error;
-      return (data ?? []).map((d) => ({
+      return (data ?? []).map((d: any) => ({
         ...d,
         filter_config: d.filter_config as unknown as FilterConfig,
-      }));
+        alert_on_change: d.alert_on_change ?? false,
+        is_shared: d.is_shared ?? false,
+      })) as SavedFilter[];
     },
   });
 }
