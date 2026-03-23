@@ -5430,6 +5430,85 @@ export type Database = {
         }
         Relationships: []
       }
+      vw_sales_reconciliation: {
+        Row: {
+          parcel_id: string | null
+          parcel_number: string | null
+          prop_id: number | null
+          tf_sale_id: string | null
+          tf_sale_date: string | null
+          tf_sale_price: number | null
+          tf_sale_type: string | null
+          tf_is_qualified: boolean | null
+          tf_grantor: string | null
+          tf_grantee: string | null
+          pacs_sale_id: string | null
+          pacs_sale_date: string | null
+          pacs_sale_price: number | null
+          pacs_sale_type: string | null
+          pacs_ratio: number | null
+          pacs_market_value: number | null
+          pacs_hood_cd: string | null
+          match_status: string | null
+          price_delta: number | null
+          date_delta_days: number | null
+        }
+        Relationships: []
+      }
+      vw_sales_reconciliation_summary: {
+        Row: {
+          match_status: string | null
+          record_count: number | null
+          avg_price_delta: number | null
+          max_price_delta: number | null
+          avg_date_delta_days: number | null
+          exact_price_matches: number | null
+          near_price_matches: number | null
+          price_discrepancies: number | null
+        }
+        Relationships: []
+      }
+      vw_assessment_reconciliation: {
+        Row: {
+          parcel_id: string | null
+          parcel_number: string | null
+          prop_id: number | null
+          tf_assessment_id: string | null
+          tf_tax_year: number | null
+          tf_land_value: number | null
+          tf_improvement_value: number | null
+          tf_total_value: number | null
+          tf_certified: boolean | null
+          pacs_roll_id: string | null
+          pacs_roll_year: number | null
+          pacs_land_value: number | null
+          pacs_improvement_value: number | null
+          pacs_total_appraised: number | null
+          pacs_total_taxable: number | null
+          pacs_situs: string | null
+          pacs_use_code: string | null
+          pacs_tax_area: string | null
+          match_status: string | null
+          total_value_delta: number | null
+          land_value_delta: number | null
+          improvement_value_delta: number | null
+        }
+        Relationships: []
+      }
+      vw_assessment_reconciliation_summary: {
+        Row: {
+          match_status: string | null
+          record_count: number | null
+          avg_total_delta: number | null
+          max_total_delta: number | null
+          avg_land_delta: number | null
+          avg_improvement_delta: number | null
+          exact_value_matches: number | null
+          near_value_matches: number | null
+          value_discrepancies: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       _postgis_deprecate: {

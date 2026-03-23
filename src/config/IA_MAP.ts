@@ -121,6 +121,7 @@ export const IA_MODULES: ModuleDefinition[] = [
       { id: "activity", label: "Activity Feed", icon: Radar, scope: "county" },
       { id: "validation", label: "Validation Rules", icon: Target, scope: "county" },
       { id: "pacs-quality-gates", label: "PACS Quality Gates", icon: ShieldCheck, scope: "county" },
+      { id: "reconciliation", label: "Data Reconciliation", icon: GitCompareArrows, scope: "county" },
       { id: "settings", label: "Settings", icon: Settings, scope: "county" },
     ],
   },
@@ -205,6 +206,7 @@ export const LEGACY_REDIRECTS: LegacyRedirect[] = [
   { legacyId: "data-doctor", targetModule: "home", targetView: "data-doctor" },
   { legacyId: "pacs-quality-gates", targetModule: "home", targetView: "pacs-quality-gates" },
   { legacyId: "nbhd-rollup", targetModule: "home", targetView: "nbhd-rollup" },
+  { legacyId: "reconciliation", targetModule: "home", targetView: "reconciliation" },
   { legacyId: "pacs-dossier", targetModule: "workbench", targetView: "pacs-dossier" },
   // Factory absorbs these
   { legacyId: "vei", targetModule: "factory", targetView: "vei" },

@@ -74,6 +74,7 @@ const AxiomFSDashboard = lazy(() => import("@/components/axiomfs/AxiomFSDashboar
 const QualityGateDashboard = lazy(() => import("@/components/pacs/QualityGateDashboard").then(m => ({ default: m.QualityGateDashboard })));
 const ParcelDossierPACS = lazy(() => import("@/components/pacs/ParcelDossierPACS").then(m => ({ default: m.ParcelDossierPACS })));
 const NeighborhoodRollupDashboard = lazy(() => import("@/components/pacs/NeighborhoodRollupDashboard").then(m => ({ default: m.NeighborhoodRollupDashboard })));
+const ReconciliationDashboard = lazy(() => import("@/components/pacs/ReconciliationDashboard").then(m => ({ default: m.ReconciliationDashboard })));
 
 // ── Loading fallback ───────────────────────────────────────────────
 function StageFallback() {
@@ -333,6 +334,12 @@ export function AppLayout({ initialParcel: routeParcel, initialModule, initialFa
             return (
               <div className="p-6 max-w-7xl mx-auto">
                 <QualityGateDashboard />
+              </div>
+            );
+          case "reconciliation":
+            return (
+              <div className="p-6 max-w-7xl mx-auto">
+                <ReconciliationDashboard />
               </div>
             );
           case "sync":
