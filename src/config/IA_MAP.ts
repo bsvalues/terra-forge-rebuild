@@ -105,6 +105,7 @@ export const IA_MODULES: ModuleDefinition[] = [
       { id: "readiness", label: "Roll Readiness", icon: ShieldCheck, scope: "county" },
       { id: "geometry", label: "Geometry Health", icon: Hexagon, scope: "county" },
       { id: "neighborhoods", label: "Neighborhoods", icon: Map, scope: "county" },
+      { id: "nbhd-rollup", label: "Nbhd Rollup", icon: BarChart3, scope: "county" },
       { id: "launch-reval", label: "Launch Reval", icon: Zap, scope: "county" },
       { id: "reval-progress", label: "Reval Progress", icon: TrendingUp, scope: "county" },
       { id: "reval-report", label: "Reval Report", icon: FileText, scope: "county" },
@@ -203,6 +204,7 @@ export const LEGACY_REDIRECTS: LegacyRedirect[] = [
   { legacyId: "webhooks", targetModule: "home", targetView: "webhooks" },
   { legacyId: "data-doctor", targetModule: "home", targetView: "data-doctor" },
   { legacyId: "pacs-quality-gates", targetModule: "home", targetView: "pacs-quality-gates" },
+  { legacyId: "nbhd-rollup", targetModule: "home", targetView: "nbhd-rollup" },
   { legacyId: "pacs-dossier", targetModule: "workbench", targetView: "pacs-dossier" },
   // Factory absorbs these
   { legacyId: "vei", targetModule: "factory", targetView: "vei" },

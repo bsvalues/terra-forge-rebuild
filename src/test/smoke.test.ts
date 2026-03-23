@@ -28,7 +28,7 @@ describe("IA_MAP — Module Integrity", () => {
 
   it("home has 26 views", () => {
     const home = getModule("home");
-    expect(home.views.length).toBe(27);
+    expect(home.views.length).toBe(28);
   });
 
   it("workbench has property, pacs-dossier, field, compare views", () => {
@@ -73,9 +73,9 @@ describe("IA_MAP — Module Integrity", () => {
 });
 
 describe("IA_MAP — getAllViewIds", () => {
-  it("returns 45 total view IDs", () => {
+  it("returns 46 total view IDs", () => {
     const ids = getAllViewIds();
-    expect(ids.length).toBe(45);
+    expect(ids.length).toBe(46);
   });
 
   it("all IDs are non-empty strings", () => {

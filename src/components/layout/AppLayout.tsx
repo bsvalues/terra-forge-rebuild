@@ -73,6 +73,7 @@ const AxiomFSDashboard = lazy(() => import("@/components/axiomfs/AxiomFSDashboar
 // PACS views
 const QualityGateDashboard = lazy(() => import("@/components/pacs/QualityGateDashboard").then(m => ({ default: m.QualityGateDashboard })));
 const ParcelDossierPACS = lazy(() => import("@/components/pacs/ParcelDossierPACS").then(m => ({ default: m.ParcelDossierPACS })));
+const NeighborhoodRollupDashboard = lazy(() => import("@/components/pacs/NeighborhoodRollupDashboard").then(m => ({ default: m.NeighborhoodRollupDashboard })));
 
 // ── Loading fallback ───────────────────────────────────────────────
 function StageFallback() {
@@ -283,6 +284,12 @@ export function AppLayout({ initialParcel: routeParcel, initialModule, initialFa
             return <DataValidationPanel />;
           case "neighborhoods":
             return <NeighborhoodDirectoryPanel />;
+          case "nbhd-rollup":
+            return (
+              <div className="p-6 max-w-7xl mx-auto">
+                <NeighborhoodRollupDashboard />
+              </div>
+            );
           case "appeal-insights":
             return <AppealInsightsDashboard />;
           case "county-pipeline":
@@ -343,7 +350,7 @@ export function AppLayout({ initialParcel: routeParcel, initialModule, initialFa
         if (view === "pacs-dossier") {
           return (
             <div className="p-6 max-w-7xl mx-auto">
-              <ParcelDossierPACS propId={Number(pendingParcel?.id ?? 0)} />
+              <ParcelDossierPACS parcelId={pendingParcel?.id ?? null} />
             </div>
           );
         }

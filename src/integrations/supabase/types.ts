@@ -2814,6 +2814,7 @@ export type Database = {
           neighborhood_code: string | null
           parcel_geom_wgs84: unknown
           parcel_number: string
+          prop_id: number | null
           property_class: string | null
           situs_point_wgs84: unknown
           situs_source: string | null
@@ -2849,6 +2850,7 @@ export type Database = {
           neighborhood_code?: string | null
           parcel_geom_wgs84?: unknown
           parcel_number: string
+          prop_id?: number | null
           property_class?: string | null
           situs_point_wgs84?: unknown
           situs_source?: string | null
@@ -2884,6 +2886,7 @@ export type Database = {
           neighborhood_code?: string | null
           parcel_geom_wgs84?: unknown
           parcel_number?: string
+          prop_id?: number | null
           property_class?: string | null
           situs_point_wgs84?: unknown
           situs_source?: string | null
@@ -5369,6 +5372,61 @@ export type Database = {
           situs_address: string | null
           source_module: string | null
           source_system: string | null
+        }
+        Relationships: []
+      }
+      vw_neighborhood_land_summary: {
+        Row: {
+          hood_cd: string | null
+          parcel_count: number | null
+          total_acres: number | null
+          total_sqft: number | null
+          total_land_val: number | null
+          avg_land_val: number | null
+          total_ag_val: number | null
+          land_type_count: number | null
+        }
+        Relationships: []
+      }
+      vw_neighborhood_improvement_summary: {
+        Row: {
+          hood_cd: string | null
+          improved_parcel_count: number | null
+          total_improvements: number | null
+          total_imprv_val: number | null
+          avg_imprv_val: number | null
+          avg_living_area: number | null
+          avg_year_built: number | null
+          imprv_type_count: number | null
+        }
+        Relationships: []
+      }
+      vw_neighborhood_sales_summary: {
+        Row: {
+          hood_cd: string | null
+          sale_count: number | null
+          avg_sale_price: number | null
+          median_sale_price: number | null
+          earliest_sale: string | null
+          latest_sale: string | null
+          avg_ratio: number | null
+          median_ratio: number | null
+          iaao_band_count: number | null
+          iaao_band_pct: number | null
+        }
+        Relationships: []
+      }
+      vw_neighborhood_assessment_summary: {
+        Row: {
+          hood_cd: string | null
+          roll_year: number | null
+          parcel_count: number | null
+          total_appraised: number | null
+          avg_appraised: number | null
+          total_taxable: number | null
+          total_imprv_val: number | null
+          total_land_val: number | null
+          tax_area_count: number | null
         }
         Relationships: []
       }

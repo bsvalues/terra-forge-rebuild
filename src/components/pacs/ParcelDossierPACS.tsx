@@ -4,21 +4,45 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { PacsOwnerPanel } from "./PacsOwnerPanel";
 import { PacsSalesPanel } from "./PacsSalesPanel";
 import { PacsPropertyPanel } from "./PacsPropertyPanel";
-import { Users, DollarSign, Building } from "lucide-react";
+import { usePacsParcelBridge } from "@/hooks/usePacsParcelBridge";
+import { Users, DollarSign, Building, AlertTriangle } from "lucide-react";
 
 interface ParcelDossierPACSProps {
-  propId: number;
+  /** Supabase parcel UUID — auto-resolves to prop_id via bridge */
+  parcelId?: string | null;
+  /** Direct PACS prop_id — bypasses bridge resolution */
+  propId?: number | null;
   geoId?: string | null;
   hoodCd?: string | null;
 }
 
-export function ParcelDossierPACS({ propId, geoId, hoodCd }: ParcelDossierPACSProps) {
+export function ParcelDossierPACS({ parcelId, propId: directPropId, geoId, hoodCd }: ParcelDossierPACSProps) {
+  const bridge = usePacsParcelBridge(directPropId ? null : parcelId ?? null);
+  const resolvedPropId = directPropId ?? bridge.data?.prop_id ?? null;
+  const resolvedGeoId = geoId ?? bridge.data?.geo_id ?? null;
+
+  if (!directPropId && bridge.isLoading) {
+    return <Skeleton className="h-64 rounded-2xl" />;
+  }
+
+  if (!resolvedPropId) {
+    return (
+      <div className="flex items-center gap-3 p-6 text-muted-foreground">
+        <AlertTriangle className="w-5 h-5 text-yellow-400" />
+        <div>
+          <p className="font-medium">No PACS Link</p>
+          <p className="text-sm">This parcel has no linked PACS prop_id. It may not exist in the PACS system yet.</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-3">
         <h2 className="text-lg font-semibold">PACS Property Dossier</h2>
-        <span className="text-sm text-muted-foreground">Prop ID: {propId}</span>
-        {geoId && <span className="text-sm text-muted-foreground">Geo: {geoId}</span>}
+        <span className="text-sm text-muted-foreground">Prop ID: {resolvedPropId}</span>
+        {resolvedGeoId && <span className="text-sm text-muted-foreground">Geo: {resolvedGeoId}</span>}
       </div>
 
       <Tabs defaultValue="ownership" className="w-full">
@@ -39,19 +63,19 @@ export function ParcelDossierPACS({ propId, geoId, hoodCd }: ParcelDossierPACSPr
 
         <TabsContent value="ownership" className="mt-4">
           <Suspense fallback={<Skeleton className="h-64 rounded-2xl" />}>
-            <PacsOwnerPanel propId={propId} />
+            <PacsOwnerPanel propId={resolvedPropId} />
           </Suspense>
         </TabsContent>
 
         <TabsContent value="sales" className="mt-4">
           <Suspense fallback={<Skeleton className="h-64 rounded-2xl" />}>
-            <PacsSalesPanel propId={propId} hoodCd={hoodCd} />
+            <PacsSalesPanel propId={resolvedPropId} hoodCd={hoodCd} />
           </Suspense>
         </TabsContent>
 
         <TabsContent value="property" className="mt-4">
           <Suspense fallback={<Skeleton className="h-64 rounded-2xl" />}>
-            <PacsPropertyPanel propId={propId} />
+            <PacsPropertyPanel propId={resolvedPropId} />
           </Suspense>
         </TabsContent>
       </Tabs>
