@@ -42,9 +42,14 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable
 
-# ── Domain registry ───────────────────────────────────────────────────────────
+# ── County registry ───────────────────────────────────────────────────────────
 
 SCRIPTS_DIR = Path(__file__).parent
+
+try:
+    from scripts.county_registry import get_county, print_registry_table, COUNTY_REGISTRY
+except ImportError:
+    from county_registry import get_county, print_registry_table, COUNTY_REGISTRY  # type: ignore
 
 
 @dataclass
@@ -229,8 +234,26 @@ def main() -> int:
         action="store_true",
         help="Show per-row debug output",
     )
+    parser.add_argument(
+        "--list-counties",
+        dest="list_counties",
+        action="store_true",
+        help="Print all registered counties and exit",
+    )
 
     args = parser.parse_args()
+
+    # --list-counties: print registry and exit
+    if getattr(args, "list_counties", False):
+        print_registry_table()
+        return 0
+
+    # Validate --target against registry (only when not listing)
+    try:
+        _county = get_county(args.target)
+    except (ValueError, RuntimeError) as exc:
+        print(f"[seed] ERROR: {exc}")
+        return 1
 
     if args.verify:
         return run_verify(args.target, args.verbose)

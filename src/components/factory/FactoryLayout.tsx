@@ -12,11 +12,12 @@ import { IncomeMode } from "./income/IncomeMode";
 import { CompMode } from "./comps/CompMode";
 import { ScenarioMode } from "./scenarios/ScenarioMode";
 import { AdjustmentLedger } from "./AdjustmentLedger";
-import { BarChart3, DollarSign, Building2, Grid3X3, FlaskConical, Factory as FactoryIcon } from "lucide-react";
+import { BarChart3, DollarSign, Building2, Grid3X3, FlaskConical, Factory as FactoryIcon, SlidersHorizontal } from "lucide-react";
 import { ScopeHeader } from "@/components/trust";
 import { useCountyVitals } from "@/hooks/useCountyVitals";
+import { NeighborhoodFactorCalibration } from "./NeighborhoodFactorCalibration";
 
-export type FactoryMode = "regression" | "cost" | "income" | "comps" | "scenarios";
+export type FactoryMode = "regression" | "cost" | "income" | "comps" | "scenarios" | "calibration";
 
 interface FactoryLayoutProps {
   initialMode?: string;
@@ -28,9 +29,10 @@ const MODE_META: Record<FactoryMode, { label: string; icon: React.ElementType; d
   income:     { label: "Income", icon: Building2, description: "Cap rate & GRM valuation" },
   comps:      { label: "Comp Review", icon: Grid3X3, description: "Batch ratio review & adjustments" },
   scenarios:  { label: "Scenarios", icon: FlaskConical, description: "What-if impact analysis" },
+  calibration: { label: "Calibration", icon: SlidersHorizontal, description: "PRD/COD/median ratio study" },
 };
 
-const MODES: FactoryMode[] = ["regression", "cost", "income", "comps", "scenarios"];
+const MODES: FactoryMode[] = ["regression", "cost", "income", "comps", "scenarios", "calibration"];
 
 export function FactoryLayout({ initialMode }: FactoryLayoutProps) {
   const [activeMode, setActiveMode] = useState<FactoryMode>(
@@ -148,6 +150,8 @@ export function FactoryLayout({ initialMode }: FactoryLayoutProps) {
                   <IncomeMode neighborhoodCode={neighborhood} />
                 ) : mode === "comps" ? (
                   <CompMode neighborhoodCode={neighborhood} />
+                ) : mode === "calibration" ? (
+                  <NeighborhoodFactorCalibration />
                 ) : (
                   <ScenarioMode neighborhoodCode={neighborhood} />
                 )}
