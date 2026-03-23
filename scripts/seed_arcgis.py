@@ -21,13 +21,8 @@ from typing import Any
 import requests
 
 # ── Config ────────────────────────────────────────────────────────────
-SUPABASE_URL = "https://udjoodlluygvlqccwade.supabase.co"
-SERVICE_KEY = (
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9."
-    "eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVkam9vZGxsdXlndmxxY2N3YWRlIiwi"
-    "cm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDEyMTg5NywiZXhwIjoyMDg5"
-    "Njk3ODk3fQ.VSpL5LPWlhw93x9CJQ2ISSzYbeTpU_3L-7BvBDFcCKc"
-)
+SUPABASE_URL = os.environ["SUPABASE_URL"]
+SERVICE_KEY = os.environ["SUPABASE_SERVICE_ROLE_KEY"]
 REST = f"{SUPABASE_URL}/rest/v1"
 HEADERS = {
     "apikey": SERVICE_KEY,

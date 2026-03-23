@@ -1,5 +1,7 @@
-$sbKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVkam9vZGxsdXlndmxxY2N3YWRlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQxMjE4OTcsImV4cCI6MjA4OTY5Nzg5N30.Usa9Lr6LR2-3kxiIkrChWxWvesAOXhUMgSZW8aIfghg"
-$base = "https://udjoodlluygvlqccwade.supabase.co/rest/v1"
+$sbKey = $env:SUPABASE_SERVICE_ROLE_KEY
+if (-not $sbKey) { Write-Error "SUPABASE_SERVICE_ROLE_KEY not set"; exit 1 }
+$base = "$($env:SUPABASE_URL)/rest/v1"
+if (-not $env:SUPABASE_URL) { Write-Error "SUPABASE_URL not set"; exit 1 }
 $headers = @{
     "apikey" = $sbKey
     "Authorization" = "Bearer $sbKey"
