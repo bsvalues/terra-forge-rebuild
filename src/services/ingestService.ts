@@ -127,6 +127,166 @@ export async function upsertExemptions(
   return { imported, failed };
 }
 
+// ────────────────────────────────────────────────────────────
+// NEW PACS Domain Upserts — Legacy Knowledge Integration
+// ────────────────────────────────────────────────────────────
+
+/** Upsert PACS owners */
+export async function upsertPacsOwners(
+  records: Record<string, unknown>[],
+  batchSize = 500,
+  onProgress?: (pct: number) => void
+): Promise<{ imported: number; failed: number }> {
+  let imported = 0;
+  let failed = 0;
+
+  for (let i = 0; i < records.length; i += batchSize) {
+    const batch = records.slice(i, i + batchSize);
+    const { error } = await supabase.from("pacs_owners").upsert(batch as any[], {
+      onConflict: "county_id,prop_id,owner_id,owner_tax_yr,sup_num",
+    });
+    if (error) {
+      console.error("Owner batch error:", error.message);
+      failed += batch.length;
+    } else {
+      imported += batch.length;
+    }
+    onProgress?.(Math.round(((i + batch.length) / records.length) * 100));
+  }
+
+  return { imported, failed };
+}
+
+/** Upsert PACS qualified sales */
+export async function upsertPacsSales(
+  records: Record<string, unknown>[],
+  batchSize = 500,
+  onProgress?: (pct: number) => void
+): Promise<{ imported: number; failed: number }> {
+  let imported = 0;
+  let failed = 0;
+
+  for (let i = 0; i < records.length; i += batchSize) {
+    const batch = records.slice(i, i + batchSize);
+    const { error } = await supabase.from("pacs_sales").upsert(batch as any[], {
+      onConflict: "county_id,chg_of_owner_id,prop_id",
+    });
+    if (error) {
+      console.error("Sales batch error:", error.message);
+      failed += batch.length;
+    } else {
+      imported += batch.length;
+    }
+    onProgress?.(Math.round(((i + batch.length) / records.length) * 100));
+  }
+
+  return { imported, failed };
+}
+
+/** Upsert PACS land details */
+export async function upsertPacsLandDetails(
+  records: Record<string, unknown>[],
+  batchSize = 500,
+  onProgress?: (pct: number) => void
+): Promise<{ imported: number; failed: number }> {
+  let imported = 0;
+  let failed = 0;
+
+  for (let i = 0; i < records.length; i += batchSize) {
+    const batch = records.slice(i, i + batchSize);
+    const { error } = await supabase.from("pacs_land_details").upsert(batch as any[], {
+      onConflict: "county_id,prop_id,prop_val_yr,sup_num,land_seg_id",
+    });
+    if (error) {
+      console.error("Land detail batch error:", error.message);
+      failed += batch.length;
+    } else {
+      imported += batch.length;
+    }
+    onProgress?.(Math.round(((i + batch.length) / records.length) * 100));
+  }
+
+  return { imported, failed };
+}
+
+/** Upsert PACS improvements */
+export async function upsertPacsImprovements(
+  records: Record<string, unknown>[],
+  batchSize = 500,
+  onProgress?: (pct: number) => void
+): Promise<{ imported: number; failed: number }> {
+  let imported = 0;
+  let failed = 0;
+
+  for (let i = 0; i < records.length; i += batchSize) {
+    const batch = records.slice(i, i + batchSize);
+    const { error } = await supabase.from("pacs_improvements").upsert(batch as any[], {
+      onConflict: "county_id,prop_id,prop_val_yr,sup_num,imprv_id",
+    });
+    if (error) {
+      console.error("Improvement batch error:", error.message);
+      failed += batch.length;
+    } else {
+      imported += batch.length;
+    }
+    onProgress?.(Math.round(((i + batch.length) / records.length) * 100));
+  }
+
+  return { imported, failed };
+}
+
+/** Upsert PACS improvement details */
+export async function upsertPacsImprovementDetails(
+  records: Record<string, unknown>[],
+  batchSize = 500,
+  onProgress?: (pct: number) => void
+): Promise<{ imported: number; failed: number }> {
+  let imported = 0;
+  let failed = 0;
+
+  for (let i = 0; i < records.length; i += batchSize) {
+    const batch = records.slice(i, i + batchSize);
+    const { error } = await supabase.from("pacs_improvement_details").upsert(batch as any[], {
+      onConflict: "county_id,prop_id,prop_val_yr,sup_num,imprv_id,imprv_det_id",
+    });
+    if (error) {
+      console.error("Improvement detail batch error:", error.message);
+      failed += batch.length;
+    } else {
+      imported += batch.length;
+    }
+    onProgress?.(Math.round(((i + batch.length) / records.length) * 100));
+  }
+
+  return { imported, failed };
+}
+
+/** Upsert PACS assessment roll */
+export async function upsertPacsAssessmentRoll(
+  records: Record<string, unknown>[],
+  batchSize = 500,
+  onProgress?: (pct: number) => void
+): Promise<{ imported: number; failed: number }> {
+  let imported = 0;
+  let failed = 0;
+
+  for (let i = 0; i < records.length; i += batchSize) {
+    const batch = records.slice(i, i + batchSize);
+    const { error } = await supabase.from("pacs_assessment_roll").upsert(batch as any[], {
+      onConflict: "county_id,prop_id,roll_year",
+    });
+    if (error) {
+      console.error("Assessment roll batch error:", error.message);
+      failed += batch.length;
+    } else {
+      imported += batch.length;
+    }
+    onProgress?.(Math.round(((i + batch.length) / records.length) * 100));
+  }
+
+  return { imported, failed };
+}
+
 /** Resolve parcel IDs by parcel_number for a county (for PACS import) */
 export async function resolveParcelIds(countyId: string): Promise<Record<string, string>> {
   const lookup: Record<string, string> = {};

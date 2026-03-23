@@ -213,6 +213,173 @@ const gateValueSanity: QualityGateDefinition = {
 };
 
 // ============================================================
+// Owner Coverage Gate
+// ============================================================
+
+const gateOwnerCoverage: QualityGateDefinition = {
+  id: "owner_coverage",
+  name: "Owner coverage (owner_name + owner_id present)",
+  severity: "hard",
+  evaluate: (data) => {
+    const total = data.records.length;
+    const missing = data.records.filter(
+      (r) => !r.owner_name || !r.owner_id
+    ).length;
+    const missingRate = total > 0 ? missing / total : 0;
+    const threshold = 0.01;
+
+    return {
+      gateId: "owner_coverage",
+      name: "Owner coverage (owner_name + owner_id present)",
+      severity: "hard",
+      status: missingRate <= threshold ? "pass" : "fail",
+      actual: Math.round(missingRate * 100 * 100) / 100,
+      threshold: threshold * 100,
+      message: missingRate <= threshold
+        ? `${((1 - missingRate) * 100).toFixed(1)}% owner coverage`
+        : `${(missingRate * 100).toFixed(1)}% missing owners exceeds ${threshold * 100}% threshold`,
+      details: { total, missing },
+    };
+  },
+};
+
+// ============================================================
+// Sales Price Sanity Gate
+// ============================================================
+
+const gateSalesPriceSanity: QualityGateDefinition = {
+  id: "sales_price_sanity",
+  name: "Sales price sanity (reject if >5% sales ≤ $100)",
+  severity: "hard",
+  evaluate: (data) => {
+    const total = data.records.length;
+    const lowPrice = data.records.filter(
+      (r) => Number(r.sl_price ?? r.sale_price ?? 0) <= 100
+    ).length;
+    const lowRate = total > 0 ? lowPrice / total : 0;
+    const threshold = 0.05;
+
+    return {
+      gateId: "sales_price_sanity",
+      name: "Sales price sanity (reject if >5% sales ≤ $100)",
+      severity: "hard",
+      status: lowRate <= threshold ? "pass" : "fail",
+      actual: Math.round(lowRate * 100 * 100) / 100,
+      threshold: threshold * 100,
+      message: lowRate <= threshold
+        ? `${(lowRate * 100).toFixed(1)}% low-price sales — within tolerance`
+        : `${(lowRate * 100).toFixed(1)}% sales ≤ $100 — unqualified data may have leaked through`,
+      details: { total, lowPrice },
+    };
+  },
+};
+
+// ============================================================
+// IAAO Ratio Distribution Gate
+// ============================================================
+
+const gateRatioDistribution: QualityGateDefinition = {
+  id: "ratio_distribution",
+  name: "IAAO ratio distribution (median 0.90–1.10)",
+  severity: "soft",
+  evaluate: (data) => {
+    const ratios = data.records
+      .map((r) => Number(r.ratio ?? 0))
+      .filter((v) => v > 0 && v < 10)
+      .sort((a, b) => a - b);
+
+    if (ratios.length === 0) {
+      return {
+        gateId: "ratio_distribution",
+        name: "IAAO ratio distribution (median 0.90–1.10)",
+        severity: "soft",
+        status: "warn",
+        actual: 0,
+        threshold: 0,
+        message: "No valid ratios to evaluate",
+        details: { ratioCount: 0 },
+      };
+    }
+
+    const median = ratios[Math.floor(ratios.length / 2)];
+    const inBand = median >= 0.90 && median <= 1.10;
+
+    return {
+      gateId: "ratio_distribution",
+      name: "IAAO ratio distribution (median 0.90–1.10)",
+      severity: "soft",
+      status: inBand ? "pass" : "warn",
+      actual: Math.round(median * 10000) / 10000,
+      threshold: 1.0,
+      message: inBand
+        ? `Median ratio ${median.toFixed(4)} within IAAO band (0.90–1.10)`
+        : `Median ratio ${median.toFixed(4)} outside IAAO band (0.90–1.10)`,
+      details: { ratioCount: ratios.length, median, min: ratios[0], max: ratios[ratios.length - 1] },
+    };
+  },
+};
+
+// ============================================================
+// Land Segment Coverage Gate
+// ============================================================
+
+const gateLandSegmentCoverage: QualityGateDefinition = {
+  id: "land_segment_coverage",
+  name: "Land segment coverage (land_val present)",
+  severity: "soft",
+  evaluate: (data) => {
+    const total = data.records.length;
+    const missing = data.records.filter(
+      (r) => r.land_val == null || Number(r.land_val) === 0
+    ).length;
+    const missingRate = total > 0 ? missing / total : 0;
+    const threshold = 0.10;
+
+    return {
+      gateId: "land_segment_coverage",
+      name: "Land segment coverage (land_val present)",
+      severity: "soft",
+      status: missingRate <= threshold ? "pass" : "warn",
+      actual: Math.round(missingRate * 100 * 100) / 100,
+      threshold: threshold * 100,
+      message: `${(missingRate * 100).toFixed(1)}% land segments with zero/null value`,
+      details: { total, missing },
+    };
+  },
+};
+
+// ============================================================
+// Improvement Year Built Gate
+// ============================================================
+
+const gateImprovementYearBuilt: QualityGateDefinition = {
+  id: "imprv_year_built",
+  name: "Improvement year_built sanity",
+  severity: "soft",
+  evaluate: (data) => {
+    const currentYear = new Date().getFullYear();
+    const outOfRange = data.records.filter((r) => {
+      const yr = Number(r.actual_year_built ?? r.yr_built ?? 0);
+      return yr > 0 && (yr < 1700 || yr > currentYear + 2);
+    }).length;
+    const total = data.records.length;
+    const outRate = total > 0 ? outOfRange / total : 0;
+    const threshold = 0.02;
+
+    return {
+      gateId: "imprv_year_built",
+      name: "Improvement year_built sanity",
+      severity: "soft",
+      status: outRate <= threshold ? "pass" : "warn",
+      actual: Math.round(outRate * 100 * 100) / 100,
+      threshold: threshold * 100,
+      message: `${(outRate * 100).toFixed(1)}% improvements with out-of-range year_built`,
+      details: { total, outOfRange },
+    };
+  },
+};
+
+// ============================================================
 // Gate Registry — all gates for Benton products
 // ============================================================
 
@@ -222,6 +389,12 @@ export const BENTON_QUALITY_GATES: Record<string, QualityGateDefinition[]> = {
   pacs_workflow_appeals_current_year: [gateOneRowPerPropId],
   pacs_workflow_permits_open: [gatePermitCastSuccess],
   pacs_workflow_exemptions_pending: [gateOneRowPerPropId],
+  pacs_current_year_owners: [gateOneRowPerPropId, gateOwnerCoverage],
+  pacs_qualified_sales: [gateSalesPriceSanity, gateRatioDistribution],
+  pacs_land_details: [gateOneRowPerPropId, gateLandSegmentCoverage],
+  pacs_improvements: [gateOneRowPerPropId, gateImprovementYearBuilt],
+  pacs_improvement_details: [gateOneRowPerPropId, gateImprovementYearBuilt],
+  pacs_assessment_roll: [gateOneRowPerPropId, gateOwnerCoverage, gateValueSanity],
 };
 
 // ============================================================
@@ -339,6 +512,72 @@ export const PACS_SCHEMA_EXPECTATIONS: SchemaExpectation[] = [
       { name: "review_request_date", required: false, dataType: "datetime" },
       { name: "termination_dt", required: false, dataType: "datetime" },
       { name: "exemption_pct", required: false, dataType: "numeric" },
+    ],
+  },
+  {
+    table: "dbo.owner",
+    columns: [
+      { name: "prop_id", required: true, dataType: "int" },
+      { name: "owner_id", required: true, dataType: "int" },
+      { name: "owner_tax_yr", required: true, dataType: "numeric" },
+      { name: "sup_num", required: true, dataType: "int" },
+      { name: "pct_ownership", required: false, dataType: "numeric" },
+    ],
+  },
+  {
+    table: "dbo.account",
+    columns: [
+      { name: "acct_id", required: true, dataType: "int" },
+      { name: "file_as_name", required: true, dataType: "varchar" },
+    ],
+  },
+  {
+    table: "dbo.sale",
+    columns: [
+      { name: "chg_of_owner_id", required: true, dataType: "int" },
+      { name: "prop_id", required: true, dataType: "int" },
+      { name: "sl_price", required: true, dataType: "numeric" },
+      { name: "sl_dt", required: true, dataType: "datetime" },
+      { name: "sl_type_cd", required: false, dataType: "varchar" },
+      { name: "sl_county_ratio_cd", required: false, dataType: "varchar" },
+      { name: "sl_ratio_type_cd", required: false, dataType: "varchar" },
+    ],
+  },
+  {
+    table: "dbo.land_detail",
+    columns: [
+      { name: "prop_id", required: true, dataType: "int" },
+      { name: "prop_val_yr", required: true, dataType: "numeric" },
+      { name: "land_seg_id", required: true, dataType: "int" },
+      { name: "land_type_cd", required: false, dataType: "varchar" },
+      { name: "land_acres", required: false, dataType: "numeric" },
+      { name: "land_sqft", required: false, dataType: "numeric" },
+      { name: "land_val", required: false, dataType: "numeric" },
+      { name: "ag_val", required: false, dataType: "numeric" },
+    ],
+  },
+  {
+    table: "dbo.imprv",
+    columns: [
+      { name: "prop_id", required: true, dataType: "int" },
+      { name: "prop_val_yr", required: true, dataType: "numeric" },
+      { name: "imprv_id", required: true, dataType: "int" },
+      { name: "imprv_type_cd", required: false, dataType: "varchar" },
+      { name: "imprv_val", required: false, dataType: "numeric" },
+      { name: "imprv_val_source", required: false, dataType: "varchar" },
+    ],
+  },
+  {
+    table: "dbo.imprv_detail",
+    columns: [
+      { name: "prop_id", required: true, dataType: "int" },
+      { name: "prop_val_yr", required: true, dataType: "numeric" },
+      { name: "imprv_id", required: true, dataType: "int" },
+      { name: "imprv_det_id", required: true, dataType: "int" },
+      { name: "living_area", required: false, dataType: "numeric" },
+      { name: "yr_built", required: false, dataType: "numeric" },
+      { name: "num_bedrooms", required: false, dataType: "numeric" },
+      { name: "total_bath", required: false, dataType: "numeric" },
     ],
   },
 ];

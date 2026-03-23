@@ -243,7 +243,7 @@ export const PACS_EXPORT_GUIDE = {
 FROM property p
 LEFT JOIN property_val pv ON p.prop_id = pv.prop_id AND pv.prop_val_yr = (SELECT MAX(prop_val_yr) FROM property_val)
 LEFT JOIN improvement i ON p.prop_id = i.prop_id AND i.imprv_type_cd = 'MA'
-WHERE p.prop_inactive_dt IS NULL`,
+WHERE pv.prop_inactive_dt IS NULL`,
     
     sales: `SELECT s.prop_id, s.sl_dt, s.sl_price, s.sl_type_cd,
   s.grantor_name, s.grantee_name, s.deed_type_cd, s.instrument_num,
@@ -372,10 +372,10 @@ SELECT
   pv.prop_val_yr AS [year],
   pv.hood_cd,
   COUNT(*) AS parcels,
-  AVG(pv.total_val) AS avg_total_value,
-  MIN(pv.total_val) AS min_total_value,
-  MAX(pv.total_val) AS max_total_value,
-  SUM(pv.total_val) AS sum_total_value
+  AVG(pv.appraised_val) AS avg_total_value,
+  MIN(pv.appraised_val) AS min_total_value,
+  MAX(pv.appraised_val) AS max_total_value,
+  SUM(pv.appraised_val) AS sum_total_value
 FROM dbo.property_val pv
 WHERE pv.prop_val_yr = ${year}
 GROUP BY pv.prop_val_yr, pv.hood_cd;`,
@@ -391,17 +391,17 @@ WITH ranked AS (
     pv.prop_id,
     p.geo_id,
     pv.hood_cd,
-    pv.total_val,
-    pv.land_val,
-    pv.total_imprv_val AS imprv_val,
+    pv.appraised_val AS total_val,
+    pv.land_hstd_val AS land_val,
+    pv.imprv_val,
     pv.prop_val_yr AS [year],
     ROW_NUMBER() OVER (PARTITION BY pv.prop_id ORDER BY pv.sup_num ASC) AS rn
   FROM dbo.property_val pv
   JOIN dbo.property p ON p.prop_id = pv.prop_id
   WHERE pv.prop_val_yr = ${year}
-    AND p.prop_inactive_dt IS NULL
+    AND pv.prop_inactive_dt IS NULL
 )
-SELECT prop_id, geo_id, hood_cd, total_val, land_val, imprv_val, [year]
+SELECT prop_id, geo_id, hood_cd, total_val AS total_val, land_val, imprv_val, [year]
 FROM ranked
 WHERE rn = 1;`,
 
@@ -415,13 +415,246 @@ SELECT
   pv.sup_num,
   p.geo_id,
   pv.hood_cd,
-  pv.total_val,
-  pv.land_val,
-  pv.total_imprv_val AS imprv_val,
+  pv.appraised_val AS total_val,
+  pv.land_hstd_val AS land_val,
+  pv.imprv_val,
   pv.prop_val_yr AS year
 FROM dbo.property_val pv
 JOIN dbo.property p ON p.prop_id = pv.prop_id
 WHERE pv.prop_val_yr = ${year};`,
+
+  /** Hood analysis — full hood profile with valuations + sales ratio (from legacy appraise_hoods.sql) */
+  hoodAnalysis: (year: number) => `
+SELECT
+  pv.hood_cd,
+  n.hood_name,
+  COUNT(DISTINCT pv.prop_id) AS parcel_count,
+  AVG(pv.appraised_val) AS avg_total_val,
+  AVG(pv.land_hstd_val) AS avg_land_val,
+  AVG(pv.imprv_val) AS avg_imprv_val,
+  SUM(CASE WHEN i.imprv_val_source = 'F' THEN 1 ELSE 0 END) AS flat_value_count,
+  COUNT(DISTINCT copa.chg_of_owner_id) AS sale_count,
+  AVG(CASE WHEN s.sl_price > 100 AND s.sl_county_ratio_cd IN ('01','02')
+    THEN CAST(pv.total_val AS FLOAT) / NULLIF(s.sl_price, 0) END) AS avg_ratio
+FROM dbo.property_val pv
+JOIN dbo.property p ON p.prop_id = pv.prop_id
+JOIN dbo.neighborhood n ON n.hood_cd = pv.hood_cd AND n.hood_yr = pv.prop_val_yr
+LEFT JOIN dbo.imprv i ON i.prop_id = pv.prop_id AND i.prop_val_yr = pv.prop_val_yr
+  AND i.sup_num = pv.sup_num AND (i.sale_id = 0 OR i.sale_id IS NULL)
+LEFT JOIN dbo.chg_of_owner_prop_assoc copa ON copa.prop_id = pv.prop_id
+LEFT JOIN dbo.sale s ON s.chg_of_owner_id = copa.chg_of_owner_id
+  AND s.prop_id = copa.prop_id
+WHERE pv.prop_val_yr = ${year}
+  AND pv.prop_inactive_dt IS NULL
+GROUP BY pv.hood_cd, n.hood_name;`,
+};
+
+// ============================================================
+// PACS Owner Extraction Queries (from legacy ownership.sql)
+// ============================================================
+export const PACS_OWNER_QUERIES = {
+  /** Current year owners — one row per prop_id + owner_id */
+  currentYearOwners: (year: number) => `
+WITH substantive_year AS (
+  SELECT TOP 1 owner_tax_yr
+  FROM dbo.owner
+  GROUP BY owner_tax_yr
+  HAVING COUNT(*) >= 1000
+  ORDER BY owner_tax_yr DESC
+)
+SELECT
+  o.prop_id,
+  o.owner_id,
+  a.file_as_name AS owner_name,
+  o.pct_ownership,
+  o.owner_tax_yr,
+  o.sup_num
+FROM dbo.owner o
+JOIN dbo.account a ON a.acct_id = o.owner_id
+CROSS JOIN substantive_year sy
+WHERE o.owner_tax_yr = sy.owner_tax_yr;`,
+
+  /** Fractional owners (pct_ownership <> 100) for a specific year */
+  fractionalOwners: (year: number) => `
+SELECT o.prop_id, o.owner_id, a.file_as_name AS owner_name, o.pct_ownership
+FROM dbo.owner o
+JOIN dbo.account a ON a.acct_id = o.owner_id
+JOIN dbo.property_val pv ON pv.prop_id = o.prop_id
+  AND pv.prop_val_yr = o.owner_tax_yr AND pv.sup_num = o.sup_num
+JOIN dbo.prop_supp_assoc psa ON psa.prop_id = pv.prop_id
+  AND psa.owner_tax_yr = pv.prop_val_yr AND psa.sup_num = pv.sup_num
+JOIN dbo.property p ON p.prop_id = pv.prop_id
+WHERE pv.prop_val_yr = ${year}
+  AND ISNULL(o.pct_ownership, 0) <> 100
+  AND pv.prop_inactive_dt IS NULL;`,
+};
+
+// ============================================================
+// PACS Sales Extraction Queries (from legacy Sales Ratio + Land Sales)
+// ============================================================
+export const PACS_SALES_QUERIES = {
+  /** Qualified sales with IAAO ratio calculation */
+  qualifiedSales: (year: number) => `
+SELECT
+  s.chg_of_owner_id,
+  copa.prop_id,
+  p.geo_id,
+  s.sl_price,
+  s.sl_dt,
+  s.sl_type_cd,
+  s.sl_county_ratio_cd,
+  s.sl_ratio_type_cd,
+  pv.appraised_val AS market_value,
+  pv.hood_cd,
+  CASE WHEN pv.appraised_val <> 0
+    THEN CAST(pv.appraised_val AS FLOAT) / NULLIF(s.sl_price, 0)
+    ELSE NULL
+  END AS ratio
+FROM dbo.sale s
+JOIN dbo.chg_of_owner_prop_assoc copa ON copa.chg_of_owner_id = s.chg_of_owner_id
+  AND copa.prop_id = s.prop_id
+JOIN dbo.property p ON p.prop_id = copa.prop_id
+JOIN dbo.property_val pv ON pv.prop_id = copa.prop_id AND pv.prop_val_yr = ${year}
+WHERE s.sl_county_ratio_cd IN ('01','02')
+  AND s.sl_price > 100
+  AND YEAR(s.sl_dt) >= ${year} - 2
+  AND pv.prop_inactive_dt IS NULL;`,
+
+  /** Most recent qualified sale per property */
+  recentSaleByProp: (year: number) => `
+WITH ranked AS (
+  SELECT
+    copa.prop_id, s.sl_price, s.sl_dt, s.sl_type_cd,
+    ROW_NUMBER() OVER (PARTITION BY copa.prop_id ORDER BY s.sl_dt DESC) AS rn
+  FROM dbo.sale s
+  JOIN dbo.chg_of_owner_prop_assoc copa ON copa.chg_of_owner_id = s.chg_of_owner_id
+    AND copa.prop_id = s.prop_id
+  WHERE s.sl_price > 0 AND YEAR(s.sl_dt) >= ${year} - 3
+)
+SELECT prop_id, sl_price, sl_dt, sl_type_cd
+FROM ranked WHERE rn = 1;`,
+};
+
+// ============================================================
+// PACS Land Detail Queries (from legacy land and ag schedules)
+// ============================================================
+export const PACS_LAND_QUERIES = {
+  /** Land detail segments with schedule lookups */
+  landDetails: (year: number) => `
+WITH substantive_year AS (
+  SELECT TOP 1 prop_val_yr
+  FROM dbo.land_detail
+  GROUP BY prop_val_yr
+  HAVING COUNT(*) >= 1000
+  ORDER BY prop_val_yr DESC
+)
+SELECT
+  ld.prop_id, ld.prop_val_yr, ld.sup_num,
+  ld.land_seg_id, ld.land_type_cd, ld.land_class_code,
+  ld.land_soil_code, ld.size_acres AS land_acres, ld.size_square_feet AS land_sqft,
+  ld.land_adj_factor, ld.num_lots,
+  ld.mkt_unit_price AS land_unit_price, ld.land_seg_mkt_val AS land_val,
+  ld.ag_val,
+  ls_mkt.ls_code AS market_schedule,
+  ls_ag.ls_code AS ag_schedule
+FROM dbo.land_detail ld
+CROSS JOIN substantive_year sy
+LEFT JOIN dbo.land_sched ls_mkt ON ls_mkt.ls_id = ld.ls_mkt_id
+  AND ls_mkt.ls_year = ld.prop_val_yr
+LEFT JOIN dbo.land_sched ls_ag ON ls_ag.ls_id = ld.ls_ag_id
+  AND ls_ag.ls_year = ld.prop_val_yr
+WHERE ld.prop_val_yr = sy.prop_val_yr
+  AND (ld.sale_id = 0 OR ld.sale_id IS NULL);`,
+};
+
+// ============================================================
+// PACS Improvement Queries (from legacy res_condensed + Res_withPopulation)
+// ============================================================
+export const PACS_IMPROVEMENT_QUERIES = {
+  /** Improvement headers (1 per improvement per property) */
+  improvements: (year: number) => `
+WITH substantive_year AS (
+  SELECT TOP 1 prop_val_yr
+  FROM dbo.imprv
+  GROUP BY prop_val_yr
+  HAVING COUNT(*) >= 1000
+  ORDER BY prop_val_yr DESC
+)
+SELECT
+  i.prop_id, i.prop_val_yr, i.sup_num, i.imprv_id,
+  i.imprv_type_cd, i.imprv_desc,
+  i.imprv_val, i.flat_val, i.imprv_val_source,
+  i.economic_pct, i.physical_pct, i.functional_pct
+FROM dbo.imprv i
+CROSS JOIN substantive_year sy
+WHERE i.prop_val_yr = sy.prop_val_yr
+  AND (i.sale_id = 0 OR i.sale_id IS NULL)
+  AND i.imprv_desc NOT LIKE '%SOH%';`,
+
+  /** Improvement details (beds, baths, living area, condition) */
+  improvementDetails: (year: number) => `
+WITH substantive_year AS (
+  SELECT TOP 1 prop_val_yr
+  FROM dbo.imprv_detail
+  GROUP BY prop_val_yr
+  HAVING COUNT(*) >= 1000
+  ORDER BY prop_val_yr DESC
+)
+SELECT
+  id2.prop_id, id2.prop_val_yr, id2.sup_num,
+  id2.imprv_id, id2.imprv_det_id,
+  id2.imprv_det_type_cd, id2.imprv_det_class_cd,
+  id2.imprv_det_area, id2.imprv_det_val,
+  id2.yr_built AS actual_year_built,
+  id2.yr_remodel, id2.condition_cd,
+  id2.imprv_det_quality_cd,
+  id2.living_area,
+  id2.num_bedrooms, id2.total_bath
+FROM dbo.imprv_detail id2
+CROSS JOIN substantive_year sy
+WHERE id2.prop_val_yr = sy.prop_val_yr
+  AND (id2.sale_id = 0 OR id2.sale_id IS NULL);`,
+};
+
+// ============================================================
+// PACS Assessment Roll Queries (from legacy Real_Prop_Monitor)
+// ============================================================
+export const PACS_ROLL_QUERIES = {
+  /** DOR-style assessment roll monitor — full property snapshot */
+  assessmentRoll: (year: number) => `
+SELECT
+  pv.prop_id,
+  p.geo_id,
+  o.owner_id,
+  a.file_as_name AS owner_name,
+  wpov.imprv_hstd_val, wpov.imprv_non_hstd_val,
+  wpov.land_hstd_val, wpov.land_non_hstd_val,
+  wpov.timber_market, wpov.ag_market,
+  wpov.appraised_classified, wpov.appraised_non_classified,
+  wpov.taxable_classified, wpov.taxable_non_classified,
+  ta.tax_area_id, ta.tax_area_desc,
+  s.situs_display,
+  pp.property_use_cd, pp.state_cd
+FROM dbo.property_val pv
+JOIN dbo.prop_supp_assoc psa ON psa.prop_id = pv.prop_id
+  AND psa.owner_tax_yr = pv.prop_val_yr AND psa.sup_num = pv.sup_num
+JOIN dbo.property p ON p.prop_id = pv.prop_id
+JOIN dbo.owner o ON o.prop_id = pv.prop_id
+  AND o.owner_tax_yr = pv.prop_val_yr AND o.sup_num = pv.sup_num
+JOIN dbo.account a ON a.acct_id = o.owner_id
+LEFT JOIN dbo.wash_prop_owner_val wpov ON wpov.prop_id = pv.prop_id
+  AND wpov.prop_val_yr = pv.prop_val_yr AND wpov.sup_num = pv.sup_num
+  AND wpov.owner_id = o.owner_id
+LEFT JOIN dbo.wash_prop_owner_tax_area_assoc wptaa ON wptaa.prop_id = pv.prop_id
+  AND wptaa.prop_val_yr = pv.prop_val_yr AND wptaa.sup_num = pv.sup_num
+  AND wptaa.owner_id = o.owner_id
+LEFT JOIN dbo.tax_area ta ON ta.tax_area_id = wptaa.tax_area_id
+LEFT JOIN dbo.situs s ON s.prop_id = pv.prop_id AND s.primary_situs = 'Y'
+LEFT JOIN dbo.property_profile pp ON pp.prop_id = pv.prop_id
+  AND pp.prop_val_yr = pv.prop_val_yr AND pp.sup_num = pv.sup_num
+WHERE pv.prop_val_yr = ${year}
+  AND pv.prop_inactive_dt IS NULL
+  AND p.prop_type_cd IN ('R', 'MH');`,
 };
 
 /** PACS table mapping for neighborhoods dimension */

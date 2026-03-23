@@ -30,6 +30,13 @@ import {
   detectSchemaDrift,
 } from "@/config/pacsQualityGates";
 import { PACS_NEIGHBORHOOD_QUERIES } from "@/config/pacsFieldMappings";
+import {
+  PACS_OWNER_QUERIES,
+  PACS_SALES_QUERIES,
+  PACS_LAND_QUERIES,
+  PACS_IMPROVEMENT_QUERIES,
+  PACS_ROLL_QUERIES,
+} from "@/config/pacsFieldMappings";
 import { PACS_WORKFLOW_QUERIES } from "@/config/pacsWorkflowMappings";
 
 // ============================================================
@@ -115,6 +122,26 @@ WHERE p.prop_inactive_dt IS NULL;`;
 
     case "pacs_workflow_exemptions_pending":
       return PACS_WORKFLOW_QUERIES.exemptions(year);
+
+    // ── New products: legacy PACS knowledge integration ──
+
+    case "pacs_current_year_owners":
+      return PACS_OWNER_QUERIES.currentYearOwners(year);
+
+    case "pacs_qualified_sales":
+      return PACS_SALES_QUERIES.qualifiedSales(year);
+
+    case "pacs_land_details":
+      return PACS_LAND_QUERIES.landDetails(year);
+
+    case "pacs_improvements":
+      return PACS_IMPROVEMENT_QUERIES.improvements(year);
+
+    case "pacs_improvement_details":
+      return PACS_IMPROVEMENT_QUERIES.improvementDetails(year);
+
+    case "pacs_assessment_roll":
+      return PACS_ROLL_QUERIES.assessmentRoll(year);
 
     default:
       return null;
