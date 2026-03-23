@@ -125,6 +125,7 @@ export const IA_MODULES: ModuleDefinition[] = [
       { id: "pacs-analytics", label: "PACS Analytics", icon: Activity, scope: "county" },
       { id: "value-change", label: "Value Change Tracker", icon: TrendingUp, scope: "county" },
       { id: "ratio-study", label: "Ratio Study", icon: BarChart3, scope: "county" },
+      { id: "exemption-analysis", label: "Exemption Analysis", icon: ShieldCheck, scope: "county" },
       { id: "settings", label: "Settings", icon: Settings, scope: "county" },
     ],
   },
@@ -213,6 +214,7 @@ export const LEGACY_REDIRECTS: LegacyRedirect[] = [
   { legacyId: "pacs-analytics", targetModule: "home", targetView: "pacs-analytics" },
   { legacyId: "value-change", targetModule: "home", targetView: "value-change" },
   { legacyId: "ratio-study", targetModule: "home", targetView: "ratio-study" },
+  { legacyId: "exemption-analysis", targetModule: "home", targetView: "exemption-analysis" },
   { legacyId: "pacs-dossier", targetModule: "workbench", targetView: "pacs-dossier" },
   // Factory absorbs these
   { legacyId: "vei", targetModule: "factory", targetView: "vei" },

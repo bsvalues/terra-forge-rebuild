@@ -5898,6 +5898,67 @@ export type Database = {
         }
         Relationships: []
       }
+      vw_exemption_county_summary: {
+        Row: {
+          tax_year: number
+          county_id: string | null
+          total_count: number | null
+          approved_count: number | null
+          pending_count: number | null
+          denied_count: number | null
+          parcel_count: number | null
+          total_exemption_value: number | null
+          avg_exemption_amount: number | null
+          avg_exemption_pct: number | null
+          distinct_types: number | null
+          total_assessed_roll: number | null
+          pct_of_assessed_roll: number | null
+        }
+        Relationships: []
+      }
+      vw_exemption_by_type: {
+        Row: {
+          tax_year: number | null
+          county_id: string | null
+          exemption_type: string | null
+          total_count: number | null
+          approved_count: number | null
+          pending_count: number | null
+          denied_count: number | null
+          parcel_count: number | null
+          total_exemption_value: number | null
+          avg_exemption_amount: number | null
+          min_exemption_amount: number | null
+          max_exemption_amount: number | null
+          avg_exemption_pct: number | null
+          total_assessed_in_type: number | null
+        }
+        Relationships: []
+      }
+      vw_exemption_detail: {
+        Row: {
+          exemption_id: string
+          parcel_id: string | null
+          parcel_number: string | null
+          address: string | null
+          neighborhood_code: string | null
+          county_id: string | null
+          assessed_value: number | null
+          property_class: string | null
+          exemption_type: string | null
+          exemption_amount: number | null
+          exemption_percentage: number | null
+          status: string | null
+          tax_year: number | null
+          application_date: string | null
+          approval_date: string | null
+          expiration_date: string | null
+          applicant_name: string | null
+          notes: string | null
+          computed_pct_of_assessed: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       _postgis_deprecate: {

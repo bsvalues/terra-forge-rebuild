@@ -78,6 +78,7 @@ const ReconciliationDashboard = lazy(() => import("@/components/pacs/Reconciliat
 const PacsAnalyticsDashboard = lazy(() => import("@/components/pacs/PacsAnalyticsDashboard").then(m => ({ default: m.PacsAnalyticsDashboard })));
 const ValueChangeDashboard = lazy(() => import("@/components/assessment/ValueChangeDashboard").then(m => ({ default: m.ValueChangeDashboard })));
 const SalesRatioStudy = lazy(() => import("@/components/analytics/SalesRatioStudy").then(m => ({ default: m.SalesRatioStudy })));
+const ExemptionAnalysis = lazy(() => import("@/components/assessment/ExemptionAnalysis").then(m => ({ default: m.ExemptionAnalysis })));
 
 // ── Loading fallback ───────────────────────────────────────────────
 function StageFallback() {
@@ -361,6 +362,12 @@ export function AppLayout({ initialParcel: routeParcel, initialModule, initialFa
             return (
               <div className="p-6 max-w-7xl mx-auto">
                 <SalesRatioStudy />
+              </div>
+            );
+          case "exemption-analysis":
+            return (
+              <div className="p-6 max-w-7xl mx-auto">
+                <ExemptionAnalysis />
               </div>
             );
           case "sync":
