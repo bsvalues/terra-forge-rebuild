@@ -42,7 +42,7 @@ function BridgeCoverageCard() {
     <Card>
       <CardHeader className="pb-2">
         <CardTitle className="text-sm flex items-center gap-2">
-          PACS ↔ TerraForge Bridge
+          Legacy ↔ TerraFusion Bridge
           <CoverageBadge pct={data.link_coverage_pct} />
         </CardTitle>
       </CardHeader>
@@ -57,19 +57,19 @@ function BridgeCoverageCard() {
             <p className="font-semibold text-green-600">{fmt(data.linked_parcels)}</p>
           </div>
           <div>
-            <span className="text-muted-foreground">PACS Owners</span>
+            <span className="text-muted-foreground">Legacy Owners</span>
             <p className="font-semibold">{fmt(data.pacs_owner_props)} props</p>
           </div>
           <div>
-            <span className="text-muted-foreground">PACS Assessed</span>
+            <span className="text-muted-foreground">Legacy Assessed</span>
             <p className="font-semibold">{fmt(data.pacs_assessed_props)} props</p>
           </div>
           <div>
-            <span className="text-muted-foreground">PACS Sales</span>
+            <span className="text-muted-foreground">Legacy Sales</span>
             <p className="font-semibold">{fmt(data.pacs_sales_props)} props</p>
           </div>
           <div>
-            <span className="text-muted-foreground">PACS Profiles</span>
+            <span className="text-muted-foreground">Legacy Profiles</span>
             <p className="font-semibold">{fmt(data.pacs_profile_props)} props</p>
           </div>
         </div>
@@ -252,9 +252,9 @@ export function PacsAnalyticsDashboard() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-semibold">PACS Analytics</h2>
+        <h2 className="text-xl font-semibold">Legacy Analytics</h2>
         <p className="text-sm text-muted-foreground">
-          County-wide PACS data overview — table health, bridge coverage, value
+          County-wide legacy system data overview — table health, bridge coverage, value
           distributions, sales activity, and owner search.
         </p>
       </div>

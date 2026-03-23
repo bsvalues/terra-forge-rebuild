@@ -31,8 +31,8 @@ export function ParcelDossierPACS({ parcelId, propId: directPropId, geoId, hoodC
       <div className="flex items-center gap-3 p-6 text-muted-foreground">
         <AlertTriangle className="w-5 h-5 text-yellow-400" />
         <div>
-          <p className="font-medium">No PACS Link</p>
-          <p className="text-sm">This parcel has no linked PACS prop_id. It may not exist in the PACS system yet.</p>
+          <p className="font-medium">No Legacy Link</p>
+          <p className="text-sm">This parcel has no linked legacy record. It may not exist in the source system yet.</p>
         </div>
       </div>
     );
@@ -41,7 +41,7 @@ export function ParcelDossierPACS({ parcelId, propId: directPropId, geoId, hoodC
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-3">
-        <h2 className="text-lg font-semibold">PACS Property Dossier</h2>
+        <h2 className="text-lg font-semibold">Legacy Source Record</h2>
         <span className="text-sm text-muted-foreground">Prop ID: {resolvedPropId}</span>
         {resolvedGeoId && <span className="text-sm text-muted-foreground">Geo: {resolvedGeoId}</span>}
       </div>

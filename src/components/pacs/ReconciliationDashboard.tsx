@@ -55,7 +55,7 @@ function SummaryCards({ rows }: { rows: ReconciliationSummary[] | AssessmentReco
         <CardContent><span className="text-2xl font-bold text-yellow-600">{fmt(tfOnly)}</span></CardContent>
       </Card>
       <Card>
-        <CardHeader className="pb-1"><CardTitle className="text-sm text-muted-foreground">PACS Only</CardTitle></CardHeader>
+        <CardHeader className="pb-1"><CardTitle className="text-sm text-muted-foreground">Legacy Only</CardTitle></CardHeader>
         <CardContent><span className="text-2xl font-bold text-red-600">{fmt(pacsOnly)}</span></CardContent>
       </Card>
     </div>
@@ -118,8 +118,8 @@ function SalesTab() {
                 <th className="px-3 py-2 text-left">Parcel #</th>
                 <th className="px-3 py-2 text-left">TF Date</th>
                 <th className="px-3 py-2 text-right">TF Price</th>
-                <th className="px-3 py-2 text-left">PACS Date</th>
-                <th className="px-3 py-2 text-right">PACS Price</th>
+                <th className="px-3 py-2 text-left">Legacy Date</th>
+                <th className="px-3 py-2 text-right">Legacy Price</th>
                 <th className="px-3 py-2 text-right">Δ Price</th>
                 <th className="px-3 py-2 text-right">Δ Days</th>
               </tr>
@@ -198,7 +198,7 @@ function AssessmentsTab() {
                 <th className="px-3 py-2 text-left">Parcel #</th>
                 <th className="px-3 py-2 text-right">Year</th>
                 <th className="px-3 py-2 text-right">TF Total</th>
-                <th className="px-3 py-2 text-right">PACS Appraised</th>
+                <th className="px-3 py-2 text-right">Legacy Appraised</th>
                 <th className="px-3 py-2 text-right">Δ Total</th>
                 <th className="px-3 py-2 text-right">Δ Land</th>
                 <th className="px-3 py-2 text-right">Δ Impr</th>
@@ -231,7 +231,7 @@ export function ReconciliationDashboard() {
       <div>
         <h2 className="text-xl font-semibold">Data Reconciliation</h2>
         <p className="text-sm text-muted-foreground">
-          Cross-reference TerraForge canonical tables with PACS domain data.
+          Cross-reference TerraFusion canonical tables with legacy system data.
           Identify matches, gaps, and value discrepancies.
         </p>
       </div>
