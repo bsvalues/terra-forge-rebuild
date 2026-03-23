@@ -5833,6 +5833,71 @@ export type Database = {
         }
         Relationships: []
       }
+      vw_sales_ratio_county_summary: {
+        Row: {
+          county_id: string | null
+          sale_year: number
+          total_sales: number | null
+          qualified_sales: number | null
+          median_ratio: number | null
+          mean_ratio: number | null
+          stddev_ratio: number | null
+          min_ratio: number | null
+          max_ratio: number | null
+          cod: number | null
+          prd: number | null
+          total_sale_volume: number | null
+          total_assessed: number | null
+          within_10pct_pct: number | null
+        }
+        Relationships: []
+      }
+      vw_sales_ratio_by_neighborhood: {
+        Row: {
+          county_id: string | null
+          sale_year: number | null
+          neighborhood_code: string | null
+          sale_count: number | null
+          qualified_count: number | null
+          median_ratio: number | null
+          mean_ratio: number | null
+          stddev_ratio: number | null
+          min_ratio: number | null
+          max_ratio: number | null
+          cod: number | null
+          prd: number | null
+          within_10pct_pct: number | null
+          cod_iaao_grade: string | null
+          prd_iaao_grade: string | null
+          median_iaao_grade: string | null
+        }
+        Relationships: []
+      }
+      vw_sales_ratio_detail: {
+        Row: {
+          sale_id: string
+          parcel_id: string | null
+          parcel_number: string | null
+          address: string | null
+          neighborhood_code: string | null
+          county_id: string | null
+          sale_date: string | null
+          sale_year: number | null
+          sale_price: number | null
+          deed_type: string | null
+          is_qualified: boolean | null
+          assessment_id: string | null
+          tax_year: number | null
+          assessed_value: number | null
+          land_value: number | null
+          improvement_value: number | null
+          certified: boolean | null
+          ratio: number | null
+          value_delta: number | null
+          pct_over_under: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       _postgis_deprecate: {

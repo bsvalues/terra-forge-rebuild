@@ -77,6 +77,7 @@ const NeighborhoodRollupDashboard = lazy(() => import("@/components/pacs/Neighbo
 const ReconciliationDashboard = lazy(() => import("@/components/pacs/ReconciliationDashboard").then(m => ({ default: m.ReconciliationDashboard })));
 const PacsAnalyticsDashboard = lazy(() => import("@/components/pacs/PacsAnalyticsDashboard").then(m => ({ default: m.PacsAnalyticsDashboard })));
 const ValueChangeDashboard = lazy(() => import("@/components/assessment/ValueChangeDashboard").then(m => ({ default: m.ValueChangeDashboard })));
+const SalesRatioStudy = lazy(() => import("@/components/analytics/SalesRatioStudy").then(m => ({ default: m.SalesRatioStudy })));
 
 // ── Loading fallback ───────────────────────────────────────────────
 function StageFallback() {
@@ -354,6 +355,12 @@ export function AppLayout({ initialParcel: routeParcel, initialModule, initialFa
             return (
               <div className="p-6 max-w-7xl mx-auto">
                 <ValueChangeDashboard />
+              </div>
+            );
+          case "ratio-study":
+            return (
+              <div className="p-6 max-w-7xl mx-auto">
+                <SalesRatioStudy />
               </div>
             );
           case "sync":
