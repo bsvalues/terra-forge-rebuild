@@ -2,16 +2,16 @@
 > **Purpose**: Track implementation progress against plan.md.
 
 **Created**: 2026-02-07  
-**Last Updated**: 2026-03-21  
+**Last Updated**: 2026-03-23  
 **Agent**: GitHub Copilot (Claude Opus 4.6)
 
 ---
 
 ## Current State Summary
 
-**Active Phase**: ALL PHASES COMPLETE (22–129)  
-**Last Completed Task**: Phase 127 — Owner Communication Log (final wave)  
-**Next Task**: None — execution plan fully delivered  
+**Active Phase**: Phase 146 COMPLETE  
+**Last Completed Task**: Phase 146 — Sales & Assessment Reconciliation (Track 4b+4c)  
+**Next Task**: Track 5 cleanup (`_check_cols.py` manual delete)  
 **Blockers**: None
 
 ---
@@ -25,6 +25,36 @@
 | 2 | 114, 119, 115, 123 | `9218341` | ✅ COMPLETE |
 | 3 | 120, 121, 125 | `d0d3faf` | ✅ COMPLETE |
 | 4 | 127 | `e4d2fa9` | ✅ COMPLETE |
+
+---
+
+## PACS Integration Phases (130–146)
+
+| Phase | Description | Commit | Status |
+|-------|-------------|--------|--------|
+| 130-140 | PACS UI: hooks, panels, dossier, quality gates | `50181b1` | ✅ COMPLETE |
+| 141-145 | Cross-linking bridge + neighborhood rollups | `ac5edbb` | ✅ COMPLETE |
+| 146 | Sales & Assessment Reconciliation (Track 4b+4c) | `6497bd9` | ✅ COMPLETE |
+
+### Phase 146 — Sales & Assessment Reconciliation
+- Migration: 4 reconciliation views (vw_sales_reconciliation, vw_sales_reconciliation_summary, vw_assessment_reconciliation, vw_assessment_reconciliation_summary)
+- Hook: useReconciliation.ts (4 query hooks with type-safe interfaces)
+- Component: ReconciliationDashboard.tsx (tabbed Sales/Assessments, summary cards, stat breakdowns, filterable detail tables)
+- IA_MAP: reconciliation view in Home (29 views, 47 total)
+- types.ts: 4 view Row types added
+- 0 TS errors, 172/172 tests pass, 7 files changed, 652 insertions
+
+### Phase 141-145 — Cross-Linking Bridge + Neighborhood Rollups
+- parcels.prop_id column, bridge RPCs, usePacsParcelBridge hook
+- ParcelDossierPACS upgraded for UUID auto-resolve
+- 4 neighborhood rollup views, useNeighborhoodRollup hook, NeighborhoodRollupDashboard
+
+### Phase 130-140 — PACS UI Foundation
+- 5 PACS data hooks, 3 domain panels
+- ParcelDossierPACS tabbed view, QualityGateDashboard
+- qualityGateRunner service, wired into IA_MAP + AppLayout
+
+---
 
 ### Wave 4 — Phase 127: Owner Communication Log
 - Migration: `owner_communications` table with RLS (phone/email/letter/in-person/notice/hearing)
