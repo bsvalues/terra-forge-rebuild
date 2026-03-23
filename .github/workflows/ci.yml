@@ -28,8 +28,15 @@ jobs:
       - name: Typecheck
         run: npx tsc -p tsconfig.app.json --noEmit
 
+      - name: Lint
+        run: npm run lint
+
       - name: SVG A11y Guardrail
         run: node scripts/check-svg-a11y.mjs
 
       - name: Tests
-        run: npx vitest run --passWithNoTests
+        run: npx vitest run
+
+      - name: Test coverage summary
+        if: always()
+        run: npx vitest run --reporter=verbose 2>&1 | grep -E "Tests|Test Files|Duration" || true
