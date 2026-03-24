@@ -94,8 +94,7 @@ export function useNeighborhoodAssessmentSummary(rollYear?: number) {
   return useQuery({
     queryKey: ["neighborhood-assessment-summary", rollYear],
     queryFn: async () => {
-      let query = supabase
-        .from("vw_neighborhood_assessment_summary")
+      let query = (supabase.from as any)("vw_neighborhood_assessment_summary")
         .select("*")
         .order("total_appraised", { ascending: false });
       if (rollYear) {

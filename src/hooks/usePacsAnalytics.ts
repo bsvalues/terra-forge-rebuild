@@ -89,7 +89,6 @@ export function usePacsBridgeCoverage() {
     queryKey: ["pacs-bridge-coverage"],
     queryFn: async () => {
       const { data, error } = await (supabase.from as any)("vw_pacs_bridge_coverage")
-        .from("vw_pacs_bridge_coverage")
         .select("*")
         .single();
       if (error) throw error;

@@ -86,7 +86,7 @@ export default function DraftValuationWorkflow() {
       construction_class_raw: form.constructionClass || null,
       use_code: null,
       section_id: selectedCode?.section_id ?? (toNum(form.sectionId) || null),
-      occupancy_code: selectedCode?.occupancy_code ?? form.occupancyCode || null,
+      occupancy_code: selectedCode?.occupancy_code ?? (form.occupancyCode || null),
       is_residential: form.isResidential,
     };
   }
