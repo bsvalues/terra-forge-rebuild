@@ -56,7 +56,7 @@ export function useOwnerCommunications(
     enabled: !!parcelId,
     queryFn: async () => {
       let query = supabase
-        .from("owner_communications" as "parcels")
+        .from("owner_communications" as any)
         .select("*")
         .eq("parcel_id", parcelId!)
         .order("created_at", { ascending: false });
