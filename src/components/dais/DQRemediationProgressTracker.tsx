@@ -65,7 +65,7 @@ export function DQRemediationProgressTracker() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("dq_issue_registry")
-        .select("category, status, is_hard_blocker")
+        .select("issue_type, status, is_hard_blocker")
         .limit(5000);
       if (error) throw error;
       const cats = new Map<string, { total: number; open: number; resolved: number; blockers: number }>();
