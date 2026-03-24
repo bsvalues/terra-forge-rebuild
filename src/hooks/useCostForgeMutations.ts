@@ -14,7 +14,7 @@ export function useSaveCalcTrace() {
 
   return useMutation({
     mutationFn: async (trace: CalcTraceInsert) => {
-      const { data, error } = await fromAny("costforge_calc_trace")
+      const { data, error } = await (supabase.from as any)("costforge_calc_trace")
         .insert([trace])
         .select("id")
         .single();
