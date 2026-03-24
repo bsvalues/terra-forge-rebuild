@@ -192,8 +192,8 @@ export async function getPropertyByLrsn(
   lrsn: number,
   countyId: string = BENTON_ASCEND_CONFIG.defaultCountyId
 ): Promise<AscendProperty | null> {
-  const { data, error } = await supabase
-    .from("ascend_property")
+  const { data, error } = await (supabase.from as any)
+    ("ascend_property")
     .select("*")
     .eq("county_id", countyId)
     .eq("lrsn", lrsn)
@@ -210,8 +210,8 @@ export async function getPropertyByPin(
   pin: string,
   countyId: string = BENTON_ASCEND_CONFIG.defaultCountyId
 ): Promise<AscendProperty | null> {
-  const { data, error } = await supabase
-    .from("ascend_property")
+  const { data, error } = await (supabase.from as any)
+    ("ascend_property")
     .select("*")
     .eq("county_id", countyId)
     .eq("pin", pin)
@@ -228,8 +228,8 @@ export async function getImprovements(
   lrsn: number,
   countyId: string = BENTON_ASCEND_CONFIG.defaultCountyId
 ): Promise<AscendImprovement[]> {
-  const { data, error } = await supabase
-    .from("ascend_improvements")
+  const { data, error } = await (supabase.from as any)
+    ("ascend_improvements")
     .select("*")
     .eq("county_id", countyId)
     .eq("lrsn", lrsn)
@@ -246,8 +246,8 @@ export async function getLand(
   lrsn: number,
   countyId: string = BENTON_ASCEND_CONFIG.defaultCountyId
 ): Promise<AscendLand | null> {
-  const { data, error } = await supabase
-    .from("ascend_land")
+  const { data, error } = await (supabase.from as any)
+    ("ascend_land")
     .select("*")
     .eq("county_id", countyId)
     .eq("lrsn", lrsn)
@@ -265,8 +265,8 @@ export async function getSales(
   lrsn: number,
   countyId: string = BENTON_ASCEND_CONFIG.defaultCountyId
 ): Promise<AscendSale[]> {
-  const { data, error } = await supabase
-    .from("ascend_sales")
+  const { data, error } = await (supabase.from as any)
+    ("ascend_sales")
     .select("*")
     .eq("county_id", countyId)
     .eq("lrsn", lrsn)
@@ -285,8 +285,8 @@ export async function getValueHistory(
   lrsn: number,
   countyId: string = BENTON_ASCEND_CONFIG.defaultCountyId
 ): Promise<AscendValue[]> {
-  const { data, error } = await supabase
-    .from("ascend_values")
+  const { data, error } = await (supabase.from as any)
+    ("ascend_values")
     .select("*")
     .eq("county_id", countyId)
     .eq("lrsn", lrsn)
@@ -304,8 +304,8 @@ export async function getValueHistory(
 export async function getFullValueHistory(
   parcelId: string
 ): Promise<FullValueHistoryRow[]> {
-  const { data, error } = await supabase
-    .from("vw_full_value_history")
+  const { data, error } = await (supabase.from as any)
+    ("vw_full_value_history")
     .select("*")
     .eq("parcel_id", parcelId)
     .order("roll_year", { ascending: false });
@@ -322,8 +322,8 @@ export async function getBridgeCoverage(
   countyId: string = BENTON_ASCEND_CONFIG.defaultCountyId,
   limit: number = 500
 ): Promise<AscendBridgeCoverage[]> {
-  const { data, error } = await supabase
-    .from("vw_ascend_bridge_coverage")
+  const { data, error } = await (supabase.from as any)
+    ("vw_ascend_bridge_coverage")
     .select("*")
     .eq("county_id", countyId)
     .limit(limit);
@@ -344,8 +344,8 @@ export async function getBridgeStats(
   withValueHistory: number;
   coveragePct: number;
 }> {
-  const { data, error } = await supabase
-    .from("vw_ascend_bridge_coverage")
+  const { data, error } = await (supabase.from as any)
+    ("vw_ascend_bridge_coverage")
     .select("has_ascend_link, has_value_history")
     .eq("county_id", countyId);
 
@@ -397,8 +397,8 @@ export async function getValuesByYear(
   taxYear: string,
   countyId: string = BENTON_ASCEND_CONFIG.defaultCountyId
 ): Promise<AscendValue[]> {
-  const { data, error } = await supabase
-    .from("ascend_values")
+  const { data, error } = await (supabase.from as any)
+    ("ascend_values")
     .select("lrsn, pin, tax_year, mklnd, mkimp, mkttl, avr, trv")
     .eq("county_id", countyId)
     .eq("tax_year", taxYear)
@@ -432,7 +432,7 @@ export async function checkConnectorHealth(
   let healthy = true;
 
   for (const table of tables) {
-    const { count, error } = await supabase
+    const { count, error } = await (supabase.from as any)
       .from(table)
       .select("id", { count: "exact", head: true })
       .eq("county_id", countyId);

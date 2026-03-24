@@ -24,8 +24,8 @@ export function useRatioCountySummary() {
   return useQuery({
     queryKey: ["ratio-county-summary"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("vw_sales_ratio_county_summary")
+      const { data, error } = await (supabase.from as any)
+        ("vw_sales_ratio_county_summary")
         .select("*")
         .eq("county_id", BENTON_COUNTY_ID)
         .order("sale_year", { ascending: false });
@@ -65,8 +65,8 @@ export function useRatioByNeighborhood(saleYear: number | null) {
   return useQuery({
     queryKey: ["ratio-by-neighborhood", saleYear],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("vw_sales_ratio_by_neighborhood")
+      const { data, error } = await (supabase.from as any)
+        ("vw_sales_ratio_by_neighborhood")
         .select("*")
         .eq("county_id", BENTON_COUNTY_ID)
         .eq("sale_year", saleYear!)
@@ -112,8 +112,7 @@ export function useRatioDetail(
   return useQuery({
     queryKey: ["ratio-detail", saleYear, neighborhoodCode, qualifiedOnly, limit],
     queryFn: async () => {
-      let query = supabase
-        .from("vw_sales_ratio_detail")
+      let query = (supabase.from as any)("vw_sales_ratio_detail")
         .select("*")
         .eq("county_id", BENTON_COUNTY_ID)
         .limit(limit)
