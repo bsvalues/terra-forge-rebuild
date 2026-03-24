@@ -52,8 +52,7 @@ export function useNeighborhoodLandSummary() {
   return useQuery({
     queryKey: ["neighborhood-land-summary"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("vw_neighborhood_land_summary")
+      const { data, error } = await (supabase.from as any)("vw_neighborhood_land_summary")
         .select("*")
         .order("total_land_val", { ascending: false });
       if (error) throw error;
