@@ -77,8 +77,7 @@ export function usePropertyProfile(propId: number | null) {
   return useQuery({
     queryKey: ["pacs-property-profile", propId],
     queryFn: async () => {
-      const { data, error } = await (supabase.from as any)
-        ("pacs_property_profiles")
+      const { data, error } = await (supabase.from as any)("pacs_property_profiles")
         .select("*")
         .eq("prop_id", propId!)
         .order("prop_val_yr", { ascending: false })
