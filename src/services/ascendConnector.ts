@@ -2,7 +2,7 @@
 // ═══════════════════════════════════════════════════════════════
 // Read-only access to Ascend/Proval pre-2015 legacy data that
 // has been ETL'd into TerraFusion Supabase staging tables.
-import { supabase, fromAny } from "@/integrations/supabase/client";
+import { supabase } from "@/integrations/supabase/client";
 //
 // Table layout:
 //   ascend_property      — master parcel + owner + 5-yr embedded values
@@ -371,8 +371,7 @@ export async function getSalesByDateRange(
   countyId: string = BENTON_ASCEND_CONFIG.defaultCountyId,
   sourceFilter?: "land_record" | "excise"
 ): Promise<AscendSale[]> {
-  let query = supabase
-    .from("ascend_sales")
+  let query = (supabase.from as any)("ascend_sales")
     .select("*")
     .eq("county_id", countyId)
     .gte("sale_date", fromDate)

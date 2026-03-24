@@ -28,8 +28,7 @@ vi.mock("@/integrations/supabase/client", () => ({
   supabase: {
     from: vi.fn(() => makeQueryBuilder({ data: null, error: null })),
     rpc: vi.fn(() => Promise.resolve({ data: null, error: null })),
-  },
-  fromAny: vi.fn((table: string) => {
+  }: vi.fn((table: string) => {
     _fromAnyCalls.push(table);
     return makeQueryBuilder({ data: _stubData, error: _stubError });
   }),
