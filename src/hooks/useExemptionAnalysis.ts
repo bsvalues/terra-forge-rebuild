@@ -117,7 +117,6 @@ export function useExemptionDetail(
       if (resultError) throw resultError;
       return (resultData ?? []) as ExemptionDetailRow[];
     },
-    },
     enabled: !!taxYear,
     staleTime: 300000,
   });
