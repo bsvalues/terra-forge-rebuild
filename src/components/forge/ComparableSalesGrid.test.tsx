@@ -55,7 +55,7 @@ describe("ComparableSalesGrid", () => {
   it("shows placeholder when no parcelId", () => {
     mockUseComparableSales.mockReturnValue({ data: [], isLoading: false });
     render(
-      React.createElement(wrapper, {}, React.createElement(ComparableSalesGrid, {
+      React.createElement(wrapper, null, React.createElement(ComparableSalesGrid, {
         parcelId: null, neighborhoodCode: null, assessedValue: null,
       })),
     );
@@ -65,7 +65,7 @@ describe("ComparableSalesGrid", () => {
   it("shows loading skeleton when isLoading=true", () => {
     mockUseComparableSales.mockReturnValue({ data: null, isLoading: true });
     const { container } = render(
-      React.createElement(wrapper, {}, React.createElement(ComparableSalesGrid, {
+      React.createElement(wrapper, null, React.createElement(ComparableSalesGrid, {
         parcelId: "p-1", neighborhoodCode: "100", assessedValue: 300000,
       })),
     );
@@ -75,7 +75,7 @@ describe("ComparableSalesGrid", () => {
   it("renders comp rows when data is provided", () => {
     mockUseComparableSales.mockReturnValue({ data: MOCK_COMPS, isLoading: false });
     render(
-      React.createElement(wrapper, {}, React.createElement(ComparableSalesGrid, {
+      React.createElement(wrapper, null, React.createElement(ComparableSalesGrid, {
         parcelId: "p-subject", neighborhoodCode: "100", assessedValue: 310000,
       })),
     );
@@ -85,7 +85,7 @@ describe("ComparableSalesGrid", () => {
   it("calculates $/sqft correctly (price / area)", () => {
     mockUseComparableSales.mockReturnValue({ data: [MOCK_COMPS[0]], isLoading: false });
     render(
-      React.createElement(wrapper, {}, React.createElement(ComparableSalesGrid, {
+      React.createElement(wrapper, null, React.createElement(ComparableSalesGrid, {
         parcelId: "p-subject", neighborhoodCode: "100", assessedValue: 310000,
       })),
     );
@@ -96,7 +96,7 @@ describe("ComparableSalesGrid", () => {
   it("shows '—' for $/sqft when building_area is null", () => {
     mockUseComparableSales.mockReturnValue({ data: [MOCK_COMPS[2]], isLoading: false });
     render(
-      React.createElement(wrapper, {}, React.createElement(ComparableSalesGrid, {
+      React.createElement(wrapper, null, React.createElement(ComparableSalesGrid, {
         parcelId: "p-subject", neighborhoodCode: "100", assessedValue: 310000,
       })),
     );
@@ -108,7 +108,7 @@ describe("ComparableSalesGrid", () => {
   it("shows 'No qualified comparable sales found' for empty data", () => {
     mockUseComparableSales.mockReturnValue({ data: [], isLoading: false });
     render(
-      React.createElement(wrapper, {}, React.createElement(ComparableSalesGrid, {
+      React.createElement(wrapper, null, React.createElement(ComparableSalesGrid, {
         parcelId: "p-subject", neighborhoodCode: "100", assessedValue: 310000,
       })),
     );
@@ -123,7 +123,7 @@ describe("ComparableSalesGrid", () => {
     }));
     mockUseComparableSales.mockReturnValue({ data: manyComps, isLoading: false });
     render(
-      React.createElement(wrapper, {}, React.createElement(ComparableSalesGrid, {
+      React.createElement(wrapper, null, React.createElement(ComparableSalesGrid, {
         parcelId: "p-subject", neighborhoodCode: "100", assessedValue: 310000, limit: 5,
       })),
     );
@@ -133,7 +133,7 @@ describe("ComparableSalesGrid", () => {
   it("does not show overflow label when rows <= limit", () => {
     mockUseComparableSales.mockReturnValue({ data: MOCK_COMPS, isLoading: false });
     render(
-      React.createElement(wrapper, {}, React.createElement(ComparableSalesGrid, {
+      React.createElement(wrapper, null, React.createElement(ComparableSalesGrid, {
         parcelId: "p-subject", neighborhoodCode: "100", assessedValue: 310000, limit: 10,
       })),
     );
