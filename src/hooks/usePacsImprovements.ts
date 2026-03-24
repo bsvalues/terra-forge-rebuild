@@ -43,8 +43,7 @@ export function usePacsImprovements(propId: number | null) {
   return useQuery({
     queryKey: ["pacs-improvements", propId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("pacs_improvements")
+      const { data, error } = await (supabase.from as any)("pacs_improvements")
         .select("*")
         .eq("prop_id", propId!)
         .order("prop_val_yr", { ascending: false });
