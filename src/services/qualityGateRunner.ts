@@ -24,8 +24,7 @@ export async function runGatesForProduct(
   tableName: string,
   sampleSize: number = 1000,
 ): Promise<GateRunResult> {
-  const { data, error } = await supabase
-    .from(tableName)
+  const { data, error } = await (supabase.from as any)(tableName)
     .select("*")
     .limit(sampleSize);
 

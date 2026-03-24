@@ -47,16 +47,13 @@ export function useDQMonitor() {
           .select("id, neighborhood_code, building_area, year_built", { count: "exact" })
           .eq("county_id", countyId!)
           .limit(0),
-        supabase
-          .from("sales_history")
+        (supabase.from as any)("sales_history")
           .select("id", { count: "exact" })
           .limit(0),
-        supabase
-          .from("current_assessments")
+        (supabase.from as any)("current_assessments")
           .select("id", { count: "exact" })
           .limit(0),
-        supabase
-          .from("pacs_improvements")
+        (supabase.from as any)("pacs_improvements")
           .select("id", { count: "exact" })
           .limit(0),
       ]);

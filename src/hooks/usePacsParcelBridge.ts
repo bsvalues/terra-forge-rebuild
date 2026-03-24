@@ -15,8 +15,7 @@ export function usePacsParcelBridge(parcelId: string | null) {
   return useQuery({
     queryKey: ["pacs-parcel-bridge", parcelId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("parcels")
+      const { data, error } = await (supabase.from as any)("parcels")
         .select("prop_id, parcel_number")
         .eq("id", parcelId!)
         .single();
@@ -39,8 +38,7 @@ export function usePacsBridgeByParcelNumber(parcelNumber: string | null) {
   return useQuery({
     queryKey: ["pacs-bridge-by-number", parcelNumber],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("parcels")
+      const { data, error } = await (supabase.from as any)("parcels")
         .select("id, prop_id, parcel_number")
         .eq("parcel_number", parcelNumber!)
         .single();

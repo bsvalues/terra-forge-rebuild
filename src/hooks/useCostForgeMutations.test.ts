@@ -26,7 +26,6 @@ vi.mock("@/integrations/supabase/client", () => ({
   supabase: {
     from: vi.fn(() => makeInsertChain()),
   },
-  fromAny: vi.fn(() => makeInsertChain()),
 }));
 
 vi.mock("@/services/terraTrace", () => ({

@@ -142,7 +142,7 @@ export async function upsertPacsOwners(
 
   for (let i = 0; i < records.length; i += batchSize) {
     const batch = records.slice(i, i + batchSize);
-    const { error } = await supabase.from("pacs_owners").upsert(batch as any[], {
+    const { error } = await (supabase.from as any)("pacs_owners").upsert(batch as any[], {
       onConflict: "county_id,prop_id,owner_id,owner_tax_yr,sup_num",
     });
     if (error) {
@@ -168,7 +168,7 @@ export async function upsertPacsSales(
 
   for (let i = 0; i < records.length; i += batchSize) {
     const batch = records.slice(i, i + batchSize);
-    const { error } = await supabase.from("pacs_sales").upsert(batch as any[], {
+    const { error } = await (supabase.from as any)("pacs_sales").upsert(batch as any[], {
       onConflict: "county_id,chg_of_owner_id,prop_id",
     });
     if (error) {
@@ -194,7 +194,7 @@ export async function upsertPacsLandDetails(
 
   for (let i = 0; i < records.length; i += batchSize) {
     const batch = records.slice(i, i + batchSize);
-    const { error } = await supabase.from("pacs_land_details").upsert(batch as any[], {
+    const { error } = await (supabase.from as any)("pacs_land_details").upsert(batch as any[], {
       onConflict: "county_id,prop_id,prop_val_yr,sup_num,land_seg_id",
     });
     if (error) {
@@ -220,7 +220,7 @@ export async function upsertPacsImprovements(
 
   for (let i = 0; i < records.length; i += batchSize) {
     const batch = records.slice(i, i + batchSize);
-    const { error } = await supabase.from("pacs_improvements").upsert(batch as any[], {
+    const { error } = await (supabase.from as any)("pacs_improvements").upsert(batch as any[], {
       onConflict: "county_id,prop_id,prop_val_yr,sup_num,imprv_id",
     });
     if (error) {
@@ -246,7 +246,7 @@ export async function upsertPacsImprovementDetails(
 
   for (let i = 0; i < records.length; i += batchSize) {
     const batch = records.slice(i, i + batchSize);
-    const { error } = await supabase.from("pacs_improvement_details").upsert(batch as any[], {
+    const { error } = await (supabase.from as any)("pacs_improvement_details").upsert(batch as any[], {
       onConflict: "county_id,prop_id,prop_val_yr,sup_num,imprv_id,imprv_det_id",
     });
     if (error) {
@@ -272,7 +272,7 @@ export async function upsertPacsAssessmentRoll(
 
   for (let i = 0; i < records.length; i += batchSize) {
     const batch = records.slice(i, i + batchSize);
-    const { error } = await supabase.from("pacs_assessment_roll").upsert(batch as any[], {
+    const { error } = await (supabase.from as any)("pacs_assessment_roll").upsert(batch as any[], {
       onConflict: "county_id,prop_id,roll_year",
     });
     if (error) {

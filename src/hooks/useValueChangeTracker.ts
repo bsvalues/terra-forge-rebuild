@@ -26,8 +26,8 @@ export function useAssessmentYoYSummary() {
   return useQuery({
     queryKey: ["assessment-yoy-summary"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("vw_assessment_yoy_summary")
+      const { data, error } = await (supabase.from as any)
+        ("vw_assessment_yoy_summary")
         .select("*")
         .eq("county_id", BENTON_COUNTY_ID)
         .order("tax_year", { ascending: false });
@@ -64,8 +64,7 @@ export function useAssessmentTopMovers(
   return useQuery({
     queryKey: ["assessment-top-movers", taxYear, direction, limit],
     queryFn: async () => {
-      let query = supabase
-        .from("vw_assessment_top_movers")
+      let query = (supabase.from as any)("vw_assessment_top_movers")
         .select("*")
         .eq("county_id", BENTON_COUNTY_ID)
         .limit(limit);
@@ -119,8 +118,8 @@ export function useParcelYoYHistory(parcelId: string | null) {
   return useQuery({
     queryKey: ["parcel-yoy-history", parcelId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("vw_assessment_yoy")
+      const { data, error } = await (supabase.from as any)
+        ("vw_assessment_yoy")
         .select("*")
         .eq("parcel_id", parcelId!)
         .order("tax_year", { ascending: false });
