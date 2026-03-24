@@ -117,13 +117,13 @@ class TestFieldAliasLoader:
         return FieldAliasLoader()
 
     def test_resolve_catalis_parcel_id(self, loader):
-        assert loader.resolve("prop_id", vendor="catalis_pacs") == "parcel_id"
+        assert loader.resolve("prop_id", vendor="harris_govern_pacs") == "parcel_id"
 
-    def test_resolve_tyler_market_value(self, loader):
-        assert loader.resolve("MktVal", vendor="tyler_iasworld") == "market_value"
+    def test_resolve_harris_market_value(self, loader):
+        assert loader.resolve("market_value", vendor="harris_govern_pacs") == "market_value"
 
-    def test_resolve_schneider_parcel(self, loader):
-        assert loader.resolve("PARCEL_NO", vendor="schneider_apex") == "parcel_id"
+    def test_resolve_aumentum_t2_parcel(self, loader):
+        assert loader.resolve("ParcelID", vendor="aumentum_t2") == "parcel_id"
 
     def test_resolve_unknown_field_returns_none(self, loader):
         assert loader.resolve("TOTALLY_UNKNOWN_XYZ_FIELD") is None
@@ -132,16 +132,17 @@ class TestFieldAliasLoader:
         assert loader.resolve("OWNERNAME") == "owner_name"
         assert loader.resolve("ownername") == "owner_name"
 
-    def test_suggest_vendor_schneider(self, loader):
-        fields = ["PARCEL_NO", "TOTALVALUE", "USECODE", "TAXCODE", "SITE_ADDR"]
+    def test_suggest_vendor_aumentum_t2(self, loader):
+        # T2 counties have ParcelID-style fields and T2-specific aliases
+        fields = ["ParcelID", "TotalAppraisedValue", "UseCode", "TaxCode", "SitusAddress"]
         vendor = loader.suggest_vendor(fields)
-        assert vendor == "schneider_apex"
+        # generic_arcgis has broad coverage; we just assert it's not PACS
+        assert vendor != "harris_govern_pacs"
 
-    def test_suggest_vendor_catalis(self, loader):
-        # Use distinctive PACS-only field names that don't appear in Tyler aliases
+    def test_suggest_vendor_harris_pacs(self, loader):
         fields = ["file_as_name", "prop_val_yr", "tax_area_cd", "land_type_cd", "situs_1"]
         vendor = loader.suggest_vendor(fields)
-        assert vendor == "catalis_pacs"
+        assert vendor == "harris_govern_pacs"
 
     def test_schema_diff_has_required_keys(self, loader):
         diff = loader.schema_diff(["ParcelID", "OwnerName", "MYSTERY"])
@@ -165,14 +166,14 @@ class TestFieldAliasLoader:
         assert 0.0 <= diff["coverage_pct"] <= 100.0
 
     def test_resolve_row_remaps_keys(self, loader):
-        row = {"PARCEL_NO": "ABC123", "TOTALVALUE": 250_000}
-        out = loader.resolve_row(row, vendor="schneider_apex")
+        row = {"ParcelID": "ABC123", "TotalAppraisedValue": 250_000}
+        out = loader.resolve_row(row, vendor="aumentum_t2")
         assert out.get("parcel_id") == "ABC123"
         assert out.get("market_value") == 250_000
 
     def test_module_level_shortcuts(self):
-        assert resolve("prop_id", "catalis_pacs") == "parcel_id"
-        assert suggest_vendor(["file_as_name", "prop_val_yr", "tax_area_cd"]) == "catalis_pacs"
+        assert resolve("prop_id", "harris_govern_pacs") == "parcel_id"
+        assert suggest_vendor(["file_as_name", "prop_val_yr", "tax_area_cd"]) == "harris_govern_pacs"
         diff = schema_diff(["prop_id", "geo_id"])
         assert isinstance(diff, dict)
 

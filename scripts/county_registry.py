@@ -9,6 +9,21 @@ To add a new county:
   2. Provide fips, state, domains, and open_data_url (ArcGIS Feature Service)
   3. Set id=None until the county is provisioned in Supabase
 
+WA CAMA vendor landscape (source: WA DOR County Assessor Statistics, June 2025):
+  harris_govern_pacs  — Harris Govern PACS (formerly Catalis/PACS)
+                        Counties: Asotin, Benton, Chelan, Clallam, Clark, Columbia,
+                                  Cowlitz, Grant, Island, Jefferson, Pend Oreille,
+                                  San Juan, Skagit, Stevens, Wahkiakum, Walla Walla, Whatcom
+  aumentum_t2         — Aumentum Technologies T2 (formerly Tyler TerraScan 2)
+                        Counties: Adams, Douglas, Ferry, Franklin, Grays Harbor,
+                                  Kittitas, Lincoln, Mason, Okanogan, Pacific,
+                                  Skamania, Whitman
+  aumentum_ascend     — Aumentum Technologies Ascend (admin); paired w/ ProVal/Sigma
+                        Counties: Klickitat, Lewis, Pierce (admin), Snohomish, Spokane,
+                                  Thurston, Yakima
+  inhouse             — Custom/in-house system
+                        Counties: King, Kitsap
+
 Open data seeding tiers:
   Tier 1 — Full CAMA + GIS (Benton): direct PACS DB access
   Tier 2 — ArcGIS open data only: any county with a public parcel service
@@ -28,12 +43,12 @@ COUNTY_REGISTRY: dict[str, dict[str, Any]] = {
         "name": "Benton County",
         "state": "WA",
         "fips": "53005",
-        "cama_vendor": "catalis_pacs",
+        "cama_vendor": "harris_govern_pacs",  # Harris Govern PACS (inst. 2017)
         "domains": ["pacs_domain", "gis", "pacs", "ascend", "costforge"],
         "provisioned": True,
         "open_data_url": None,   # Uses direct FGDB / PACS DB
         "wa_dnr_name": "Benton",
-        "notes": "Primary county; full domain coverage",
+        "notes": "Primary county; full domain coverage; Harris Govern PACS 2017",
     },
 
     # ── Tier 2: ArcGIS Open Data ─────────────────────────────────────────────
@@ -42,7 +57,7 @@ COUNTY_REGISTRY: dict[str, dict[str, Any]] = {
         "name": "Yakima County",
         "state": "WA",
         "fips": "53077",
-        "cama_vendor": "schneider_apex",
+        "cama_vendor": "aumentum_ascend",  # Aumentum Ascend (admin) + Sigma (appraisal, inst. 1996)
         "domains": ["gis", "costforge"],
         "provisioned": False,
         "open_data_url": (
@@ -50,14 +65,14 @@ COUNTY_REGISTRY: dict[str, dict[str, Any]] = {
             "/AssessorParcels/FeatureServer/0"
         ),
         "wa_dnr_name": "Yakima",
-        "notes": "Schneider APEX; open ArcGIS parcel service available",
+        "notes": "Aumentum Ascend (admin) / Sigma (appraisal); one of oldest Ascend installs (1996)",
     },
     "franklin": {
         "id": None,
         "name": "Franklin County",
         "state": "WA",
         "fips": "53021",
-        "cama_vendor": "harris_terrascan",  # TerraScan 2 → Thomson Reuters → Harris Govern
+        "cama_vendor": "aumentum_t2",  # Aumentum T2 (formerly TerraScan 2 → Tyler → Aumentum, inst. 1996)
         "domains": ["gis", "costforge"],
         "provisioned": False,
         "open_data_url": (
@@ -65,14 +80,14 @@ COUNTY_REGISTRY: dict[str, dict[str, Any]] = {
             "/Parcels/FeatureServer/0"
         ),
         "wa_dnr_name": "Franklin",
-        "notes": "Harris Govern / TerraScan 2 (acq. Thomson Reuters, then Harris); distinct schema from Benton PACS",
+        "notes": "Aumentum T2 (TerraScan 2 lineage → Tyler → Aumentum, inst. 1996); distinct schema from PACS",
     },
     "thurston": {
         "id": None,
         "name": "Thurston County",
         "state": "WA",
         "fips": "53067",
-        "cama_vendor": "unknown",
+        "cama_vendor": "aumentum_ascend",  # Aumentum Ascend (admin) + Sigma (appraisal, inst. 1997)
         "domains": ["gis"],
         "provisioned": False,
         "open_data_url": (
@@ -80,14 +95,14 @@ COUNTY_REGISTRY: dict[str, dict[str, Any]] = {
             "/Thurston_County_Parcels/FeatureServer/0"
         ),
         "wa_dnr_name": "Thurston",
-        "notes": "Public ArcGIS portal; good test of generic field mapping",
+        "notes": "Aumentum Ascend (admin) / Sigma (appraisal, inst. 1997)",
     },
     "clark": {
         "id": None,
         "name": "Clark County",
         "state": "WA",
         "fips": "53011",
-        "cama_vendor": "unknown",
+        "cama_vendor": "harris_govern_pacs",  # Harris Govern PACS (inst. 2008)
         "domains": ["gis"],
         "provisioned": False,
         "open_data_url": (
@@ -95,14 +110,14 @@ COUNTY_REGISTRY: dict[str, dict[str, Any]] = {
             "/Parcels/MapServer/0"
         ),
         "wa_dnr_name": "Clark",
-        "notes": "Large SW WA county; open MapServer",
+        "notes": "Harris Govern PACS (inst. 2008); same vendor as Benton — schema alignment expected",
     },
     "king": {
         "id": None,
         "name": "King County",
         "state": "WA",
         "fips": "53033",
-        "cama_vendor": "tyler_iasworld",
+        "cama_vendor": "inhouse",  # In-house custom system (Various, since 1995)
         "domains": ["gis"],
         "provisioned": False,
         "open_data_url": (
@@ -110,14 +125,14 @@ COUNTY_REGISTRY: dict[str, dict[str, Any]] = {
             "/KingCo_Parcel/MapServer/0"
         ),
         "wa_dnr_name": "King",
-        "notes": "Largest WA county; Tyler iasWorld; validates our Tyler schema adapters",
+        "notes": "In-house custom system (since 1995); largest WA county (701k parcels); open data via ArcGIS",
     },
     "snohomish": {
         "id": None,
         "name": "Snohomish County",
         "state": "WA",
         "fips": "53061",
-        "cama_vendor": "tyler_iasworld",
+        "cama_vendor": "aumentum_ascend",  # Aumentum Ascend (admin) + ProVal (appraisal, inst. 1999)
         "domains": ["gis"],
         "provisioned": False,
         "open_data_url": (
@@ -125,7 +140,7 @@ COUNTY_REGISTRY: dict[str, dict[str, Any]] = {
             "/SnohomishCountyParcels/FeatureServer/0"
         ),
         "wa_dnr_name": "Snohomish",
-        "notes": "Tyler iasWorld; second Tyler county to validate adapter generalisation",
+        "notes": "Aumentum Ascend (admin) / ProVal (appraisal, inst. 1999); 311k parcels",
     },
 }
 
