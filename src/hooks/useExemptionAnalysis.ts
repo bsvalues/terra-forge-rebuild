@@ -113,8 +113,9 @@ export function useExemptionDetail(
         .limit(limit);
       if (exemptionType) q = q.eq("exemption_type", exemptionType);
       if (status) q = q.eq("status", status);
-      const { data, error } = await q.order("exemption_amount", { ascending: false });
-      const { data, error } = await q.order("exemption_amount", { ascending: false });
+      const { data: resultData, error: resultError } = await q.order("exemption_amount", { ascending: false });
+      if (resultError) throw resultError;
+      return (resultData ?? []) as ExemptionDetailRow[];
       if (error) throw error;
       return (data ?? []) as ExemptionDetailRow[];
     },
