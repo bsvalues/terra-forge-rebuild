@@ -20,10 +20,10 @@ import { ComparableSalesGrid } from "./ComparableSalesGrid";
 
 const mockUseComparableSales = useComparableSales as ReturnType<typeof vi.fn>;
 
-function wrapper({ children }: { children: React.ReactNode }) {
+const wrapper = ({ children }: { children: React.ReactNode }) => {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return React.createElement(QueryClientProvider, { client }, children);
-}
+};
 
 const MOCK_COMPS = [
   {

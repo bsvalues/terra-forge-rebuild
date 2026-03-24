@@ -1,7 +1,7 @@
 // TerraFusion OS — Roll Readiness Hook Tests (Phase 179)
 
 import { describe, it, expect } from "vitest";
-import type { ReadinessCheck } from "../useRollReadiness";
+import type { ReadinessCheck } from "./useRollReadiness";
 
 // ── Pure unit tests — no DB calls ────────────────────────────────────────────
 
