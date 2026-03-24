@@ -64,8 +64,7 @@ export function usePacsSalesByYear() {
   return useQuery({
     queryKey: ["pacs-sales-by-year"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("vw_pacs_sales_by_year")
+      const { data, error } = await (supabase.from as any)("vw_pacs_sales_by_year")
         .select("*");
       if (error) throw error;
       return (data ?? []) as PacsSalesByYear[];
