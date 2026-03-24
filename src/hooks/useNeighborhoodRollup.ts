@@ -66,8 +66,7 @@ export function useNeighborhoodImprovementSummary() {
   return useQuery({
     queryKey: ["neighborhood-improvement-summary"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("vw_neighborhood_improvement_summary")
+      const { data, error } = await (supabase.from as any)("vw_neighborhood_improvement_summary")
         .select("*")
         .order("total_imprv_val", { ascending: false });
       if (error) throw error;
