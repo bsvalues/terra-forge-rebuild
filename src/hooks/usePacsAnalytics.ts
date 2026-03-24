@@ -39,8 +39,7 @@ export function usePacsValueByNeighborhood() {
   return useQuery({
     queryKey: ["pacs-value-by-neighborhood"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("vw_pacs_value_by_neighborhood")
+      const { data, error } = await (supabase.from as any)("vw_pacs_value_by_neighborhood")
         .select("*")
         .limit(100);
       if (error) throw error;
