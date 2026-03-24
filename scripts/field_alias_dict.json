@@ -248,9 +248,9 @@
       "wa_counties": [
         "Asotin", "Benton", "Chelan", "Clallam", "Clark", "Columbia", "Cowlitz",
         "Grant", "Island", "Jefferson", "Pend Oreille", "San Juan", "Skagit",
-        "Stevens", "Wahkiakum", "Walla Walla", "Whatcom"
+        "Stevens", "Thurston", "Wahkiakum", "Walla Walla", "Whatcom"
       ],
-      "notes": "Harris Govern PACS (formerly Catalis/PACS). prop_id = assessor parcel number, geo_id = GIS key, hood_cd = neighborhood code. Consistent schema across all PACS counties. Source: WA DOR Assessor Statistics 2025."
+      "notes": "Harris Govern PACS (formerly Catalis/PACS). ProVal appraisal + Ascend admin in some counties. prop_id = assessor parcel number, geo_id = GIS key, hood_cd = neighborhood code. Consistent schema across all PACS counties. Source: WA DOR Assessor Statistics 2025."
     },
     "aumentum_t2": {
       "wa_counties": [
@@ -261,7 +261,7 @@
     },
     "aumentum_ascend": {
       "wa_counties": [
-        "Klickitat", "Lewis", "Pierce", "Snohomish", "Spokane", "Thurston", "Yakima"
+        "Klickitat", "Lewis", "Pierce", "Snohomish", "Spokane", "Yakima"
       ],
       "notes": "Aumentum Technologies Ascend (admin) paired with ProVal or Sigma (appraisal). Pierce uses Harris Govern Realware for appraisal. Source: WA DOR Assessor Statistics 2025."
     },

@@ -87,7 +87,7 @@ COUNTY_REGISTRY: dict[str, dict[str, Any]] = {
         "name": "Thurston County",
         "state": "WA",
         "fips": "53067",
-        "cama_vendor": "aumentum_ascend",  # Aumentum Ascend (admin) + Sigma (appraisal, inst. 1997)
+        "cama_vendor": "harris_govern_pacs",  # Harris Govern PACS (ProVal + Ascend, like Benton)
         "domains": ["gis"],
         "provisioned": False,
         "open_data_url": (
@@ -95,7 +95,7 @@ COUNTY_REGISTRY: dict[str, dict[str, Any]] = {
             "/Thurston_County_Parcels/FeatureServer/0"
         ),
         "wa_dnr_name": "Thurston",
-        "notes": "Aumentum Ascend (admin) / Sigma (appraisal, inst. 1997)",
+        "notes": "Harris Govern PACS (ProVal appraisal + Ascend admin, inst. 1997); same vendor as Benton",
     },
     "clark": {
         "id": None,
