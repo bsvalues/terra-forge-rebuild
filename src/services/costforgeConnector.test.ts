@@ -26,12 +26,12 @@ let _stubError: { message: string } | null = null;
 
 vi.mock("@/integrations/supabase/client", () => ({
   supabase: {
-    from: vi.fn(() => makeQueryBuilder({ data: null, error: null })),
+    from: vi.fn((table: string) => {
+      _fromAnyCalls.push(table);
+      return makeQueryBuilder({ data: _stubData, error: _stubError });
+    }),
     rpc: vi.fn(() => Promise.resolve({ data: null, error: null })),
-  }: vi.fn((table: string) => {
-    _fromAnyCalls.push(table);
-    return makeQueryBuilder({ data: _stubData, error: _stubError });
-  }),
+  },
 }));
 
 // ── Tests ────────────────────────────────────────────────────────────────────
