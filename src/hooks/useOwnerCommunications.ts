@@ -56,7 +56,7 @@ export function useOwnerCommunications(
     enabled: !!parcelId,
     queryFn: async () => {
       let query = supabase
-        .from("owner_communications" as "parcels")
+        .from("owner_communications" as any)
         .select("*")
         .eq("parcel_id", parcelId!)
         .order("created_at", { ascending: false });
@@ -91,8 +91,8 @@ export function useAddCommunication() {
   return useMutation({
     mutationFn: async (input: CreateCommInput) => {
       const { data, error } = await supabase
-        .from("owner_communications" as "parcels")
-        .insert(input as Record<string, unknown>)
+        .from("owner_communications" as any)
+        .insert(input as any)
         .select()
         .single();
       if (error) throw error;
