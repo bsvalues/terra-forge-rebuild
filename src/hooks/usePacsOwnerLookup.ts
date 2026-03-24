@@ -21,7 +21,7 @@ export function usePacsOwnerLookup(propId: number | null) {
         .eq("prop_id", propId!)
         .order("owner_tax_yr", { ascending: false });
       if (error) throw error;
-      return (data ?? []) as PacsOwner[];
+      return (data ?? []) as unknown as PacsOwner[];
     },
     enabled: !!propId,
     staleTime: 60000,
