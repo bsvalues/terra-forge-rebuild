@@ -2,7 +2,7 @@
   "_meta": {
     "description": "TerraFusion OS — Field Alias Dictionary (Phase 183)",
     "purpose": "Maps raw field names from county ArcGIS / CAMA exports to canonical TerraFusion schema names.",
-    "vendors_covered": ["tyler_iasworld", "catalis_pacs", "schneider_apex", "wa_dnr", "generic_arcgis"],
+    "vendors_covered": ["tyler_iasworld", "catalis_pacs", "schneider_apex", "harris_terrascan", "wa_dnr", "generic_arcgis"],
     "version": "1.0.0"
   },
   "canonical_fields": {
@@ -248,8 +248,12 @@
       "notes": "iasWorld uses consistent schema across all counties; Prop_ID is always PK"
     },
     "catalis_pacs": {
-      "wa_counties": ["Benton", "Franklin", "Walla Walla", "Grant"],
+      "wa_counties": ["Benton", "Walla Walla", "Grant"],
       "notes": "PACS geo_id used in TF; prop_id is assessor number; hood_cd shared across counties"
+    },
+    "harris_terrascan": {
+      "wa_counties": ["Franklin"],
+      "notes": "TerraScan 2 — acquired by Thomson Reuters, then Harris Govern (Harris Local Government). Schema distinct from PACS. Field names TBD pending ArcGIS probe of Franklin County service."
     },
     "schneider_apex": {
       "wa_counties": ["Spokane", "Yakima", "Douglas", "Adams"],

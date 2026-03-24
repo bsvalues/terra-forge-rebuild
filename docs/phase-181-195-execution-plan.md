@@ -54,10 +54,11 @@ CAMA negotiation begins.
 ## Phase Group 2 (184–187): County-by-County Seeds
 
 ### Phase 184 — Franklin County Seed
-**Priority: HIGHEST — likely same PACS schema as Benton**
-- `seed_franklin.py`: use `arcgis_adapter.fetch_all()` + `field_alias_loader.resolve_row(vendor='catalis_pacs')`  
-- Compare field coverage vs. Benton PACS schema
-- Franklin validation will confirm whether PACS adapter generalises
+**Priority: HIGH — Harris Govern / TerraScan schema (distinct from PACS)**
+- Vendor: TerraScan 2 → Thomson Reuters → Harris Govern (Harris Local Government)
+- `seed_franklin.py`: use `arcgis_adapter.fetch_all()` + `probe_service()` to map actual field names
+- Run `suggest_vendor()` / `schema_diff()` against ArcGIS service to build Harris TerraScan alias entries in `field_alias_dict.json`
+- This is the first non-Tyler, non-PACS, non-Schneider county — adds a 4th vendor path
 
 ### Phase 185 — Yakima County Seed (Schneider APEX)
 - `seed_yakima.py`: ArcGIS adapter + Schneider APEX alias mapping
@@ -135,7 +136,7 @@ CAMA negotiation begins.
 |-----------|-----------------|------------------------------------------------------|---------|
 | Benton    | Catalis/PACS    | Direct FGDB                                          | ✅ Live  |
 | Yakima    | Schneider APEX  | gis.yakimacounty.us/.../AssessorParcels/FeatureServer/0 | 🔧 Stub |
-| Franklin  | Catalis/PACS    | gis.co.franklin.wa.us/.../Parcels/FeatureServer/0    | 🔧 Stub |
+| Franklin  | Harris/TerraScan    | gis.co.franklin.wa.us/.../Parcels/FeatureServer/0    | 🔧 Stub |
 | Thurston  | Unknown         | services.arcgis.com/qBoSerlfXyYNdJYP/...             | 🔧 Stub |
 | Clark     | Unknown         | gis.clark.wa.gov/giserv/.../Parcels/MapServer/0      | 🔧 Stub |
 | King      | Tyler iasWorld  | gismaps.kingcounty.gov/arcgis/.../KingCo_Parcel/...  | 🔧 Stub |

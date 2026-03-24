@@ -57,7 +57,7 @@ COUNTY_REGISTRY: dict[str, dict[str, Any]] = {
         "name": "Franklin County",
         "state": "WA",
         "fips": "53021",
-        "cama_vendor": "catalis_pacs",   # likely same as Benton (Tri-Cities)
+        "cama_vendor": "harris_terrascan",  # TerraScan 2 → Thomson Reuters → Harris Govern
         "domains": ["gis", "costforge"],
         "provisioned": False,
         "open_data_url": (
@@ -65,7 +65,7 @@ COUNTY_REGISTRY: dict[str, dict[str, Any]] = {
             "/Parcels/FeatureServer/0"
         ),
         "wa_dnr_name": "Franklin",
-        "notes": "Likely PACS schema match with Benton; high-value validation target",
+        "notes": "Harris Govern / TerraScan 2 (acq. Thomson Reuters, then Harris); distinct schema from Benton PACS",
     },
     "thurston": {
         "id": None,
