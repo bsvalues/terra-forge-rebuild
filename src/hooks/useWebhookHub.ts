@@ -204,7 +204,7 @@ export function useCreateWebhookEndpoint() {
       metadata?: Record<string, unknown>;
     }) => {
       const { data, error } = await supabase
-        .from("webhook_endpoints")
+        .from("webhook_endpoints" as any)
         .insert({
           name: input.name,
           url: input.url,
@@ -213,7 +213,7 @@ export function useCreateWebhookEndpoint() {
           retry_count: input.retry_count ?? 3,
           timeout_ms: input.timeout_ms ?? 5000,
           metadata: input.metadata ?? {},
-        })
+        } as any)
         .select()
         .single();
       if (error) throw error;
