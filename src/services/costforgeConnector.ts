@@ -560,7 +560,7 @@ export async function checkHealth(
   let healthy = true;
 
   for (const table of tables) {
-    const { count, error } = await fromAny(table)
+    const { count, error } = await (supabase.from as any)(table)
       .select("id", { count: "exact", head: true })
       .eq("county_id", countyId);
 
