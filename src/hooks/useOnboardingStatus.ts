@@ -118,8 +118,8 @@ export function useCreateCounty() {
       }
 
       // Assign user to county via RPC (SECURITY DEFINER bypasses county_id lock)
-      const { error: profileErr } = await supabase
-        .rpc("assign_user_county", { target_county_id: countyId });
+      const { error: profileErr } = await (supabase.rpc as Function)(
+        "assign_user_county", { target_county_id: countyId });
       if (profileErr) throw new Error(profileErr.message);
 
       return { success: true, countyId, isNewCounty };
