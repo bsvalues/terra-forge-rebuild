@@ -18,7 +18,10 @@ WA CAMA vendor landscape (source: WA DOR County Assessor Statistics, June 2025):
                         Counties: Adams, Douglas, Ferry, Franklin, Grays Harbor,
                                   Kittitas, Lincoln, Mason, Okanogan, Pacific,
                                   Skamania, Whitman
-  aumentum_ascend     — Aumentum Technologies Ascend (admin); paired w/ ProVal/Sigma
+  aumentum_ascend     — Aumentum Technologies Ascend (admin); appraisal system varies:
+                          ProVal: Klickitat, Pierce (admin only), Snohomish, Spokane
+                          Sigma:  Lewis, Thurston, Yakima
+                        (Benton used ProVal+Ascend before converting to PACS in 2017)
                         Counties: Klickitat, Lewis, Pierce (admin), Snohomish, Spokane,
                                   Thurston, Yakima
   inhouse             — Custom/in-house system
@@ -43,12 +46,13 @@ COUNTY_REGISTRY: dict[str, dict[str, Any]] = {
         "name": "Benton County",
         "state": "WA",
         "fips": "53005",
-        "cama_vendor": "harris_govern_pacs",  # Harris Govern PACS (inst. 2017)
+        "cama_vendor": "harris_govern_pacs",  # Harris Govern PACS (inst. 2017); was ProVal+Ascend before
+        "appraisal_system": "harris_govern_pacs",
         "domains": ["pacs_domain", "gis", "pacs", "ascend", "costforge"],
         "provisioned": True,
         "open_data_url": None,   # Uses direct FGDB / PACS DB
         "wa_dnr_name": "Benton",
-        "notes": "Primary county; full domain coverage; Harris Govern PACS 2017",
+        "notes": "Harris Govern PACS (inst. 2017); previously ran Aumentum ProVal+Ascend",
     },
 
     # ── Tier 2: ArcGIS Open Data ─────────────────────────────────────────────
@@ -58,6 +62,7 @@ COUNTY_REGISTRY: dict[str, dict[str, Any]] = {
         "state": "WA",
         "fips": "53077",
         "cama_vendor": "aumentum_ascend",  # Aumentum Ascend (admin) + Sigma (appraisal, inst. 1996)
+        "appraisal_system": "aumentum_sigma",
         "domains": ["gis", "costforge"],
         "provisioned": False,
         "open_data_url": (
@@ -65,7 +70,7 @@ COUNTY_REGISTRY: dict[str, dict[str, Any]] = {
             "/AssessorParcels/FeatureServer/0"
         ),
         "wa_dnr_name": "Yakima",
-        "notes": "Aumentum Ascend (admin) / Sigma (appraisal); one of oldest Ascend installs (1996)",
+        "notes": "Aumentum Ascend (admin) + Sigma (appraisal); Sigma appraisal inst. 1992, Ascend admin inst. 1996",
     },
     "franklin": {
         "id": None,
@@ -87,7 +92,8 @@ COUNTY_REGISTRY: dict[str, dict[str, Any]] = {
         "name": "Thurston County",
         "state": "WA",
         "fips": "53067",
-        "cama_vendor": "harris_govern_pacs",  # Harris Govern PACS (ProVal + Ascend, like Benton)
+        "cama_vendor": "aumentum_ascend",  # Aumentum Ascend (admin) + Sigma (appraisal, inst. 1997)
+        "appraisal_system": "aumentum_sigma",
         "domains": ["gis"],
         "provisioned": False,
         "open_data_url": (
@@ -95,7 +101,7 @@ COUNTY_REGISTRY: dict[str, dict[str, Any]] = {
             "/Thurston_County_Parcels/FeatureServer/0"
         ),
         "wa_dnr_name": "Thurston",
-        "notes": "Harris Govern PACS (ProVal appraisal + Ascend admin, inst. 1997); same vendor as Benton",
+        "notes": "Aumentum Ascend (admin) + Sigma (appraisal, both inst. 1997); same Ascend family as Yakima/Spokane",
     },
     "clark": {
         "id": None,
@@ -133,6 +139,7 @@ COUNTY_REGISTRY: dict[str, dict[str, Any]] = {
         "state": "WA",
         "fips": "53061",
         "cama_vendor": "aumentum_ascend",  # Aumentum Ascend (admin) + ProVal (appraisal, inst. 1999)
+        "appraisal_system": "aumentum_proval",
         "domains": ["gis"],
         "provisioned": False,
         "open_data_url": (
@@ -140,7 +147,7 @@ COUNTY_REGISTRY: dict[str, dict[str, Any]] = {
             "/SnohomishCountyParcels/FeatureServer/0"
         ),
         "wa_dnr_name": "Snohomish",
-        "notes": "Aumentum Ascend (admin) / ProVal (appraisal, inst. 1999); 311k parcels",
+        "notes": "Aumentum Ascend (admin) + ProVal (appraisal, inst. 1999); 311k parcels",
     },
 }
 

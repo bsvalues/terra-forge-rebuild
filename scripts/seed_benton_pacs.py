@@ -24,7 +24,7 @@ Requirements:
 Configuration:
   Set SUPABASE_SERVICE_ROLE_KEY in environment OR create scripts/.env.seed:
     SUPABASE_SERVICE_ROLE_KEY=eyJ...
-    SUPABASE_URL=https://jzuculrmjuwrshramgye.supabase.co   # optional
+    SUPABASE_URL=https://udjoodlluygvlqccwade.supabase.co   # optional
 
 Usage:
   py -3.12 scripts/seed_benton_pacs.py
@@ -699,7 +699,7 @@ def main() -> int:
     # Gate: service key required (not anon key)
     if not SERVICE_KEY:
         print("\nERROR: SUPABASE_SERVICE_ROLE_KEY is not set.")
-        print("Get it from: https://supabase.com/dashboard/project/jzuculrmjuwrshramgye/settings/api")
+        print("Get it from: https://supabase.com/dashboard/project/udjoodlluygvlqccwade/settings/api")
         print("\nAdd to scripts/.env.seed (this file is NOT committed to git):")
         print("  SUPABASE_SERVICE_ROLE_KEY=eyJ...")
         return 1

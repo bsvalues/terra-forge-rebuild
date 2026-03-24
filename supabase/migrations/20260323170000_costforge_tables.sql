@@ -51,9 +51,10 @@ CREATE TABLE IF NOT EXISTS costforge_residential_schedules (
   unit_cost       numeric(8,2) NOT NULL, -- $/sqft
   schedule_year   integer,              -- year of schedule; NULL = current
   source_file     text,                 -- source Excel filename for audit
-  created_at      timestamptz DEFAULT now(),
-  UNIQUE(county_id, quality_grade, min_area, ext_wall_type, COALESCE(schedule_year, 0))
+  created_at      timestamptz DEFAULT now()
 );
+CREATE UNIQUE INDEX idx_cfres_uniq ON costforge_residential_schedules
+  (county_id, quality_grade, min_area, ext_wall_type, COALESCE(schedule_year, 0));
 
 ALTER TABLE costforge_residential_schedules ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "County isolation" ON costforge_residential_schedules
@@ -87,10 +88,10 @@ CREATE TABLE IF NOT EXISTS costforge_commercial_schedules (
   schedule_year       integer,
   source_file         text,
   source_sheet        text,               -- sheet name within the Excel file
-  created_at          timestamptz DEFAULT now(),
-  UNIQUE(county_id, section_id, occupancy_code, construction_class, quality_grade,
-         COALESCE(schedule_year, 0))
+  created_at          timestamptz DEFAULT now()
 );
+CREATE UNIQUE INDEX idx_cfcomm_uniq ON costforge_commercial_schedules
+  (county_id, section_id, occupancy_code, construction_class, quality_grade, COALESCE(schedule_year, 0));
 
 ALTER TABLE costforge_commercial_schedules ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "County isolation" ON costforge_commercial_schedules
@@ -119,10 +120,10 @@ CREATE TABLE IF NOT EXISTS costforge_depreciation (
   pacs_matrix_id        integer,            -- PACS cms_matrix.matrix_id (for cross-reference)
   schedule_year         integer,
   source_file           text,
-  created_at            timestamptz DEFAULT now(),
-  UNIQUE(county_id, property_type, age_years, effective_life_years,
-         COALESCE(schedule_year, 0))
+  created_at            timestamptz DEFAULT now()
 );
+CREATE UNIQUE INDEX idx_cfdep_uniq ON costforge_depreciation
+  (county_id, property_type, age_years, effective_life_years, COALESCE(schedule_year, 0));
 
 ALTER TABLE costforge_depreciation ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "County isolation" ON costforge_depreciation
@@ -155,10 +156,10 @@ CREATE TABLE IF NOT EXISTS costforge_cost_multipliers (
   pacs_matrix_id      integer,
   schedule_year       integer,
   source_file         text,
-  created_at          timestamptz DEFAULT now(),
-  UNIQUE(county_id, multiplier_type, construction_class,
-         COALESCE(section_id, 0), COALESCE(schedule_year, 0))
+  created_at          timestamptz DEFAULT now()
 );
+CREATE UNIQUE INDEX idx_cfmult_uniq ON costforge_cost_multipliers
+  (county_id, multiplier_type, construction_class, COALESCE(section_id, 0), COALESCE(schedule_year, 0));
 
 ALTER TABLE costforge_cost_multipliers ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "County isolation" ON costforge_cost_multipliers

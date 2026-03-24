@@ -29,7 +29,7 @@ Requirements:
 Configuration:
   Set SUPABASE_SERVICE_ROLE_KEY in environment OR scripts/.env.seed:
     SUPABASE_SERVICE_ROLE_KEY=eyJ...
-    SUPABASE_URL=https://jzuculrmjuwrshramgye.supabase.co
+    SUPABASE_URL=https://udjoodlluygvlqccwade.supabase.co
 
 Usage:
   py -3.12 scripts/seed_ascend_benton.py

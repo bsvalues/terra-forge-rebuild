@@ -12,6 +12,7 @@
       "type": "text",
       "aliases": {
         "harris_govern_pacs": ["prop_id", "geo_id", "PROP_ID", "GEO_ID"],
+        "tyler_iasworld":     ["prop_id", "PROP_ID", "RealPropId", "PropertyId", "propId"],
         "aumentum_t2":        ["ParcelID", "PARCELID", "Parcel_ID", "ParcelNumber"],
         "aumentum_ascend":    ["Parcel_ID", "ParcelID", "APN"],
         "wa_dnr":             ["TAXPARCELID", "TaxParcelID", "tax_parcel_id"],
@@ -26,6 +27,7 @@
       "aliases": {
         "harris_govern_pacs": ["Geo_ID", "geo_id", "GeoID"],
         "harris_govern_pacs":   ["geo_id", "GEO_ID"],
+        "tyler_iasworld":  ["geo_id", "GEO_ID", "map_id", "MAP_ID"],
         "aumentum_t2": ["MAP_ID", "MapID", "GeoRefID"],
         "wa_dnr":         ["OBJECTID"],
         "generic_arcgis": ["OBJECTID", "objectid", "OID", "FID", "GlobalID"]
@@ -37,6 +39,7 @@
       "aliases": {
         "harris_govern_pacs": ["Situs_Addr", "SitusAddr", "PropAddr"],
         "harris_govern_pacs":   ["situs_1", "SITUS_1", "prop_street_addr"],
+        "tyler_iasworld":     ["situs_1", "SITUS_1", "prop_loc", "SitusAddress", "situsAddress"],
         "aumentum_t2": ["SITE_ADDR", "SiteAddr", "PropertyAddress"],
         "wa_dnr":         ["SITUSADDRESS", "situs_address"],
         "generic_arcgis": ["SitusAddress", "SITUSADDRESS", "PropertyAddress",
@@ -49,6 +52,7 @@
       "aliases": {
         "harris_govern_pacs": ["Situs_City", "SitusCity"],
         "harris_govern_pacs":   ["situs_city", "SITUS_CITY", "city"],
+        "tyler_iasworld":     ["situs_city", "SITUS_CITY", "situsCity"],
         "aumentum_t2": ["SITE_CITY", "SiteCity"],
         "wa_dnr":         ["SITUSCITY", "situs_city"],
         "generic_arcgis": ["SitusCity", "SITUSCITY", "PropertyCity", "CITY"]
@@ -60,6 +64,7 @@
       "aliases": {
         "harris_govern_pacs": ["Situs_State", "SitusState"],
         "harris_govern_pacs":   ["state_cd", "STATE_CD"],
+        "tyler_iasworld":     ["state_cd", "STATE_CD", "situsState"],
         "aumentum_t2": ["SITE_STATE", "SiteState"],
         "wa_dnr":         ["SITUSSTATE"],
         "generic_arcgis": ["SitusState", "STATE", "STATECODE"]
@@ -71,6 +76,7 @@
       "aliases": {
         "harris_govern_pacs": ["Situs_Zip", "SitusZip"],
         "harris_govern_pacs":   ["zip_cd", "ZIP_CD", "situs_zip"],
+        "tyler_iasworld":     ["zip_cd", "ZIP_CD", "situs_zip", "situsZip"],
         "aumentum_t2": ["SITE_ZIP", "SiteZip"],
         "wa_dnr":         ["SITUSZIP"],
         "generic_arcgis": ["SitusZip", "SITUSZIP", "ZIP", "ZIPCODE", "PostalCode"]
@@ -82,6 +88,7 @@
       "aliases": {
         "harris_govern_pacs": ["Own_Name1", "OwnName1", "OwnerName"],
         "harris_govern_pacs":   ["file_as_name", "FILE_AS_NAME", "owner_name"],
+        "tyler_iasworld":     ["file_as_name", "FILE_AS_NAME", "ownerName", "owner_name"],
         "aumentum_t2": ["OWNER_NAME", "OwnerName", "PrimaryOwner"],
         "wa_dnr":         ["OWNERNME1", "OWNERNAME", "owner_name"],
         "generic_arcgis": ["OwnerName", "OWNERNAME", "TaxpayerName", "TAXPAYER_NAME",
@@ -94,6 +101,7 @@
       "aliases": {
         "harris_govern_pacs": ["Mail_Addr1", "MailAddr1"],
         "harris_govern_pacs":   ["mail_addr", "MAIL_ADDR"],
+        "tyler_iasworld":     ["addr_line1", "ADDR_LINE1", "mail_addr", "mailingAddress"],
         "aumentum_t2": ["MAIL_ADDR", "MailAddr", "MailingAddress"],
         "wa_dnr":         ["MAILINGADDRESS"],
         "generic_arcgis": ["MailingAddress", "MAILINGADDRESS", "MAIL_ADDR"]
@@ -105,6 +113,7 @@
       "aliases": {
         "harris_govern_pacs": ["Legal_Desc", "LegalDesc"],
         "harris_govern_pacs":   ["legal_1", "LEGAL_1", "legal_desc"],
+        "tyler_iasworld":     ["legal_1", "LEGAL_1", "legal_desc", "legalDescription"],
         "aumentum_t2": ["LEGAL_DESC", "LegalDescription"],
         "wa_dnr":         ["LEGAL_DESC"],
         "generic_arcgis": ["LegalDescription", "LEGALDESCRIPTION", "Legal_Desc",
@@ -117,6 +126,7 @@
       "aliases": {
         "harris_govern_pacs": ["Land_Use", "LandUse", "Use_Code_Desc"],
         "harris_govern_pacs":   ["land_type_cd", "LAND_TYPE_CD", "use_cd"],
+        "tyler_iasworld":     ["land_type_cd", "LAND_TYPE_CD", "landUse"],
         "aumentum_t2": ["LANDUSE", "LandUseCode", "LUCODE"],
         "wa_dnr":         ["LANDUSEDESIG", "LANDUSE"],
         "generic_arcgis": ["LandUse", "LANDUSE", "LAND_USE", "UseCode",
@@ -129,6 +139,7 @@
       "aliases": {
         "harris_govern_pacs": ["Use_Code", "UseCode"],
         "harris_govern_pacs":   ["use_cd", "USE_CD", "prop_type_cd"],
+        "tyler_iasworld":     ["use_cd", "USE_CD", "prop_type_cd", "useCode"],
         "aumentum_t2": ["USECODE", "UseCode", "PROP_CLASS"],
         "wa_dnr":         ["USECODE", "PROPERTYCLASSCD"],
         "generic_arcgis": ["UseCode", "USECODE", "USE_CODE", "PropClass",
@@ -141,6 +152,7 @@
       "aliases": {
         "harris_govern_pacs": ["Mkt_Val", "MktVal", "Total_Appr_Val", "TotalApprVal"],
         "harris_govern_pacs":   ["market_value", "MARKET_VALUE", "appraised_value"],
+        "tyler_iasworld":     ["appraised_value", "total_appr_value", "AppraisedValue", "appraisedValue"],
         "aumentum_t2": ["TOTALVALUE", "TotalValue", "MKTVALUE"],
         "wa_dnr":         ["APPRAISEDVALUE", "TOTALAPPR"],
         "generic_arcgis": ["MarketValue", "MARKETVALUE", "AppraisedValue",
@@ -154,6 +166,7 @@
       "aliases": {
         "harris_govern_pacs": ["Assd_Val", "AssedVal", "Total_Assd_Val"],
         "harris_govern_pacs":   ["assessed_value", "ASSESSED_VALUE"],
+        "tyler_iasworld":     ["assessed_value", "total_assess_value", "assessedValue"],
         "aumentum_t2": ["ASSESSEDVALUE", "AssessedValue"],
         "wa_dnr":         ["ASSESSEDVALUE", "TOTALASSESSED"],
         "generic_arcgis": ["AssessedValue", "ASSESSEDVALUE", "ASSESS_VALUE",
@@ -166,6 +179,7 @@
       "aliases": {
         "harris_govern_pacs": ["Land_Val", "LandVal", "Land_Appr_Val"],
         "harris_govern_pacs":   ["land_value", "LAND_VALUE", "land_hstd_val"],
+        "tyler_iasworld":     ["land_val", "LAND_VAL", "land_hstd_val", "landValue"],
         "aumentum_t2": ["LANDVALUE", "LandValue"],
         "wa_dnr":         ["LANDVALUE"],
         "generic_arcgis": ["LandValue", "LANDVALUE", "LAND_VALUE", "Land_Value"]
@@ -177,6 +191,7 @@
       "aliases": {
         "harris_govern_pacs": ["Imprv_Val", "ImprvVal", "Imprv_Appr_Val"],
         "harris_govern_pacs":   ["imprv_value", "IMPRV_VALUE"],
+        "tyler_iasworld":     ["imprv_val", "IMPRV_VAL", "imprv_hstd_val", "improvementValue"],
         "aumentum_t2": ["IMPROVVALUE", "ImprovementValue"],
         "wa_dnr":         ["IMPROVEMENTVALUE", "IMPROVVALUE"],
         "generic_arcgis": ["ImprovementValue", "IMPROVEMENTVALUE", "IMPRV_VALUE",
@@ -189,6 +204,7 @@
       "aliases": {
         "harris_govern_pacs": ["Acres", "Lot_Area_Acres"],
         "harris_govern_pacs":   ["land_sqft", "LAND_SQFT"],
+        "tyler_iasworld":     ["gis_acres", "GIS_ACRES", "land_sqft", "LAND_SQFT", "acres"],
         "aumentum_t2": ["ACRES", "GIS_ACRES"],
         "wa_dnr":         ["GISACRES", "ACRES"],
         "generic_arcgis": ["Acres", "ACRES", "GIS_ACRES", "Acreage", "ACREAGE",
@@ -201,6 +217,7 @@
       "aliases": {
         "harris_govern_pacs": ["Nbhd", "NbhdCd", "NBHD_CD", "Hood_Cd"],
         "harris_govern_pacs":   ["hood_cd", "HOOD_CD", "nbhd_cd", "NBHD_CD"],
+        "tyler_iasworld":     ["hood_cd", "HOOD_CD", "nbhd_cd", "neighborhoodCode"],
         "aumentum_t2": ["NBHD", "Neighborhood", "MKTAREA"],
         "wa_dnr":         null,
         "generic_arcgis": ["Neighborhood", "NEIGHBORHOOD", "NBHD", "HOOD_CD",
@@ -213,6 +230,7 @@
       "aliases": {
         "harris_govern_pacs": ["Tax_Area_Cd", "TaxAreaCd", "Tax_Code"],
         "harris_govern_pacs":   ["tax_area_cd", "TAX_AREA_CD"],
+        "tyler_iasworld":     ["tax_area_cd", "TAX_AREA_CD", "taxCode"],
         "aumentum_t2": ["TAXCODE", "TaxCode", "TaxDistrict"],
         "wa_dnr":         ["TAXCODE"],
         "generic_arcgis": ["TaxCode", "TAXCODE", "TAX_CODE", "TaxArea",
@@ -225,6 +243,7 @@
       "aliases": {
         "harris_govern_pacs": ["Tax_Yr", "TaxYr", "Tax_Year"],
         "harris_govern_pacs":   ["prop_val_yr", "PROP_VAL_YR"],
+        "tyler_iasworld":     ["prop_val_yr", "PROP_VAL_YR", "tax_yr", "taxYear"],
         "aumentum_t2": ["TAXYEAR", "TaxYear"],
         "wa_dnr":         ["TAXYEAR"],
         "generic_arcgis": ["TaxYear", "TAXYEAR", "TAX_YEAR", "AssessYear",
@@ -237,6 +256,7 @@
       "aliases": {
         "harris_govern_pacs": ["Shape"],
         "harris_govern_pacs":   ["Shape", "geom"],
+        "tyler_iasworld":     ["Shape", "SHAPE", "geom"],
         "aumentum_t2": ["SHAPE", "Geometry"],
         "wa_dnr":         ["SHAPE", "geometry"],
         "generic_arcgis": ["SHAPE", "Shape", "geometry", "geom", "Geometry"]
@@ -248,9 +268,9 @@
       "wa_counties": [
         "Asotin", "Benton", "Chelan", "Clallam", "Clark", "Columbia", "Cowlitz",
         "Grant", "Island", "Jefferson", "Pend Oreille", "San Juan", "Skagit",
-        "Stevens", "Thurston", "Wahkiakum", "Walla Walla", "Whatcom"
+        "Stevens", "Wahkiakum", "Walla Walla", "Whatcom"
       ],
-      "notes": "Harris Govern PACS (formerly Catalis/PACS). ProVal appraisal + Ascend admin in some counties. prop_id = assessor parcel number, geo_id = GIS key, hood_cd = neighborhood code. Consistent schema across all PACS counties. Source: WA DOR Assessor Statistics 2025."
+      "notes": "Harris Govern PACS (formerly Catalis/PACS). prop_id = assessor parcel number, geo_id = GIS key, hood_cd = neighborhood code. Consistent schema across all PACS counties. Source: WA DOR Assessor Statistics 2025."
     },
     "aumentum_t2": {
       "wa_counties": [
@@ -261,13 +281,17 @@
     },
     "aumentum_ascend": {
       "wa_counties": [
-        "Klickitat", "Lewis", "Pierce", "Snohomish", "Spokane", "Yakima"
+        "Klickitat", "Lewis", "Pierce", "Snohomish", "Spokane", "Thurston", "Yakima"
       ],
       "notes": "Aumentum Technologies Ascend (admin) paired with ProVal or Sigma (appraisal). Pierce uses Harris Govern Realware for appraisal. Source: WA DOR Assessor Statistics 2025."
     },
     "inhouse": {
       "wa_counties": ["King", "Kitsap"],
       "notes": "Custom in-house systems. King: in-house since 1995. Kitsap: in-house Land Information System + Aumentum ProVal for appraisal. Field mapping requires direct service probe. Source: WA DOR Assessor Statistics 2025."
+    },
+    "tyler_iasworld": {
+      "wa_counties": [],
+      "notes": "Tyler Technologies iasWorld / ProVal direct DB adapter. Tables: prop, land, imprv, sale, owner, chg_of_owner_prop_assoc. Field names share PACS lineage (snake_case). Used for counties with Tyler iasWorld CAMA when direct DB access is granted. Source: Tyler Technologies iasWorld documentation."
     }
   }
 }

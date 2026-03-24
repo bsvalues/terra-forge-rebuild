@@ -683,7 +683,7 @@ function SeedCLISection() {
                 Prerequisites — set in <code className="text-tf-cyan">scripts/.env.seed</code>:
               </p>
               <pre className="text-xs text-muted-foreground font-mono">
-{`SUPABASE_URL=https://jzuculrmjuwrshramgye.supabase.co
+{`SUPABASE_URL=https://udjoodlluygvlqccwade.supabase.co
 SUPABASE_SERVICE_KEY=<service role key — never commit>
 PACS_CSV_DIR=E:\\Exports\\Exports\\dataextract
 BENTON_GDB_PATH=E:\\Benton_County_Assessor.gdb`}

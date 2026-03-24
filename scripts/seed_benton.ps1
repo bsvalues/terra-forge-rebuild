@@ -49,7 +49,7 @@ if (-not (Test-Path $envSeed)) {
     Write-Host "  New-Item scripts\.env.seed -Value 'SUPABASE_SERVICE_ROLE_KEY=eyJ...'"
     Write-Host ""
     Write-Host "Get the key from:"
-    Write-Host "  https://supabase.com/dashboard/project/jzuculrmjuwrshramgye/settings/api"
+    Write-Host "  https://supabase.com/dashboard/project/udjoodlluygvlqccwade/settings/api"
     Write-Host ""
     exit 1
 }
