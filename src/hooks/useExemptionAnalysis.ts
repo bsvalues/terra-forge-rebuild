@@ -116,8 +116,7 @@ export function useExemptionDetail(
       const { data: resultData, error: resultError } = await q.order("exemption_amount", { ascending: false });
       if (resultError) throw resultError;
       return (resultData ?? []) as ExemptionDetailRow[];
-      if (error) throw error;
-      return (data ?? []) as ExemptionDetailRow[];
+    },
     },
     enabled: !!taxYear,
     staleTime: 300000,

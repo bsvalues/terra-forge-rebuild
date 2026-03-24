@@ -37,7 +37,7 @@ export function usePacsOwnerSearch(searchTerm: string | null) {
         .ilike("owner_name", `%${searchTerm}%`)
         .limit(50);
       if (error) throw error;
-      return (data ?? []) as PacsOwner[];
+      return (data ?? []) as unknown as PacsOwner[];
     },
     enabled: !!searchTerm && searchTerm.length >= 3,
     staleTime: 30000,

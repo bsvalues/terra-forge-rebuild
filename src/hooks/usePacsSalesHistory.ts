@@ -37,8 +37,7 @@ export function usePacsNeighborhoodSales(hoodCd: string | null) {
   return useQuery({
     queryKey: ["pacs-hood-sales", hoodCd],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("pacs_sales")
+      const { data, error } = await (supabase.from as any)("pacs_sales")
         .select("*")
         .eq("hood_cd", hoodCd!)
         .not("ratio", "is", null)

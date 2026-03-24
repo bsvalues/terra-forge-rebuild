@@ -27,8 +27,7 @@ export function usePacsLandDetails(propId: number | null) {
   return useQuery({
     queryKey: ["pacs-land-details", propId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("pacs_land_details")
+      const { data, error } = await (supabase.from as any)("pacs_land_details")
         .select("*")
         .eq("prop_id", propId!)
         .order("prop_val_yr", { ascending: false });
