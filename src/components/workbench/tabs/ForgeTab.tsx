@@ -22,6 +22,8 @@ import { NeighborhoodEquityMatrix } from "@/components/forge/NeighborhoodEquityM
 import { AssessmentMethodologyViewer } from "@/components/forge/AssessmentMethodologyViewer";
 import { ParcelComparisonDiff } from "@/components/forge/ParcelComparisonDiff";
 import { CostForgeDashboard } from "@/components/costforge/CostForgeDashboard";
+import { CalcTracePanel } from "@/components/costforge/CalcTracePanel";
+import { useWorkbench } from "@/components/workbench/WorkbenchContext";
 import { AscendParcelPanel } from "@/components/forge/AscendParcelPanel";
 import { 
   PRDDrilldownDialog, 
@@ -69,6 +71,8 @@ export function ForgeTab() {
   ];
 
   const navigate = useNavigate();
+  const { parcel } = useWorkbench();
+  const parcelId = parcel.id;
 
   // Latest calibration run for context
   const { data: latestRun } = useLatestCalibrationRun();
@@ -156,7 +160,17 @@ export function ForgeTab() {
         {activeView === "confidence" && <div className="p-6"><ValuationConfidenceVisualizer /></div>}
         {activeView === "equity-matrix" && <div className="p-6"><NeighborhoodEquityMatrix /></div>}
         {activeView === "methodology" && <div className="p-6"><AssessmentMethodologyViewer /></div>}
-        {activeView === "costforge" && <CostForgeDashboard />}
+        {activeView === "costforge" && (
+          <div className="space-y-6 p-6">
+            <CostForgeDashboard />
+            <div className="space-y-2">
+              <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                Calculation Trace
+              </h3>
+              <CalcTracePanel parcelId={parcelId} />
+            </div>
+          </div>
+        )}
         {activeView === "ascend" && <div className="p-6"><AscendParcelPanel /></div>}
         {activeView === "diff" && <div className="p-6"><ParcelComparisonDiff /></div>}
       </div>

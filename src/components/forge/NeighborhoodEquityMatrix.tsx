@@ -22,6 +22,8 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
+import { useActiveCountyId } from "@/hooks/useActiveCounty";
+import { useNeighborhoodEquityOverlay } from "@/hooks/useNeighborhoodStats";
 
 interface AssessmentRatioParcel {
   neighborhood_code: string | null;
@@ -129,6 +131,12 @@ function getRatioClass(ratio: number): string {
 
 export function NeighborhoodEquityMatrix() {
   const { data: rows, isLoading } = useNeighborhoodEquityData();
+  const countyId = useActiveCountyId();
+  const {
+    data: overlayData,
+    isLoading: overlayLoading,
+    isError: overlayError,
+  } = useNeighborhoodEquityOverlay(countyId);
   type SortKey = "code" | "parcelCount" | "medianRatio" | "cod" | "prd" | "avgValue";
   const [sortKey, setSortKey] = useState<SortKey>("cod");
   const [sortAsc, setSortAsc] = useState(false);
@@ -184,6 +192,39 @@ export function NeighborhoodEquityMatrix() {
 
   return (
     <div className="space-y-4">
+      {/* Equity Overlay from RPC */}
+      {countyId && (
+        <Card className="material-bento border-border/50">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <Grid3X3 className="w-3.5 h-3.5 text-suite-forge" />
+              County Equity Overlay
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pb-3">
+            {overlayLoading && (
+              <div className="flex items-center gap-2 py-2 text-xs text-muted-foreground">
+                <Loader2 className="w-3.5 h-3.5 animate-spin" /> Loading overlay data…
+              </div>
+            )}
+            {overlayError && (
+              <div className="flex items-center gap-2 py-2 text-xs text-destructive">
+                <AlertTriangle className="w-3.5 h-3.5" /> Failed to load equity overlay from RPC.
+              </div>
+            )}
+            {!overlayLoading && !overlayError && overlayData != null && (
+              Array.isArray(overlayData) && overlayData.length === 0 ? (
+                <p className="text-xs text-muted-foreground py-1">No overlay data returned for this county.</p>
+              ) : (
+                <pre className="text-[10px] text-muted-foreground overflow-auto max-h-40 whitespace-pre-wrap">
+                  {JSON.stringify(overlayData, null, 2)}
+                </pre>
+              )
+            )}
+          </CardContent>
+        </Card>
+      )}
+
       {/* Summary */}
       {summary && (
         <div className="grid grid-cols-4 gap-3">

@@ -17,6 +17,7 @@ import { ComparableSalesGrid } from "@/components/forge/ComparableSalesGrid";
 import { supabase } from "@/integrations/supabase/client";
 import { assertWriteLane } from "@/services/writeLane";
 import { useActiveCountyId } from "@/hooks/useActiveCounty";
+import { useNeighborhoodStats } from "@/hooks/useNeighborhoodStats";
 
 // sales_history is not in the generated Supabase types — isolate the cast here
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -141,6 +142,13 @@ export function NeighborhoodFactorCalibration() {
   const [isSaving, setIsSaving] = useState(false);
   const countyId = useActiveCountyId();
   const { toast } = useToast();
+
+  // RPC-backed neighborhood stats (supplemental to local ratio study)
+  const {
+    data: nbhdStats,
+    isLoading: nbhdStatsLoading,
+    isError: nbhdStatsError,
+  } = useNeighborhoodStats(neighborhoodCode, countyId);
 
   const { data: comps, isLoading: compsLoading } = useQuery({
     queryKey: ["nbhd-calibration-comps", neighborhoodCode],
@@ -293,6 +301,36 @@ export function NeighborhoodFactorCalibration() {
             <span className="flex items-center gap-1"><StatusDot status="warning" /> Monitor — borderline</span>
             <span className="flex items-center gap-1"><StatusDot status="critical" /> Outside standard — review</span>
           </div>
+
+          {/* Neighborhood Stats RPC Panel */}
+          {neighborhoodCode && countyId && (
+            <Card className="material-bento border-border/50">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <BarChart3 className="w-3.5 h-3.5 text-suite-forge" />
+                  <span className="text-xs font-medium text-foreground">
+                    Neighborhood Stats — {neighborhoodCode}
+                  </span>
+                  <span className="text-[10px] text-muted-foreground">(via RPC)</span>
+                </div>
+                {nbhdStatsLoading && (
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <Loader2 className="w-3 h-3 animate-spin" /> Loading stats…
+                  </div>
+                )}
+                {nbhdStatsError && (
+                  <div className="flex items-center gap-2 text-xs text-[hsl(var(--tf-warning-red))]">
+                    <AlertTriangle className="w-3 h-3" /> RPC error loading neighborhood stats.
+                  </div>
+                )}
+                {!nbhdStatsLoading && !nbhdStatsError && nbhdStats != null && (
+                  <pre className="text-[10px] text-muted-foreground overflow-auto max-h-40 whitespace-pre-wrap">
+                    {JSON.stringify(nbhdStats, null, 2)}
+                  </pre>
+                )}
+              </CardContent>
+            </Card>
+          )}
 
           {/* Apply button */}
           <div className="flex justify-end">

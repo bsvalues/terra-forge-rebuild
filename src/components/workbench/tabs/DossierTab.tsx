@@ -10,6 +10,7 @@ import { NarrativeDraftingPanel } from "@/components/dossier/NarrativeDraftingPa
 import { PacketAssemblyPanel } from "@/components/dossier/PacketAssemblyPanel";
 import { ParcelAnnotations } from "@/components/dossier/ParcelAnnotations";
 import CostForgeTraceTab from "@/components/dossier/CostForgeTraceTab";
+import { CalcTracePanel } from "@/components/costforge/CalcTracePanel";
 
 export function DossierTab() {
   const [activeView, setActiveView] = useState("files");
@@ -83,7 +84,7 @@ export function DossierTab() {
           <ParcelAnnotations parcelId={parcelId} />
         </TabsContent>
         <TabsContent value="traces" className="mt-4">
-          <CostForgeTraceTab parcelId={parcelId} />
+          <CalcTracePanel parcelId={parcelId} />
         </TabsContent>
       </Tabs>
 
