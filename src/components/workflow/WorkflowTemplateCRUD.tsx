@@ -433,7 +433,7 @@ export function WorkflowTemplateCRUD() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from("workflow_templates")
         .update({ is_active: false })
         .eq("id", id);
@@ -442,6 +442,9 @@ export function WorkflowTemplateCRUD() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["workflow-templates"] });
       toast({ title: "Template deactivated" });
+    },
+    onError: (err: Error) => {
+      toast({ title: "Deactivation failed", description: err.message, variant: "destructive" });
     },
   });
 
@@ -460,7 +463,7 @@ export function WorkflowTemplateCRUD() {
         .eq("user_id", user!.id)
         .single();
 
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from("workflow_instances")
         .insert({
           template_id: templateId,

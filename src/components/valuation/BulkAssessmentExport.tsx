@@ -21,6 +21,14 @@ interface ExportFilters {
   propertyClass: string;
 }
 
+interface AssessmentParcelJoin {
+  parcel_number: string | null;
+  situs_address: string | null;
+  city: string | null;
+  property_class: string | null;
+  neighborhood_code: string | null;
+}
+
 export function BulkAssessmentExport() {
   const { profile } = useAuthContext();
   const countyId = profile?.county_id;
@@ -105,7 +113,7 @@ export function BulkAssessmentExport() {
 
       // Add rows
       for (const row of data) {
-        const parcel = row.parcels as any;
+        const parcel = row.parcels as AssessmentParcelJoin | null;
         ws.addRow({
           parcel_number: parcel?.parcel_number || "",
           address: parcel?.situs_address || "",

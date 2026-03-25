@@ -23,6 +23,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 
+interface AssessmentRatioParcel {
+  neighborhood_code: string | null;
+  assessed_value: number | null;
+}
+
 interface NbhdEquityRow {
   code: string;
   parcelCount: number;
@@ -50,12 +55,13 @@ function useNeighborhoodEquityData() {
       const map = new Map<string, { ratios: number[]; values: number[] }>();
 
       for (const r of ratios || []) {
-        const nbhd = (r.parcels as any)?.neighborhood_code;
+        const parcel = r.parcels as AssessmentRatioParcel | null;
+        const nbhd = parcel?.neighborhood_code;
         if (!nbhd) continue;
         if (!map.has(nbhd)) map.set(nbhd, { ratios: [], values: [] });
         const entry = map.get(nbhd)!;
         if (r.ratio) entry.ratios.push(r.ratio);
-        const val = (r.parcels as any)?.assessed_value;
+        const val = parcel?.assessed_value;
         if (val) entry.values.push(val);
       }
 

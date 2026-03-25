@@ -328,8 +328,8 @@ export function NeighborhoodDirectoryPanel() {
       setFormCode(full.hood_cd);
       setFormName(full.hood_name || "");
       setFormYear(full.year);
-      setFormModelType((full as any).model_type || "linear");
-      setFormDescription((full as any).description || "");
+      setFormModelType(full.model_type || "linear");
+      setFormDescription(full.description || "");
       setDialogOpen(true);
     }
   };
