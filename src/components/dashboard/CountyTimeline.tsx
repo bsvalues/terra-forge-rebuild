@@ -110,7 +110,7 @@ export function CountyTimeline({ onNavigate, onMissionPreview, maxHeight = "500p
   const [causalFilter, setCausalFilter] = useState<CausalFilter | null>(null);
   const [windowFilter, setWindowFilter] = useState<WindowFilter | null>(null);
 
-  const { data, isLoading } = useCountyTimeline({
+  const { data, isLoading, isError } = useCountyTimeline({
     range,
     types: activeTypes.length > 0 ? activeTypes : null,
     search: debouncedSearch,
@@ -321,6 +321,11 @@ export function CountyTimeline({ onNavigate, onMissionPreview, maxHeight = "500p
           {[...Array(5)].map((_, i) => (
             <Skeleton key={i} className="h-14 w-full rounded-lg" />
           ))}
+        </div>
+      ) : isError ? (
+        <div className="flex items-center justify-center h-32 gap-2 text-sm text-destructive">
+          <AlertCircle className="w-4 h-4" />
+          Timeline unavailable — check network or retry.
         </div>
       ) : events.length === 0 ? (
         <div className="text-center py-10 text-muted-foreground">
