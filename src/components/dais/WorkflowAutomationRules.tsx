@@ -17,19 +17,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-
-interface AutomationRule {
-  id: string;
-  name: string;
-  description: string;
-  trigger: string;
-  triggerDomain: "appeals" | "permits" | "exemptions" | "notices" | "certification";
-  conditions: string[];
-  action: string;
-  enabled: boolean;
-  lastFired?: string;
-  fireCount: number;
-}
+import {
+  useWorkflowAutomationRules,
+  useToggleRule,
+  useDeleteRule,
+  type AutomationRule,
+} from "@/hooks/useWorkflowAutomationRules";
 
 const domainConfig: Record<string, { icon: React.ElementType; color: string }> = {
   appeals: { icon: Scale, color: "text-tf-amber" },
@@ -39,70 +32,10 @@ const domainConfig: Record<string, { icon: React.ElementType; color: string }> =
   certification: { icon: CheckCircle2, color: "text-suite-forge" },
 };
 
-const mockRules: AutomationRule[] = [
-  {
-    id: "1",
-    name: "Auto-escalate high-value appeals",
-    description: "Escalate appeals to senior appraiser when disputed value exceeds $500K",
-    trigger: "appeal.created",
-    triggerDomain: "appeals",
-    conditions: ["original_value > 500000"],
-    action: "Assign to Senior Appraiser queue",
-    enabled: true,
-    lastFired: new Date(Date.now() - 86400000).toISOString(),
-    fireCount: 14,
-  },
-  {
-    id: "2",
-    name: "Permit completion → re-inspection",
-    description: "Schedule re-inspection when a building permit is marked complete",
-    trigger: "permit.status_changed",
-    triggerDomain: "permits",
-    conditions: ["new_status = 'completed'", "permit_type IN ('addition', 'renovation')"],
-    action: "Create inspection task for Q+1",
-    enabled: true,
-    lastFired: new Date(Date.now() - 3 * 86400000).toISOString(),
-    fireCount: 8,
-  },
-  {
-    id: "3",
-    name: "Exemption expiration warning",
-    description: "Generate notice 60 days before exemption expiration date",
-    trigger: "schedule.daily",
-    triggerDomain: "exemptions",
-    conditions: ["days_until_expiration <= 60", "status = 'approved'"],
-    action: "Queue renewal reminder notice",
-    enabled: true,
-    lastFired: new Date(Date.now() - 1 * 86400000).toISOString(),
-    fireCount: 42,
-  },
-  {
-    id: "4",
-    name: "Auto-approve low-risk exemptions",
-    description: "Auto-approve homestead exemptions when all documentation is verified",
-    trigger: "exemption.documents_verified",
-    triggerDomain: "exemptions",
-    conditions: ["exemption_type = 'homestead'", "docs_complete = true"],
-    action: "Set status to approved",
-    enabled: false,
-    fireCount: 0,
-  },
-  {
-    id: "5",
-    name: "Neighborhood certification gate",
-    description: "Block certification if COD exceeds 20% for the neighborhood",
-    trigger: "certification.requested",
-    triggerDomain: "certification",
-    conditions: ["neighborhood_cod > 20"],
-    action: "Reject certification with COD blocker",
-    enabled: true,
-    lastFired: new Date(Date.now() - 7 * 86400000).toISOString(),
-    fireCount: 3,
-  },
-];
-
 export function WorkflowAutomationRules() {
-  const [rules, setRules] = useState<AutomationRule[]>(mockRules);
+  const { data: rules = [], isLoading } = useWorkflowAutomationRules();
+  const toggleRuleMutation = useToggleRule();
+  const deleteRuleMutation = useDeleteRule();
   const [filterDomain, setFilterDomain] = useState<string>("all");
   const [showAddForm, setShowAddForm] = useState(false);
 
@@ -111,17 +44,25 @@ export function WorkflowAutomationRules() {
   );
 
   const toggleRule = (id: string) => {
-    setRules((prev) =>
-      prev.map((r) => (r.id === id ? { ...r, enabled: !r.enabled } : r))
-    );
+    const rule = rules.find((r) => r.id === id);
+    if (!rule) return;
+    toggleRuleMutation.mutate({ id, enabled: !rule.enabled });
   };
 
   const removeRule = (id: string) => {
-    setRules((prev) => prev.filter((r) => r.id !== id));
+    deleteRuleMutation.mutate(id);
   };
 
   const activeCount = rules.filter((r) => r.enabled).length;
   const totalFires = rules.reduce((sum, r) => sum + r.fireCount, 0);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-32 text-sm text-muted-foreground">
+        Loading…
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">

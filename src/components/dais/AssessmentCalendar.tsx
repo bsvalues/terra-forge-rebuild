@@ -7,15 +7,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-
-interface Deadline {
-  id: string;
-  title: string;
-  date: string;
-  domain: "appeals" | "permits" | "exemptions" | "notices" | "certification";
-  status: "upcoming" | "due_soon" | "overdue" | "completed";
-  description: string;
-}
+import { useAssessmentDeadlines, type Deadline } from "@/hooks/useAssessmentDeadlines";
 
 const domainIcons: Record<string, React.ElementType> = {
   appeals: Scale,
@@ -40,23 +32,11 @@ const statusConfig: Record<string, { color: string; icon: React.ElementType }> =
   completed: { color: "text-tf-green", icon: CheckCircle2 },
 };
 
-const mockDeadlines: Deadline[] = [
-  { id: "1", title: "Appeal hearing — R-1001-234", date: "2026-03-22", domain: "appeals", status: "due_soon", description: "Formal hearing before BOE. Evidence packet required." },
-  { id: "2", title: "Permit review deadline — R-2003-891", date: "2026-03-25", domain: "permits", status: "upcoming", description: "30-day review window closes for building permit #2026-0134." },
-  { id: "3", title: "Exemption renewal — R-3005-334", date: "2026-03-19", domain: "exemptions", status: "overdue", description: "Homestead exemption renewal documentation past due." },
-  { id: "4", title: "Value notices — NB-204", date: "2026-03-28", domain: "notices", status: "upcoming", description: "Batch value change notices for neighborhood NB-204." },
-  { id: "5", title: "Q1 Certification deadline", date: "2026-03-31", domain: "certification", status: "due_soon", description: "All neighborhoods must be certified for Q1 roll." },
-  { id: "6", title: "Appeal response — R-1001-567", date: "2026-04-05", domain: "appeals", status: "upcoming", description: "45-day response window for owner appeal." },
-  { id: "7", title: "Permit inspection — R-2003-112", date: "2026-04-10", domain: "permits", status: "upcoming", description: "Field inspection for completed addition permit." },
-  { id: "8", title: "Senior exemption review batch", date: "2026-03-15", domain: "exemptions", status: "completed", description: "Batch review of 23 senior citizen exemption renewals." },
-  { id: "9", title: "Appeal hearing — R-4007-778", date: "2026-04-15", domain: "appeals", status: "upcoming", description: "Second hearing for commercial property dispute." },
-  { id: "10", title: "Certification — NB-301", date: "2026-03-20", domain: "certification", status: "due_soon", description: "Neighborhood certification pending COD review." },
-];
-
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 export function AssessmentCalendar() {
+  const { data: deadlines = [] } = useAssessmentDeadlines();
   const [currentMonth, setCurrentMonth] = useState(() => {
     const now = new Date();
     return { year: now.getFullYear(), month: now.getMonth() };
@@ -88,13 +68,13 @@ export function AssessmentCalendar() {
 
   const deadlinesByDate = useMemo(() => {
     const map = new Map<string, Deadline[]>();
-    mockDeadlines.forEach((d) => {
+    deadlines.forEach((d) => {
       const key = d.date;
       if (!map.has(key)) map.set(key, []);
       map.get(key)!.push(d);
     });
     return map;
-  }, []);
+  }, [deadlines]);
 
   const prevMonth = () =>
     setCurrentMonth((prev) => {
@@ -109,7 +89,7 @@ export function AssessmentCalendar() {
     });
 
   // Upcoming deadlines list
-  const upcomingDeadlines = mockDeadlines
+  const upcomingDeadlines = deadlines
     .filter((d) => d.status !== "completed")
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
     .slice(0, 6);
@@ -120,7 +100,7 @@ export function AssessmentCalendar() {
         <Calendar className="w-4 h-4 text-suite-dais" />
         <h3 className="text-sm font-medium text-foreground">Assessment Calendar</h3>
         <Badge variant="outline" className="text-[10px]">
-          {mockDeadlines.filter((d) => d.status === "overdue").length} overdue
+          {deadlines.filter((d) => d.status === "overdue").length} overdue
         </Badge>
       </div>
 

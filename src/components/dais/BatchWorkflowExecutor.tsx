@@ -17,17 +17,7 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-
-interface BatchItem {
-  id: string;
-  parcelNumber: string;
-  address: string;
-  currentStatus: string;
-  domain: "appeals" | "permits" | "exemptions" | "notices";
-  selected: boolean;
-  result?: "success" | "error" | "skipped";
-  resultMessage?: string;
-}
+import { useWorkflowBatchItems, type BatchItem } from "@/hooks/useWorkflowBatchItems";
 
 const domainConfig: Record<string, { icon: React.ElementType; color: string; actions: string[] }> = {
   appeals: {
@@ -52,20 +42,20 @@ const domainConfig: Record<string, { icon: React.ElementType; color: string; act
   },
 };
 
-const mockItems: BatchItem[] = [
-  { id: "1", parcelNumber: "R-1001-234", address: "123 Oak St", currentStatus: "pending_review", domain: "appeals", selected: false },
-  { id: "2", parcelNumber: "R-1001-567", address: "456 Elm Ave", currentStatus: "pending_review", domain: "appeals", selected: false },
-  { id: "3", parcelNumber: "R-2003-891", address: "789 Pine Rd", currentStatus: "submitted", domain: "permits", selected: false },
-  { id: "4", parcelNumber: "R-2003-112", address: "112 Cedar Ln", currentStatus: "submitted", domain: "permits", selected: false },
-  { id: "5", parcelNumber: "R-3005-334", address: "334 Birch Dr", currentStatus: "pending", domain: "exemptions", selected: false },
-  { id: "6", parcelNumber: "R-3005-556", address: "556 Maple Ct", currentStatus: "pending", domain: "exemptions", selected: false },
-  { id: "7", parcelNumber: "R-4007-778", address: "778 Walnut Blvd", currentStatus: "draft", domain: "notices", selected: false },
-  { id: "8", parcelNumber: "R-4007-990", address: "990 Spruce Way", currentStatus: "draft", domain: "notices", selected: false },
-];
-
 export function BatchWorkflowExecutor() {
-  const [items, setItems] = useState<BatchItem[]>(mockItems);
   const [filterDomain, setFilterDomain] = useState<string>("all");
+  const { data: serverItems = [] } = useWorkflowBatchItems(filterDomain === "all" ? null : filterDomain);
+  // Client-only selection state — layered on top of server items
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [itemResults, setItemResults] = useState<Record<string, { result: "success" | "error"; resultMessage: string }>>({});
+
+  // Merge server items with client-only state
+  const items: BatchItem[] = serverItems.map((item) => ({
+    ...item,
+    selected: selectedIds.has(item.id),
+    result: itemResults[item.id]?.result ?? item.result,
+    resultMessage: itemResults[item.id]?.resultMessage ?? item.resultMessage,
+  }));
   const [selectedAction, setSelectedAction] = useState<string>("");
   const [isExecuting, setIsExecuting] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -86,15 +76,23 @@ export function BatchWorkflowExecutor() {
 
   const toggleAll = () => {
     const newState = !allSelected;
-    setItems((prev) =>
-      prev.map((i) =>
-        (filterDomain === "all" || i.domain === filterDomain) ? { ...i, selected: newState } : i
-      )
-    );
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      filtered.forEach((i) => {
+        if (newState) next.add(i.id);
+        else next.delete(i.id);
+      });
+      return next;
+    });
   };
 
   const toggleItem = (id: string) => {
-    setItems((prev) => prev.map((i) => (i.id === id ? { ...i, selected: !i.selected } : i)));
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
   };
 
   const executeAction = async () => {
@@ -105,17 +103,14 @@ export function BatchWorkflowExecutor() {
     for (let i = 0; i < selectedItems.length; i++) {
       await new Promise((r) => setTimeout(r, 400 + Math.random() * 300));
       const success = Math.random() > 0.1;
-      setItems((prev) =>
-        prev.map((item) =>
-          item.id === selectedItems[i].id
-            ? {
-                ...item,
-                result: success ? "success" : "error",
-                resultMessage: success ? `${selectedAction} completed` : "Failed — insufficient permissions",
-              }
-            : item
-        )
-      );
+      const itemId = selectedItems[i].id;
+      setItemResults((prev) => ({
+        ...prev,
+        [itemId]: {
+          result: success ? "success" : "error",
+          resultMessage: success ? `${selectedAction} completed` : "Failed — insufficient permissions",
+        },
+      }));
       setProgress(((i + 1) / selectedItems.length) * 100);
     }
 
