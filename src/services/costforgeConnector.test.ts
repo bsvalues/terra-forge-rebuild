@@ -32,6 +32,10 @@ vi.mock("@/integrations/supabase/client", () => ({
     }),
     rpc: vi.fn(() => Promise.resolve({ data: null, error: null })),
   },
+  fromAny: vi.fn((table: string) => {
+    _fromAnyCalls.push(table);
+    return makeQueryBuilder({ data: _stubData, error: _stubError });
+  }),
 }));
 
 // ── Tests ────────────────────────────────────────────────────────────────────
@@ -366,10 +370,7 @@ describe("getAllTypeCodes", () => {
   });
 
   it("throws on DB error", async () => {
-    const { fromAny } = await import("@/integrations/supabase/client");
-    (fromAny as ReturnType<typeof vi.fn>).mockImplementationOnce(() =>
-      makeQueryBuilder({ data: null, error: { message: "RLS denied" } })
-    );
+    _stubError = { message: "RLS denied" };
     const { getAllTypeCodes } = await import("./costforgeConnector");
     await expect(getAllTypeCodes()).rejects.toThrow("RLS denied");
   });

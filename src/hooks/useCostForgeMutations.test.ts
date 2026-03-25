@@ -26,6 +26,7 @@ vi.mock("@/integrations/supabase/client", () => ({
   supabase: {
     from: vi.fn(() => makeInsertChain()),
   },
+  fromAny: vi.fn(() => makeInsertChain()),
 }));
 
 vi.mock("@/services/terraTrace", () => ({
@@ -65,7 +66,7 @@ describe("useSaveCalcTrace", () => {
   });
 
   it("calls fromAny with costforge_calc_trace", async () => {
-    const { fromAny } = await import("@/integrations/supabase/client");
+    const { supabase } = await import("@/integrations/supabase/client");
     const { useSaveCalcTrace } = await import("@/hooks/useCostForgeMutations");
     const mutation = useSaveCalcTrace();
 
@@ -97,7 +98,7 @@ describe("useSaveCalcTrace", () => {
     };
 
     await mutation.mutate(traceInput as any);
-    expect(fromAny).toHaveBeenCalledWith("costforge_calc_trace");
+    expect(supabase.from).toHaveBeenCalledWith("costforge_calc_trace");
   });
 
   it("emits a TerraTrace event on success", async () => {
