@@ -47,6 +47,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import type { DomainLoadState } from "@/types/parcel360";
 import { useIsWatched, useToggleWatchlist } from "@/hooks/useParcelWatchlist";
+import { useParcelCharacteristics } from "@/hooks/useParcelCharacteristics";
 
 export function SummaryTab() {
   const { parcel } = useWorkbench();
@@ -200,12 +201,25 @@ function OperationalBlockers({ snapshot }: { snapshot: NonNullable<ReturnType<ty
 }
 
 // ---- Main Content ----
+function CharRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex flex-col gap-0.5">
+      <span className="text-[10px] text-muted-foreground/60">{label}</span>
+      <span className="text-[12px] font-medium text-foreground/80">{value}</span>
+    </div>
+  );
+}
+
 function ParcelSummaryContent() {
   const { parcel } = useWorkbench();
   const snapshot = useParcel360(parcel.id);
   const { isWatched, watchItem } = useIsWatched(parcel.id);
   const { toggle: toggleWatch, isPending: watchPending } = useToggleWatchlist();
   const { profile } = useAuthContext();
+  const { data: characteristics, isLoading: charLoading } = useParcelCharacteristics(
+    parcel.id,
+    snapshot?.identity?.lrsn ?? null
+  );
 
   const fmt = (v: number | null | undefined) =>
     v != null
@@ -282,6 +296,49 @@ function ParcelSummaryContent() {
         </h3>
         <OperationalBlockers snapshot={snapshot} />
       </motion.div>
+
+      {/* Property Characteristics */}
+      {charLoading && (
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.07 }}>
+          <Skeleton className="h-28 w-full rounded-2xl" />
+        </motion.div>
+      )}
+      {!charLoading && characteristics && (
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.07 }}>
+          <div className="rounded-2xl border border-border/50 bg-card p-4">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-[12px] font-semibold text-foreground/70 uppercase tracking-wide">
+                Property Characteristics
+              </h3>
+              {characteristics.source && (
+                <span className={cn(
+                  "text-[9px] font-semibold px-1.5 py-0.5 rounded-full uppercase tracking-wide",
+                  characteristics.source === "pacs"
+                    ? "bg-primary/10 text-primary border border-primary/20"
+                    : characteristics.source === "ascend"
+                      ? "bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20"
+                      : "bg-muted text-muted-foreground"
+                )}>
+                  {characteristics.source === "pacs"
+                    ? `PACS${characteristics.sourceYear ? ` ${characteristics.sourceYear}` : ""}`
+                    : characteristics.source === "ascend" ? "Ascend" : "Parcels"}
+                </span>
+              )}
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-2">
+              {characteristics.yearBuilt != null && <CharRow label="Year Built" value={String(characteristics.yearBuilt)} />}
+              {characteristics.finishedAreaSqft != null && <CharRow label="Finished Area" value={`${characteristics.finishedAreaSqft.toLocaleString()} sf`} />}
+              {characteristics.bedrooms != null && <CharRow label="Bedrooms" value={String(characteristics.bedrooms)} />}
+              {characteristics.bathrooms != null && <CharRow label="Bathrooms" value={String(characteristics.bathrooms)} />}
+              {characteristics.conditionCode != null && <CharRow label="Condition" value={characteristics.conditionDesc ?? characteristics.conditionCode} />}
+              {characteristics.constructionClass != null && <CharRow label="Frame" value={characteristics.constructionClass} />}
+              {characteristics.foundation != null && <CharRow label="Foundation" value={characteristics.foundation} />}
+              {characteristics.numStories != null && <CharRow label="Stories" value={String(characteristics.numStories)} />}
+              {characteristics.garageAreaSqft != null && <CharRow label="Garage" value={`${characteristics.garageAreaSqft.toLocaleString()} sf`} />}
+            </div>
+          </div>
+        </motion.div>
+      )}
 
       {/* Assessment Sparkline */}
       {snapshot.valuation.history.length >= 2 && (
