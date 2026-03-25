@@ -56,7 +56,7 @@ function DomainCard({ domain }: { domain: CatalogDomain }) {
 
   return (
     <Card
-      className="cursor-pointer hover:shadow-md transition-shadow border-border/50"
+      className="cursor-pointer hover:shadow-lg transition-shadow border-border/50"
       onClick={() => setExpanded(!expanded)}
     >
       <CardHeader className="pb-2 px-4 pt-4">
