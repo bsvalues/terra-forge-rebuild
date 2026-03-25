@@ -49,7 +49,7 @@ export function CostForgeDashboard() {
         className="flex items-center justify-between"
       >
         <div>
-          <h2 className="text-2xl font-light text-gradient-sovereign">
+          <h2 className="text-2xl font-light text-[hsl(var(--tf-transcend-cyan))]">
             3-6-9 Quantum Valuation Engine
           </h2>
           <p className="text-sm text-muted-foreground mt-1">

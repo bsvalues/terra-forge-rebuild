@@ -84,7 +84,7 @@ export function VEIMetricCard({
       {/* Clickable indicator */}
       {onClick && (
         <div className="absolute top-2 right-2">
-          <div className="w-1.5 h-1.5 rounded-full bg-tf-cyan animate-pulse" />
+          <div className="w-1.5 h-1.5 rounded-full bg-tf-cyan animate-core-pulse" />
         </div>
       )}
 

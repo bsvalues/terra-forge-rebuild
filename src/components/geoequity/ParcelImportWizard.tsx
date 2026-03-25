@@ -228,7 +228,7 @@ export function ParcelImportWizard({ open, onOpenChange }: ParcelImportWizardPro
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader>
-          <DialogTitle className="text-gradient-sovereign flex items-center gap-2">
+          <DialogTitle className="text-[hsl(var(--tf-transcend-cyan))] flex items-center gap-2">
             <Database className="w-5 h-5" />
             Parcel Import Wizard
           </DialogTitle>

@@ -7,7 +7,7 @@ import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine,
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -157,6 +157,7 @@ function BenchmarkChart({
   }));
 
   const hasAnyLive = chartData.some((d) => d.value !== null);
+  const isMedianRatio = metric === "medianRatio";
 
   return (
     <Card className="material-bento border-border/50">
@@ -181,12 +182,44 @@ function BenchmarkChart({
               <YAxis tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
               <Tooltip content={<CustomTooltip />} />
               <Bar dataKey="value" name={label} fill={color} radius={[3, 3, 0, 0]} />
+              <ReferenceLine
+                y={target.min}
+                stroke="hsl(var(--tf-optimized-green))"
+                strokeDasharray="4 4"
+                label={{ value: "Min", position: "insideTopRight", fontSize: 9 }}
+              />
+              <ReferenceLine
+                y={target.max}
+                stroke="hsl(var(--tf-optimized-green))"
+                strokeDasharray="4 4"
+                label={{ value: "Max", position: "insideTopRight", fontSize: 9 }}
+              />
+              {isMedianRatio && (
+                <ReferenceLine
+                  y={1.0}
+                  stroke="hsl(var(--tf-transcend-cyan))"
+                  label={{ value: "Equitable", fontSize: 9 }}
+                />
+              )}
             </BarChart>
           </ResponsiveContainer>
         )}
       </CardContent>
     </Card>
   );
+}
+
+// ── IAAO compliance helper ────────────────────────────────────────────────────
+function iaaoCompliance(row: CountyBenchmark): "compliant" | "review" | "no-data" {
+  const { medianRatio, cod, prd } = row;
+  if (medianRatio == null && cod == null && prd == null) return "no-data";
+
+  const mrOk  = medianRatio == null || (medianRatio >= 0.9 && medianRatio <= 1.1);
+  const codOk = cod == null         || (cod >= 0 && cod <= 15);
+  const prdOk = prd == null         || (prd >= 0.98 && prd <= 1.03);
+
+  // At least one metric present and all present ones in range
+  return mrOk && codOk && prdOk ? "compliant" : "review";
 }
 
 // ── Summary table ─────────────────────────────────────────────────────────────
@@ -205,34 +238,48 @@ function BenchmarkTable({ data }: { data: CountyBenchmark[] }) {
           <table className="w-full text-xs">
             <thead>
               <tr className="border-b border-border/50">
-                {["County", "Parcels", "Median Ratio", "COD", "PRD", "Status"].map((h) => (
+                {["County", "Parcels", "Median Ratio", "COD", "PRD", "IAAO", "Status"].map((h) => (
                   <th key={h} className="text-left px-4 py-2 text-muted-foreground font-medium">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
-              {data.map((row) => (
-                <tr key={row.slug} className="border-b border-border/30 hover:bg-muted/20">
-                  <td className="px-4 py-2 font-medium text-foreground">{row.county}</td>
-                  <td className="px-4 py-2 text-muted-foreground tabular-nums">
-                    {row.parcelCount > 0 ? row.parcelCount.toLocaleString() : "—"}
-                  </td>
-                  <td className={`px-4 py-2 tabular-nums font-mono ${inRange(row.medianRatio, 0.9, 1.1) ? "text-emerald-400" : row.medianRatio != null ? "text-amber-400" : "text-muted-foreground/40"}`}>
-                    {fmtRatio(row.medianRatio)}
-                  </td>
-                  <td className={`px-4 py-2 tabular-nums font-mono ${inRange(row.cod, 0, 15) ? "text-emerald-400" : row.cod != null ? "text-rose-400" : "text-muted-foreground/40"}`}>
-                    {fmtRatio(row.cod)}
-                  </td>
-                  <td className={`px-4 py-2 tabular-nums font-mono ${inRange(row.prd, 0.98, 1.03) ? "text-emerald-400" : row.prd != null ? "text-amber-400" : "text-muted-foreground/40"}`}>
-                    {fmtRatio(row.prd)}
-                  </td>
-                  <td className="px-4 py-2">
-                    {row.isLive
-                      ? <Badge className="text-[9px] px-1.5 bg-sky-500/10 text-sky-400 border-sky-500/20">Live</Badge>
-                      : <Badge className="text-[9px] px-1.5 bg-muted/30 text-muted-foreground border-border/30">Stub</Badge>}
-                  </td>
-                </tr>
-              ))}
+              {data.map((row) => {
+                const compliance = iaaoCompliance(row);
+                return (
+                  <tr key={row.slug} className="border-b border-border/30 hover:bg-muted/20">
+                    <td className="px-4 py-2 font-medium text-foreground">{row.county}</td>
+                    <td className="px-4 py-2 text-muted-foreground tabular-nums">
+                      {row.parcelCount > 0 ? row.parcelCount.toLocaleString() : "—"}
+                    </td>
+                    <td className={`px-4 py-2 tabular-nums font-mono ${inRange(row.medianRatio, 0.9, 1.1) ? "text-emerald-400" : row.medianRatio != null ? "text-amber-400" : "text-muted-foreground/40"}`}>
+                      {fmtRatio(row.medianRatio)}
+                    </td>
+                    <td className={`px-4 py-2 tabular-nums font-mono ${inRange(row.cod, 0, 15) ? "text-emerald-400" : row.cod != null ? "text-rose-400" : "text-muted-foreground/40"}`}>
+                      {fmtRatio(row.cod)}
+                    </td>
+                    <td className={`px-4 py-2 tabular-nums font-mono ${inRange(row.prd, 0.98, 1.03) ? "text-emerald-400" : row.prd != null ? "text-amber-400" : "text-muted-foreground/40"}`}>
+                      {fmtRatio(row.prd)}
+                    </td>
+                    <td className="px-4 py-2">
+                      {compliance === "compliant" && (
+                        <Badge className="bg-green-500/15 text-green-400 border-green-500/30 text-[9px] px-1.5">Compliant</Badge>
+                      )}
+                      {compliance === "review" && (
+                        <Badge className="bg-amber-500/15 text-amber-400 border-amber-500/30 text-[9px] px-1.5">Review</Badge>
+                      )}
+                      {compliance === "no-data" && (
+                        <Badge variant="outline" className="text-muted-foreground text-[9px] px-1.5">No Data</Badge>
+                      )}
+                    </td>
+                    <td className="px-4 py-2">
+                      {row.isLive
+                        ? <Badge className="text-[9px] px-1.5 bg-sky-500/10 text-sky-400 border-sky-500/20">Live</Badge>
+                        : <Badge className="text-[9px] px-1.5 bg-muted/30 text-muted-foreground border-border/30">Stub</Badge>}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

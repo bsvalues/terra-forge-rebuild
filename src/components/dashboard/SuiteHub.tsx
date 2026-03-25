@@ -152,7 +152,7 @@ export function SuiteHub({ onNavigate, onParcelNavigate }: SuiteHubProps) {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl sm:text-3xl font-light tracking-tight text-foreground">
-              TerraFusion <span className="text-gradient-sovereign font-medium">OS</span>
+              TerraFusion <span className="text-[hsl(var(--tf-transcend-cyan))] font-medium">OS</span>
             </h1>
             <p className="text-sm text-muted-foreground mt-1">
               Valuation Operating Environment

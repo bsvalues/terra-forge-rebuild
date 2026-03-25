@@ -20,7 +20,7 @@ export function VEIEmptyState() {
           </div>
         </div>
 
-        <h2 className="text-2xl font-light text-gradient-sovereign mb-3">
+        <h2 className="text-2xl font-light text-[hsl(var(--tf-transcend-cyan))] mb-3">
           Insufficient Data for Ratio Analysis
         </h2>
         

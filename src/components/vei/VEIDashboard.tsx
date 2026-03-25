@@ -210,7 +210,7 @@ export function VEIDashboard() {
         {/* Header */}
         <motion.div variants={itemVariants} className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-3xl font-light text-gradient-sovereign tracking-tight">
+            <h1 className="text-3xl font-light text-[hsl(var(--tf-transcend-cyan))] tracking-tight">
               VEI Suite Dashboard
             </h1>
             <p className="text-muted-foreground mt-1">

@@ -67,7 +67,7 @@ export function SegmentDiscoveryDashboard() {
         className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
       >
         <div>
-          <h2 className="text-2xl font-light text-gradient-sovereign">
+          <h2 className="text-2xl font-light text-[hsl(var(--tf-transcend-cyan))]">
             Segment Discovery — Factor Analysis
           </h2>
           <p className="text-sm text-muted-foreground mt-1">

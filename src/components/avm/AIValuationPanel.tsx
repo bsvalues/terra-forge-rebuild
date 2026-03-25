@@ -117,7 +117,7 @@ export function AIValuationPanel() {
                 <Brain className="w-6 h-6 text-tf-transcend-cyan" />
               </div>
               <div>
-                <CardTitle className="text-lg text-gradient-sovereign">
+                <CardTitle className="text-lg text-[hsl(var(--tf-transcend-cyan))]">
                   AI Valuation Engine
                 </CardTitle>
                 <p className="text-sm text-muted-foreground">

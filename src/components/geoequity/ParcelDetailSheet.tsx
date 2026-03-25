@@ -84,7 +84,7 @@ export function ParcelDetailSheet({ parcel, open, onOpenChange }: ParcelDetailSh
         <SheetHeader className="pb-4">
           <div className="flex items-start justify-between">
             <div>
-              <SheetTitle className="text-xl text-gradient-sovereign">Property Details</SheetTitle>
+              <SheetTitle className="text-xl text-[hsl(var(--tf-transcend-cyan))]">Property Details</SheetTitle>
               <SheetDescription className="mt-1">{parcel.parcel_number}</SheetDescription>
             </div>
             {parcel.property_class && (

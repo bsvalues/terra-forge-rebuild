@@ -75,7 +75,7 @@ export function GeoEquityDashboard({ onNavigateToWorkbench }: GeoEquityDashboard
       <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}
         className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-2xl font-light text-gradient-sovereign flex items-center gap-3">
+          <h2 className="text-2xl font-light text-[hsl(var(--tf-transcend-cyan))] flex items-center gap-3">
             <Globe className="w-7 h-7 text-tf-cyan" />GeoEquity
           </h2>
           <p className="text-sm text-muted-foreground mt-1">Geographic Equity Analysis • Spatial Visualization</p>

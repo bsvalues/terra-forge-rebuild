@@ -232,7 +232,7 @@ export function CountyTimeline({ onNavigate, onMissionPreview, maxHeight = "500p
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Radio className="w-3 h-3 text-chart-2 animate-pulse" />
+          <Radio className="w-3 h-3 text-chart-2 animate-core-pulse" />
           <span className="text-[10px] text-chart-2 font-medium uppercase tracking-wider">County Timeline</span>
           {data && (
             <span className="text-[10px] text-muted-foreground">

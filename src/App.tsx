@@ -3,19 +3,18 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { SkipToContent } from "@/components/SkipToContent";
 import { useGlobalErrorHandler } from "@/hooks/useGlobalErrorHandler";
+import { ModuleShell } from "@/components/layout/ModuleShell";
 
-// Lazy-loaded route components for code-splitting
-const Index = lazy(() => import("./pages/Index"));
+// Lazy-loaded non-shell routes
 const Auth = lazy(() => import("./pages/Auth"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const Property = lazy(() => import("./pages/Property"));
-const Factory = lazy(() => import("./pages/Factory"));
 const OwnerPortal = lazy(() => import("./pages/OwnerPortal"));
 
 const queryClient = new QueryClient();
@@ -31,6 +30,17 @@ function RouteFallback() {
   );
 }
 
+/** Protected ModuleShell wrapper */
+function ProtectedShell() {
+  return (
+    <ProtectedRoute>
+      <ErrorBoundary fallbackTitle="TerraForge module failed to load">
+        <ModuleShell />
+      </ErrorBoundary>
+    </ProtectedRoute>
+  );
+}
+
 /** Inner component so hooks work inside providers */
 function AppShell() {
   useGlobalErrorHandler();
@@ -43,17 +53,13 @@ function AppShell() {
       <BrowserRouter>
         <Suspense fallback={<RouteFallback />}>
           <Routes>
+            {/* Auth — no shell */}
             <Route path="/auth" element={<Auth />} />
-            <Route
-              path="/"
-              element={
-                <ProtectedRoute>
-                  <ErrorBoundary fallbackTitle="Dashboard failed to load">
-                    <Index />
-                  </ErrorBoundary>
-                </ProtectedRoute>
-              }
-            />
+
+            {/* Owner portal — no shell */}
+            <Route path="/portal" element={<OwnerPortal />} />
+
+            {/* Property deep-link — redirects into workbench */}
             <Route
               path="/property/:parcelId"
               element={
@@ -64,27 +70,29 @@ function AppShell() {
                 </ProtectedRoute>
               }
             />
-            <Route
-              path="/factory"
-              element={
-                <ProtectedRoute>
-                  <ErrorBoundary fallbackTitle="Factory failed to load">
-                    <Factory />
-                  </ErrorBoundary>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/factory/:mode"
-              element={
-                <ProtectedRoute>
-                  <ErrorBoundary fallbackTitle="Factory failed to load">
-                    <Factory />
-                  </ErrorBoundary>
-                </ProtectedRoute>
-              }
-            />
-            <Route path="/portal" element={<OwnerPortal />} />
+
+            {/* ── Tahoe Shell Routes ──────────────────────────── */}
+            {/* Root → redirect to /home */}
+            <Route path="/" element={<Navigate to="/home" replace />} />
+
+            {/* Home module routes */}
+            <Route path="/home" element={<ProtectedShell />} />
+            <Route path="/home/:groupSlug" element={<ProtectedShell />} />
+            <Route path="/home/:groupSlug/:viewId" element={<ProtectedShell />} />
+
+            {/* Workbench module routes */}
+            <Route path="/workbench" element={<ProtectedShell />} />
+            <Route path="/workbench/:viewId" element={<ProtectedShell />} />
+
+            {/* Factory module routes */}
+            <Route path="/factory" element={<ProtectedShell />} />
+            <Route path="/factory/:viewId" element={<ProtectedShell />} />
+
+            {/* Registry module routes */}
+            <Route path="/registry" element={<ProtectedShell />} />
+            <Route path="/registry/:viewId" element={<ProtectedShell />} />
+
+            {/* 404 */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>

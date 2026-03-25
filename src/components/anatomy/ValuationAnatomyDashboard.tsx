@@ -63,7 +63,7 @@ export function ValuationAnatomyDashboard() {
         className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
       >
         <div>
-          <h2 className="text-2xl font-light text-gradient-sovereign flex items-center gap-3">
+          <h2 className="text-2xl font-light text-[hsl(var(--tf-transcend-cyan))] flex items-center gap-3">
             <Atom className="w-7 h-7 text-tf-cyan" />
             Valuation Anatomy
           </h2>
