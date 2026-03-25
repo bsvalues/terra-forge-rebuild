@@ -208,7 +208,7 @@ function CheckCard({ check }: { check: BentonBootstrapCheck }) {
   const [open, setOpen] = useState(false);
   return (
     <Collapsible open={open} onOpenChange={setOpen}>
-      <div className="border border-border/50 rounded-lg bg-tf-elevated/30 overflow-hidden">
+      <div className="border border-border/50 rounded-xl bg-tf-elevated/30 overflow-hidden">
         <CollapsibleTrigger asChild>
           <button className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-tf-elevated/50 transition-colors">
             {checkStatusIcon(check.status)}
@@ -241,7 +241,7 @@ function QualityMetricCard({ metric }: { metric: QualityMetric }) {
   const [open, setOpen] = useState(false);
   return (
     <Collapsible open={open} onOpenChange={setOpen}>
-      <div className="border border-border/50 rounded-lg bg-tf-elevated/30 overflow-hidden">
+      <div className="border border-border/50 rounded-xl bg-tf-elevated/30 overflow-hidden">
         <CollapsibleTrigger asChild>
           <button className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-tf-elevated/50 transition-colors">
             {qualityStatusIcon(metric.status)}
@@ -350,7 +350,7 @@ function PreflightSection({
       {isPending && (
         <div className="space-y-2 py-2">
           {Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} className="h-10 rounded-lg bg-tf-elevated/50 animate-pulse" />
+            <div key={i} className="h-10 rounded-xl bg-tf-elevated/50 animate-pulse" />
           ))}
         </div>
       )}
@@ -437,7 +437,7 @@ function ExecutorSection({
       )}
 
       {preflight && isBlocked && (
-        <div className="flex items-start gap-2 rounded-lg bg-destructive/10 border border-destructive/30 p-3">
+        <div className="flex items-start gap-2 rounded-xl bg-destructive/10 border border-destructive/30 p-3">
           <XCircle className="w-4 h-4 text-destructive mt-0.5 shrink-0" />
           <p className="text-xs text-destructive">
             Benton County tenant does not exist. Create it from onboarding before running the bootstrap executor.
@@ -448,7 +448,7 @@ function ExecutorSection({
       {isPending && (
         <div className="space-y-2 py-2">
           {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="h-10 rounded-lg bg-tf-elevated/50 animate-pulse" />
+            <div key={i} className="h-10 rounded-xl bg-tf-elevated/50 animate-pulse" />
           ))}
         </div>
       )}
@@ -482,7 +482,7 @@ function ExecutorSection({
             {result.steps.map((step) => (
               <div
                 key={step.id}
-                className="flex items-start gap-3 px-3 py-2.5 rounded-lg bg-tf-elevated/30 border border-border/30"
+                className="flex items-start gap-3 px-3 py-2.5 rounded-xl bg-tf-elevated/30 border border-border/30"
               >
                 <div className="mt-0.5">
                   {step.status === "completed" ? (
@@ -505,7 +505,7 @@ function ExecutorSection({
           </div>
 
           {result.nextActions.length > 0 && (
-            <div className="rounded-lg bg-chart-5/10 border border-chart-5/30 p-3 space-y-1">
+            <div className="rounded-xl bg-chart-5/10 border border-chart-5/30 p-3 space-y-1">
               <p className="text-xs font-medium text-chart-5">Next steps:</p>
               <ul className="space-y-0.5">
                 {result.nextActions.map((action, i) => (
@@ -589,7 +589,7 @@ function QualityGateSection({
       {isPending && (
         <div className="space-y-2 py-2">
           {Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} className="h-10 rounded-lg bg-tf-elevated/50 animate-pulse" />
+            <div key={i} className="h-10 rounded-xl bg-tf-elevated/50 animate-pulse" />
           ))}
         </div>
       )}
@@ -678,7 +678,7 @@ function SeedCLISection() {
         </CollapsibleTrigger>
         <CollapsibleContent>
           <div className="px-6 pb-5 space-y-4 border-t border-border/30">
-            <div className="mt-4 rounded-lg bg-tf-elevated/50 border border-border/30 p-4 space-y-1.5">
+            <div className="mt-4 rounded-xl bg-tf-elevated/50 border border-border/30 p-4 space-y-1.5">
               <p className="text-xs text-muted-foreground font-medium mb-2">
                 Prerequisites — set in <code className="text-tf-cyan">scripts/.env.seed</code>:
               </p>
@@ -701,7 +701,7 @@ BENTON_GDB_PATH=E:\\Benton_County_Assessor.gdb`}
               ))}
             </div>
 
-            <div className="rounded-lg bg-chart-5/10 border border-chart-5/30 p-3 space-y-1">
+            <div className="rounded-xl bg-chart-5/10 border border-chart-5/30 p-3 space-y-1">
               <p className="text-xs font-medium text-chart-5">Note</p>
               <p className="text-xs text-muted-foreground">
                 The seed scripts require the Supabase service-role key and direct file access to the
@@ -814,7 +814,7 @@ function ResetSection({
         </p>
 
         {result && !isPending && (
-          <div className="flex items-center gap-4 mt-3 p-3 rounded-lg bg-destructive/5 border border-destructive/20">
+          <div className="flex items-center gap-4 mt-3 p-3 rounded-xl bg-destructive/5 border border-destructive/20">
             <div className="text-center">
               <p className="text-base font-semibold text-foreground tabular-nums">
                 {result.parcelsDeleted.toLocaleString()}

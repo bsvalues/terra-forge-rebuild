@@ -217,6 +217,7 @@ export function useParcel360(parcelId: string | null): Parcel360Snapshot | null 
     const now = new Date().toISOString();
 
     // Identity
+    const pAny = p as any;
     const identitySlice: Parcel360Identity = {
       parcelNumber: p.parcel_number,
       address: p.address,
@@ -226,6 +227,7 @@ export function useParcel360(parcelId: string | null): Parcel360Snapshot | null 
       countyId: p.county_id,
       propertyClass: p.property_class,
       neighborhoodCode: p.neighborhood_code,
+      lrsn: pAny.lrsn != null ? Number(pAny.lrsn) : null,
     };
 
     // Characteristics

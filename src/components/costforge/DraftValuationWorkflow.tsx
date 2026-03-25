@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/select";
 import { useCalcRCNLD, useImprvTypeCodes } from "@/hooks/useCostForgeHooks";
 import { useSaveCalcTrace } from "@/hooks/useCostForgeMutations";
-import type { CostForgeCalcInput, QualityGrade } from "@/services/costforgeConnector";
+import type { CostForgeCalcInput, QualityGrade, ConstructionClass } from "@/services/costforgeConnector";
 import { ClipboardCheck, Calculator, Save, ChevronRight, ChevronLeft, CheckCircle2, AlertCircle } from "lucide-react";
 
 const BENTON_COUNTY_ID = "842a6c54-c7c0-4b2d-aa43-0e3ba63fa57d";
@@ -93,14 +93,8 @@ export default function DraftValuationWorkflow() {
 
   async function handleCalculate() {
     const input = buildCalcInput();
-    await (calculate as any)(
-      {
-        prop_type: form.isResidential ? "R" : "C",
-        year_built: toNum(form.yearBuilt),
-        area: toNum(form.areaSqft),
-        county_id: BENTON_COUNTY_ID,
-        ...input,
-      },
+    await calculate(
+      input,
       form.qualityGrade,
       form.isResidential ? form.extWallType : undefined,
       toNum(form.effectiveLife) || 45,
@@ -120,7 +114,7 @@ export default function DraftValuationWorkflow() {
       imprv_type_cd: form.imprvTypeCd,
       section_id: selectedCode?.section_id ?? null,
       occupancy_code: selectedCode?.occupancy_code ?? null,
-      construction_class: (form.constructionClass as any) ?? null,
+      construction_class: (form.constructionClass as ConstructionClass) || null,
       quality_grade: form.qualityGrade,
       area_sqft: toNum(form.areaSqft) || null,
       base_unit_cost: result.baseUnitCost,

@@ -8,13 +8,27 @@ import {
   RadialBarChart, RadialBar, PolarAngleAxis, ResponsiveContainer,
 } from "recharts";
 import {
-  CheckCircle2, AlertTriangle, XCircle, Search, ChevronDown, ChevronRight,
+  CheckCircle2, AlertTriangle, XCircle, ChevronDown, ChevronRight, Download,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCountySchemaDiff } from "@/hooks/useCountySchemaDiff";
+import { toast } from "sonner";
+
+// ── County list (mirrors CountyReadinessReport registry) ──────────────────────
+
+const COUNTY_OPTIONS: Array<{ slug: string; label: string }> = [
+  { slug: "benton",    label: "Benton County" },
+  { slug: "yakima",    label: "Yakima County" },
+  { slug: "franklin",  label: "Franklin County" },
+  { slug: "thurston",  label: "Thurston County" },
+  { slug: "clark",     label: "Clark County" },
+  { slug: "king",      label: "King County" },
+  { slug: "snohomish", label: "Snohomish County" },
+];
 
 // ── Coverage gauge ────────────────────────────────────────────────────────────
 
@@ -116,12 +130,37 @@ function Section({
 
 export function SchemaDiffPanel() {
   const [countySlug, setCountySlug] = useState("franklin");
-  const [inputValue, setInputValue] = useState("franklin");
   const { data, isLoading, error } = useCountySchemaDiff(countySlug);
 
-  const handleSearch = () => {
-    const val = inputValue.trim().toLowerCase().replace(/\s+/g, "-");
-    if (val) setCountySlug(val);
+  const handleExportCSV = () => {
+    if (!data) return;
+
+    const rows: string[] = ["Canon Field,Raw Field,Status"];
+
+    // Matched
+    Object.entries(data.matched).forEach(([canon, raw]) => {
+      rows.push(`"${canon}","${raw}","Matched"`);
+    });
+
+    // Unmatched raw fields (no canonical match)
+    data.unmatched.forEach((raw) => {
+      rows.push(`"","${raw}","Unmatched"`);
+    });
+
+    // Missing canonical fields
+    data.missing_canonical.forEach((canon) => {
+      rows.push(`"${canon}","","Missing"`);
+    });
+
+    const csv = rows.join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${countySlug}_schema_diff.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success("Schema diff exported", { description: `${countySlug}_schema_diff.csv saved.` });
   };
 
   return (
@@ -138,20 +177,29 @@ export function SchemaDiffPanel() {
             ArcGIS field coverage vs. TerraFusion canonical schema
           </p>
         </div>
-        <div className="flex gap-2">
-          <Input
-            className="h-8 text-xs w-44"
-            placeholder="County slug (e.g. franklin)"
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-          />
-          <button
-            onClick={handleSearch}
-            className="h-8 px-3 rounded-md bg-primary/10 hover:bg-primary/20 transition-colors"
+        <div className="flex gap-2 items-center">
+          <Select value={countySlug} onValueChange={setCountySlug}>
+            <SelectTrigger className="h-8 text-xs w-48">
+              <SelectValue placeholder="Select county" />
+            </SelectTrigger>
+            <SelectContent>
+              {COUNTY_OPTIONS.map(({ slug, label }) => (
+                <SelectItem key={slug} value={slug} className="text-xs">
+                  {label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-8 gap-2 text-xs"
+            onClick={handleExportCSV}
+            disabled={!data}
           >
-            <Search className="w-3.5 h-3.5 text-primary" />
-          </button>
+            <Download className="w-3.5 h-3.5" />
+            Export CSV
+          </Button>
         </div>
       </div>
 

@@ -18,6 +18,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { useCountyVitals } from "@/hooks/useCountyVitals";
 import { ProvenanceNumber } from "@/components/trust";
 import { Menu } from "lucide-react";
+import { useSidebar } from "@/components/ui/sidebar";
 
 interface TopSystemBarProps {
   onOpenCommandPalette: () => void;
@@ -26,6 +27,15 @@ interface TopSystemBarProps {
 }
 
 export function TopSystemBar({ onOpenCommandPalette, onOpenControlCenter, onOpenMobileNav }: TopSystemBarProps) {
+  // Try to use sidebar context (available when rendered inside ModuleShell)
+  let sidebarToggle: (() => void) | null = null;
+  try {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    const sidebar = useSidebar();
+    sidebarToggle = sidebar.toggleSidebar;
+  } catch {
+    // Not inside SidebarProvider — fall back to onOpenMobileNav prop
+  }
   const { profile } = useAuthContext();
   const { data: vitals } = useCountyVitals();
   const parcelsCount = vitals?.parcels.total ?? 0;
@@ -33,31 +43,23 @@ export function TopSystemBar({ onOpenCommandPalette, onOpenControlCenter, onOpen
   const currentYear = new Date().getFullYear();
 
   return (
-    <header className="sticky top-0 z-50 h-12 flex items-center justify-between px-3 sm:px-4 material-shell border-b border-border/30">
+    <header className="sticky top-0 z-50 h-11 flex items-center justify-between px-3 sm:px-4 material-shell border-b border-border/30">
       {/* Left: Hamburger (mobile) + County Switcher + Year */}
-      <div className="flex items-center gap-2 sm:gap-3">
-        {/* Mobile hamburger */}
-        {onOpenMobileNav && (
+      <div className="flex items-center gap-1.5 sm:gap-2.5">
+        {/* Mobile hamburger — toggles sidebar Sheet on mobile */}
+        {(sidebarToggle || onOpenMobileNav) && (
           <button
-            onClick={onOpenMobileNav}
-            className="sm:hidden p-1.5 rounded-lg hover:bg-muted/40 transition-colors touch-manipulation min-w-[44px] min-h-[44px] flex items-center justify-center"
-            aria-label="Open navigation menu"
+            onClick={sidebarToggle ?? onOpenMobileNav}
+            className="md:hidden p-1.5 rounded-lg hover:bg-muted/40 transition-colors touch-manipulation min-w-[44px] min-h-[44px] flex items-center justify-center"
+            aria-label="Toggle navigation"
           >
             <Menu className="w-5 h-5 text-muted-foreground" />
           </button>
         )}
-        <motion.div
-          className="w-7 h-7 rounded-lg bg-gradient-to-br from-tf-cyan to-tf-green flex items-center justify-center"
-          animate={{ scale: [1, 1.03, 1] }}
-          transition={{ duration: 4, repeat: Infinity }}
-        >
-          <span className="text-tf-substrate font-bold text-xs">TF</span>
-        </motion.div>
-
         <CountySwitcher />
 
-        <span className="text-muted-foreground hidden sm:inline">•</span>
-        <span className="text-muted-foreground text-sm hidden sm:inline">TY {currentYear}</span>
+        <span className="text-muted-foreground/40 hidden sm:inline text-xs">|</span>
+        <span className="text-muted-foreground/60 text-xs hidden sm:inline font-mono">FY {currentYear}</span>
       </div>
 
       {/* Center: Cmd+K hint */}

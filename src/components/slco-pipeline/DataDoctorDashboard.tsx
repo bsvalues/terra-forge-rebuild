@@ -29,6 +29,7 @@ import {
   severityWeight,
   type DQLane,
   type DQIssue,
+  type DQFixTier,
   type LaneSummary,
 } from "@/hooks/useDataDoctor";
 import { useCountyMeta } from "@/hooks/useCountyMeta";
@@ -69,7 +70,7 @@ function FixTierBadge({ tier }: { tier: string }) {
   return (
     <Badge variant="outline" className={`text-[9px] px-1.5 gap-1 ${c.class}`}>
       <Icon className="h-2.5 w-2.5" />
-      {fixTierLabel(tier as any)}
+      {fixTierLabel(tier as DQFixTier)}
     </Badge>
   );
 }

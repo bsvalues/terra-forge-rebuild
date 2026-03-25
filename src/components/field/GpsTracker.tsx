@@ -97,7 +97,7 @@ export function GpsTracker({ onPositionUpdate, className }: GpsTrackerProps) {
               {position.latitude.toFixed(5)}, {position.longitude.toFixed(5)}
             </span>
           )}
-          <div className="w-1.5 h-1.5 rounded-full bg-chart-5 animate-pulse" />
+          <div className="w-1.5 h-1.5 rounded-full bg-chart-5 animate-core-pulse" />
         </>
       )}
 

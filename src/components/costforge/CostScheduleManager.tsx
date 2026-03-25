@@ -39,11 +39,10 @@ export function CostScheduleManager() {
   const { data: commercial = [], isLoading: commercialLoading } = useCommercialSchedules(undefined, BENTON_COUNTY_ID);
   const { data: depreciation = [], isLoading: depreciationLoading } = useDepreciationTable("residential", BENTON_COUNTY_ID);
   const { data: multipliers, isLoading: multipliersLoading } = useCostMultipliers(BENTON_COUNTY_ID);
-  const multiplierObj: any = multipliers as any;
 
   const groupedResidential = useMemo(() => {
     return residential.reduce<Record<string, typeof residential>>((acc, row) => {
-      const key = (row as any).imprv_type_code || "Unknown";
+      const key = row.quality_grade || "Unknown";
       if (!acc[key]) acc[key] = [];
       acc[key].push(row);
       return acc;
@@ -71,11 +70,11 @@ export function CostScheduleManager() {
               </div>
               <div className="rounded-lg border border-border/40 p-3">
                 <div className="text-xs text-muted-foreground">Depreciation Rows</div>
-                <div className="text-xl font-semibold">{(coverage as any)?.["depr_rows"] ?? 0}</div>
+                <div className="text-xl font-semibold">{coverage?.depreciation_rows ?? 0}</div>
               </div>
               <div className="rounded-lg border border-border/40 p-3">
                 <div className="text-xs text-muted-foreground">Imprv Type Codes</div>
-                <div className="text-xl font-semibold">{(coverage as any)?.["imprv_type_codes"] ?? 0}</div>
+                <div className="text-xl font-semibold">{coverage?.type_code_rows ?? 0}</div>
               </div>
             </div>
           )}
@@ -121,21 +120,21 @@ export function CostScheduleManager() {
                         <table className="w-full text-xs">
                           <thead className="bg-muted/20">
                             <tr>
-                              <th className="text-left p-2 font-medium">Model</th>
+                              <th className="text-left p-2 font-medium">Ext Wall</th>
                               <th className="text-left p-2 font-medium">Grade</th>
-                              <th className="text-right p-2 font-medium">Base Rate</th>
-                              <th className="text-right p-2 font-medium">Min Sqft</th>
-                              <th className="text-right p-2 font-medium">Max Sqft</th>
+                              <th className="text-right p-2 font-medium">Unit Cost</th>
+                              <th className="text-right p-2 font-medium">Min Area</th>
+                              <th className="text-right p-2 font-medium">Year</th>
                             </tr>
                           </thead>
                             <tbody>
                               {rows.map((r) => (
-                                <tr key={(r as any).id} className="border-t border-border/30">
-                                  <td className="p-2">{(r as any).dwelling_model_code || "-"}</td>
-                                  <td className="p-2">{(r as any).grade || "-"}</td>
-                                  <td className="p-2 text-right tabular-nums">{(r as any).base_rate ?? "-"}</td>
-                                  <td className="p-2 text-right tabular-nums">{(r as any).sqft_min ?? "-"}</td>
-                                  <td className="p-2 text-right tabular-nums">{(r as any).sqft_max ?? "-"}</td>
+                                <tr key={r.id} className="border-t border-border/30">
+                                  <td className="p-2">{r.ext_wall_type || "-"}</td>
+                                  <td className="p-2">{r.quality_grade || "-"}</td>
+                                  <td className="p-2 text-right tabular-nums">{r.unit_cost ?? "-"}</td>
+                                  <td className="p-2 text-right tabular-nums">{r.min_area ?? "-"}</td>
+                                  <td className="p-2 text-right tabular-nums">{r.schedule_year ?? "-"}</td>
                                 </tr>
                               ))}
                             </tbody>
@@ -168,10 +167,10 @@ export function CostScheduleManager() {
                     </thead>
                     <tbody>
                       {commercial.map((r) => (
-                        <tr key={(r as any).id} className="border-t border-border/30">
-                          <td className="p-2">{(r as any).section || "-"}</td>
-                          <td className="p-2">{(r as any).class || "-"}</td>
-                          <td className="p-2 text-right tabular-nums">{(r as any).rate ?? "-"}</td>
+                        <tr key={r.id} className="border-t border-border/30">
+                          <td className="p-2">{r.section_id ?? "-"}</td>
+                          <td className="p-2">{r.construction_class || "-"}</td>
+                          <td className="p-2 text-right tabular-nums">{r.unit_cost ?? "-"}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -200,9 +199,9 @@ export function CostScheduleManager() {
                     </thead>
                     <tbody>
                       {depreciation.map((r) => (
-                        <tr key={(r as any).id} className="border-t border-border/30">
-                          <td className="p-2">{(r as any).age ?? "-"}</td>
-                          <td className="p-2 text-right tabular-nums">{(r as any).pct_good ?? "-"}</td>
+                        <tr key={r.id} className="border-t border-border/30">
+                          <td className="p-2">{r.age_years ?? "-"}</td>
+                          <td className="p-2 text-right tabular-nums">{r.pct_good ?? "-"}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -221,23 +220,27 @@ export function CostScheduleManager() {
               ) : !multipliers ? (
                 <EmptyState label="cost multipliers" />
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                  <div className="rounded-lg border border-border/40 p-3">
-                    <div className="text-xs text-muted-foreground">Current Cost Multiplier</div>
-                    <div className="text-lg font-semibold tabular-nums">{multiplierObj?.current_cost_mult ?? "-"}</div>
-                  </div>
-                  <div className="rounded-lg border border-border/40 p-3">
-                    <div className="text-xs text-muted-foreground">Local Multiplier</div>
-                    <div className="text-lg font-semibold tabular-nums">{multiplierObj?.local_mult ?? "-"}</div>
-                  </div>
-                  <div className="rounded-lg border border-border/40 p-3">
-                    <div className="text-xs text-muted-foreground">Trend Factor</div>
-                    <div className="text-lg font-semibold tabular-nums">{multiplierObj?.trend_factor ?? "-"}</div>
-                  </div>
-                  <div className="rounded-lg border border-border/40 p-3">
-                    <div className="text-xs text-muted-foreground">Economic Factor</div>
-                    <div className="text-lg font-semibold tabular-nums">{multiplierObj?.econ_factor ?? "-"}</div>
-                  </div>
+                <div className="overflow-auto border border-border/40 rounded-lg">
+                  <table className="w-full text-xs">
+                    <thead className="bg-muted/20">
+                      <tr>
+                        <th className="text-left p-2 font-medium">Type</th>
+                        <th className="text-left p-2 font-medium">Class</th>
+                        <th className="text-right p-2 font-medium">Section</th>
+                        <th className="text-right p-2 font-medium">Multiplier</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {(multipliers ?? []).map((r) => (
+                        <tr key={r.id} className="border-t border-border/30">
+                          <td className="p-2">{r.multiplier_type}</td>
+                          <td className="p-2">{r.construction_class}</td>
+                          <td className="p-2 text-right tabular-nums">{r.section_id ?? "-"}</td>
+                          <td className="p-2 text-right tabular-nums">{r.multiplier}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               )}
             </CardContent>

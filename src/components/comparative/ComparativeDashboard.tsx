@@ -442,7 +442,7 @@ export function ComparativeDashboard() {
     <div className="p-4 sm:p-6 max-w-7xl mx-auto space-y-6">
       {/* Header */}
       <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
-        <h1 className="text-2xl sm:text-3xl font-light text-gradient-sovereign tracking-tight flex items-center gap-3">
+        <h1 className="text-2xl sm:text-3xl font-light text-[hsl(var(--tf-transcend-cyan))] tracking-tight flex items-center gap-3">
           <GitCompare className="w-7 h-7 text-primary" />
           Comparative Dashboard
         </h1>

@@ -187,7 +187,7 @@ export function DataImportDialog({
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader>
-          <DialogTitle className="text-gradient-sovereign">
+          <DialogTitle className="text-[hsl(var(--tf-transcend-cyan))]">
             Import {getTableLabel(targetTable)}
           </DialogTitle>
           <DialogDescription>

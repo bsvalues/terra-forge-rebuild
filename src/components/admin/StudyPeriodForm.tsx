@@ -96,7 +96,7 @@ export function StudyPeriodForm({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl material-bento border-border">
         <DialogHeader>
-          <DialogTitle className="text-gradient-sovereign text-xl flex items-center gap-2">
+          <DialogTitle className="text-[hsl(var(--tf-transcend-cyan))] text-xl flex items-center gap-2">
             <Calendar className="w-5 h-5 text-tf-cyan" />
             {isEditing ? "Edit Study Period" : "Create Study Period"}
           </DialogTitle>

@@ -117,18 +117,18 @@ function Step2({ slug }: { slug: string }) {
       </Card>
 
       <div className="grid grid-cols-2 gap-3 text-xs">
-        <div className="p-3 rounded-lg bg-muted/20 border border-border/40 space-y-1">
+        <div className="p-3 rounded-xl bg-muted/20 border border-border/40 space-y-1">
           <p className="text-muted-foreground font-medium">Detected vendor</p>
           <p className="font-mono text-foreground">{data.vendor}</p>
         </div>
-        <div className="p-3 rounded-lg bg-muted/20 border border-border/40 space-y-1">
+        <div className="p-3 rounded-xl bg-muted/20 border border-border/40 space-y-1">
           <p className="text-muted-foreground font-medium">Layer name</p>
           <p className="font-mono text-foreground">{data.layer_name ?? "Unknown"}</p>
         </div>
       </div>
 
       {data.missing_canonical.length > 0 && (
-        <div className="p-3 rounded-lg bg-rose-500/5 border border-rose-500/20">
+        <div className="p-3 rounded-xl bg-rose-500/5 border border-rose-500/20">
           <p className="text-[10px] text-rose-400 font-medium mb-1">Missing canonical fields</p>
           <p className="text-[10px] text-muted-foreground font-mono">{data.missing_canonical.join(", ")}</p>
         </div>
@@ -165,13 +165,13 @@ function Step3({ slug }: { slug: string }) {
       <div className="space-y-2">
         <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">1 — Run the seed script</p>
         <div className="flex items-center gap-2">
-          <div className="flex-1 flex items-center gap-2 p-2.5 rounded-lg bg-[hsl(var(--tf-substrate)/0.6)] border border-border/40 font-mono text-[11px] text-foreground/80 overflow-x-auto">
+          <div className="flex-1 flex items-center gap-2 p-2.5 rounded-xl bg-[hsl(var(--tf-substrate)/0.6)] border border-border/40 font-mono text-[11px] text-foreground/80 overflow-x-auto">
             <Terminal className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
             <code>{cmd}</code>
           </div>
           <button
             onClick={handleCopy}
-            className="text-[11px] px-3 py-2 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 transition-colors flex-shrink-0"
+            className="text-[11px] px-3 py-2 rounded-xl bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 transition-colors flex-shrink-0"
           >
             {copied ? "Copied!" : "Copy"}
           </button>
@@ -193,7 +193,7 @@ function Step3({ slug }: { slug: string }) {
         </p>
       </div>
 
-      <div className="p-3 rounded-lg bg-sky-500/5 border border-sky-500/20 text-[11px] text-sky-400/80">
+      <div className="p-3 rounded-xl bg-sky-500/5 border border-sky-500/20 text-[11px] text-sky-400/80">
         <span className="font-medium text-sky-400">Note:</span> {county?.name} will appear as "Open Data" tier in the County Selector until a study period is created.
       </div>
     </div>
@@ -274,7 +274,7 @@ export function CountyOnboardingWizard() {
           <button
             onClick={() => setStep(s => s + 1)}
             disabled={!canAdvance}
-            className="flex items-center gap-1.5 text-xs px-4 py-2 rounded-lg bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+            className="flex items-center gap-1.5 text-xs px-4 py-2 rounded-xl bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
           >
             Next
             <ChevronRight className="w-3.5 h-3.5" />

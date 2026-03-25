@@ -19,6 +19,7 @@ import {
   CheckCircle2,
   MapPin,
   Compass,
+  AlertTriangle,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -39,6 +40,7 @@ import { NextBestAction } from "./NextBestAction";
 import { ExplainThisPanel } from "./ExplainThisPanel";
 import { DailyBriefing } from "./DailyBriefing";
 import { usePipelineStatus } from "@/hooks/usePipelineStatus";
+import { PACSConnectionBadge } from "@/components/status/PACSConnectionBadge";
 
 interface SuiteHubProps {
   onNavigate: (target: string) => void;
@@ -81,7 +83,7 @@ const SUITE_REGISTRY: SuiteEntry[] = [
 // ─── Component ────────────────────────────────────────────────
 
 export function SuiteHub({ onNavigate, onParcelNavigate }: SuiteHubProps) {
-  const { data: vitals, isLoading: vitalsLoading } = useCountyVitals();
+  const { data: vitals, isLoading: vitalsLoading, isError: vitalsError } = useCountyVitals();
   const countyMeta = useCountyMeta();
   const { data: pipeline } = usePipelineStatus();
   const [searchValue, setSearchValue] = useState("");
@@ -130,6 +132,13 @@ export function SuiteHub({ onNavigate, onParcelNavigate }: SuiteHubProps) {
   return (
     <div className="p-4 sm:p-6 pb-24 space-y-6 sm:space-y-8 max-w-5xl mx-auto">
 
+      {vitalsError && (
+        <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive flex items-center gap-2 mb-4">
+          <AlertTriangle className="w-4 h-4 shrink-0" />
+          County vitals could not be loaded. Data may be unavailable.
+        </div>
+      )}
+
       {/* ── Daily Briefing ── */}
       <motion.section
         initial={{ opacity: 0, y: -8 }}
@@ -152,19 +161,22 @@ export function SuiteHub({ onNavigate, onParcelNavigate }: SuiteHubProps) {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl sm:text-3xl font-light tracking-tight text-foreground">
-              TerraFusion <span className="text-gradient-sovereign font-medium">OS</span>
+              TerraFusion <span className="text-[hsl(var(--tf-transcend-cyan))] font-medium">OS</span>
             </h1>
             <p className="text-sm text-muted-foreground mt-1">
               Valuation Operating Environment
             </p>
           </div>
-          <ScopeHeader
-            scope="county"
-            label={countyMeta?.shortName ?? "County"}
-            source="county-vitals"
-            fetchedAt={vitals?.fetchedAt}
-            status="published"
-          />
+          <div className="flex items-center gap-2">
+            <PACSConnectionBadge />
+            <ScopeHeader
+              scope="county"
+              label={countyMeta?.shortName ?? "County"}
+              source="county-vitals"
+              fetchedAt={vitals?.fetchedAt}
+              status="published"
+            />
+          </div>
         </div>
 
         {/* Workbench Hero Card */}

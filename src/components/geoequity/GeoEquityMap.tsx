@@ -226,7 +226,7 @@ export function GeoEquityMap({ studyPeriodId, neighborhoodStats, isLoading, sele
             >
               {/* Pulse ring */}
               <div className="absolute inset-0 -m-4">
-                <div className="w-16 h-16 rounded-full border-2 border-suite-atlas animate-ping opacity-30" />
+                <div className="w-16 h-16 rounded-full border-2 border-suite-atlas opacity-30" />
               </div>
               
               {/* Marker */}

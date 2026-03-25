@@ -23,6 +23,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 
+interface AssessmentParcelJoin {
+  parcel_number: string | null;
+  neighborhood_code: string | null;
+  property_class: string | null;
+}
+
 function useAssessmentChanges() {
   return useQuery({
     queryKey: ["tax-levy-assessment-changes"],
@@ -45,15 +51,18 @@ function useAssessmentChanges() {
 
       const priorMap = new Map((prior || []).map((p) => [p.parcel_id, p.total_value ?? 0]));
 
-      return (current || []).map((c) => ({
+      return (current || []).map((c) => {
+        const parcel = c.parcels as AssessmentParcelJoin | null;
+        return {
         parcelId: c.parcel_id,
-        parcelNumber: (c.parcels as any)?.parcel_number || "—",
-        neighborhood: (c.parcels as any)?.neighborhood_code || "—",
-        propertyClass: (c.parcels as any)?.property_class || "—",
+        parcelNumber: parcel?.parcel_number || "—",
+        neighborhood: parcel?.neighborhood_code || "—",
+        propertyClass: parcel?.property_class || "—",
         currentValue: c.total_value ?? 0,
         priorValue: priorMap.get(c.parcel_id) ?? 0,
         change: (c.total_value ?? 0) - (priorMap.get(c.parcel_id) ?? 0),
-      }));
+        };
+      });
     },
     staleTime: 60_000,
   });

@@ -17,6 +17,29 @@ import { ComparableSalesGrid } from "@/components/forge/ComparableSalesGrid";
 import { supabase } from "@/integrations/supabase/client";
 import { assertWriteLane } from "@/services/writeLane";
 import { useActiveCountyId } from "@/hooks/useActiveCounty";
+import { useNeighborhoodStats } from "@/hooks/useNeighborhoodStats";
+
+// sales_history is not in the generated Supabase types — isolate the cast here
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const supabaseAny = supabase as any;
+
+interface SalesHistoryComp {
+  id: string;
+  sale_date: string;
+  sale_price: number;
+  sale_type: string | null;
+  deed_type: string | null;
+  parcel_id: string;
+  parcels: {
+    id: string;
+    parcel_number: string;
+    address: string | null;
+    city: string | null;
+    assessed_value: number | null;
+    building_area: number | null;
+    neighborhood_code: string | null;
+  } | null;
+}
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 
@@ -120,11 +143,18 @@ export function NeighborhoodFactorCalibration() {
   const countyId = useActiveCountyId();
   const { toast } = useToast();
 
+  // RPC-backed neighborhood stats (supplemental to local ratio study)
+  const {
+    data: nbhdStats,
+    isLoading: nbhdStatsLoading,
+    isError: nbhdStatsError,
+  } = useNeighborhoodStats(neighborhoodCode, countyId);
+
   const { data: comps, isLoading: compsLoading } = useQuery({
     queryKey: ["nbhd-calibration-comps", neighborhoodCode],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("sales_history" as any)
+      const { data, error } = await supabaseAny
+        .from("sales_history")
         .select(`id, sale_date, sale_price, sale_type, deed_type,
           parcel_id, parcels!inner(id, parcel_number, address, city, assessed_value, building_area, neighborhood_code)`)
         .eq("parcels.neighborhood_code", neighborhoodCode!)
@@ -132,7 +162,7 @@ export function NeighborhoodFactorCalibration() {
         .order("sale_date", { ascending: false })
         .limit(50);
       if (error) throw error;
-      return (data ?? []) as any[];
+      return (data ?? []) as SalesHistoryComp[];
     },
     enabled: !!neighborhoodCode,
     staleTime: 60_000,
@@ -141,7 +171,7 @@ export function NeighborhoodFactorCalibration() {
   // Derive calibration stats from comps
   const stats = useMemo<CalibrationStats | null>(() => {
     if (!comps?.length) return null;
-    const sales = (comps as any[]).map((c) => ({
+    const sales = comps.map((c) => ({
       salePrice: c.sale_price ?? 0,
       assessedValue: c.parcels?.assessed_value ?? 0,
     }));
@@ -162,7 +192,7 @@ export function NeighborhoodFactorCalibration() {
         notes: `Ratio study — Median=${stats.medianRatio.toFixed(3)}, COD=${stats.cod.toFixed(1)}%, PRD=${stats.prd.toFixed(3)}, n=${stats.n}`,
       };
       assertWriteLane("calibration_runs", "forge");
-      const { error } = await supabase.from("calibration_runs" as any).insert(payload as any);
+      const { error } = await supabase.from("calibration_runs").insert(payload);
       if (error) throw error;
       toast({
         title: "Calibration saved",
@@ -272,6 +302,36 @@ export function NeighborhoodFactorCalibration() {
             <span className="flex items-center gap-1"><StatusDot status="critical" /> Outside standard — review</span>
           </div>
 
+          {/* Neighborhood Stats RPC Panel */}
+          {neighborhoodCode && countyId && (
+            <Card className="material-bento border-border/50">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <BarChart3 className="w-3.5 h-3.5 text-suite-forge" />
+                  <span className="text-xs font-medium text-foreground">
+                    Neighborhood Stats — {neighborhoodCode}
+                  </span>
+                  <span className="text-[10px] text-muted-foreground">(via RPC)</span>
+                </div>
+                {nbhdStatsLoading && (
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <Loader2 className="w-3 h-3 animate-spin" /> Loading stats…
+                  </div>
+                )}
+                {nbhdStatsError && (
+                  <div className="flex items-center gap-2 text-xs text-[hsl(var(--tf-warning-red))]">
+                    <AlertTriangle className="w-3 h-3" /> RPC error loading neighborhood stats.
+                  </div>
+                )}
+                {!nbhdStatsLoading && !nbhdStatsError && nbhdStats != null && (
+                  <pre className="text-[10px] text-muted-foreground overflow-auto max-h-40 whitespace-pre-wrap">
+                    {JSON.stringify(nbhdStats, null, 2)}
+                  </pre>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
           {/* Apply button */}
           <div className="flex justify-end">
             <Button
@@ -295,7 +355,7 @@ export function NeighborhoodFactorCalibration() {
           </h3>
           {/* Use first parcel's id to anchor the grid; grid shows whole neighborhood */}
           <ComparableSalesGrid
-            parcelId={(comps[0] as any)?.parcels?.id ?? null}
+            parcelId={comps[0]?.parcels?.id ?? null}
             neighborhoodCode={neighborhoodCode}
             assessedValue={null}
             limit={15}

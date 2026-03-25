@@ -2,24 +2,137 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Play, RefreshCw, Download, FileText, Settings, Loader2, Share2 } from "lucide-react";
 import { toast } from "sonner";
+import type { RegressionResult } from "@/hooks/useRegressionAnalysis";
 
 interface RegressionActionsProps {
   onRunAnalysis: () => void;
   isRunning: boolean;
   hasResult: boolean;
+  result?: RegressionResult | null;
 }
 
-export function RegressionActions({ onRunAnalysis, isRunning, hasResult }: RegressionActionsProps) {
+export function RegressionActions({ onRunAnalysis, isRunning, hasResult, result }: RegressionActionsProps) {
   const handleExport = () => {
-    toast.info("Export feature coming soon", {
-      description: "Regression results will be exportable to CSV and PDF",
-    });
+    if (!result) return;
+
+    const rows: string[] = [
+      "Variable,Coefficient,Std Error,t-Statistic,p-Value,VIF,Significant",
+      ...result.coefficients.map((c) =>
+        [
+          `"${c.variable}"`,
+          c.coefficient.toFixed(6),
+          c.stdError.toFixed(6),
+          c.tStatistic.toFixed(4),
+          c.pValue.toFixed(4),
+          c.vif.toFixed(3),
+          c.significant ? "Yes" : "No",
+        ].join(",")
+      ),
+      "",
+      "R²,Adj R²,F-Statistic,RMSE,N",
+      [
+        result.modelStats.rSquared.toFixed(4),
+        result.modelStats.rSquaredAdj.toFixed(4),
+        result.modelStats.fStatistic.toFixed(4),
+        result.modelStats.rmse.toFixed(4),
+        result.modelStats.n,
+      ].join(","),
+    ];
+
+    const csv = rows.join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `regression_export_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success("CSV exported", { description: "Regression results saved to file." });
   };
 
   const handleReport = () => {
-    toast.info("Report generation coming soon", {
-      description: "PhD-style regression reports with full statistical appendix",
-    });
+    if (!result) return;
+
+    const date = new Date().toISOString().slice(0, 10);
+    const ms = result.modelStats;
+    const d = result.diagnostics;
+
+    const coeffTable = [
+      "| Variable | Coefficient | Std Error | t-Statistic | p-Value | VIF | Significant |",
+      "|----------|------------|-----------|-------------|---------|-----|-------------|",
+      ...result.coefficients.map((c) =>
+        `| ${c.variable} | ${c.coefficient.toFixed(6)} | ${c.stdError.toFixed(6)} | ${c.tStatistic.toFixed(4)} | ${c.pValue.toFixed(4)} | ${c.vif.toFixed(3)} | ${c.significant ? "Yes" : "No"} |`
+      ),
+    ].join("\n");
+
+    const anovaTable = result.anova.length
+      ? [
+          "",
+          "## ANOVA Table",
+          "",
+          "| Source | df | Sum Sq | Mean Sq | F | p-Value | η² |",
+          "|--------|----|--------|---------|---|---------|-----|",
+          ...result.anova.map((row) =>
+            `| ${row.source} | ${row.df} | ${row.sumSq.toFixed(4)} | ${row.meanSq.toFixed(4)} | ${row.fValue != null ? row.fValue.toFixed(4) : "—"} | ${row.pValue != null ? row.pValue.toFixed(4) : "—"} | ${row.etaSq != null ? row.etaSq.toFixed(4) : "—"} |`
+          ),
+        ].join("\n")
+      : "";
+
+    const diagPass = (passed: boolean, label: string) =>
+      `| ${label} | ${passed ? "✅ Pass" : "❌ Fail"} |`;
+
+    const md = [
+      "# TerraForge Regression Analysis Report",
+      "",
+      `Generated: ${date}`,
+      "",
+      "## Model Statistics",
+      "",
+      "| Statistic | Value |",
+      "|-----------|-------|",
+      `| R² | ${ms.rSquared.toFixed(4)} |`,
+      `| Adj R² | ${ms.rSquaredAdj.toFixed(4)} |`,
+      `| F-Statistic | ${ms.fStatistic.toFixed(4)} (p = ${ms.fPValue.toFixed(4)}) |`,
+      `| RMSE | ${ms.rmse.toFixed(4)} |`,
+      `| MAE | ${ms.mae.toFixed(4)} |`,
+      `| AIC | ${ms.aic.toFixed(2)} |`,
+      `| N | ${ms.n} |`,
+      `| k | ${ms.k} |`,
+      "",
+      "## Regression Equation",
+      "",
+      `\`\`\``,
+      result.equation,
+      `\`\`\``,
+      "",
+      "## Coefficients",
+      "",
+      coeffTable,
+      anovaTable,
+      "",
+      "## Diagnostic Tests",
+      "",
+      "| Test | Result |",
+      "|------|--------|",
+      diagPass(d.linearityPassed, `Linearity (p = ${d.linearityPValue.toFixed(4)})`),
+      diagPass(d.normalityPassed, `Normality (p = ${d.normalityPValue.toFixed(4)})`),
+      diagPass(d.homoscedasticityPassed, `Homoscedasticity (p = ${d.homoscedasticityPValue.toFixed(4)})`),
+      diagPass(d.independencePassed, `Independence (Durbin-Watson = ${d.durbinWatson.toFixed(3)})`),
+      diagPass(d.multicollinearityPassed, `Multicollinearity (max VIF = ${d.maxVIF.toFixed(3)})`),
+      "",
+      "---",
+      "",
+      `*Report generated by TerraForge Regression Studio — ${date}*`,
+    ].join("\n");
+
+    const blob = new Blob([md], { type: "text/markdown" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `regression_report_${date}.md`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success("Report generated", { description: "Markdown report saved to file." });
   };
 
   const handleFeedToSegments = () => {
@@ -33,8 +146,8 @@ export function RegressionActions({ onRunAnalysis, isRunning, hasResult }: Regre
   return (
     <div className="flex items-center gap-2">
       <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-        <Button 
-          className="gap-2 btn-sovereign" 
+        <Button
+          className="gap-2 btn-sovereign"
           onClick={onRunAnalysis}
           disabled={isRunning}
         >
@@ -53,15 +166,15 @@ export function RegressionActions({ onRunAnalysis, isRunning, hasResult }: Regre
       </motion.div>
 
       {hasResult && (
-        <motion.div 
-          whileHover={{ scale: 1.05 }} 
+        <motion.div
+          whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
         >
-          <Button 
-            variant="outline" 
-            size="sm" 
+          <Button
+            variant="outline"
+            size="sm"
             className="gap-2 border-tf-optimized-green/50 text-tf-optimized-green hover:bg-tf-optimized-green/10"
             onClick={handleFeedToSegments}
           >
@@ -72,9 +185,9 @@ export function RegressionActions({ onRunAnalysis, isRunning, hasResult }: Regre
       )}
 
       <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-        <Button 
-          variant="outline" 
-          size="sm" 
+        <Button
+          variant="outline"
+          size="sm"
           className="gap-2"
           onClick={onRunAnalysis}
           disabled={isRunning}
@@ -85,12 +198,12 @@ export function RegressionActions({ onRunAnalysis, isRunning, hasResult }: Regre
       </motion.div>
 
       <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-        <Button 
-          variant="outline" 
-          size="sm" 
+        <Button
+          variant="outline"
+          size="sm"
           className="gap-2"
           onClick={handleReport}
-          disabled={!hasResult}
+          disabled={!result}
         >
           <FileText className="w-4 h-4" />
           Report
@@ -98,12 +211,12 @@ export function RegressionActions({ onRunAnalysis, isRunning, hasResult }: Regre
       </motion.div>
 
       <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-        <Button 
-          variant="outline" 
-          size="sm" 
+        <Button
+          variant="outline"
+          size="sm"
           className="gap-2"
           onClick={handleExport}
-          disabled={!hasResult}
+          disabled={!result}
         >
           <Download className="w-4 h-4" />
           Export

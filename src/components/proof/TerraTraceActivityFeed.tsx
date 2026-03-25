@@ -199,7 +199,7 @@ export function TerraTraceActivityFeed({ parcelId, limit = 20, moduleFilter: ext
       <div className="relative pl-6 space-y-3">
         {/* Realtime indicator + module filter */}
         <div className="flex items-center gap-2 mb-2">
-          <Radio className="w-3 h-3 text-chart-2 animate-pulse" />
+          <Radio className="w-3 h-3 text-chart-2 animate-core-pulse" />
           <span className="text-[10px] text-chart-2 font-medium">LIVE</span>
           {!externalFilter && (
             <div className="ml-auto flex gap-1 flex-wrap">

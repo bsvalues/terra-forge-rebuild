@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  StickyNote, Plus, Tag, Clock, User, Filter, 
-  Pin, AlertTriangle, Info, CheckCircle2, X 
+import {
+  StickyNote, Plus, Tag, Clock, User, Filter,
+  Pin, AlertTriangle, Info, CheckCircle2, X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -16,17 +16,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-
-interface Annotation {
-  id: string;
-  content: string;
-  category: "general" | "valuation" | "legal" | "inspection" | "flag";
-  priority: "low" | "medium" | "high";
-  pinned: boolean;
-  createdAt: string;
-  createdBy: string;
-  tags: string[];
-}
+import {
+  useParcelAnnotations,
+  useAddAnnotation,
+  useTogglePinAnnotation,
+  useDeleteAnnotation,
+  type Annotation,
+} from "@/hooks/useParcelAnnotations";
 
 interface ParcelAnnotationsProps {
   parcelId: string | null;
@@ -46,52 +42,11 @@ const priorityColors: Record<string, string> = {
   high: "bg-destructive/20 text-destructive",
 };
 
-// Mock annotations for demonstration
-const mockAnnotations: Annotation[] = [
-  {
-    id: "1",
-    content: "Owner disputes square footage — claims 2,450 sqft vs recorded 2,680 sqft. Need field verification before next assessment cycle.",
-    category: "valuation",
-    priority: "high",
-    pinned: true,
-    createdAt: new Date(Date.now() - 2 * 86400000).toISOString(),
-    createdBy: "J. Assessor",
-    tags: ["dispute", "sqft", "field-check"],
-  },
-  {
-    id: "2",
-    content: "Permit #2024-0891 for addition completed. Re-inspection scheduled for Q2.",
-    category: "inspection",
-    priority: "medium",
-    pinned: false,
-    createdAt: new Date(Date.now() - 5 * 86400000).toISOString(),
-    createdBy: "M. Inspector",
-    tags: ["permit", "addition"],
-  },
-  {
-    id: "3",
-    content: "Property is in a flood zone overlay. Ensure flood zone factor is applied in cost approach.",
-    category: "flag",
-    priority: "high",
-    pinned: true,
-    createdAt: new Date(Date.now() - 12 * 86400000).toISOString(),
-    createdBy: "System",
-    tags: ["flood-zone", "cost-approach"],
-  },
-  {
-    id: "4",
-    content: "Comparable sale at 123 Oak was confirmed arm's-length by both parties.",
-    category: "general",
-    priority: "low",
-    pinned: false,
-    createdAt: new Date(Date.now() - 20 * 86400000).toISOString(),
-    createdBy: "K. Analyst",
-    tags: ["comp", "verified"],
-  },
-];
-
 export function ParcelAnnotations({ parcelId }: ParcelAnnotationsProps) {
-  const [annotations, setAnnotations] = useState<Annotation[]>(mockAnnotations);
+  const { data: annotations = [], isLoading } = useParcelAnnotations(parcelId);
+  const addAnnotationMutation = useAddAnnotation(parcelId);
+  const togglePinMutation = useTogglePinAnnotation();
+  const deleteAnnotationMutation = useDeleteAnnotation();
   const [showAddForm, setShowAddForm] = useState(false);
   const [filterCategory, setFilterCategory] = useState<string>("all");
   const [newNote, setNewNote] = useState("");
@@ -107,6 +62,14 @@ export function ParcelAnnotations({ parcelId }: ParcelAnnotationsProps) {
     );
   }
 
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-32 text-sm text-muted-foreground">
+        Loading…
+      </div>
+    );
+  }
+
   const filtered = annotations
     .filter((a) => filterCategory === "all" || a.category === filterCategory)
     .sort((a, b) => {
@@ -116,29 +79,24 @@ export function ParcelAnnotations({ parcelId }: ParcelAnnotationsProps) {
 
   const handleAdd = () => {
     if (!newNote.trim()) return;
-    const annotation: Annotation = {
-      id: crypto.randomUUID(),
+    addAnnotationMutation.mutate({
       content: newNote,
       category: newCategory as Annotation["category"],
       priority: newPriority as Annotation["priority"],
-      pinned: false,
-      createdAt: new Date().toISOString(),
-      createdBy: "Current User",
       tags: [],
-    };
-    setAnnotations((prev) => [annotation, ...prev]);
+    });
     setNewNote("");
     setShowAddForm(false);
   };
 
   const togglePin = (id: string) => {
-    setAnnotations((prev) =>
-      prev.map((a) => (a.id === id ? { ...a, pinned: !a.pinned } : a))
-    );
+    const current = annotations.find((a) => a.id === id);
+    if (!current) return;
+    togglePinMutation.mutate({ id, pinned: !current.pinned });
   };
 
   const removeAnnotation = (id: string) => {
-    setAnnotations((prev) => prev.filter((a) => a.id !== id));
+    deleteAnnotationMutation.mutate(id);
   };
 
   return (

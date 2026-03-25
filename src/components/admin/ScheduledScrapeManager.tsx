@@ -109,7 +109,7 @@ function ScheduleRow({
         <div className="flex items-center gap-2">
           <div className={cn(
             "w-2 h-2 rounded-full",
-            schedule.is_active ? "bg-tf-green animate-pulse" : "bg-muted-foreground"
+            schedule.is_active ? "bg-tf-green animate-core-pulse" : "bg-muted-foreground"
           )} />
           <span className="font-medium">{schedule.name}</span>
         </div>

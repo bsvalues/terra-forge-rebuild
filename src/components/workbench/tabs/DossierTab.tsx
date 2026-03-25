@@ -10,6 +10,8 @@ import { NarrativeDraftingPanel } from "@/components/dossier/NarrativeDraftingPa
 import { PacketAssemblyPanel } from "@/components/dossier/PacketAssemblyPanel";
 import { ParcelAnnotations } from "@/components/dossier/ParcelAnnotations";
 import CostForgeTraceTab from "@/components/dossier/CostForgeTraceTab";
+import { CalcTracePanel } from "@/components/costforge/CalcTracePanel";
+import { RiskScoreBadge } from "@/components/dossier/RiskScoreBadge";
 
 export function DossierTab() {
   const [activeView, setActiveView] = useState("files");
@@ -29,7 +31,10 @@ export function DossierTab() {
             <FolderOpen className="w-5 h-5 text-suite-dossier" />
           </div>
           <div>
-            <h2 className="text-xl font-light text-foreground">TerraDossier</h2>
+            <div className="flex items-center gap-2">
+              <h2 className="text-xl font-light text-foreground">TerraDossier</h2>
+              <RiskScoreBadge parcelId={parcelId} />
+            </div>
             <p className="text-sm text-muted-foreground">Prove the decision — evidence, narratives, packets</p>
           </div>
         </div>
@@ -83,7 +88,7 @@ export function DossierTab() {
           <ParcelAnnotations parcelId={parcelId} />
         </TabsContent>
         <TabsContent value="traces" className="mt-4">
-          <CostForgeTraceTab parcelId={parcelId} />
+          <CalcTracePanel parcelId={parcelId} />
         </TabsContent>
       </Tabs>
 

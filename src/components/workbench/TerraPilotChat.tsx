@@ -16,6 +16,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { CommitmentButton } from "@/components/ui/commitment-button";
 import { useWorkbench } from "./WorkbenchContext";
+import { type SuiteTab } from "./types";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
@@ -52,6 +53,9 @@ interface Message {
 interface TerraPilotChatProps {
   fullscreen?: boolean;
 }
+
+interface PilotParcel { parcel_number: string; address: string; assessed_value?: number }
+interface PilotComparable { sale_price: number; parcels?: { address?: string } }
 
 const TOOL_ICONS: Record<string, typeof Search> = {
   search_parcels: Search,
@@ -154,7 +158,7 @@ export function TerraPilotChat({ fullscreen = false }: TerraPilotChatProps) {
       setParcel({
         id: String(result.parcel_id),
       });
-      if (result.tab) setActiveTab(result.tab as any);
+      if (result.tab) setActiveTab(String(result.tab) as SuiteTab);
       toast({ title: "Navigating", description: `Opening parcel ${result.parcel_id}` });
     }
   }, [setParcel, setActiveTab, toast]);
@@ -610,7 +614,7 @@ function ToolResultCards({ toolCalls }: { toolCalls: ToolCallResult[] }) {
           <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium mb-1">
             {(r.count as number) || r.parcels.length} parcels found
           </p>
-          {(r.parcels as any[]).slice(0, 5).map((p: any, i: number) => (
+          {(r.parcels as PilotParcel[]).slice(0, 5).map((p: PilotParcel, i: number) => (
             <div key={i} className="flex items-center justify-between gap-2 text-xs py-1 border-b border-border/20 last:border-0">
               <div className="flex items-center gap-1.5 min-w-0">
                 <MapPin className="w-3 h-3 text-tf-cyan shrink-0" />
@@ -634,7 +638,7 @@ function ToolResultCards({ toolCalls }: { toolCalls: ToolCallResult[] }) {
           <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium mb-1">
             {(r.count as number)} comparable sales
           </p>
-          {(r.comparables as any[]).slice(0, 5).map((c: any, i: number) => (
+          {(r.comparables as PilotComparable[]).slice(0, 5).map((c: PilotComparable, i: number) => (
             <div key={i} className="flex items-center justify-between gap-2 text-xs py-1 border-b border-border/20 last:border-0">
               <div className="flex items-center gap-1.5 min-w-0">
                 <BarChart3 className="w-3 h-3 text-tf-gold shrink-0" />
@@ -650,9 +654,9 @@ function ToolResultCards({ toolCalls }: { toolCalls: ToolCallResult[] }) {
     }
 
     if (tc.tool_name === "get_workflow_summary") {
-      const permits = r.permits as any;
-      const appeals = r.appeals as any;
-      const exemptions = r.exemptions as any;
+      const permits = r.permits as { count?: number } | undefined;
+      const appeals = r.appeals as { count?: number } | undefined;
+      const exemptions = r.exemptions as { count?: number } | undefined;
       if (permits || appeals || exemptions) {
         cards.push(
           <div key={tc.tool_call_id} className="rounded-lg border border-border/50 bg-card/50 p-2">

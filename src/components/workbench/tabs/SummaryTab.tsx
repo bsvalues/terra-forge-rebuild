@@ -47,6 +47,9 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import type { DomainLoadState } from "@/types/parcel360";
 import { useIsWatched, useToggleWatchlist } from "@/hooks/useParcelWatchlist";
+import { useParcelCharacteristics } from "@/hooks/useParcelCharacteristics";
+import { SalesHistoryPanel } from "../SalesHistoryPanel";
+import { RiskScoreBadge } from "@/components/dossier/RiskScoreBadge";
 
 export function SummaryTab() {
   const { parcel } = useWorkbench();
@@ -200,12 +203,25 @@ function OperationalBlockers({ snapshot }: { snapshot: NonNullable<ReturnType<ty
 }
 
 // ---- Main Content ----
+function CharRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex flex-col gap-0.5">
+      <span className="text-[10px] text-muted-foreground/60">{label}</span>
+      <span className="text-[12px] font-medium text-foreground/80">{value}</span>
+    </div>
+  );
+}
+
 function ParcelSummaryContent() {
   const { parcel } = useWorkbench();
   const snapshot = useParcel360(parcel.id);
   const { isWatched, watchItem } = useIsWatched(parcel.id);
   const { toggle: toggleWatch, isPending: watchPending } = useToggleWatchlist();
   const { profile } = useAuthContext();
+  const { data: characteristics, isLoading: charLoading } = useParcelCharacteristics(
+    parcel.id,
+    snapshot?.identity?.lrsn ?? null
+  );
 
   const fmt = (v: number | null | undefined) =>
     v != null
@@ -251,6 +267,7 @@ function ParcelSummaryContent() {
               {snapshot.identity.propertyClass && (
                 <Badge variant="outline" className="ml-2 text-[10px]">{snapshot.identity.propertyClass}</Badge>
               )}
+              <RiskScoreBadge parcelId={parcel.id} />
             </p>
           </div>
           <div className="text-right">
@@ -282,6 +299,49 @@ function ParcelSummaryContent() {
         </h3>
         <OperationalBlockers snapshot={snapshot} />
       </motion.div>
+
+      {/* Property Characteristics */}
+      {charLoading && (
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.07 }}>
+          <Skeleton className="h-28 w-full rounded-2xl" />
+        </motion.div>
+      )}
+      {!charLoading && characteristics && (
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.07 }}>
+          <div className="rounded-2xl border border-border/50 bg-card p-4">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-[12px] font-semibold text-foreground/70 uppercase tracking-wide">
+                Property Characteristics
+              </h3>
+              {characteristics.source && (
+                <span className={cn(
+                  "text-[9px] font-semibold px-1.5 py-0.5 rounded-full uppercase tracking-wide",
+                  characteristics.source === "pacs"
+                    ? "bg-primary/10 text-primary border border-primary/20"
+                    : characteristics.source === "ascend"
+                      ? "bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20"
+                      : "bg-muted text-muted-foreground"
+                )}>
+                  {characteristics.source === "pacs"
+                    ? `PACS${characteristics.sourceYear ? ` ${characteristics.sourceYear}` : ""}`
+                    : characteristics.source === "ascend" ? "Ascend" : "Parcels"}
+                </span>
+              )}
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-2">
+              {characteristics.yearBuilt != null && <CharRow label="Year Built" value={String(characteristics.yearBuilt)} />}
+              {characteristics.finishedAreaSqft != null && <CharRow label="Finished Area" value={`${characteristics.finishedAreaSqft.toLocaleString()} sf`} />}
+              {characteristics.bedrooms != null && <CharRow label="Bedrooms" value={String(characteristics.bedrooms)} />}
+              {characteristics.bathrooms != null && <CharRow label="Bathrooms" value={String(characteristics.bathrooms)} />}
+              {characteristics.conditionCode != null && <CharRow label="Condition" value={characteristics.conditionDesc ?? characteristics.conditionCode} />}
+              {characteristics.constructionClass != null && <CharRow label="Frame" value={characteristics.constructionClass} />}
+              {characteristics.foundation != null && <CharRow label="Foundation" value={characteristics.foundation} />}
+              {characteristics.numStories != null && <CharRow label="Stories" value={String(characteristics.numStories)} />}
+              {characteristics.garageAreaSqft != null && <CharRow label="Garage" value={`${characteristics.garageAreaSqft.toLocaleString()} sf`} />}
+            </div>
+          </div>
+        </motion.div>
+      )}
 
       {/* Assessment Sparkline */}
       {snapshot.valuation.history.length >= 2 && (
@@ -439,52 +499,9 @@ function ParcelSummaryContent() {
           </motion.div>
         </TabsContent>
 
-        {/* Sales History */}
+        {/* Sales History — Unified (canonical + Ascend + PACS) */}
         <TabsContent value="sales">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-card border border-border/50 rounded-2xl p-6">
-            <h3 className="text-lg font-medium text-foreground mb-4 flex items-center gap-2">
-              <DollarSign className="w-5 h-5 text-chart-5" />
-              Sales History
-            </h3>
-            {snapshot.domainStates.sales.loading ? (
-              <div className="space-y-3">{[1, 2, 3].map((i) => <Skeleton key={i} className="h-12 w-full" />)}</div>
-            ) : snapshot.sales.recentSales.length > 0 ? (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-border/50 text-muted-foreground text-xs">
-                      <th className="text-left py-2 pr-4">Date</th>
-                      <th className="text-right py-2 pr-4">Price</th>
-                      <th className="text-left py-2 pr-4">Type</th>
-                      <th className="text-left py-2 pr-4">Grantor → Grantee</th>
-                      <th className="text-center py-2">Qualified</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {snapshot.sales.recentSales.map((s) => (
-                      <tr key={s.id} className="border-b border-border/20 hover:bg-muted/20 transition-colors">
-                        <td className="py-2.5 pr-4 font-medium">{new Date(s.saleDate).toLocaleDateString()}</td>
-                        <td className="text-right py-2.5 pr-4 text-chart-5 font-medium">{fmt(s.salePrice)}</td>
-                        <td className="py-2.5 pr-4 text-muted-foreground">{s.saleType || s.deedType || "—"}</td>
-                        <td className="py-2.5 pr-4 text-muted-foreground text-xs truncate max-w-[200px]">
-                          {s.grantor || "—"} → {s.grantee || "—"}
-                        </td>
-                        <td className="text-center py-2.5">
-                          {s.isQualified ? (
-                            <Badge className="bg-chart-5/20 text-chart-5 border-chart-5/30 text-[10px]">Qualified</Badge>
-                          ) : (
-                            <Badge variant="outline" className="text-[10px]">Unqualified</Badge>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            ) : (
-              <p className="text-center py-6 text-muted-foreground text-sm">No sales records found</p>
-            )}
-          </motion.div>
+          <SalesHistoryPanel parcelId={parcel.id} parcelNumber={snapshot.identity.parcelNumber} />
         </TabsContent>
 
         {/* Appeals */}

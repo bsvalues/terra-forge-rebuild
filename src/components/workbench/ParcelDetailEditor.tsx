@@ -107,14 +107,14 @@ export function ParcelDetailEditor() {
       if (field.readOnly) continue;
       const key = field.key as keyof ParcelUpdatePayload;
       const newVal = formData[field.key];
-      const oldVal = (fullParcel as any)[field.key];
+      const oldVal = (fullParcel as Record<string, unknown>)[field.key];
 
       // Normalize comparison
       const normalizedNew = newVal === "" || newVal === undefined ? null : newVal;
       const normalizedOld = oldVal === "" || oldVal === undefined ? null : oldVal;
 
       if (normalizedNew !== normalizedOld) {
-        (changes as any)[key] = field.type === "number" || field.type === "currency"
+        (changes as Record<string, unknown>)[key] = field.type === "number" || field.type === "currency"
           ? normalizedNew === null ? null : Number(normalizedNew)
           : normalizedNew;
         hasChanges = true;

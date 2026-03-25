@@ -1,37 +1,39 @@
-// TerraFusion OS — Year-Scoped Neighborhood Stats Hook
-// Uses get_neighborhood_stats() RPC for rollup analytics
+// TerraFusion OS — Phase 211: Neighborhood Stats Hooks
+// Calls real Supabase RPCs for neighborhood stats and equity overlays.
 
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useActiveCountyId } from "@/hooks/useActiveCounty";
 
-export interface NeighborhoodStat {
-  hood_cd: string;
-  hood_name: string | null;
-  parcel_count: number;
-  avg_assessed_value: number;
-  min_assessed_value: number;
-  max_assessed_value: number;
-  avg_land_value: number;
-  avg_improvement_value: number;
-  total_assessed_value: number;
+export function useNeighborhoodStats(
+  neighborhoodCode: string | null,
+  countyId: string | null
+) {
+  return useQuery({
+    queryKey: ["neighborhood-stats", neighborhoodCode, countyId],
+    enabled: !!(neighborhoodCode && countyId),
+    staleTime: 300_000,
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("get_neighborhood_stats" as any, {
+        p_county_id: countyId!,
+        p_neighborhood_code: neighborhoodCode!,
+      });
+      if (error) throw new Error(error.message);
+      return data;
+    },
+  });
 }
 
-export function useNeighborhoodStats(year?: number) {
-  const countyId = useActiveCountyId();
-  const effectiveYear = year ?? new Date().getFullYear();
-
-  return useQuery<NeighborhoodStat[]>({
-    queryKey: ["neighborhood-stats", countyId, effectiveYear],
-    queryFn: async () => {
-      const { data, error } = await (supabase.rpc as Function)(
-        "get_neighborhood_stats",
-        { p_year: effectiveYear, p_county_id: countyId }
-      );
-      if (error) throw error;
-      return (data as NeighborhoodStat[]) ?? [];
-    },
+export function useNeighborhoodEquityOverlay(countyId: string | null) {
+  return useQuery({
+    queryKey: ["neighborhood-equity-overlay", countyId],
     enabled: !!countyId,
-    staleTime: 120_000,
+    staleTime: 300_000,
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("get_neighborhood_equity_overlays" as any, {
+        p_county_id: countyId!,
+      });
+      if (error) throw new Error(error.message);
+      return data;
+    },
   });
 }

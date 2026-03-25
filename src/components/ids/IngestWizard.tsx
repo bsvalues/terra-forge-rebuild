@@ -201,7 +201,7 @@ export function IngestWizard() {
                 <div className={cn(
                   "w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all",
                   isComplete ? "bg-tf-green/20 border-tf-green" :
-                  isActive ? "bg-tf-cyan/20 border-tf-cyan animate-pulse" :
+                  isActive ? "bg-tf-cyan/20 border-tf-cyan animate-core-pulse" :
                   "bg-tf-elevated border-tf-border"
                 )}>
                   {isComplete ? <CheckCircle2 className="w-5 h-5 text-tf-green" /> :

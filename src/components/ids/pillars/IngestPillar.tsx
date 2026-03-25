@@ -125,7 +125,7 @@ import { LearningScoreboard } from "@/components/import/LearningScoreboard";
    const getStepStatusIcon = (status: PipelineStep["status"]) => {
      switch (status) {
        case "complete": return <CheckCircle2 className="w-5 h-5 text-tf-green" />;
-       case "active": return <Circle className="w-5 h-5 text-tf-cyan animate-pulse" />;
+       case "active": return <Circle className="w-5 h-5 text-tf-cyan animate-core-pulse" />;
        case "pending": return <Circle className="w-5 h-5 text-muted-foreground/30" />;
      }
    };
