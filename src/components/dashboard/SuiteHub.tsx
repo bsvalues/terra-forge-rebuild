@@ -40,6 +40,7 @@ import { NextBestAction } from "./NextBestAction";
 import { ExplainThisPanel } from "./ExplainThisPanel";
 import { DailyBriefing } from "./DailyBriefing";
 import { usePipelineStatus } from "@/hooks/usePipelineStatus";
+import { PACSConnectionBadge } from "@/components/status/PACSConnectionBadge";
 
 interface SuiteHubProps {
   onNavigate: (target: string) => void;
@@ -166,13 +167,16 @@ export function SuiteHub({ onNavigate, onParcelNavigate }: SuiteHubProps) {
               Valuation Operating Environment
             </p>
           </div>
-          <ScopeHeader
-            scope="county"
-            label={countyMeta?.shortName ?? "County"}
-            source="county-vitals"
-            fetchedAt={vitals?.fetchedAt}
-            status="published"
-          />
+          <div className="flex items-center gap-2">
+            <PACSConnectionBadge />
+            <ScopeHeader
+              scope="county"
+              label={countyMeta?.shortName ?? "County"}
+              source="county-vitals"
+              fetchedAt={vitals?.fetchedAt}
+              status="published"
+            />
+          </div>
         </div>
 
         {/* Workbench Hero Card */}
