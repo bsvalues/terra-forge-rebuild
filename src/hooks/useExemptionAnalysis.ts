@@ -108,7 +108,7 @@ export function useExemptionDetail(
   return useQuery<ExemptionDetailRow[]>({
     queryKey: ["exemption-detail", COUNTY_ID, taxYear, exemptionType, status, limit],
     queryFn: async () => {
-      let q = supabase
+      let q = (supabase as any)
         .from("vw_exemption_detail")
         .select("*")
         .eq("county_id", COUNTY_ID)
