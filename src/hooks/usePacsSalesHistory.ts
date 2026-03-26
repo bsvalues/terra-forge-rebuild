@@ -21,7 +21,7 @@ export function usePacsSalesHistory(propId: number | null) {
   return useQuery({
     queryKey: ["pacs-sales", propId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("pacs_sales")
         .select("*")
         .eq("prop_id", propId!)
