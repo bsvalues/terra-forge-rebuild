@@ -4,7 +4,7 @@
 import { motion } from "framer-motion";
 import { formatDistanceToNow } from "date-fns";
 import {
-  Activity, CheckCircle2, Clock, AlertTriangle, Loader2,
+  Activity, CheckCircle2, Clock, Loader2,
   Play, Pause, XCircle, ChevronRight,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";

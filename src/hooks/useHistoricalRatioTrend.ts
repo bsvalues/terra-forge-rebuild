@@ -16,7 +16,7 @@ export function useHistoricalRatioTrend(
   salesEndDate: string,
   yearsBack: number = 4
 ) {
-  const currentYear = new Date().getFullYear();
+  const _currentYear = new Date().getFullYear();
 
   return useQuery({
     queryKey: ["historical-ratio-trend", salesStartDate, salesEndDate, yearsBack],

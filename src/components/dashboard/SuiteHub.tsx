@@ -34,7 +34,7 @@ import { useState, useRef, useEffect } from "react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useCountyVitals } from "@/hooks/useCountyVitals";
 import { useCountyMeta } from "@/hooks/useCountyMeta";
-import { ProvenanceBadge, ProvenanceNumber, ScopeHeader } from "@/components/trust";
+import { ProvenanceBadge, ScopeHeader } from "@/components/trust";
 import { DataStatusRibbon } from "./DataStatusRibbon";
 import { NextBestAction } from "./NextBestAction";
 import { ExplainThisPanel } from "./ExplainThisPanel";
@@ -332,6 +332,61 @@ export function SuiteHub({ onNavigate, onParcelNavigate }: SuiteHubProps) {
           </div>
         </div>
       </motion.section>
+
+      {/* ── Pipeline Status Card ── */}
+      {pipeline && (
+        <motion.section
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.18, duration: 0.35 }}
+        >
+          <button
+            onClick={() => onNavigate("home:ids")}
+            className="material-bento p-5 text-left group w-full"
+          >
+            <div className="flex items-center gap-3 mb-3">
+              <div className="p-2 rounded-lg bg-[hsl(var(--tf-transcend-cyan)/0.12)]">
+                <Database className="w-4 h-4 text-tf-cyan" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-sm font-medium text-foreground">Pipeline Status</h3>
+                <p className="text-xs text-muted-foreground">Data ingestion health</p>
+              </div>
+              <Badge
+                variant="outline"
+                className={
+                  pipeline.overall === "healthy"
+                    ? "bg-[hsl(var(--tf-optimized-green)/0.1)] text-tf-green border-[hsl(var(--tf-optimized-green)/0.3)]"
+                    : pipeline.overall === "warning"
+                    ? "bg-[hsl(var(--tf-sacred-gold)/0.1)] text-tf-gold border-[hsl(var(--tf-sacred-gold)/0.3)]"
+                    : "bg-destructive/10 text-destructive border-destructive/30"
+                }
+              >
+                {pipeline.overall}
+              </Badge>
+              <ArrowRight className="w-3.5 h-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+            </div>
+            <div className="grid grid-cols-3 gap-3 text-center">
+              <div className="p-2 rounded-lg bg-[hsl(var(--tf-surface)/0.5)]">
+                <p className="text-lg font-light text-foreground">{pipeline.stages?.length ?? 0}</p>
+                <p className="text-xs text-muted-foreground">Stages</p>
+              </div>
+              <div className="p-2 rounded-lg bg-[hsl(var(--tf-surface)/0.5)]">
+                <p className="text-lg font-light text-foreground">{pipeline.total_rows?.toLocaleString() ?? 0}</p>
+                <p className="text-xs text-muted-foreground">Rows</p>
+              </div>
+              <div className="p-2 rounded-lg bg-[hsl(var(--tf-surface)/0.5)]">
+                <p className="text-lg font-light text-foreground">
+                  {pipeline.last_success
+                    ? new Date(pipeline.last_success).toLocaleDateString()
+                    : "Never"}
+                </p>
+                <p className="text-xs text-muted-foreground">Last Success</p>
+              </div>
+            </div>
+          </button>
+        </motion.section>
+      )}
 
       {/* ── Smart Quick Actions ── */}
       <motion.section

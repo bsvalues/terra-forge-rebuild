@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { 
   Upload, 
   Zap, 
@@ -122,7 +122,7 @@ import { LearningScoreboard } from "@/components/import/LearningScoreboard";
      },
    ];
  
-   const getStepStatusIcon = (status: PipelineStep["status"]) => {
+   const _getStepStatusIcon = (status: PipelineStep["status"]) => {
      switch (status) {
        case "complete": return <CheckCircle2 className="w-5 h-5 text-tf-green" />;
        case "active": return <Circle className="w-5 h-5 text-tf-cyan animate-core-pulse" />;
@@ -220,7 +220,7 @@ import { LearningScoreboard } from "@/components/import/LearningScoreboard";
              {/* Connection Line */}
              <div className="absolute top-6 left-8 right-8 h-0.5 bg-tf-border" />
              
-             {pipelineSteps.map((step, index) => (
+             {pipelineSteps.map((step, _index) => (
                <div key={step.id} className="relative z-10 flex flex-col items-center">
                  <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
                    step.status === "complete" ? "bg-tf-green/20 border-2 border-tf-green" :

@@ -21,9 +21,7 @@ import {
   XCircle,
   Loader2,
   MapPin,
-  BarChart3,
 } from "lucide-react";
-import { useWorkbench } from "@/components/workbench/WorkbenchContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { emitTraceEventAsync } from "@/services/terraTrace";

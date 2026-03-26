@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { FolderOpen, FileText, Brain, Package, Upload, Shield, StickyNote } from "lucide-react";
+import { FolderOpen, FileText, Brain, Package, Upload, StickyNote } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useWorkbench } from "@/components/workbench/WorkbenchContext";
@@ -9,7 +9,6 @@ import { DocumentUploadDialog } from "@/components/dossier/DocumentUploadDialog"
 import { NarrativeDraftingPanel } from "@/components/dossier/NarrativeDraftingPanel";
 import { PacketAssemblyPanel } from "@/components/dossier/PacketAssemblyPanel";
 import { ParcelAnnotations } from "@/components/dossier/ParcelAnnotations";
-import CostForgeTraceTab from "@/components/dossier/CostForgeTraceTab";
 import { CalcTracePanel } from "@/components/costforge/CalcTracePanel";
 import { RiskScoreBadge } from "@/components/dossier/RiskScoreBadge";
 

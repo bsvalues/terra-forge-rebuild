@@ -38,7 +38,7 @@ const QK = {
 export function useDBNotifications() {
   const { profile } = useAuthContext();
   const userId = profile?.user_id;
-  const countyId = useActiveCountyId();
+  const _countyId = useActiveCountyId();
   const qc = useQueryClient();
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 

@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { MapPin, TrendingUp, TrendingDown, Minus, AlertTriangle, Check } from "lucide-react";
+import { MapPin, TrendingUp, TrendingDown, AlertTriangle, Check } from "lucide-react";
 import { NeighborhoodEffect } from "@/hooks/useRegressionAnalysis";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -132,7 +132,7 @@ export function NeighborhoodEffectsPanel({ effects, isLoading }: NeighborhoodEff
                     border: "1px solid hsl(var(--border))",
                     borderRadius: "8px",
                   }}
-                  formatter={(value: number, name: string, props: any) => [
+                  formatter={(value: number, _name: string, props: any) => [
                     `${value > 0 ? '+' : ''}${value.toFixed(2)}%`,
                     `Effect (n=${props.payload.count})`
                   ]}

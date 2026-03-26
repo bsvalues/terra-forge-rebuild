@@ -15,8 +15,6 @@ import {
   MapPin,
   Thermometer,
   Loader2,
-  TrendingUp,
-  TrendingDown,
   ArrowUpDown,
   Download,
 } from "lucide-react";

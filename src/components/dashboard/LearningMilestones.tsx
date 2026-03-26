@@ -3,7 +3,7 @@
 
 import { useMemo } from "react";
 import { motion } from "framer-motion";
-import { Brain, TrendingUp, Sparkles, Trophy, Zap } from "lucide-react";
+import { TrendingUp, Sparkles, Trophy, Zap } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useMappingProfiles, type MappingProfile } from "@/hooks/useMappingProfiles";

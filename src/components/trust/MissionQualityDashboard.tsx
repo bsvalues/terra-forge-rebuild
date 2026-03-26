@@ -7,13 +7,12 @@ import {
   Target,
   CheckCircle2,
   Clock,
-  RotateCcw,
   XCircle,
   Activity,
   ShieldCheck,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { MISSION_REGISTRY, IMPACT_LABELS, type MissionDefinition } from "@/lib/missionConstitution";
+import { MISSION_REGISTRY, IMPACT_LABELS } from "@/lib/missionConstitution";
 import { useSmartActions } from "@/hooks/useSmartActions";
 import { ProvenanceBadge } from "@/components/trust/ProvenanceBadge";
 

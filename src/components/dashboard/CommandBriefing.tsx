@@ -21,7 +21,7 @@ import { SystemHealthPanel } from "./SystemHealthPanel";
 import { NeighborhoodLeaderboard } from "./NeighborhoodLeaderboard";
 import { useCountyVitals } from "@/hooks/useCountyVitals";
 import { useCountyMeta } from "@/hooks/useCountyMeta";
-import { ProvenanceBadge, ProvenanceNumber, ScopeHeader } from "@/components/trust";
+import { ProvenanceNumber, ScopeHeader } from "@/components/trust";
 
 interface CommandBriefingProps {
   onNavigate: (module: string) => void;

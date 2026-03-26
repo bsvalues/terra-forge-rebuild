@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,7 +7,6 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   Globe,
-  Play,
   Square,
   Clock,
   CheckCircle,
@@ -21,7 +19,6 @@ import {
   Zap,
   BarChart3,
 } from "lucide-react";
-import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { CountyDataQualityReport } from "./CountyDataQualityReport";
 import { useScrapeJobsRealtime, useStartScrapeJob, useCancelScrapeJob } from "@/hooks/useScrapeJobs";

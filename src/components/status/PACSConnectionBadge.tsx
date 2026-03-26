@@ -3,7 +3,6 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { checkConnectorHealth } from "@/services/pacsConnector";
-import { cn } from "@/lib/utils";
 
 export function PACSConnectionBadge() {
   const { data, isLoading } = useQuery({

@@ -2,7 +2,6 @@
 import { Calendar, MapPin, Users, DollarSign, Clock } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 
 interface ProjectCardProps {

@@ -5,9 +5,8 @@
 //   - IAAO standard benchmarks
 // Uses window.print() into a styled print-only div (no server dependency, no timeout risk).
 
-import { useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { useIAAOCompliance, IAAO_THRESHOLDS, type NeighborhoodCompliance, type IAAOComplianceSummary } from "@/hooks/useIAAOCompliance";
+import { useIAAOCompliance, IAAO_THRESHOLDS, type IAAOComplianceSummary } from "@/hooks/useIAAOCompliance";
 import { FileDown } from "lucide-react";
 
 // ── Grade helpers ──────────────────────────────────────────────────────────────

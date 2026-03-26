@@ -1,7 +1,7 @@
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { 
   MapPin, Calendar, Building2, DollarSign, ChevronDown,
-  Search, X, Loader2, Check, Clock, FileText, Navigation, Link2
+  Search, X, Loader2, Check, FileText, Navigation, Link2
 } from "lucide-react";
 import { useWorkbench } from "./WorkbenchContext";
 import { WorkModeSelector } from "./WorkModeSelector";

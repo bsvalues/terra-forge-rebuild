@@ -56,7 +56,7 @@ export function GeoEquityDashboard({ onNavigateToWorkbench }: GeoEquityDashboard
     setSelectedNeighborhood(code);
   }, []);
 
-  const handleDrillToSearch = useCallback((code: string) => {
+  const _handleDrillToSearch = useCallback((code: string) => {
     setSelectedNeighborhood(code);
     setActiveTab("search");
   }, []);

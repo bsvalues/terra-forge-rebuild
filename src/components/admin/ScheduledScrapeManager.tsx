@@ -38,8 +38,6 @@ import {
   Clock,
   Calendar,
   Plus,
-  Play,
-  Pause,
   Trash2,
   Loader2,
   MapPin,

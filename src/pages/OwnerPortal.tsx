@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Search, FileText, Send, CheckCircle2, AlertTriangle,
   Building2, ArrowRight, Shield, Home, Paperclip, X,
-  Loader2, Calendar, Download, Printer,
+  Loader2, Calendar, Printer
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";

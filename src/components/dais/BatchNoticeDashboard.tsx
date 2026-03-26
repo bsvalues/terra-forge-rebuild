@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Bell, FileText, Send, Download, Loader2, Sparkles, Filter,
   CheckCircle2, XCircle, Clock, PlayCircle, Eye, ChevronDown,
-  ChevronRight, Mail, MailCheck,
+  ChevronRight, Mail
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";

@@ -12,8 +12,8 @@ import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Rocket, CheckCircle2, AlertTriangle, MapPin, Building2,
-  BarChart3, Shield, Clock, Play, Layers, TrendingUp,
-  Calendar, ChevronRight, Activity, Target, Zap,
+  BarChart3, Shield, Clock, Play, Layers,
+  Calendar, ChevronRight, Activity, Target,
 } from "lucide-react";
 import {
   useRevaluationCycles,

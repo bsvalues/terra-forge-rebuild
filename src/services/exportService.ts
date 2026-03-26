@@ -122,7 +122,7 @@ async function runDatasetQuery(dataset: ExportDataset, filters?: ExportConfig["f
 // Joins qualified sales with assessed values, computes per-parcel ratios,
 // and calculates summary statistics per IAAO Standard on Ratio Studies.
 async function buildIaaoRatioStudy(
-  filters?: ExportConfig["filters"],
+  _filters?: ExportConfig["filters"],
   limit = 5000
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ): Promise<{ data: any; error: any }> {

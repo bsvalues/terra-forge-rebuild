@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 import { Calendar, Home, Database, Clock } from "lucide-react";
 
 interface VEISummaryPanelProps {
@@ -12,7 +11,7 @@ export function VEISummaryPanel({
   studyPeriod,
   propertyClass,
   sampleSize,
-  currentYear,
+  _currentYear,
 }: VEISummaryPanelProps) {
   return (
     <div className="material-bento rounded-lg p-4">

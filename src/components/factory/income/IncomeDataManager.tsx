@@ -1,7 +1,7 @@
 // TerraFusion OS — Phase 28: Income Data Manager (CRUD for income properties)
 
 import { useState } from "react";
-import { useIncomeProperties, useUpsertIncomeProperty, useDeleteIncomeProperty, type IncomePropertyRow } from "@/hooks/useIncomeApproach";
+import { useIncomeProperties, useUpsertIncomeProperty, useDeleteIncomeProperty } from "@/hooks/useIncomeApproach";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";

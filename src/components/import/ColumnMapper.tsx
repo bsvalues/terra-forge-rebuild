@@ -7,7 +7,7 @@ import { useState, useMemo } from "react";
 import {
   Check, X, ChevronDown, BookOpen, Zap, Save, Star,
   Info, AlertTriangle, ArrowRight, Trash2, RefreshCw,
-  Sparkles, FlaskConical, Undo2, Scissors, Type, Calendar, Hash,
+  Sparkles, FlaskConical, Scissors, Type, Calendar, Hash,
   LayoutGrid, FileSearch, Link,
 } from "lucide-react";
 import {

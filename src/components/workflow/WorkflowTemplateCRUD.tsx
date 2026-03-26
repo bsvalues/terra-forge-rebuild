@@ -11,7 +11,7 @@ import {
   type WorkflowStep,
 } from "@/hooks/useWorkflowTemplates";
 import { BUILT_IN_TEMPLATES } from "@/services/workflowEngine";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,8 +24,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useUserRole } from "@/hooks/useUserRole";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  Plus, Layers, Play, ChevronRight, CheckCircle2,
-  Shield, User, Eye, Trash2, Copy,
+  Plus, Layers, Play, ChevronRight,
+  Shield, User, Eye, Trash2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -395,8 +395,8 @@ function CreateTemplateDialog({ onSuccess }: { onSuccess: () => void }) {
 
 // ── Launch Instance Dialog ─────────────────────────────────────────────────────
 
-function LaunchInstanceDialog({
-  templateName,
+function _LaunchInstanceDialog({
+  _templateName,
   onConfirm,
 }: {
   templateName: string;
@@ -405,7 +405,7 @@ function LaunchInstanceDialog({
   const [open, setOpen] = useState(false);
   const [notes, setNotes] = useState("");
 
-  async function handleLaunch() {
+  async function _handleLaunch() {
     const { data: { user } } = await supabase.auth.getUser();
     onConfirm(user?.id ?? "", notes);
     setOpen(false);

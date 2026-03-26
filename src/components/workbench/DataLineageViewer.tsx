@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { motion } from "framer-motion";
 import {
   GitBranch, ArrowRight, Database, Hammer, Globe,
-  Building2, FolderOpen, Shield, Info,
+  Building2, FolderOpen, Shield
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";

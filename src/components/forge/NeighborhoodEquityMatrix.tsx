@@ -24,6 +24,7 @@ import { useQuery } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 import { useActiveCountyId } from "@/hooks/useActiveCounty";
 import { useNeighborhoodEquityOverlay } from "@/hooks/useNeighborhoodStats";
+import { useIAAOMetrics } from "@/hooks/useIAAOMetrics";
 
 interface AssessmentRatioParcel {
   neighborhood_code: string | null;
@@ -137,6 +138,10 @@ export function NeighborhoodEquityMatrix() {
     isLoading: overlayLoading,
     isError: overlayError,
   } = useNeighborhoodEquityOverlay(countyId);
+  const {
+    data: iaaoMetrics,
+    isLoading: iaaoLoading,
+  } = useIAAOMetrics(countyId);
   type SortKey = "code" | "parcelCount" | "medianRatio" | "cod" | "prd" | "avgValue";
   const [sortKey, setSortKey] = useState<SortKey>("cod");
   const [sortAsc, setSortAsc] = useState(false);
@@ -220,6 +225,68 @@ export function NeighborhoodEquityMatrix() {
                   {JSON.stringify(overlayData, null, 2)}
                 </pre>
               )
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* IAAO Calibration Compliance Summary */}
+      {countyId && (
+        <Card className="material-bento border-border/50">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <Grid3X3 className="w-3.5 h-3.5 text-suite-forge" />
+              IAAO Calibration Compliance
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pb-3">
+            {iaaoLoading && (
+              <div className="flex items-center gap-2 py-2 text-xs text-muted-foreground">
+                <Loader2 className="w-3.5 h-3.5 animate-spin" /> Loading IAAO metrics...
+              </div>
+            )}
+            {!iaaoLoading && (!iaaoMetrics || iaaoMetrics.length === 0) && (
+              <p className="text-xs text-muted-foreground py-1">No calibration run data available for this county.</p>
+            )}
+            {!iaaoLoading && iaaoMetrics && iaaoMetrics.length > 0 && (
+              <div className="space-y-3">
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="text-center">
+                    <div className="text-lg font-medium text-foreground">{iaaoMetrics.length}</div>
+                    <div className="text-[10px] text-muted-foreground">Neighborhoods</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-lg font-medium text-tf-green">
+                      {iaaoMetrics.filter((m) => m.iaaoCompliant).length}
+                    </div>
+                    <div className="text-[10px] text-muted-foreground">Compliant</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-lg font-medium text-destructive">
+                      {iaaoMetrics.filter((m) => !m.iaaoCompliant).length}
+                    </div>
+                    <div className="text-[10px] text-muted-foreground">Non-Compliant</div>
+                  </div>
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {iaaoMetrics.map((m) => (
+                    <Badge
+                      key={m.neighborhoodCode}
+                      variant="outline"
+                      className={cn(
+                        "text-[10px] py-0.5 px-2",
+                        m.iaaoCompliant
+                          ? "bg-tf-green/10 text-tf-green border-tf-green/30"
+                          : "bg-destructive/10 text-destructive border-destructive/30"
+                      )}
+                      title={`COD: ${m.cod ?? "N/A"} | PRD: ${m.prd ?? "N/A"} | Samples: ${m.sampleSize}`}
+                    >
+                      {m.neighborhoodCode}
+                      {m.cod != null && ` ${m.cod.toFixed(1)}%`}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
             )}
           </CardContent>
         </Card>

@@ -2,18 +2,17 @@
 // God-tier appeal defense: risk tiers, AI analysis, defense queue management.
 // "I defended an appeal once. The judge said 'no.' So I appealed that." — Ralph Wiggum
 
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
 import { CommitmentButton } from "@/components/ui/commitment-button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
-  AlertTriangle, Shield, Loader2, Brain, TrendingUp, TrendingDown,
+  AlertTriangle, Shield, Loader2, Brain, TrendingUp,
   ArrowRight, CheckCircle, Clock, Users, Zap, Target,
   BarChart3, FileText, Crosshair, ShieldAlert, ChevronRight,
   ArrowUpRight, ArrowDownRight, Minus, RefreshCw,
@@ -23,6 +22,7 @@ import {
   useRunRiskScan, useAIAnalysis, useUpdateDefenseStatus, useBulkQueueDefense,
   type AppealRiskScore, type RiskTier, type DefenseStatus,
 } from "@/hooks/useAppealRiskScoring";
+import { useAppealRiskSummary } from "@/hooks/useAppealRiskSummary";
 import { format } from "date-fns";
 
 // ── Tier config ──────────────────────────────────────────────────────
@@ -49,6 +49,7 @@ export function AppealRiskDashboard() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const { data: summary } = useRiskSummary();
+  const { data: rpcSummary } = useAppealRiskSummary();
   const { data: scores = [], isLoading } = useRiskScores({
     tier: activeTier || undefined,
     status: activeStatus || undefined,
@@ -234,8 +235,46 @@ export function AppealRiskDashboard() {
               ) : scores.length === 0 ? (
                 <div className="p-8 text-center">
                   <ShieldAlert className="h-10 w-10 text-muted-foreground/20 mx-auto mb-3" />
-                  <p className="text-sm text-muted-foreground mb-1">No risk scores found</p>
-                  <p className="text-[10px] text-muted-foreground">Run a risk scan to identify parcels with high value changes</p>
+                  {rpcSummary ? (
+                    <>
+                      <p className="text-sm text-muted-foreground mb-3">
+                        {rpcSummary.totalParcels.toLocaleString()} parcels analyzed
+                      </p>
+                      <div className="grid grid-cols-3 gap-3 max-w-sm mx-auto mb-4">
+                        <div className="p-2 rounded-lg bg-destructive/10 border border-destructive/20">
+                          <div className="text-lg font-bold font-mono text-destructive">{rpcSummary.highRiskCount}</div>
+                          <div className="text-[9px] text-muted-foreground">High Risk</div>
+                        </div>
+                        <div className="p-2 rounded-lg bg-primary/10 border border-primary/20">
+                          <div className="text-lg font-bold font-mono text-primary">{rpcSummary.mediumRiskCount}</div>
+                          <div className="text-[9px] text-muted-foreground">Medium Risk</div>
+                        </div>
+                        <div className="p-2 rounded-lg bg-muted/10 border border-border/20">
+                          <div className="text-lg font-bold font-mono">{rpcSummary.lowRiskCount}</div>
+                          <div className="text-[9px] text-muted-foreground">Low Risk</div>
+                        </div>
+                      </div>
+                      {rpcSummary.topRiskNeighborhoods.length > 0 && (
+                        <div className="text-left max-w-sm mx-auto">
+                          <div className="text-[10px] text-muted-foreground mb-1 font-semibold">Top Risk Neighborhoods</div>
+                          {rpcSummary.topRiskNeighborhoods.slice(0, 3).map((n) => (
+                            <div key={n.code} className="flex items-center justify-between text-[10px] py-0.5">
+                              <span className="font-mono">{n.code}</span>
+                              <span className="text-muted-foreground">
+                                {n.count} parcels, avg score {n.avgScore.toFixed(1)}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      <p className="text-[10px] text-muted-foreground mt-3">Run a risk scan to generate detailed per-parcel scores</p>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-sm text-muted-foreground mb-1">No risk scores found</p>
+                      <p className="text-[10px] text-muted-foreground">Run a risk scan to identify parcels with high value changes</p>
+                    </>
+                  )}
                 </div>
               ) : (
                 <ScrollArea className="h-[520px]">

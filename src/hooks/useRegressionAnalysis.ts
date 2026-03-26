@@ -285,7 +285,7 @@ function computeMultipleRegression(data: any[]): RegressionResult {
   // Variable names including neighborhood dummies
   const continuousVarNames = ["(Intercept)", "Building_Area", "Land_Area", "Age", "Bedrooms", "Bathrooms"];
   const neighborhoodVarNames = dummyNeighborhoods.map(n => `Nbhd_${n}`);
-  const variableNames = [...continuousVarNames, ...neighborhoodVarNames];
+  const _variableNames = [...continuousVarNames, ...neighborhoodVarNames];
   
   const numContinuous = continuousVarNames.length - 1; // Exclude intercept
   const numNeighborhoods = dummyNeighborhoods.length;
@@ -503,7 +503,7 @@ function computeMultipleRegression(data: any[]): RegressionResult {
 // Compute F-statistic for neighborhood variables jointly
 function computeNeighborhoodFStat(
   X: number[][],
-  y: number[],
+  _y: number[],
   beta: number[],
   startIdx: number,
   numVars: number,
@@ -526,11 +526,11 @@ function computeNeighborhoodFStat(
 // Compute sum of squares for neighborhood variables
 function computeNeighborhoodSS(
   X: number[][],
-  y: number[],
+  _y: number[],
   beta: number[],
   startIdx: number,
   numVars: number,
-  yMean: number
+  _yMean: number
 ): number {
   let ss = 0;
   for (let i = 0; i < X.length; i++) {
@@ -663,7 +663,7 @@ function calculateVIF(X: number[][], varIndex: number): number {
   }
 }
 
-function computePartialSS(X: number[][], y: number[], varIndex: number, beta: number[], yMean: number): number {
+function computePartialSS(X: number[][], y: number[], varIndex: number, beta: number[], _yMean: number): number {
   // Type III sum of squares for variable
   const n = X.length;
   const contribution = X.map(row => beta[varIndex] * row[varIndex]);
@@ -673,7 +673,7 @@ function computePartialSS(X: number[][], y: number[], varIndex: number, beta: nu
 function computeDiagnostics(
   residuals: number[],
   fitted: number[],
-  X: number[][],
+  _X: number[][],
   coefficients: CoefficientRow[]
 ): ModelDiagnostics {
   const n = residuals.length;
@@ -748,7 +748,7 @@ function computeDiagnosticPlots(
   residuals: number[],
   fitted: number[],
   X: number[][],
-  beta: number[],
+  _beta: number[],
   mse: number
 ): RegressionResult["diagnosticPlots"] {
   const n = residuals.length;
@@ -873,7 +873,7 @@ function approximateFPValue(f: number, df1: number, df2: number): number {
 
 function buildEquationString(
   coefficients: CoefficientRow[],
-  stds: { mean: number; std: number }[],
+  _stds: { mean: number; std: number }[],
   referenceNeighborhood?: string
 ): string {
   const intercept = coefficients[0];

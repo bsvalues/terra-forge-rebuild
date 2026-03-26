@@ -1,7 +1,6 @@
 // TerraFusion OS — Top System Bar
 // Constitutional: county meta fetched via useCountyMeta hook only
 
-import { motion } from "framer-motion";
 import { useAuthContext } from "@/contexts/AuthContext";
 import {
   User,

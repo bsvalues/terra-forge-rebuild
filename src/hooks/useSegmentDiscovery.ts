@@ -442,8 +442,8 @@ function calculateFactorStats(
 function calculateCategoricalFactorStats(
   factor: string,
   label: string,
-  values: string[],
-  ratios: number[],
+  _values: string[],
+  _ratios: number[],
   data: any[]
 ): FactorAnalysis {
   const filteredData = data.filter(d => d.parcels?.[factor] != null && d.ratio != null);
@@ -524,7 +524,7 @@ function createEmptyAnalysis(factor: string, label: string): FactorAnalysis {
 // Approximate p-value from t-statistic (simplified)
 function approximatePValue(t: number, df: number): number {
   // Simplified approximation - in production use proper t-distribution
-  const x = df / (df + t * t);
+  const _x = df / (df + t * t);
   if (df <= 0 || t === 0) return 1;
   // Very rough approximation
   if (Math.abs(t) > 3.5) return 0.001;

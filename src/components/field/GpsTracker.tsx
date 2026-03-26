@@ -1,9 +1,9 @@
 // TerraFusion OS — Phase 94: GPS Tracker for Field Studio
 // Real-time GPS position tracking with accuracy indicator for field inspectors.
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { motion } from "framer-motion";
-import { MapPin, Navigation, Signal, SignalLow, SignalZero, RefreshCw } from "lucide-react";
+import { MapPin, Navigation, Signal, SignalLow, SignalZero } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";

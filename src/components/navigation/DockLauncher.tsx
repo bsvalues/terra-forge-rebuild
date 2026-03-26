@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { getQueueStats } from "@/services/fieldStore";
 import { LogOut } from "lucide-react";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { IA_MODULES, type PrimaryModuleId } from "@/config/IA_MAP";
+import { IA_MODULES } from "@/config/IA_MAP";
 
 interface DockLauncherProps {
   activeModule: string;
@@ -15,7 +15,7 @@ interface DockLauncherProps {
 
 export function DockLauncher({ activeModule, onModuleChange }: DockLauncherProps) {
   const { signOut } = useAuthContext();
-  const isMobile = useIsMobile();
+  const _isMobile = useIsMobile();
   const [pendingSync, setPendingSync] = useState(0);
 
   useEffect(() => {

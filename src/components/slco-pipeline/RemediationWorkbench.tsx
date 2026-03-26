@@ -4,18 +4,16 @@
 // Fix review → Batch apply → Rollback → Re-diagnosis loop
 
 import { useState, useMemo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import {
-  Wrench, Zap, CheckCircle2, XCircle, RotateCcw, Loader2,
-  ChevronRight, ArrowLeft, Package, Filter, AlertTriangle,
+  Wrench, Zap, CheckCircle2, RotateCcw, Loader2,
+  ChevronRight, ArrowLeft, Package, Filter,
   Clock, Shield, ShieldCheck, Eye, ThumbsUp, ThumbsDown,
-  BarChart3, History, Sparkles,
+  History, Sparkles,
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -33,7 +31,6 @@ import {
   LANE_CONFIG,
   LANE_ORDER,
   type DQLane,
-  type DQIssue,
 } from "@/hooks/useDataDoctor";
 
 // ── Fix Status Badge ────────────────────────────────────────────

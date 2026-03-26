@@ -12,7 +12,6 @@ import { getMission } from "@/lib/missionConstitution";
 import { useMissionPreview } from "@/hooks/useMissionPreview";
 import { FixPackPanel } from "./FixPackPanel";
 import { AlertTriangle, FileText, MapPin, Wrench } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 
 interface MissionPreviewDrawerProps {

@@ -13,8 +13,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import {
   Shield, ShieldAlert, ShieldCheck, GitBranch,
-  AlertTriangle, Search, Scale, Clock, Loader2,
-  ArrowRight, FileText, Lock, Hash, Database,
+  AlertTriangle, Search, Scale, Loader2,
+  ArrowRight, Lock, Hash, Database,
   Fingerprint, Activity,
 } from "lucide-react";
 

@@ -1,7 +1,7 @@
 // TerraFusion OS — Phase 74: Revaluation Reporting & Export Dashboard
 // "I exported the data and it waved goodbye. We had a moment." — Ralph Wiggum
 
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";

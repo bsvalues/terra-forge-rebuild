@@ -1,6 +1,5 @@
 import { useMemo } from "react";
 import {
-  ScatterChart,
   Scatter,
   XAxis,
   YAxis,

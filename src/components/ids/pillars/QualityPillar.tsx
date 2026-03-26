@@ -29,7 +29,7 @@ export function QualityPillar() {
   const qualityMetrics = useQualityMetrics(parcels);
 
   // Extract real mismatch patterns from ingest job validation results
-  const mismatchPatterns = (ingestJobs || [])
+  const _mismatchPatterns = (ingestJobs || [])
     .filter(j => j.validation_results && typeof j.validation_results === "object")
     .flatMap(j => {
       const vr = j.validation_results as Record<string, unknown>;

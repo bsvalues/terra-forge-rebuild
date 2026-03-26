@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ProvenanceNumber } from "@/components/trust";
-import { AlertTriangle, Filter, BarChart3, ArrowUpRight, ArrowDownRight } from "lucide-react";
+import { AlertTriangle, Filter, BarChart3, ArrowUpRight } from "lucide-react";
 import { useOutlierDetection } from "@/hooks/useAdvancedAnalytics";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -33,10 +33,10 @@ export function OutlierDetectionPanel() {
   const outlierPct = ((outliers.length / stats.totalParcels) * 100).toFixed(1);
 
   // Distribution histogram
-  const bucketSize = stats.iqr > 0 ? Math.round(stats.iqr / 4) : 50000;
-  const buckets = new Map<number, number>();
+  const _bucketSize = stats.iqr > 0 ? Math.round(stats.iqr / 4) : 50000;
+  const _buckets = new Map<number, number>();
   // We'll create a simple representation of the value distribution
-  const histData = [
+  const _histData = [
     { range: `< Q1`, label: "Below Q1", count: outliers.filter((o) => o.assessedValue < stats.q1).length, outlier: true },
     { range: "Q1–Med", label: "Q1 to Median", count: Math.round(stats.totalParcels * 0.25), outlier: false },
     { range: "Med–Q3", label: "Median to Q3", count: Math.round(stats.totalParcels * 0.25), outlier: false },

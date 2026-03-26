@@ -1,8 +1,8 @@
 import { useState, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  MapPin, ClipboardCheck, Camera, Wifi, WifiOff, Upload, ChevronRight,
-  AlertTriangle, CheckCircle2, Clock, Plus, RefreshCw, Zap
+  MapPin, ClipboardCheck, Wifi, WifiOff, Upload, ChevronRight,
+  AlertTriangle, CheckCircle2, Clock, Plus, RefreshCw, Zap,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";

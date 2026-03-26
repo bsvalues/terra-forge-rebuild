@@ -134,7 +134,7 @@ export function FactoryLayout({ initialMode }: FactoryLayoutProps) {
 
         {/* Mode Content */}
         {MODES.map((mode) => {
-          const meta = MODE_META[mode];
+          const _meta = MODE_META[mode];
           return (
             <TabsContent key={mode} value={mode}>
               <motion.div
@@ -168,7 +168,7 @@ export function FactoryLayout({ initialMode }: FactoryLayoutProps) {
 }
 
 /** Placeholder for each mode — will be replaced by real implementations in 6.2–6.5 */
-function FactoryPlaceholder({ mode, description, neighborhood }: { mode: string; description: string; neighborhood: string | null }) {
+function _FactoryPlaceholder({ mode, description, neighborhood }: { mode: string; description: string; neighborhood: string | null }) {
   const meta = MODE_META[mode as FactoryMode];
   const Icon = meta.icon;
 

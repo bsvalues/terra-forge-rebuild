@@ -18,7 +18,7 @@ import {
   TierSlopeDrilldownDialog,
   AppealsDrilldownDialog 
 } from "./drilldown";
-import { Activity, TrendingUp, BarChart3, AlertTriangle, Percent, Target, Filter, Info, Compass } from "lucide-react";
+import { Activity, TrendingUp, BarChart3, AlertTriangle, Percent, Target, Info, Compass } from "lucide-react";
 import { ScopeHeader, ProvenanceBadge } from "@/components/trust";
 import { useCountyMeta } from "@/hooks/useCountyMeta";
 import { useRatioAnalysis, useTaxYears, useNeighborhoodRatioComparison, type OutlierMethod } from "@/hooks/useRatioAnalysis";

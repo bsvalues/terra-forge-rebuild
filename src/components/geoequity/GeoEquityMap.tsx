@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Loader2, MapPin, AlertTriangle, CheckCircle, Navigation, DollarSign } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -31,7 +31,7 @@ interface GeoEquityMapProps {
   selectedParcel?: SelectedParcel;
 }
 
-export function GeoEquityMap({ studyPeriodId, neighborhoodStats, isLoading, selectedParcel }: GeoEquityMapProps) {
+export function GeoEquityMap({ _studyPeriodId, neighborhoodStats, isLoading, selectedParcel }: GeoEquityMapProps) {
   const [selectedNeighborhood, setSelectedNeighborhood] = useState<string | null>(null);
 
   // Calculate bounds and normalize positions

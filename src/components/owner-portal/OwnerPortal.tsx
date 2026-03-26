@@ -2,7 +2,7 @@
 // Public-facing property lookup for owners — search, assessment history, value changes
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import {
   Search, Building2, TrendingUp, TrendingDown, Minus, Scale,
   Shield, Calendar, MapPin, Loader2, ArrowLeft, Home,
@@ -13,10 +13,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Separator } from "@/components/ui/separator";
 import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer, LineChart, Line, Area, AreaChart,
+  BarChart, XAxis, YAxis, CartesianGrid, Tooltip,
+  ResponsiveContainer, LineChart, Area, AreaChart,
 } from "recharts";
 import { useOwnerPortalLookup, type OwnerParcelResult } from "@/hooks/useOwnerPortal";
 
@@ -503,7 +502,7 @@ function ParcelDetail({
 
 // ── Main Component ─────────────────────────────────────────────────
 export function OwnerPortal() {
-  const { results, isLoading, searched, search, clear } = useOwnerPortalLookup();
+  const { results, isLoading, searched, search } = useOwnerPortalLookup();
   const [selectedParcel, setSelectedParcel] = useState<OwnerParcelResult | null>(null);
 
   if (selectedParcel) {

@@ -4,7 +4,7 @@
 
 import { useMemo } from "react";
 import {
-  Brain, TrendingUp, AlertCircle, Star, Sparkles,
+  Brain, TrendingUp, AlertCircle, Star
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";

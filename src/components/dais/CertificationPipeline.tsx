@@ -27,16 +27,12 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import {
-  ShieldCheck,
-  ShieldX,
-  AlertTriangle,
   CheckCircle2,
   XCircle,
   Scale,
   FileText,
   ClipboardCheck,
   BarChart3,
-  TrendingUp,
   Stamp,
   Loader2,
   ChevronDown,
@@ -121,7 +117,7 @@ export function CertificationPipeline() {
     data.countyBlockers.totalExemptions +
     data.countyBlockers.codFailures +
     data.countyBlockers.prdFailures;
-  const allReady = data.readyCount === data.neighborhoods.length;
+  const _allReady = data.readyCount === data.neighborhoods.length;
 
   return (
     <div className="space-y-6 p-6 max-w-5xl mx-auto">

@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useIngestJobsHistory, useStudyPeriodSnapshots } from "@/hooks/useIDSQueries";
 import { 
   GitBranch, 
@@ -7,10 +7,7 @@ import {
   FileText, 
   RotateCcw,
   Lock,
-  CheckCircle2,
   Calendar,
-  User,
-  Hash,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";

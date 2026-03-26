@@ -2,7 +2,7 @@
 // "What happened today?" — the county's flight recorder.
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -22,7 +22,6 @@ import {
   ExternalLink,
   Radio,
   Upload,
-  Zap,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useCountyTimeline, type TimelineEvent, type TimelineRange, type CausalFilter, type WindowFilter } from "@/hooks/useCountyTimeline";
@@ -134,7 +133,7 @@ export function CountyTimeline({ onNavigate, onMissionPreview, maxHeight = "500p
   };
 
   // Deep navigation from timeline event links — kernel-legal targets only
-  const handleEventNavigate = (key: string, value: string | null) => {
+  const _handleEventNavigate = (key: string, value: string | null) => {
     if (!value || !onNavigate) return;
     // Special case: mission_id opens the preview drawer directly
     if (key === "mission_id" && onMissionPreview) {

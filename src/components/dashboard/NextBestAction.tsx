@@ -5,7 +5,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Zap, ArrowRight, HelpCircle, UserPlus, Clock, AlertTriangle,
+  Zap, ArrowRight, HelpCircle, UserPlus, Clock,
   XCircle, MapPin, Shield, CheckCircle2, X, ChevronRight,
   TrendingUp, Eye, PartyPopper, Copy, FileText, RotateCcw,
 } from "lucide-react";
@@ -62,7 +62,7 @@ function scoreAction(
 
 function buildScoredActions(
   vitals: ReturnType<typeof useCountyVitals>["data"],
-  pipeline: ReturnType<typeof usePipelineStatus>["data"]
+  _pipeline: ReturnType<typeof usePipelineStatus>["data"]
 ): ScoredAction[] {
   const actions: ScoredAction[] = [];
   const total = vitals?.parcels.total ?? 0;
@@ -470,7 +470,7 @@ export function NextBestAction({ vitals, pipeline, vitalsLoading, onNavigate }: 
   const [view, setView] = useState<ViewState>("card");
   const [snoozed, setSnoozed] = useState<Set<string>>(new Set());
 
-  const health = deriveRibbonHealth(vitals, pipeline);
+  const _health = deriveRibbonHealth(vitals, pipeline);
   const allActions = buildScoredActions(vitals, pipeline);
   const actions = allActions.filter(a => !snoozed.has(a.id));
   const action = actions[0];

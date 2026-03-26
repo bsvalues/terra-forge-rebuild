@@ -63,7 +63,7 @@ export function useOnboardingStatus() {
   });
 }
 
-async function invokeSetup(action: string, params: Record<string, unknown> = {}) {
+async function _invokeSetup(action: string, params: Record<string, unknown> = {}) {
   const { data, error } = await supabase.functions.invoke("county-setup", {
     body: { action, ...params },
   });

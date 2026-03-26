@@ -32,7 +32,6 @@ import {
   Eye,
   Activity,
   FolderTree,
-  MapPin,
   PlusCircle,
   ListChecks,
   type LucideIcon,

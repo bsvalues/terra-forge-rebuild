@@ -70,8 +70,8 @@ export class OdbcReadOnlyConnector implements ReadOnlyConnector {
 
   capabilities: SourceCapabilities;
 
-  private connectionString: string;
-  private queryTimeoutMs: number;
+  private _connectionString: string;
+  private _queryTimeoutMs: number;
 
   constructor(options: OdbcConnectorOptions) {
     this.name = options.name;

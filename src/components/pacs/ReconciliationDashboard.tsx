@@ -35,7 +35,7 @@ function statusColor(status: string) {
 
 // ── Summary Card Grid ─────────────────────────────────────────────
 function SummaryCards({ rows }: { rows: ReconciliationSummary[] | AssessmentReconciliationSummary[] }) {
-  const total = rows.reduce((s, r) => s + r.record_count, 0);
+  const _total = rows.reduce((s, r) => s + r.record_count, 0);
   const matched = rows.find((r) => r.match_status === "matched")?.record_count ?? 0;
   const tfOnly = rows.find((r) => r.match_status === "tf_only")?.record_count ?? 0;
   const pacsOnly = rows.find((r) => r.match_status === "pacs_only")?.record_count ?? 0;

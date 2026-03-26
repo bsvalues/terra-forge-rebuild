@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { TrendingUp, MapPin, DollarSign, Home, Calendar, Ruler, ArrowUpDown } from "lucide-react";
+import { TrendingUp, MapPin, Home, Calendar, Ruler, ArrowUpDown } from "lucide-react";
 import { useWorkbench } from "../WorkbenchContext";
 import { useComparableSales } from "@/hooks/useParcelDetails";
 import { Skeleton } from "@/components/ui/skeleton";

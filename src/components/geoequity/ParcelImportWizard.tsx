@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Dialog,
@@ -16,7 +16,6 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
 import {
-  Upload,
   FileSpreadsheet,
   Database,
   CheckCircle2,
@@ -27,8 +26,6 @@ import {
   MapPin,
   Home,
   DollarSign,
-  Calendar,
-  Ruler,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { batchInsertParcels } from "@/services/ingestService";
