@@ -4,7 +4,7 @@
 import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import {
-  BarChart3, TrendingUp, TrendingDown, Minus, Trash2,
+  BarChart3, TrendingUp, Minus, Trash2,
   Loader2, Layers, ArrowUpRight, ArrowDownRight,
   GitCompare, Camera, Info,
 } from "lucide-react";
@@ -16,8 +16,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
-  ResponsiveContainer, LineChart, Line, RadarChart,
-  PolarAngleAxis, PolarRadiusAxis,
+  ResponsiveContainer, LineChart, Line,
 } from "recharts";
 import {
   useComparisonSnapshots,

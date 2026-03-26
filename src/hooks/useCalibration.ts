@@ -71,7 +71,7 @@ export function useCalibration(neighborhoodCode: string | null) {
         const debug = data?.debug;
         const hint = debug?.hint || "";
         const salesCount = debug?.parcels_with_sales ?? 0;
-        const _totalParcels = debug?.parcels_in_neighborhood ?? 0;
+
         const usableVars = debug?.usable_variables ?? [];
 
         if (salesCount === 0) {

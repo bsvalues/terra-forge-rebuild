@@ -49,7 +49,7 @@ import {
   X,
 } from "lucide-react";
 import { useScrapeJobsList, useStartScrapeJob, useCancelScrapeJob, useRetryScrapeJob } from "@/hooks/useScrapeJobs";
-import { useQueryClient } from "@tanstack/react-query";
+
 import { cn } from "@/lib/utils";
 
 // ScrapeJob type imported from hook
@@ -111,7 +111,7 @@ const REGION_COLORS: Record<string, string> = {
 };
 
 export function ScrapeJobManager() {
-  const _queryClient = useQueryClient();
+
   const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; action: string; jobId?: string; selectedRegions?: string[] }>({ open: false, action: "" });
   const [selectedRegions, setSelectedRegions] = useState<string[]>([]);
 

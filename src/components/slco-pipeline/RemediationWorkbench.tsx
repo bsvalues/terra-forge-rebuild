@@ -7,7 +7,7 @@ import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import {
   Wrench, Zap, CheckCircle2, RotateCcw, Loader2,
-  ChevronRight, ArrowLeft, Package, Filter,
+  ChevronRight, ArrowLeft, Package,
   Clock, Shield, ShieldCheck, Eye, ThumbsUp, ThumbsDown,
   History, Sparkles,
 } from "lucide-react";

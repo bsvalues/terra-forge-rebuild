@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from "react";
 import {
   ArrowLeft, Camera, Ruler, ClipboardCheck, MessageSquare,
-  AlertTriangle, CheckCircle2, MapPin, Save, ImagePlus, PenTool
+  AlertTriangle, CheckCircle2, MapPin, Save, PenTool
 } from "lucide-react";
 import { SketchModule } from "@/components/sketch";
 import { GpsTracker } from "./GpsTracker";
@@ -66,7 +66,7 @@ export function InspectionPanel({ assignment, onBack }: InspectionPanelProps) {
   const [anomalyType, setAnomalyType] = useState("boundary_mismatch");
   const [anomalyDesc, setAnomalyDesc] = useState("");
 
-  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+
   const [capturedPhotos, setCapturedPhotos] = useState<Array<{ id: string; dataUrl: string; label: string; timestamp: number }>>([]);
 
   // Load observations on mount
@@ -154,22 +154,6 @@ export function InspectionPanel({ assignment, onBack }: InspectionPanelProps) {
     setAnomalyDesc("");
   };
 
-  const _handlePhotoCapture = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      const base64 = ev.target?.result as string;
-      setPhotoPreview(base64);
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const _handleSavePhoto = () => {
-    if (!photoPreview) return;
-    saveObservation("photo", { blob: photoPreview, photoCount: 1 });
-    setPhotoPreview(null);
-  };
 
   const handleComplete = async () => {
     await updateAssignmentStatus(assignment.id, "completed");

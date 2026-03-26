@@ -3,7 +3,7 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { useIAAOCompliance, IAAO_THRESHOLDS, type ComplianceGrade } from "@/hooks/useIAAOCompliance";
+import { useIAAOCompliance, type ComplianceGrade } from "@/hooks/useIAAOCompliance";
 import { IAAOReportExportButton } from "./IAAOReportExportButton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";

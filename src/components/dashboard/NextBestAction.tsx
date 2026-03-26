@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { useCountyVitals } from "@/hooks/useCountyVitals";
 import { usePipelineStatus } from "@/hooks/usePipelineStatus";
-import { deriveRibbonHealth } from "./DataStatusRibbon";
+
 
 // ─── Action type (extended) ──────────────────────────────────
 
@@ -470,7 +470,7 @@ export function NextBestAction({ vitals, pipeline, vitalsLoading, onNavigate }: 
   const [view, setView] = useState<ViewState>("card");
   const [snoozed, setSnoozed] = useState<Set<string>>(new Set());
 
-  const _health = deriveRibbonHealth(vitals, pipeline);
+
   const allActions = buildScoredActions(vitals, pipeline);
   const actions = allActions.filter(a => !snoozed.has(a.id));
   const action = actions[0];

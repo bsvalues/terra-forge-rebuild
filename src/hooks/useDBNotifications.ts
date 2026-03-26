@@ -7,7 +7,7 @@ import { useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthContext } from "@/contexts/AuthContext";
-import { useActiveCountyId } from "@/hooks/useActiveCounty";
+
 
 // ── Types ──────────────────────────────────────────────────────────
 
@@ -38,7 +38,7 @@ const QK = {
 export function useDBNotifications() {
   const { profile } = useAuthContext();
   const userId = profile?.user_id;
-  const _countyId = useActiveCountyId();
+
   const qc = useQueryClient();
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 

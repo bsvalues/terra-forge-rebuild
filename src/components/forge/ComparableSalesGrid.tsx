@@ -138,7 +138,7 @@ export function ComparableSalesGrid({
     );
   }
 
-  function ColHeader({ label, sortable, _sk }: { label: string; sortable?: CompSortKey; sk?: CompSortKey }) {
+  function ColHeader({ label, sortable }: { label: string; sortable?: CompSortKey; sk?: CompSortKey }) {
     if (!sortable) return <th className="px-3 py-2 text-left text-muted-foreground font-medium">{label}</th>;
     return (
       <th

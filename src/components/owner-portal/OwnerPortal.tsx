@@ -14,8 +14,8 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  BarChart, XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer, LineChart, Area, AreaChart,
+  XAxis, YAxis, CartesianGrid, Tooltip,
+  ResponsiveContainer, Area, AreaChart,
 } from "recharts";
 import { useOwnerPortalLookup, type OwnerParcelResult } from "@/hooks/useOwnerPortal";
 

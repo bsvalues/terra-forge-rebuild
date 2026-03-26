@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { FileText, Image, File, Trash2, Download } from "lucide-react";
+import { FileText, Image, Trash2, Download } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";

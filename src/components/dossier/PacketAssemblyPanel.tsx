@@ -2,7 +2,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Package, FileText, Brain, Plus, Loader2,
-  Download, Lock, ChevronDown, ChevronUp, Sparkles,
+  Lock, ChevronDown, ChevronUp, Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

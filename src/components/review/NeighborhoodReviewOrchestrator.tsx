@@ -545,7 +545,6 @@ function ReviewWorkspace({ reviewId, onBack }: { reviewId: string; onBack: () =>
 // ── Task Row ─────────────────────────────────────────────────────────
 function TaskRow({
   task,
-  _reviewId,
   isActive,
   onToggle,
 }: {

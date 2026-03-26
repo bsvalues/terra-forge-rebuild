@@ -16,10 +16,9 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  MapPin, Search, Plus, Home, DollarSign, BarChart3,
+  MapPin, Search, Plus, Home, DollarSign,
   Building2, Calendar, Pencil, Trash2, Layers, CheckCircle2,
   AlertTriangle, Zap, Loader2, Brain, Sparkles,
-  ChevronRight, XCircle,
 } from "lucide-react";
 import {
   useNeighborhoods,
@@ -283,7 +282,7 @@ export function NeighborhoodDirectoryPanel() {
 
   // Aggregate stats
   const totalParcels = enrichedStats.reduce((s, n) => s + n.parcel_count, 0);
-  const _totalValue = enrichedStats.reduce((s, n) => s + n.total_value, 0);
+
   const registeredCount = neighborhoods.length;
   const unregisteredCount = discovered.filter(d => !d.is_registered).length;
   const calibratedCount = discovered.filter(d => d.latest_r_squared !== null).length;

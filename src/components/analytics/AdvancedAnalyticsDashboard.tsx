@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   TrendingUp, AlertTriangle, Layers,
-  ArrowUpRight, ArrowDownRight,
+  ArrowUpRight,
 } from "lucide-react";
 import { RatioTrendSparklines } from "./RatioTrendSparklines";
 import { ForecastPanel } from "./ForecastPanel";

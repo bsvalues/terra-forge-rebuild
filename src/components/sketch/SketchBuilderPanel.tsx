@@ -6,7 +6,7 @@ import {
   MousePointer2, Minus, Eraser, Tag, Undo2, Redo2,
   Grid3x3, Save, Calculator, ZoomIn, ZoomOut, RotateCcw,
 } from "lucide-react";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -14,7 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Toggle } from "@/components/ui/toggle";
 import type {
   WallSegment, ComponentArea, ComponentType, SketchToolId,
-  SketchCanvasState, MeasurementMethod,
+  MeasurementMethod,
 } from "@/types/sketch";
 
 interface SketchBuilderPanelProps {

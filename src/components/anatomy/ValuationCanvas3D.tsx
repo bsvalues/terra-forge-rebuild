@@ -1,9 +1,9 @@
 import { useRef, useMemo, useState } from "react";
 import { Canvas, useFrame, ThreeEvent } from "@react-three/fiber";
-import { OrbitControls, Text, Float, Line, Sphere, Box } from "@react-three/drei";
+import { OrbitControls, Text, Float, Line } from "@react-three/drei";
 import * as THREE from "three";
 import type { ParcelValuation, FeatureContribution, ValuationSegment } from "@/hooks/useValuationAnatomy";
-import { TF3D, TF3D_FEATURE_CATEGORIES, ratioDeviationColor } from "@/lib/colors/tf3dPalette";
+import { TF3D, ratioDeviationColor } from "@/lib/colors/tf3dPalette";
 
 const PHI = 1.618033988749895;
 const TAU = Math.PI * 2;
@@ -188,9 +188,8 @@ function GeoParcelNode({
   );
 }
 
-function _getFeatureColor(category: FeatureContribution["category"]): string {
-  return TF3D_FEATURE_CATEGORIES[category as keyof typeof TF3D_FEATURE_CATEGORIES] ?? TF3D_FEATURE_CATEGORIES.default;
-}
+// Feature color lookup (used by FeatureStack below)
+
 
 // Feature Stack
 function FeatureStack({ 
@@ -368,7 +367,6 @@ function SegmentCluster({
 // Anatomy View
 function AnatomyView({
   item,
-  _onSelect,
 }: {
   item: ParcelValuation | ValuationSegment;
   onSelect: () => void;

@@ -4,10 +4,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import {
-  BarChart3, TrendingUp, AlertTriangle,
+  BarChart3,
   MapPin,
 } from "lucide-react";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
@@ -101,7 +101,7 @@ export function NeighborhoodRatioStudyDashboard() {
 
   // Summary stats
   const avgCod = snapshots.filter(s => s.cod !== null).reduce((a, s) => a + (s.cod ?? 0), 0) / (snapshots.filter(s => s.cod !== null).length || 1);
-  const _totalParcels = snapshots.reduce((a, s) => a + s.parcel_count, 0);
+
   const totalSales = snapshots.reduce((a, s) => a + s.qualified_sales, 0);
 
   return (

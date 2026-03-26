@@ -284,9 +284,7 @@ function computeMultipleRegression(data: any[]): RegressionResult {
 
   // Variable names including neighborhood dummies
   const continuousVarNames = ["(Intercept)", "Building_Area", "Land_Area", "Age", "Bedrooms", "Bathrooms"];
-  const neighborhoodVarNames = dummyNeighborhoods.map(n => `Nbhd_${n}`);
-  const _variableNames = [...continuousVarNames, ...neighborhoodVarNames];
-  
+
   const numContinuous = continuousVarNames.length - 1; // Exclude intercept
   const numNeighborhoods = dummyNeighborhoods.length;
   const k = numContinuous + numNeighborhoods; // Total predictors
@@ -635,7 +633,6 @@ function invertMatrix(matrix: number[][]): number[][] {
 
 function calculateVIF(X: number[][], varIndex: number): number {
   // Simplified VIF calculation
-  const n = X.length;
   const otherVars = X[0].map((_, j) => j !== varIndex && j !== 0);
   
   const y = X.map(row => row[varIndex]);
@@ -663,9 +660,8 @@ function calculateVIF(X: number[][], varIndex: number): number {
   }
 }
 
-function computePartialSS(X: number[][], y: number[], varIndex: number, beta: number[], _yMean: number): number {
+function computePartialSS(X: number[][], _y: number[], varIndex: number, beta: number[], _yMean: number): number {
   // Type III sum of squares for variable
-  const n = X.length;
   const contribution = X.map(row => beta[varIndex] * row[varIndex]);
   return contribution.reduce((acc, c) => acc + c * c, 0);
 }

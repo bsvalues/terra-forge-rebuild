@@ -5,7 +5,7 @@ import { getQueueStats } from "@/services/fieldStore";
 import { LogOut } from "lucide-react";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { useIsMobile } from "@/hooks/use-mobile";
+
 import { IA_MODULES } from "@/config/IA_MAP";
 
 interface DockLauncherProps {
@@ -15,7 +15,6 @@ interface DockLauncherProps {
 
 export function DockLauncher({ activeModule, onModuleChange }: DockLauncherProps) {
   const { signOut } = useAuthContext();
-  const _isMobile = useIsMobile();
   const [pendingSync, setPendingSync] = useState(0);
 
   useEffect(() => {

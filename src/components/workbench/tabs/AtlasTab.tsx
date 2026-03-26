@@ -74,7 +74,7 @@ export function AtlasTab() {
   const { data: neighborhoodStats = [], isLoading: isLoadingStats } = useNeighborhoodGeoStats(
     studyPeriod.id ?? undefined
   );
-  const { data: parcelsWithGeo = [], isLoading: isLoadingParcels } = useParcelsWithGeometry(
+  const { data: parcelsWithGeo = [] } = useParcelsWithGeometry(
     studyPeriod.id ?? undefined,
     200
   );

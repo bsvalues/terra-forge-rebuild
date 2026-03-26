@@ -21,7 +21,7 @@ interface ExportFilters {
 
 interface AssessmentParcelJoin {
   parcel_number: string | null;
-  situs_address: string | null;
+  address: string | null;
   city: string | null;
   property_class: string | null;
   neighborhood_code: string | null;
@@ -49,7 +49,7 @@ export function BulkAssessmentExport() {
         .select(`
           tax_year, land_value, improvement_value, total_value,
           assessment_date, certified,
-          parcels!inner(parcel_number, situs_address, city, property_class, neighborhood_code)
+          parcels!inner(parcel_number, address, city, property_class, neighborhood_code)
         `)
         .eq("county_id", countyId)
         .order("tax_year", { ascending: false });
@@ -114,7 +114,7 @@ export function BulkAssessmentExport() {
         const parcel = row.parcels as AssessmentParcelJoin | null;
         ws.addRow({
           parcel_number: parcel?.parcel_number || "",
-          address: parcel?.situs_address || "",
+          address: parcel?.address || "",
           city: parcel?.city || "",
           property_class: parcel?.property_class || "",
           neighborhood: parcel?.neighborhood_code || "",

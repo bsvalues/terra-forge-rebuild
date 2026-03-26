@@ -47,7 +47,7 @@ const MODULE_ICONS: Record<PrimaryModuleId, React.ElementType> = {
   registry: BookOpen,
 };
 
-export function TahoeSidebar({ _onNavigate }: TahoeSidebarProps) {
+export function TahoeSidebar({}: TahoeSidebarProps) {
   const { activeModule, activeView, navigateTo } = useAppNavigation();
   const countyMeta = useCountyMeta();
   const badges = useSidebarBadges();

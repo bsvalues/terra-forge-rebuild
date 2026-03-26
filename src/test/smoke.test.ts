@@ -8,7 +8,6 @@ import {
   resolveLegacyId,
   getAllViewIds,
   isLegalNavigation,
-  type
 } from "@/config/IA_MAP";
 
 describe("IA_MAP — Module Integrity", () => {

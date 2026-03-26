@@ -38,7 +38,7 @@ function wrapper({ children }: { children: React.ReactNode }) {
 
 describe("useAssessmentHistory", () => {
   beforeEach(() => {
-    vi.mocked(supabase.limit as ReturnType<typeof vi.fn>).mockResolvedValue({ data: [], error: null });
+    vi.mocked((supabase as any).limit as ReturnType<typeof vi.fn>).mockResolvedValue({ data: [], error: null });
   });
 
   it("is disabled (isLoading=false) when parcelId is null", async () => {
@@ -53,7 +53,7 @@ describe("useAssessmentHistory", () => {
   });
 
   it("resolves without error when supabase returns empty data", async () => {
-    vi.mocked(supabase.limit as ReturnType<typeof vi.fn>).mockResolvedValue({ data: [], error: null });
+    vi.mocked((supabase as any).limit as ReturnType<typeof vi.fn>).mockResolvedValue({ data: [], error: null });
     const { result } = renderHook(() => useAssessmentHistory("parcel-123"), { wrapper });
     await waitFor(() => !result.current.isLoading, { timeout: 3000 });
     expect(result.current.error).toBeNull();
@@ -63,7 +63,7 @@ describe("useAssessmentHistory", () => {
     const mockData = [
       { id: "1", tax_year: 2024, land_value: 100000, improvement_value: 50000, total_value: 150000 },
     ];
-    vi.mocked(supabase.limit as ReturnType<typeof vi.fn>).mockResolvedValue({ data: mockData, error: null });
+    vi.mocked((supabase as any).limit as ReturnType<typeof vi.fn>).mockResolvedValue({ data: mockData, error: null });
     const { result } = renderHook(() => useAssessmentHistory("parcel-456"), { wrapper });
     await waitFor(() => !result.current.isLoading, { timeout: 3000 });
     // The hook returns data ?? [] so data should be truthy (array)
@@ -84,7 +84,7 @@ describe("useParcelSales", () => {
   });
 
   it("resolves without error for enabled query", async () => {
-    vi.mocked(supabase.limit as ReturnType<typeof vi.fn>).mockResolvedValue({ data: [], error: null });
+    vi.mocked((supabase as any).limit as ReturnType<typeof vi.fn>).mockResolvedValue({ data: [], error: null });
     const { result } = renderHook(() => useParcelSales("parcel-123"), { wrapper });
     await waitFor(() => !result.current.isLoading, { timeout: 3000 });
     expect(result.current.error).toBeNull();
@@ -93,7 +93,7 @@ describe("useParcelSales", () => {
 
 describe("useParcelAppeals", () => {
   it("resolves without error when parcelId is provided", async () => {
-    vi.mocked(supabase.limit as ReturnType<typeof vi.fn>).mockResolvedValue({ data: [], error: null });
+    vi.mocked((supabase as any).limit as ReturnType<typeof vi.fn>).mockResolvedValue({ data: [], error: null });
     const { result } = renderHook(() => useParcelAppeals("parcel-123"), { wrapper });
     await waitFor(() => !result.current.isLoading, { timeout: 3000 });
     expect(result.current.error).toBeNull();
@@ -125,7 +125,7 @@ describe("useComparableSales", () => {
   });
 
   it("resolves without error for valid parcelId", async () => {
-    vi.mocked(supabase.limit as ReturnType<typeof vi.fn>).mockResolvedValue({ data: [], error: null });
+    vi.mocked((supabase as any).limit as ReturnType<typeof vi.fn>).mockResolvedValue({ data: [], error: null });
     const { result } = renderHook(
       () => useComparableSales("parcel-123", null, null),
       { wrapper }

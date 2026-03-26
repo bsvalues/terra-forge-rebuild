@@ -59,7 +59,7 @@ export function DataImportDialog({
   const [importErrors, setImportErrors] = useState<string[]>([]);
   const [importStats, setImportStats] = useState({ success: 0, failed: 0 });
   const [isDragging, setIsDragging] = useState(false);
-  const [learnedRulesCount, _setLearnedRulesCount] = useState(0);
+
 
   // For Victory Moment: track profile stats
   const { profiles, defaultProfile } = useMappingProfiles(targetTable);

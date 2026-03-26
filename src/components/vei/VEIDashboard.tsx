@@ -53,7 +53,7 @@ export function VEIDashboard() {
   const [outlierMethod, setOutlierMethod] = useState<OutlierMethod>("bounds");
   const [fieldCohortFilter, setFieldCohortFilter] = useState(false);
 
-  const { cohort: fieldCohort, count: fieldCount } = useFieldCohort();
+  const { count: fieldCount } = useFieldCohort();
 
   const salesStartStr = format(salesStartDate, "yyyy-MM-dd");
   const salesEndStr = format(salesEndDate, "yyyy-MM-dd");

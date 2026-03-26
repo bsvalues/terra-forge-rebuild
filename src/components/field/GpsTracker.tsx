@@ -3,7 +3,7 @@
 
 import { useState, useCallback } from "react";
 import { motion } from "framer-motion";
-import { MapPin, Navigation, Signal, SignalLow, SignalZero } from "lucide-react";
+import { Navigation, Signal, SignalLow, SignalZero } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";

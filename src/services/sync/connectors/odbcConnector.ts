@@ -70,13 +70,8 @@ export class OdbcReadOnlyConnector implements ReadOnlyConnector {
 
   capabilities: SourceCapabilities;
 
-  private _connectionString: string;
-  private _queryTimeoutMs: number;
-
   constructor(options: OdbcConnectorOptions) {
     this.name = options.name;
-    this.connectionString = options.connectionString;
-    this.queryTimeoutMs = options.queryTimeoutMs ?? 30_000;
 
     // Default capabilities for ODBC/Access — limited vs SQL Server
     this.capabilities = {

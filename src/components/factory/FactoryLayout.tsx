@@ -134,7 +134,6 @@ export function FactoryLayout({ initialMode }: FactoryLayoutProps) {
 
         {/* Mode Content */}
         {MODES.map((mode) => {
-          const _meta = MODE_META[mode];
           return (
             <TabsContent key={mode} value={mode}>
               <motion.div
@@ -167,28 +166,3 @@ export function FactoryLayout({ initialMode }: FactoryLayoutProps) {
   );
 }
 
-/** Placeholder for each mode — will be replaced by real implementations in 6.2–6.5 */
-function _FactoryPlaceholder({ mode, description, neighborhood }: { mode: string; description: string; neighborhood: string | null }) {
-  const meta = MODE_META[mode as FactoryMode];
-  const Icon = meta.icon;
-
-  return (
-    <div className="material-bento p-12 flex flex-col items-center justify-center text-center space-y-4 min-h-[400px]">
-      <div className="w-16 h-16 rounded-2xl bg-[hsl(var(--tf-elevated))] flex items-center justify-center">
-        <Icon className="w-8 h-8 text-[hsl(var(--tf-transcend-cyan))]" />
-      </div>
-      <div>
-        <h2 className="text-lg font-medium text-foreground">{meta.label}</h2>
-        <p className="text-sm text-muted-foreground mt-1">{description}</p>
-      </div>
-      {neighborhood && (
-        <p className="text-xs text-muted-foreground bg-[hsl(var(--tf-elevated))] px-3 py-1.5 rounded-full">
-          Neighborhood: <span className="text-foreground font-medium">{neighborhood}</span>
-        </p>
-      )}
-      <p className="text-xs text-muted-foreground/60 italic mt-4">
-        Phase 6.{mode === "regression" ? "2" : mode === "cost" ? "3" : mode === "comps" ? "4" : "5"} — Implementation pending
-      </p>
-    </div>
-  );
-}

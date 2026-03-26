@@ -100,7 +100,7 @@ interface CountyTimelineProps {
   compact?: boolean;
 }
 
-export function CountyTimeline({ onNavigate, onMissionPreview, maxHeight = "500px", compact = false }: CountyTimelineProps) {
+export function CountyTimeline({ onNavigate, maxHeight = "500px", compact = false }: CountyTimelineProps) {
   const [range, setRange] = useState<TimelineRange>("7d");
   const [activeTypes, setActiveTypes] = useState<string[]>([]);
   const [searchInput, setSearchInput] = useState("");
@@ -132,36 +132,6 @@ export function CountyTimeline({ onNavigate, onMissionPreview, maxHeight = "500p
     setRange("24h");
   };
 
-  // Deep navigation from timeline event links — kernel-legal targets only
-  const _handleEventNavigate = (key: string, value: string | null) => {
-    if (!value || !onNavigate) return;
-    // Special case: mission_id opens the preview drawer directly
-    if (key === "mission_id" && onMissionPreview) {
-      onMissionPreview(value);
-      return;
-    }
-    switch (key) {
-      case "mission_id":
-        onNavigate("home:dashboard");
-        break;
-      case "parcel_id":
-        onNavigate("workbench:property");
-        break;
-      case "ingest_job_id":
-        onNavigate("home:ids");
-        break;
-      case "run_id":
-      case "receipt_id":
-      case "trace_id":
-        onNavigate("registry:trust");
-        break;
-      case "neighborhood":
-        onNavigate("factory:calibration");
-        break;
-      default:
-        break;
-    }
-  };
 
   // Precise causal chain: use RPC-level filtering
   const handleCausalFilter = (key: string, value: string) => {

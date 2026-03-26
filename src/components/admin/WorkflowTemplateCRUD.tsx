@@ -4,7 +4,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Plus, Trash2, GripVertical, Loader2, XCircle,
+  Plus, Trash2, Loader2, XCircle,
   Save, ChevronDown, ChevronUp, Zap, Users, Bell, GitBranch,
   Settings2, Workflow,
 } from "lucide-react";

@@ -4,7 +4,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import {
-  ArrowLeftRight, Search, Building2, DollarSign,
+  ArrowLeftRight, Search, Building2,
   TrendingUp, TrendingDown, Minus, X,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

@@ -31,14 +31,12 @@ import {
 } from "lucide-react";
 import { useWorkbench } from "@/components/workbench/WorkbenchContext";
 import { toast } from "sonner";
-import { format, addDays, isPast } from "date-fns";
+import { format } from "date-fns";
 import {
   usePropertyInspections,
   useScheduleInspection,
   type InspectionType,
   type InspectionStatus,
-  type
-  type
 } from "@/hooks/usePropertyInspections";
 
 const TYPE_META: Record<InspectionType, { label: string; icon: React.ElementType; color: string }> = {

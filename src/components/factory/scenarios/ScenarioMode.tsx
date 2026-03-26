@@ -120,7 +120,7 @@ export function ScenarioMode({ neighborhoodCode }: ScenarioModeProps) {
       const sorted = [...arr].sort((a, b) => a - b);
       return sorted[Math.floor(sorted.length / 2)];
     };
-    const _mean = (arr: number[]) => arr.reduce((s, v) => s + v, 0) / arr.length;
+
     const cod = (arr: number[], med: number) =>
       med > 0 ? (arr.reduce((s, v) => s + Math.abs(v - med), 0) / arr.length / med) * 100 : 0;
 

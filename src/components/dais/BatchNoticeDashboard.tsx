@@ -48,7 +48,7 @@ export function BatchNoticeDashboard() {
   const { data: jobNotices = [], isLoading: noticesLoading } = useBatchNoticesByJob(selectedJobId);
   const createJob = useCreateBatchNoticeJob();
   const bulkUpdate = useBulkUpdateNoticeStatus();
-  const { data: neighborhoods = [] } = useNeighborhoodStats();
+  const { data: neighborhoods = [] } = useNeighborhoodStats(neighborhoodCode || null, null);
 
   const handleGenerate = () => {
     createJob.mutate(

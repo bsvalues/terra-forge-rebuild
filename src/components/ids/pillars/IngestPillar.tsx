@@ -7,7 +7,7 @@ import {
   Link2, 
   ArrowRight,
   CheckCircle2,
-  Circle,
+
   Fingerprint,
   Brain,
   ShieldCheck,
@@ -121,14 +121,6 @@ import { LearningScoreboard } from "@/components/import/LearningScoreboard";
        status: wizardStep !== null && wizardStep >= 4 ? "active" : "pending",
      },
    ];
- 
-   const _getStepStatusIcon = (status: PipelineStep["status"]) => {
-     switch (status) {
-       case "complete": return <CheckCircle2 className="w-5 h-5 text-tf-green" />;
-       case "active": return <Circle className="w-5 h-5 text-tf-cyan animate-core-pulse" />;
-       case "pending": return <Circle className="w-5 h-5 text-muted-foreground/30" />;
-     }
-   };
  
    return (
      <motion.div

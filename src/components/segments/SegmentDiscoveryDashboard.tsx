@@ -26,7 +26,7 @@ export function SegmentDiscoveryDashboard() {
   const [selectedPeriodId, setSelectedPeriodId] = useState<string | undefined>();
   const [activeTab, setActiveTab] = useState("factors");
   
-  const { data: studyPeriods, isLoading: isLoadingPeriods } = useStudyPeriods();
+  const { data: studyPeriods } = useStudyPeriods();
   const { data: factors } = useFactorAnalysis(selectedPeriodId);
   
   // Check if we have regression data

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Building2, FileCheck, Scale, Bell, ClipboardCheck, ShieldCheck, ExternalLink, Factory as FactoryIcon, Settings2, Download, Wrench, Zap, Layers, Calendar } from "lucide-react";
+import { Building2, FileCheck, Scale, Bell, ClipboardCheck, ShieldCheck, ExternalLink, Settings2, Download, Wrench, Zap, Layers, Calendar } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { WorkflowStats } from "@/components/dais/WorkflowStats";
 import { AppealsWorkflow } from "@/components/dais/AppealsWorkflow";
@@ -29,7 +29,7 @@ import { CertificationReadinessWidget } from "@/components/dais/CertificationRea
 import { WorkflowAutomationRules } from "@/components/dais/WorkflowAutomationRules";
 import { BatchWorkflowExecutor } from "@/components/dais/BatchWorkflowExecutor";
 import { AssessmentCalendar } from "@/components/dais/AssessmentCalendar";
-import { useWorkbench } from "../WorkbenchContext";
+
 
 interface DaisTabProps {
   initialCategory?: string | null;
@@ -38,7 +38,7 @@ interface DaisTabProps {
 
 export function DaisTab({ initialCategory, onCategoryConsumed }: DaisTabProps) {
   const [activeCategory, setActiveCategory] = useState<string>(initialCategory || "appeals");
-  const { _workMode } = useWorkbench();
+
   const navigate = useNavigate();
 
   // Handle deep-linked category

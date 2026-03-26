@@ -137,7 +137,7 @@ async function fetchSLCOPipelineState(): Promise<SLCOPipelineState> {
     .limit(50);
 
   // Query ingest_jobs for SLCO-related jobs
-  const { data: ingestJobs } = await supabase
+  await supabase
     .from("ingest_jobs")
     .select("file_name, status, rows_imported, updated_at")
     .or("file_name.ilike.%slco%,file_name.ilike.%salt_lake%,file_name.ilike.%ugrc%")

@@ -6,7 +6,7 @@
 // Uses window.print() into a styled print-only div (no server dependency, no timeout risk).
 
 import { Button } from "@/components/ui/button";
-import { useIAAOCompliance, IAAO_THRESHOLDS, type IAAOComplianceSummary } from "@/hooks/useIAAOCompliance";
+import { useIAAOCompliance, type IAAOComplianceSummary } from "@/hooks/useIAAOCompliance";
 import { FileDown } from "lucide-react";
 
 // ── Grade helpers ──────────────────────────────────────────────────────────────

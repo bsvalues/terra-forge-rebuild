@@ -63,14 +63,6 @@ export function useOnboardingStatus() {
   });
 }
 
-async function _invokeSetup(action: string, params: Record<string, unknown> = {}) {
-  const { data, error } = await supabase.functions.invoke("county-setup", {
-    body: { action, ...params },
-  });
-  if (error) throw new Error(error.message || "Setup failed");
-  if (data?.error) throw new Error(data.error);
-  return data;
-}
 
 export function useListCounties() {
   return useQuery({

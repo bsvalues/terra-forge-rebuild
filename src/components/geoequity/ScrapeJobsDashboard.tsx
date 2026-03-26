@@ -23,24 +23,6 @@ import { useQueryClient } from "@tanstack/react-query";
 import { CountyDataQualityReport } from "./CountyDataQualityReport";
 import { useScrapeJobsRealtime, useStartScrapeJob, useCancelScrapeJob } from "@/hooks/useScrapeJobs";
 
-interface ScrapeJob {
-  id: string;
-  job_type: string;
-  status: string;
-  counties: string[];
-  current_county: string | null;
-  counties_completed: number;
-  counties_total: number;
-  parcels_enriched: number;
-  sales_added: number;
-  errors: Array<{ county: string; error: string }>;
-  started_at: string | null;
-  completed_at: string | null;
-  estimated_completion: string | null;
-  created_at: string;
-  updated_at: string;
-  created_by: string | null;
-}
 
 const STATUS_COLORS: Record<string, string> = {
   pending: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",

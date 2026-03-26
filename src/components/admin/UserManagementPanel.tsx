@@ -248,7 +248,7 @@ export function UserManagementPanel() {
 
   const adminCount = users?.filter(u => u.roles.includes("admin")).length ?? 0;
   const analystCount = users?.filter(u => u.roles.includes("analyst")).length ?? 0;
-  const _viewerCount = users?.filter(u => u.roles.includes("viewer")).length ?? 0;
+
   const noRoleCount = users?.filter(u => u.roles.length === 0).length ?? 0;
 
   return (

@@ -7,7 +7,7 @@ import { checkConnectorHealth } from "@/services/pacsConnector";
 export function PACSConnectionBadge() {
   const { data, isLoading } = useQuery({
     queryKey: ["pacs-health"],
-    queryFn: checkConnectorHealth,
+    queryFn: () => checkConnectorHealth(),
     staleTime: 60_000,
     retry: false,
   });

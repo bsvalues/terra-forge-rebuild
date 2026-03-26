@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { X, MapPin, Home, Calendar, TrendingUp, Layers } from "lucide-react";
+import { X, MapPin, Home, TrendingUp, Layers } from "lucide-react";
 import type { ParcelValuation, ValuationSegment, FeatureContribution } from "@/hooks/useValuationAnatomy";
 
 interface ValuationDetailsPanelProps {

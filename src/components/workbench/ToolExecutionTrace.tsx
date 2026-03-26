@@ -5,7 +5,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Zap, CheckCircle2, XCircle, Clock, ChevronDown, ChevronRight,
-  Navigation, Users, FileText, MapPin, Activity,
+  Navigation, Users, FileText, Activity,
   BarChart3, Loader2,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";

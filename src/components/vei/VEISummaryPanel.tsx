@@ -11,7 +11,6 @@ export function VEISummaryPanel({
   studyPeriod,
   propertyClass,
   sampleSize,
-  _currentYear,
 }: VEISummaryPanelProps) {
   return (
     <div className="material-bento rounded-lg p-4">

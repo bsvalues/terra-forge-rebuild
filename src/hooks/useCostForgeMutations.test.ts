@@ -2,11 +2,6 @@
 // Covers: useSaveCalcTrace mutationFn, error paths, TerraTrace emission
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-const _mockInsertChain = {
-  insert: vi.fn(),
-  select: vi.fn(),
-  single: vi.fn(),
-};
 
 let _insertResult: { data: unknown; error: null | { message: string } } = {
   data: { id: "trace-123" },

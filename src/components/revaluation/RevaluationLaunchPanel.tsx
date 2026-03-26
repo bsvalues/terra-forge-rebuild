@@ -13,7 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import {
   Rocket, CheckCircle2, AlertTriangle, MapPin, Building2,
   BarChart3, Shield, Clock, Play, Layers,
-  Calendar, ChevronRight, Activity, Target,
+  Activity, Target,
 } from "lucide-react";
 import {
   useRevaluationCycles,
@@ -130,7 +130,7 @@ function CycleCard({ cycle }: { cycle: RevaluationCycle }) {
 export function RevaluationLaunchPanel() {
   const { data: vitals, isLoading: vitalsLoading } = useCountyVitals();
   const { data: neighborhoods, isLoading: nbhdLoading } = useNeighborhoods();
-  const { data: discovered } = useDiscoverNeighborhoods();
+  useDiscoverNeighborhoods();
   const { data: cycles, isLoading: cyclesLoading } = useRevaluationCycles();
   const launchMutation = useLaunchRevaluation();
 

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import {
-  Zap, Plus, Play, Pause, Trash2,
+  Zap, Plus, Trash2,
   ArrowRight, Clock, Filter, CheckCircle2,
   Bell, FileCheck, Scale, ClipboardCheck, X,
 } from "lucide-react";

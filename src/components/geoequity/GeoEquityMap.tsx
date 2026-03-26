@@ -31,7 +31,7 @@ interface GeoEquityMapProps {
   selectedParcel?: SelectedParcel;
 }
 
-export function GeoEquityMap({ _studyPeriodId, neighborhoodStats, isLoading, selectedParcel }: GeoEquityMapProps) {
+export function GeoEquityMap({ neighborhoodStats, isLoading, selectedParcel }: GeoEquityMapProps) {
   const [selectedNeighborhood, setSelectedNeighborhood] = useState<string | null>(null);
 
   // Calculate bounds and normalize positions
