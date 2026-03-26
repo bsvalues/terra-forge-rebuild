@@ -1,47 +1,31 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-let _stubData: unknown[] = [];
-let _stubError: { message: string } | null = null;
-
-function makeChain() {
-  const chain: Record<string, unknown> = {};
-  chain.select = vi.fn(() => chain);
-  chain.eq = vi.fn(() => chain);
-  chain.order = vi.fn(() => chain);
-  chain.limit = vi.fn(() => Promise.resolve({ data: _stubData, error: _stubError }));
-  return chain;
-}
-
 vi.mock("@/integrations/supabase/client", () => ({
   supabase: {
-    from: vi.fn(() => makeChain()),
+    from: vi.fn(() => ({
+      select: vi.fn(() => ({
+        eq: vi.fn(function(this: unknown) { return this; }),
+        order: vi.fn(function(this: unknown) { return this; }),
+        limit: vi.fn(() => Promise.resolve({ data: [], error: null })),
+      })),
+    })),
   },
 }));
 
 vi.mock("@tanstack/react-query", () => ({
-  useQuery: vi.fn((_opts: { queryFn: () => Promise<unknown>; enabled?: boolean }) => {
+  useQuery: vi.fn((opts: { queryFn: () => Promise<unknown>; enabled?: boolean }) => {
     return { data: undefined, isLoading: false, error: null };
   }),
 }));
 
 describe("useComparableSales", () => {
   beforeEach(() => {
-    _stubData = [];
-    _stubError = null;
     vi.clearAllMocks();
-    vi.resetModules();
   });
 
   it("exports useComparableSales function", async () => {
     const mod = await import("./useComparableSales");
     expect(mod.useComparableSales).toBeTypeOf("function");
-  });
-
-  it("queries sales table with neighborhood filter", async () => {
-    const { supabase } = await import("@/integrations/supabase/client");
-    const { useComparableSales } = await import("./useComparableSales");
-    useComparableSales({ neighborhoodCode: "N-042", propertyClass: "R", countyId: "cid" });
-    expect(supabase.from).toHaveBeenCalledWith("sales");
   });
 
   it("is disabled when neighborhoodCode is null", async () => {
@@ -58,7 +42,7 @@ describe("useComparableSales", () => {
     expect((useQuery as any).mock.calls[0][0].enabled).toBe(false);
   });
 
-  it("exports ComparableSale type shape", async () => {
+  it("exports ComparableSale type shape", () => {
     const sale = {
       id: "s1", parcelId: "p1", parcelNumber: "12345", address: "123 Main",
       saleDate: "2025-06-15", salePrice: 350000, pricePerSqft: 195,

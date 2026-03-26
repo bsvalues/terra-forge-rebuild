@@ -20,7 +20,7 @@ vi.mock("@tanstack/react-query", () => ({
     let data: unknown = undefined;
     let error: unknown = null;
     try {
-      const _promise = opts.queryFn();
+      opts.queryFn();
     } catch (e) { error = e; }
     return { data, isLoading: false, error };
   }),
