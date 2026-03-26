@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import useSaveCalcTrace from '../../hooks/useCostForgeMutations'
 import { calcRCNLD } from '@/services/costforgeConnector'
+import type { CostForgeCalcInput } from '@/services/costforgeConnector'
 
 type Props = { parcelId?: string | number }
 
@@ -13,18 +14,23 @@ export default function DraftValuationWorkflow({ parcelId }: Props) {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    const input = {
-      parcel_id: parcelId ?? null,
-      improvement_type: improvementType,
-      area_sqft: area,
-      yr_built: yearBuilt,
+    const input: CostForgeCalcInput = {
+      lrsn: null,
+      pin: null,
       county_id: 'Benton',
+      imprv_det_type_cd: improvementType || null,
+      yr_built: yearBuilt,
+      area_sqft: area,
+      condition_code: null,
+      construction_class_raw: null,
+      use_code: null,
+      section_id: null,
+      occupancy_code: null,
       is_residential: true,
     }
 
-    // compute rcnld using CostForge engine
     try {
-      const result = await calcRCNLD(input as any)
+      const result = await calcRCNLD(input)
       const trace = {
         parcel_id: parcelId ?? null,
         improvement_type: improvementType,
@@ -64,7 +70,7 @@ export default function DraftValuationWorkflow({ parcelId }: Props) {
         <input type="number" value={yearBuilt} onChange={e => setYearBuilt(Number(e.target.value))} />
       </div>
       <button type="submit">Save Draft Trace</button>
-      {saveMutation.isLoading && <div>Saving...</div>}
+      {saveMutation.isPending && <div>Saving...</div>}
       {saveMutation.isError && <div style={{ color: 'red' }}>Error saving trace</div>}
       {saveMutation.isSuccess && <div style={{ color: 'green' }}>Saved</div>}
     </form>

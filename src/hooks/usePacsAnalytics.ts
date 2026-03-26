@@ -14,7 +14,7 @@ export function usePacsTableStats() {
   return useQuery({
     queryKey: ["pacs-table-stats"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("vw_pacs_table_stats")
         .select("*");
       if (error) throw error;
@@ -40,7 +40,7 @@ export function usePacsValueByNeighborhood() {
   return useQuery({
     queryKey: ["pacs-value-by-neighborhood"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("vw_pacs_value_by_neighborhood")
         .select("*")
         .limit(100);
@@ -66,7 +66,7 @@ export function usePacsSalesByYear() {
   return useQuery({
     queryKey: ["pacs-sales-by-year"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("vw_pacs_sales_by_year")
         .select("*");
       if (error) throw error;
@@ -91,7 +91,7 @@ export function usePacsBridgeCoverage() {
   return useQuery({
     queryKey: ["pacs-bridge-coverage"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("vw_pacs_bridge_coverage")
         .select("*")
         .single();

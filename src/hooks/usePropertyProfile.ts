@@ -77,7 +77,7 @@ export function usePropertyProfile(propId: number | null) {
   return useQuery({
     queryKey: ["pacs-property-profile", propId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("pacs_property_profiles")
         .select("*")
         .eq("prop_id", propId!)
@@ -95,7 +95,7 @@ export function usePropertyProfileHistory(propId: number | null) {
   return useQuery({
     queryKey: ["pacs-property-profile-history", propId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("pacs_property_profiles")
         .select("*")
         .eq("prop_id", propId!)

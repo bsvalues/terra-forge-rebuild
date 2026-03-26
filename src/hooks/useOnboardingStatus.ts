@@ -118,7 +118,7 @@ export function useCreateCounty() {
       }
 
       // Assign user to county via RPC (SECURITY DEFINER bypasses county_id lock)
-      const { error: profileErr } = await supabase
+      const { error: profileErr } = await (supabase as any)
         .rpc("assign_user_county", { target_county_id: countyId });
       if (profileErr) throw new Error(profileErr.message);
 
@@ -151,7 +151,7 @@ export function useJoinCounty() {
       if (fetchErr || !county) throw new Error("County not found");
 
       // Assign user to county via RPC (SECURITY DEFINER bypasses county_id lock)
-      const { error: profileErr } = await supabase
+      const { error: profileErr } = await (supabase as any)
         .rpc("assign_user_county", { target_county_id: countyId });
       if (profileErr) throw new Error(profileErr.message);
 

@@ -52,7 +52,7 @@ export function useNeighborhoodLandSummary() {
   return useQuery({
     queryKey: ["neighborhood-land-summary"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("vw_neighborhood_land_summary")
         .select("*")
         .order("total_land_val", { ascending: false });
@@ -67,7 +67,7 @@ export function useNeighborhoodImprovementSummary() {
   return useQuery({
     queryKey: ["neighborhood-improvement-summary"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("vw_neighborhood_improvement_summary")
         .select("*")
         .order("total_imprv_val", { ascending: false });
@@ -82,7 +82,7 @@ export function useNeighborhoodSalesSummary() {
   return useQuery({
     queryKey: ["neighborhood-sales-summary"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("vw_neighborhood_sales_summary")
         .select("*")
         .order("sale_count", { ascending: false });
@@ -97,7 +97,7 @@ export function useNeighborhoodAssessmentSummary(rollYear?: number) {
   return useQuery({
     queryKey: ["neighborhood-assessment-summary", rollYear],
     queryFn: async () => {
-      let query = supabase
+      let query = (supabase as any)
         .from("vw_neighborhood_assessment_summary")
         .select("*")
         .order("total_appraised", { ascending: false });

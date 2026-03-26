@@ -160,7 +160,7 @@ export function useWebhookEndpoints() {
   return useQuery({
     queryKey: ["webhook-endpoints"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("webhook_endpoints")
         .select("*")
         .order("created_at", { ascending: false });
@@ -175,7 +175,7 @@ export function useWebhookDeliveries(endpointId?: string) {
   return useQuery({
     queryKey: ["webhook-deliveries", endpointId],
     queryFn: async () => {
-      let query = supabase
+      let query = (supabase as any)
         .from("webhook_deliveries")
         .select("*")
         .order("created_at", { ascending: false })
@@ -203,7 +203,7 @@ export function useCreateWebhookEndpoint() {
       timeout_ms?: number;
       metadata?: Record<string, unknown>;
     }) => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("webhook_endpoints")
         .insert({
           name: input.name,
@@ -228,7 +228,7 @@ export function useToggleWebhookEndpoint() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, is_active }: { id: string; is_active: boolean }) => {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from("webhook_endpoints")
         .update({ is_active, updated_at: new Date().toISOString() })
         .eq("id", id);
@@ -243,7 +243,7 @@ export function useDeleteWebhookEndpoint() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from("webhook_endpoints")
         .delete()
         .eq("id", id);
@@ -261,7 +261,7 @@ export function useTestWebhookEndpoint() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (endpointId: string) => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("webhook_deliveries")
         .insert({
           endpoint_id: endpointId,

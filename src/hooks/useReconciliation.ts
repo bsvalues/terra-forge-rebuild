@@ -41,7 +41,7 @@ export function useSalesReconciliationSummary() {
   return useQuery({
     queryKey: ["sales-reconciliation-summary"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("vw_sales_reconciliation_summary")
         .select("*");
       if (error) throw error;
@@ -58,7 +58,7 @@ export function useSalesReconciliationDetails(
   return useQuery({
     queryKey: ["sales-reconciliation-details", matchStatus, limit],
     queryFn: async () => {
-      let query = supabase
+      let query = (supabase as any)
         .from("vw_sales_reconciliation")
         .select("*")
         .limit(limit);
@@ -117,7 +117,7 @@ export function useAssessmentReconciliationSummary() {
   return useQuery({
     queryKey: ["assessment-reconciliation-summary"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("vw_assessment_reconciliation_summary")
         .select("*");
       if (error) throw error;
@@ -134,7 +134,7 @@ export function useAssessmentReconciliationDetails(
   return useQuery({
     queryKey: ["assessment-reconciliation-details", matchStatus, limit],
     queryFn: async () => {
-      let query = supabase
+      let query = (supabase as any)
         .from("vw_assessment_reconciliation")
         .select("*")
         .limit(limit);
