@@ -82,7 +82,7 @@ export function useNeighborhoodSalesSummary() {
   return useQuery({
     queryKey: ["neighborhood-sales-summary"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("vw_neighborhood_sales_summary")
         .select("*")
         .order("sale_count", { ascending: false });
