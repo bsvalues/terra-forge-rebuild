@@ -30,7 +30,7 @@ export function usePacsAssessmentRoll(propId: number | null) {
   return useQuery({
     queryKey: ["pacs-assessment-roll", propId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("pacs_assessment_roll")
         .select("*")
         .eq("prop_id", propId!)
