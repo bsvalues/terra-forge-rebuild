@@ -1,10 +1,10 @@
 // TerraFusion OS — Mobile Navigation Drawer
 // Sheet-based sidebar for mobile devices, replaces fixed sidebar
 
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Menu } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { IA_MODULES, type PrimaryModuleId } from "@/config/IA_MAP";
+import { IA_MODULES } from "@/config/IA_MAP";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { LogOut } from "lucide-react";
 

@@ -10,7 +10,6 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Upload,
   FileSpreadsheet,
@@ -29,7 +28,6 @@ import { cn } from "@/lib/utils";
 import { ColumnMapper } from "./ColumnMapper";
 import { ImportPreview } from "./ImportPreview";
 import { RowFixMissions } from "./RowFixMissions";
-import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 
 interface DataImportDialogProps {
@@ -61,7 +59,7 @@ export function DataImportDialog({
   const [importErrors, setImportErrors] = useState<string[]>([]);
   const [importStats, setImportStats] = useState({ success: 0, failed: 0 });
   const [isDragging, setIsDragging] = useState(false);
-  const [learnedRulesCount, setLearnedRulesCount] = useState(0);
+
 
   // For Victory Moment: track profile stats
   const { profiles, defaultProfile } = useMappingProfiles(targetTable);

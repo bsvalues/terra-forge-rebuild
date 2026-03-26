@@ -27,7 +27,6 @@ import {
   IA_MODULES,
   VIEW_GROUPS,
   getModule,
-  buildUrlPath,
   type PrimaryModuleId,
   type ViewDefinition,
   type ViewGroupDefinition,
@@ -48,7 +47,7 @@ const MODULE_ICONS: Record<PrimaryModuleId, React.ElementType> = {
   registry: BookOpen,
 };
 
-export function TahoeSidebar({ onNavigate }: TahoeSidebarProps) {
+export function TahoeSidebar({}: TahoeSidebarProps) {
   const { activeModule, activeView, navigateTo } = useAppNavigation();
   const countyMeta = useCountyMeta();
   const badges = useSidebarBadges();

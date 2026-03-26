@@ -454,7 +454,7 @@ GROUP BY pv.hood_cd, n.hood_name;`,
 // ============================================================
 export const PACS_OWNER_QUERIES = {
   /** Current year owners — one row per prop_id + owner_id */
-  currentYearOwners: (year: number) => `
+  currentYearOwners: (_year: number) => `
 WITH substantive_year AS (
   SELECT TOP 1 owner_tax_yr
   FROM dbo.owner
@@ -540,7 +540,7 @@ FROM ranked WHERE rn = 1;`,
 // ============================================================
 export const PACS_LAND_QUERIES = {
   /** Land detail segments with schedule lookups */
-  landDetails: (year: number) => `
+  landDetails: (_year: number) => `
 WITH substantive_year AS (
   SELECT TOP 1 prop_val_yr
   FROM dbo.land_detail
@@ -572,7 +572,7 @@ WHERE ld.prop_val_yr = sy.prop_val_yr
 // ============================================================
 export const PACS_IMPROVEMENT_QUERIES = {
   /** Improvement headers (1 per improvement per property) */
-  improvements: (year: number) => `
+  improvements: (_year: number) => `
 WITH substantive_year AS (
   SELECT TOP 1 prop_val_yr
   FROM dbo.imprv
@@ -592,7 +592,7 @@ WHERE i.prop_val_yr = sy.prop_val_yr
   AND i.imprv_desc NOT LIKE '%SOH%';`,
 
   /** Improvement details (beds, baths, living area, condition) */
-  improvementDetails: (year: number) => `
+  improvementDetails: (_year: number) => `
 WITH substantive_year AS (
   SELECT TOP 1 prop_val_yr
   FROM dbo.imprv_detail

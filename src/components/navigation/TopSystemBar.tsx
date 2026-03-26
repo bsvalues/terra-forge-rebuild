@@ -1,7 +1,6 @@
 // TerraFusion OS — Top System Bar
 // Constitutional: county meta fetched via useCountyMeta hook only
 
-import { motion } from "framer-motion";
 import { useAuthContext } from "@/contexts/AuthContext";
 import {
   User,
@@ -30,7 +29,7 @@ export function TopSystemBar({ onOpenCommandPalette, onOpenControlCenter, onOpen
   // Try to use sidebar context (available when rendered inside ModuleShell)
   let sidebarToggle: (() => void) | null = null;
   try {
-    // eslint-disable-next-line react-hooks/rules-of-hooks
+     
     const sidebar = useSidebar();
     sidebarToggle = sidebar.toggleSidebar;
   } catch {

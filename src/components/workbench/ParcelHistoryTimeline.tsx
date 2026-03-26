@@ -1,13 +1,12 @@
-import { useMemo } from "react";
 import { motion } from "framer-motion";
 import {
   Clock, DollarSign, FileCheck, Scale, Bell, ShieldCheck,
-  ClipboardCheck, Hammer, Upload, TrendingUp, ArrowUpRight,
-  ArrowDownRight, Minus,
+  ClipboardCheck, Upload, TrendingUp, ArrowUpRight,
+  ArrowDownRight,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { useParcelTimeline, type TimelineEvent } from "@/hooks/useParcelTimeline";
+import { useParcelTimeline } from "@/hooks/useParcelTimeline";
 
 const categoryConfig: Record<string, { icon: React.ElementType; color: string }> = {
   assessment: { icon: DollarSign, color: "text-suite-forge" },

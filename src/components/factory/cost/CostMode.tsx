@@ -5,16 +5,16 @@ import { DepreciationRowEditor } from "./DepreciationRowEditor";
 import { CostApproachCalculator } from "./CostApproachCalculator";
 import { BatchCostApplyPanel } from "./BatchCostApplyPanel";
 import { CostRatioAnalysis } from "./CostRatioAnalysis";
-import { useBatchCostApply, type BatchCostResult } from "@/hooks/useCostBatchApply";
+import { type BatchCostResult } from "@/hooks/useCostBatchApply";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { DollarSign, Ruler, Play, TrendingUp } from "lucide-react";
+import { DollarSign, Ruler, Play } from "lucide-react";
 
 interface CostModeProps {
   neighborhoodCode: string | null;
 }
 
 export function CostMode({ neighborhoodCode }: CostModeProps) {
-  const [batchResults, setBatchResults] = useState<BatchCostResult[] | null>(null);
+  const [batchResults, _setBatchResults] = useState<BatchCostResult[] | null>(null);
 
   return (
     <div className="space-y-6">

@@ -1,5 +1,5 @@
 // Phase 99 — Hooks Contract Tests: verify critical hooks export correct shapes
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 
 // Mock supabase before any hook imports
 vi.mock("@/integrations/supabase/client", () => ({
@@ -54,7 +54,7 @@ describe("Write-Lane Contract", () => {
   it("every domain maps to a valid owner", async () => {
     const { WRITE_LANE_MATRIX } = await import("@/services/writeLane");
     const validOwners = ["forge", "atlas", "dais", "dossier", "os", "pilot"];
-    for (const [domain, owner] of Object.entries(WRITE_LANE_MATRIX)) {
+    for (const [_domain, owner] of Object.entries(WRITE_LANE_MATRIX)) {
       expect(validOwners).toContain(owner);
     }
   });

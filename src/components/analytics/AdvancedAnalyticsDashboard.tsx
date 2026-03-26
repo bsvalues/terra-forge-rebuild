@@ -1,17 +1,12 @@
 // TerraFusion OS — Phase 25: Advanced Analytics Dashboard
 // Trend sparklines, time-series forecasting, outlier detection, neighborhood clustering
 
-import { useState } from "react";
 import { motion } from "framer-motion";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
-import { ProvenanceNumber, ProvenanceBadge } from "@/components/trust";
 import {
-  TrendingUp, AlertTriangle, Layers, Radar,
-  ArrowUpRight, ArrowDownRight, Minus,
+  TrendingUp, AlertTriangle, Layers,
+  ArrowUpRight,
 } from "lucide-react";
-import { format, subMonths } from "date-fns";
 import { RatioTrendSparklines } from "./RatioTrendSparklines";
 import { ForecastPanel } from "./ForecastPanel";
 import { OutlierDetectionPanel } from "./OutlierDetectionPanel";

@@ -112,7 +112,7 @@ async function getAuthToken(): Promise<string> {
   return data.session?.access_token || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 }
 
-export function TerraPilotChat({ fullscreen = false }: TerraPilotChatProps) {
+export function TerraPilotChat({}: TerraPilotChatProps) {
   const { pilotMode, parcel, studyPeriod, setSystemState, setParcel, setActiveTab } = useWorkbench();
   const { toast } = useToast();
   const navigate = useNavigate();

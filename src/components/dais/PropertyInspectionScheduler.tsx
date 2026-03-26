@@ -6,7 +6,7 @@
  * with type classification, priority, and status tracking.
  */
 
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -26,21 +26,17 @@ import {
   CheckCircle2,
   Clock,
   AlertTriangle,
-  MapPin,
-  Loader2,
   Eye,
   Camera,
 } from "lucide-react";
 import { useWorkbench } from "@/components/workbench/WorkbenchContext";
 import { toast } from "sonner";
-import { format, addDays, isPast, isToday } from "date-fns";
+import { format } from "date-fns";
 import {
   usePropertyInspections,
   useScheduleInspection,
   type InspectionType,
   type InspectionStatus,
-  type InspectionPriority,
-  type Inspection,
 } from "@/hooks/usePropertyInspections";
 
 const TYPE_META: Record<InspectionType, { label: string; icon: React.ElementType; color: string }> = {

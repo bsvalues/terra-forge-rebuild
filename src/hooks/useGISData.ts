@@ -116,7 +116,7 @@ export function useParcelsWithGeometry(studyPeriodId?: string, limit = 500) {
     queryFn: async (): Promise<ParcelWithGeometry[]> => {
       if (!countyId) return [];
 
-      let query = supabase
+      const query = supabase
         .from("parcels")
         .select(`
           id,

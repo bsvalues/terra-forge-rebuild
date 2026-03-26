@@ -2,14 +2,12 @@
 // Export assessment data to formatted Excel workbook using exceljs.
 
 import { useState } from "react";
-import { motion } from "framer-motion";
-import { Download, Loader2, FileSpreadsheet, Filter } from "lucide-react";
+import { Download, Loader2, FileSpreadsheet } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -23,7 +21,7 @@ interface ExportFilters {
 
 interface AssessmentParcelJoin {
   parcel_number: string | null;
-  situs_address: string | null;
+  address: string | null;
   city: string | null;
   property_class: string | null;
   neighborhood_code: string | null;
@@ -51,7 +49,7 @@ export function BulkAssessmentExport() {
         .select(`
           tax_year, land_value, improvement_value, total_value,
           assessment_date, certified,
-          parcels!inner(parcel_number, situs_address, city, property_class, neighborhood_code)
+          parcels!inner(parcel_number, address, city, property_class, neighborhood_code)
         `)
         .eq("county_id", countyId)
         .order("tax_year", { ascending: false });
@@ -116,7 +114,7 @@ export function BulkAssessmentExport() {
         const parcel = row.parcels as AssessmentParcelJoin | null;
         ws.addRow({
           parcel_number: parcel?.parcel_number || "",
-          address: parcel?.situs_address || "",
+          address: parcel?.address || "",
           city: parcel?.city || "",
           property_class: parcel?.property_class || "",
           neighborhood: parcel?.neighborhood_code || "",

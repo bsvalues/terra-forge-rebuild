@@ -7,7 +7,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -16,7 +15,7 @@ import { CommitmentButton } from "@/components/ui/commitment-button";
 import {
   Target, Search, MapPin, BarChart3, Scale, CheckCircle, ChevronRight,
   Loader2, Brain, AlertTriangle, Clock, Users, Plus, ArrowRight,
-  Sparkles, Shield, TrendingUp, CircleDot, UserPlus,
+  Sparkles, Shield, TrendingUp, CircleDot
 } from "lucide-react";
 import {
   useNeighborhoodReviews, useNeighborhoodReviewDetail, useReviewTasks,
@@ -25,7 +24,7 @@ import {
   REVIEW_STAGES, type ReviewStage, type ReviewTask, type AIRecommendation,
 } from "@/hooks/useNeighborhoodReview";
 import { useDiscoverNeighborhoods } from "@/hooks/useNeighborhoods";
-import { format, differenceInDays, differenceInHours } from "date-fns";
+import { format, differenceInDays } from "date-fns";
 import { toast } from "sonner";
 
 // ── Stage icon mapping ───────────────────────────────────────────────
@@ -546,7 +545,6 @@ function ReviewWorkspace({ reviewId, onBack }: { reviewId: string; onBack: () =>
 // ── Task Row ─────────────────────────────────────────────────────────
 function TaskRow({
   task,
-  reviewId,
   isActive,
   onToggle,
 }: {

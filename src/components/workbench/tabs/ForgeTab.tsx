@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { Hammer, TrendingUp, Activity, Brain, Layers, Microscope, Compass, Factory as FactoryIcon, ExternalLink, FlaskConical, DollarSign, BarChart3, MapPin, Undo2, Target, Grid3X3, BookOpen, Database } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useLatestCalibrationRun } from "@/hooks/useFactoryMetrics";
-import { CompsView } from "./CompsView";
+import { ComparableSalesPanel } from "../ComparableSalesPanel";
 import { VEIDashboard } from "@/components/vei/VEIDashboard";
 import { RegressionStudioDashboard } from "@/components/regression/RegressionStudioDashboard";
 import { AVMStudioDashboard } from "@/components/avm/AVMStudioDashboard";
@@ -25,19 +25,7 @@ import { CostForgeDashboard } from "@/components/costforge/CostForgeDashboard";
 import { CalcTracePanel } from "@/components/costforge/CalcTracePanel";
 import { useWorkbench } from "@/components/workbench/WorkbenchContext";
 import { AscendParcelPanel } from "@/components/forge/AscendParcelPanel";
-import { 
-  PRDDrilldownDialog, 
-  CODDrilldownDialog, 
-  TierSlopeDrilldownDialog,
-  AppealsDrilldownDialog 
-} from "@/components/vei/drilldown";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  useStudyPeriods,
-  useAssessmentRatiosByTier,
-  useAppealsByTier,
-  useSampleSize,
-} from "@/hooks/useVEIData";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import {
   ArrowLeftRight,
@@ -149,7 +137,7 @@ export function ForgeTab() {
         {activeView === "avm" && <AVMStudioDashboard />}
         {activeView === "segments" && <SegmentDiscoveryDashboard />}
         {activeView === "anatomy" && <ValuationAnatomyDashboard />}
-        {activeView === "comps" && <CompsView />}
+        {activeView === "comps" && <ComparableSalesPanel />}
         {activeView === "avmrun" && <AvmRunPanel />}
         {activeView === "cost" && <CostApproachPanel />}
         {activeView === "ratio" && <RatioStudyPanel />}

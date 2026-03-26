@@ -3,7 +3,6 @@ import {
   Activity,
   Database,
   MapPin,
-  FileText,
   TrendingUp,
   HardDrive,
   Upload,

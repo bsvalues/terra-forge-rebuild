@@ -18,7 +18,7 @@ import {
   TierSlopeDrilldownDialog,
   AppealsDrilldownDialog 
 } from "./drilldown";
-import { Activity, TrendingUp, BarChart3, AlertTriangle, Percent, Target, Filter, Info, Compass } from "lucide-react";
+import { Activity, TrendingUp, BarChart3, AlertTriangle, Percent, Target, Info, Compass } from "lucide-react";
 import { ScopeHeader, ProvenanceBadge } from "@/components/trust";
 import { useCountyMeta } from "@/hooks/useCountyMeta";
 import { useRatioAnalysis, useTaxYears, useNeighborhoodRatioComparison, type OutlierMethod } from "@/hooks/useRatioAnalysis";
@@ -53,7 +53,7 @@ export function VEIDashboard() {
   const [outlierMethod, setOutlierMethod] = useState<OutlierMethod>("bounds");
   const [fieldCohortFilter, setFieldCohortFilter] = useState(false);
 
-  const { cohort: fieldCohort, count: fieldCount } = useFieldCohort();
+  const { count: fieldCount } = useFieldCohort();
 
   const salesStartStr = format(salesStartDate, "yyyy-MM-dd");
   const salesEndStr = format(salesEndDate, "yyyy-MM-dd");

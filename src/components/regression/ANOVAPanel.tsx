@@ -14,7 +14,7 @@ import {
   ResponsiveContainer,
   Cell,
 } from "recharts";
-import { ANOVARow, RegressionResult } from "@/hooks/useRegressionAnalysis";
+import { RegressionResult } from "@/hooks/useRegressionAnalysis";
 
 interface ANOVAPanelProps {
   result: RegressionResult | undefined;

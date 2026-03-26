@@ -4,9 +4,8 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronRight, ChevronLeft, CheckCircle2, MapPin, Terminal, Database, Sparkles } from "lucide-react";
+import { ChevronRight, ChevronLeft, CheckCircle2, MapPin, Terminal, Sparkles } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { useCountySchemaDiff } from "@/hooks/useCountySchemaDiff";
 

@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { useModelRegistry, computeModelStats, type ModelRunRecord } from "@/hooks/useModelRegistry";
+import { useModelRegistry, computeModelStats } from "@/hooks/useModelRegistry";
 import { Search, Activity, TrendingUp, BarChart3, Layers } from "lucide-react";
 
 const APPROACH_COLORS: Record<string, string> = {

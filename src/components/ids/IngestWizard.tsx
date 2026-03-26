@@ -7,7 +7,6 @@ import {
   Eye,
   Rocket,
   CheckCircle2,
-  Circle,
   ArrowRight,
   ArrowLeft,
   FileSpreadsheet,
@@ -36,7 +35,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
-import { useIngestPipeline, type IngestStep, type TargetTable, type FieldMapping } from "@/hooks/useIngestPipeline";
+import { useIngestPipeline, type IngestStep, type TargetTable } from "@/hooks/useIngestPipeline";
 import { PACS_EXPORT_GUIDE } from "@/config/pacsFieldMappings";
 import { PACSMultiTableImport } from "./PACSMultiTableImport";
 

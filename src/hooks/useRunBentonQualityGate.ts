@@ -66,7 +66,7 @@ export interface BentonQualityReport {
 // ────────────────────────────────────────────────────────────
 type GisLayerRow = { id: string; name: string; feature_count: number | null };
 const gisLayersQuery = (cid: string, layerType: string): Promise<{ data: GisLayerRow[] | null; error: unknown }> => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   const db: any = supabase;
   return db.from("gis_layers").select("id, name, feature_count").eq("county_id", cid).eq("layer_type", layerType) as Promise<{ data: GisLayerRow[] | null; error: unknown }>;
 };

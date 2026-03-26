@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,17 +9,12 @@ import {
   Database,
   Plus,
   RefreshCw,
-  CheckCircle2,
-  AlertTriangle,
-  XCircle,
-  Clock,
   Globe,
   Upload,
   Server,
   FileSpreadsheet,
   Pencil,
   Trash2,
-  ExternalLink,
   Plug,
 } from "lucide-react";
 import {
@@ -30,7 +25,6 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { cn } from "@/lib/utils";
 import { useDataSourcesList, useAddDataSource, useDeleteDataSource } from "@/hooks/useDataSources";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { toast } from "sonner";

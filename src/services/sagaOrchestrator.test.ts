@@ -1,11 +1,10 @@
 // TerraFusion OS — SAGA Orchestrator Test Suite (Phase 1: TDD)
 // These tests define the success criteria for the SAGA runtime.
 
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
 import {
   SagaOrchestrator,
   type StepHandler,
-  type SagaExecutionResult,
 } from "./sagaOrchestrator";
 
 // ============================================================
@@ -44,7 +43,7 @@ describe("SagaOrchestrator", () => {
       },
       {
         name: "step_c",
-        action: async (ctx) => { log.push("c"); },
+        action: async (_ctx) => { log.push("c"); },
       },
     ];
 

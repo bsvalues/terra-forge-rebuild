@@ -284,9 +284,7 @@ function computeMultipleRegression(data: any[]): RegressionResult {
 
   // Variable names including neighborhood dummies
   const continuousVarNames = ["(Intercept)", "Building_Area", "Land_Area", "Age", "Bedrooms", "Bathrooms"];
-  const neighborhoodVarNames = dummyNeighborhoods.map(n => `Nbhd_${n}`);
-  const variableNames = [...continuousVarNames, ...neighborhoodVarNames];
-  
+
   const numContinuous = continuousVarNames.length - 1; // Exclude intercept
   const numNeighborhoods = dummyNeighborhoods.length;
   const k = numContinuous + numNeighborhoods; // Total predictors
@@ -503,7 +501,7 @@ function computeMultipleRegression(data: any[]): RegressionResult {
 // Compute F-statistic for neighborhood variables jointly
 function computeNeighborhoodFStat(
   X: number[][],
-  y: number[],
+  _y: number[],
   beta: number[],
   startIdx: number,
   numVars: number,
@@ -526,11 +524,11 @@ function computeNeighborhoodFStat(
 // Compute sum of squares for neighborhood variables
 function computeNeighborhoodSS(
   X: number[][],
-  y: number[],
+  _y: number[],
   beta: number[],
   startIdx: number,
   numVars: number,
-  yMean: number
+  _yMean: number
 ): number {
   let ss = 0;
   for (let i = 0; i < X.length; i++) {
@@ -635,7 +633,6 @@ function invertMatrix(matrix: number[][]): number[][] {
 
 function calculateVIF(X: number[][], varIndex: number): number {
   // Simplified VIF calculation
-  const n = X.length;
   const otherVars = X[0].map((_, j) => j !== varIndex && j !== 0);
   
   const y = X.map(row => row[varIndex]);
@@ -663,9 +660,8 @@ function calculateVIF(X: number[][], varIndex: number): number {
   }
 }
 
-function computePartialSS(X: number[][], y: number[], varIndex: number, beta: number[], yMean: number): number {
+function computePartialSS(X: number[][], _y: number[], varIndex: number, beta: number[], _yMean: number): number {
   // Type III sum of squares for variable
-  const n = X.length;
   const contribution = X.map(row => beta[varIndex] * row[varIndex]);
   return contribution.reduce((acc, c) => acc + c * c, 0);
 }
@@ -673,7 +669,7 @@ function computePartialSS(X: number[][], y: number[], varIndex: number, beta: nu
 function computeDiagnostics(
   residuals: number[],
   fitted: number[],
-  X: number[][],
+  _X: number[][],
   coefficients: CoefficientRow[]
 ): ModelDiagnostics {
   const n = residuals.length;
@@ -748,7 +744,7 @@ function computeDiagnosticPlots(
   residuals: number[],
   fitted: number[],
   X: number[][],
-  beta: number[],
+  _beta: number[],
   mse: number
 ): RegressionResult["diagnosticPlots"] {
   const n = residuals.length;
@@ -845,7 +841,7 @@ function normalQuantile(p: number): number {
   const q = p < 0.5 ? p : 1 - p;
   const r = Math.sqrt(-2 * Math.log(q));
   
-  let result = (((((a[0] * r + a[1]) * r + a[2]) * r + a[3]) * r + a[4]) * r + a[5]) /
+  const result = (((((a[0] * r + a[1]) * r + a[2]) * r + a[3]) * r + a[4]) * r + a[5]) /
     (((((b[0] * r + b[1]) * r + b[2]) * r + b[3]) * r + b[4]) * r + 1);
   
   return p < 0.5 ? -result : result;
@@ -873,7 +869,7 @@ function approximateFPValue(f: number, df1: number, df2: number): number {
 
 function buildEquationString(
   coefficients: CoefficientRow[],
-  stds: { mean: number; std: number }[],
+  _stds: { mean: number; std: number }[],
   referenceNeighborhood?: string
 ): string {
   const intercept = coefficients[0];

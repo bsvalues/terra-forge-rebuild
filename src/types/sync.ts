@@ -1,7 +1,7 @@
 // TerraFusion OS — TerraFusionSync Contracts
 // Sync Envelope, SAGA Step, and Health types
 
-import type { SourceModule, TraceEventType } from "./parcel360";
+import type { SourceModule } from "./parcel360";
 
 // ============================================================
 // Sync Envelope — canonical message format for all sync ops

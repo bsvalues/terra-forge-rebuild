@@ -12,15 +12,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
-import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  MapPin, Search, Plus, Home, DollarSign, BarChart3, Hash,
+  MapPin, Search, Plus, Home, DollarSign,
   Building2, Calendar, Pencil, Trash2, Layers, CheckCircle2,
-  AlertTriangle, Zap, Loader2, Brain, Target, Sparkles,
-  ChevronRight, XCircle, Shield,
+  AlertTriangle, Zap, Loader2, Brain, Sparkles,
 } from "lucide-react";
 import {
   useNeighborhoods,
@@ -284,7 +282,7 @@ export function NeighborhoodDirectoryPanel() {
 
   // Aggregate stats
   const totalParcels = enrichedStats.reduce((s, n) => s + n.parcel_count, 0);
-  const totalValue = enrichedStats.reduce((s, n) => s + n.total_value, 0);
+
   const registeredCount = neighborhoods.length;
   const unregisteredCount = discovered.filter(d => !d.is_registered).length;
   const calibratedCount = discovered.filter(d => d.latest_r_squared !== null).length;

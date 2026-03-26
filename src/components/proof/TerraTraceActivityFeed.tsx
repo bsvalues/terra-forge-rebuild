@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTraceEvents, useLegacyModelReceipts, useTraceRealtimeSubscription } from "@/hooks/useTraceEvents";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -18,7 +18,6 @@ import {
   Eye,
   Sparkles,
   MapPin,
-  Globe,
   Radio,
 } from "lucide-react";
 import { cn } from "@/lib/utils";

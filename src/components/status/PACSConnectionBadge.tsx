@@ -3,12 +3,11 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { checkConnectorHealth } from "@/services/pacsConnector";
-import { cn } from "@/lib/utils";
 
 export function PACSConnectionBadge() {
   const { data, isLoading } = useQuery({
     queryKey: ["pacs-health"],
-    queryFn: checkConnectorHealth,
+    queryFn: () => checkConnectorHealth(),
     staleTime: 60_000,
     retry: false,
   });

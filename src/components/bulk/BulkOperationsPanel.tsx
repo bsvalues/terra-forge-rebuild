@@ -2,9 +2,9 @@ import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   CheckSquare, Square, Search, Filter, Layers, Download, MapPin,
-  ChevronDown, AlertTriangle, Loader2, Star, LayoutGrid
+  AlertTriangle, Loader2, Star, LayoutGrid
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -22,7 +22,6 @@ import {
   exportParcelsCsv,
   BULK_ACTIONS,
   type BulkAction,
-  type BulkParcelRow,
 } from "@/hooks/useBulkOperations";
 
 export function BulkOperationsPanel() {

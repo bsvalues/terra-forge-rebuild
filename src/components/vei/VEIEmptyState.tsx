@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Database, TrendingUp, Upload } from "lucide-react";
+import { Database, TrendingUp } from "lucide-react";
 
 export function VEIEmptyState() {
   return (

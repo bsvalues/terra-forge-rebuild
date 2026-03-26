@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CheckCircle2, XCircle, FlaskConical, Clock, Database } from "lucide-react";
@@ -36,7 +36,7 @@ export function useSeedAuditLog(limit = 50) {
     queryKey: ["seed-audit-log", limit],
     queryFn: async () => {
       // seed_audit_log not yet in generated types
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+       
       const client = supabase as any;
       const { data, error } = await client
         .from("seed_audit_log")

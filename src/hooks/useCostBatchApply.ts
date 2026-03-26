@@ -75,7 +75,7 @@ export function useBatchCostApply() {
 
       // 2. Fetch qualified sales for ratio comparison
       const parcelIds = (parcels ?? []).map((p) => p.id);
-      let saleLookup = new Map<string, number>();
+      const saleLookup = new Map<string, number>();
       if (parcelIds.length > 0) {
         const { data: sales } = await supabase
           .from("sales")

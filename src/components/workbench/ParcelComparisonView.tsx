@@ -4,7 +4,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import {
-  ArrowLeftRight, Search, Building2, DollarSign, MapPin,
+  ArrowLeftRight, Search, Building2,
   TrendingUp, TrendingDown, Minus, X,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,8 +16,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useParcel360 } from "@/hooks/useParcel360";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthContext } from "@/contexts/AuthContext";
-import { useQuery } from "@tanstack/react-query";
-import { cn } from "@/lib/utils";
 import { emitTraceEvent } from "@/services/terraTrace";
 
 interface CompareSlotProps {

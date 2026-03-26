@@ -30,7 +30,6 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Globe,
-  Play,
   Square,
   Clock,
   CheckCircle,
@@ -49,9 +48,8 @@ import {
   ListOrdered,
   X,
 } from "lucide-react";
-import { useScrapeJobsList, useStartScrapeJob, useCancelScrapeJob, useRetryScrapeJob, type ScrapeJob } from "@/hooks/useScrapeJobs";
-import { toast } from "sonner";
-import { useQueryClient } from "@tanstack/react-query";
+import { useScrapeJobsList, useStartScrapeJob, useCancelScrapeJob, useRetryScrapeJob } from "@/hooks/useScrapeJobs";
+
 import { cn } from "@/lib/utils";
 
 // ScrapeJob type imported from hook
@@ -113,7 +111,7 @@ const REGION_COLORS: Record<string, string> = {
 };
 
 export function ScrapeJobManager() {
-  const queryClient = useQueryClient();
+
   const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; action: string; jobId?: string; selectedRegions?: string[] }>({ open: false, action: "" });
   const [selectedRegions, setSelectedRegions] = useState<string[]>([]);
 

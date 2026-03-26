@@ -7,7 +7,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchNeighborhoodParcels } from "@/services/ingestService";
 import { batchApplyAdjustments } from "@/services/suites/forgeService";
 import { generateCalibrationNarrative } from "@/services/suites/dossierService";
-import { invalidateFactory, invalidateParcel } from "@/lib/queryInvalidation";
+import { invalidateFactory } from "@/lib/queryInvalidation";
 import { showChangeReceipt } from "@/lib/changeReceipt";
 import { CommitmentButton } from "@/components/ui/commitment-button";
 import { PreviewImpact, type PreviewImpactData } from "@/components/trust";

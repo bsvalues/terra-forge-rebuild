@@ -2,11 +2,10 @@
 // "I generated 4,000 notices and they all said thank you. I'm popular now." — Ralph Wiggum
 
 import { useState, useMemo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Slider } from "@/components/ui/slider";
@@ -24,7 +23,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import {
   Mail, FileText, TrendingUp, TrendingDown, Minus,
-  BarChart3, Building2, MapPin, Send, Sparkles,
+  BarChart3, MapPin, Send, Sparkles,
   AlertTriangle, CheckCircle2, Loader2, Filter,
   ArrowUpRight, ArrowDownRight, Target, Zap,
 } from "lucide-react";

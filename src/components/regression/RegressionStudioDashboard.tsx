@@ -16,7 +16,7 @@ export function RegressionStudioDashboard() {
   const [activeTab, setActiveTab] = useState("regression");
   const [selectedPeriodId, setSelectedPeriodId] = useState<string | undefined>();
 
-  const { data: studyPeriods, isLoading: isLoadingPeriods } = useStudyPeriods();
+  const { data: studyPeriods } = useStudyPeriods();
   const { data: regressionResult, isLoading: isLoadingRegression } = useRegressionAnalysis(selectedPeriodId);
   const runAnalysis = useRunRegressionAnalysis();
 

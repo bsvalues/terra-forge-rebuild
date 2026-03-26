@@ -15,6 +15,7 @@ import {
   Loader2, Target, TrendingDown, Zap, FileWarning,
 } from "lucide-react";
 import { useDataQualityScoring, type NeighborhoodQuality, type StaleAlert, type ParcelScore } from "@/hooks/useDataQualityScoring";
+
 import { cn } from "@/lib/utils";
 import { ScopeHeader, ProvenanceBadge, ProvenanceNumber } from "@/components/trust";
 import { useCountyMeta } from "@/hooks/useCountyMeta";
@@ -283,6 +284,7 @@ function LowestScoreParcels({ parcels }: { parcels: ParcelScore[] }) {
 
 export function DataQualityScoringEngine() {
   const { data, isLoading } = useDataQualityScoring();
+
   const countyMeta = useCountyMeta();
 
   if (isLoading) {

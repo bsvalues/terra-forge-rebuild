@@ -81,7 +81,7 @@ export async function generateExport(config: ExportConfig): Promise<ExportResult
   return { dataset, format, rowCount: rows.length, fileName, blob };
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+ 
 async function runDatasetQuery(dataset: ExportDataset, filters?: ExportConfig["filters"], limit = 5000): Promise<{ data: any; error: any }> {
   switch (dataset) {
     case "parcels": {
@@ -122,12 +122,12 @@ async function runDatasetQuery(dataset: ExportDataset, filters?: ExportConfig["f
 // Joins qualified sales with assessed values, computes per-parcel ratios,
 // and calculates summary statistics per IAAO Standard on Ratio Studies.
 async function buildIaaoRatioStudy(
-  filters?: ExportConfig["filters"],
+  _filters?: ExportConfig["filters"],
   limit = 5000
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
 ): Promise<{ data: any; error: any }> {
   // 1. Fetch assessment_ratios (pre-computed) or join sales + assessments
-  let ratioQuery = supabase
+  const ratioQuery = supabase
     .from("assessment_ratios")
     .select(`
       id, parcel_id, sale_id, assessed_value, sale_price, ratio, is_outlier, value_tier,
@@ -141,7 +141,7 @@ async function buildIaaoRatioStudy(
 
   if (ratioError || !ratioData || ratioData.length === 0) {
     // Fallback: build ratios from qualified sales
-    let salesQ = supabase
+    const salesQ = supabase
       .from("sales")
       .select("id, parcel_id, sale_date, sale_price, sale_type, is_qualified")
       .eq("is_qualified", true)

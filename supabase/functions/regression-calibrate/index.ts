@@ -131,7 +131,7 @@ Deno.serve(async (req) => {
     }
 
     // Fetch parcels in this neighborhood scoped to county (paginated to avoid 1000-row limit)
-    let allParcels: any[] = [];
+    const allParcels: any[] = [];
     let offset = 0;
     const PAGE = 1000;
     while (true) {

@@ -1,9 +1,9 @@
 import { useRef, useMemo, useState } from "react";
 import { Canvas, useFrame, ThreeEvent } from "@react-three/fiber";
-import { OrbitControls, Text, Float, Line, Sphere, Box, Cylinder } from "@react-three/drei";
+import { OrbitControls, Text, Float, Line } from "@react-three/drei";
 import * as THREE from "three";
 import type { ParcelValuation, FeatureContribution, ValuationSegment } from "@/hooks/useValuationAnatomy";
-import { TF3D, TF3D_FEATURE_CATEGORIES, ratioDeviationColor } from "@/lib/colors/tf3dPalette";
+import { TF3D, ratioDeviationColor } from "@/lib/colors/tf3dPalette";
 
 const PHI = 1.618033988749895;
 const TAU = Math.PI * 2;
@@ -140,7 +140,7 @@ function GeoParcelNode({
   const color = ratioDeviationColor(ratioDeviation);
   const height = Math.log10(Math.max(parcel.assessedValue, 100000)) * 0.15;
 
-  useFrame((state) => {
+  useFrame((_state) => {
     if (meshRef.current && (isSelected || hovered)) {
       meshRef.current.scale.setScalar(1.2);
     } else if (meshRef.current) {
@@ -188,9 +188,8 @@ function GeoParcelNode({
   );
 }
 
-function getFeatureColor(category: FeatureContribution["category"]): string {
-  return TF3D_FEATURE_CATEGORIES[category as keyof typeof TF3D_FEATURE_CATEGORIES] ?? TF3D_FEATURE_CATEGORIES.default;
-}
+// Feature color lookup (used by FeatureStack below)
+
 
 // Feature Stack
 function FeatureStack({ 
@@ -212,7 +211,7 @@ function FeatureStack({
   const totalHeight = 3 * scale;
   let currentHeight = 0;
 
-  useFrame((state) => {
+  useFrame((_state) => {
     if (groupRef.current && (isSelected || hovered)) {
       groupRef.current.rotation.y += 0.005;
     }
@@ -221,7 +220,7 @@ function FeatureStack({
   return (
     <group ref={groupRef} position={position}>
       <Float speed={1} rotationIntensity={0.05} floatIntensity={0.1}>
-        {features.slice(0, 6).map((feature, index) => {
+        {features.slice(0, 6).map((feature, _index) => {
           const heightRatio = feature.percentage / 100;
           const blockHeight = Math.max(0.1, heightRatio * totalHeight);
           const y = currentHeight + blockHeight / 2;
@@ -368,7 +367,6 @@ function SegmentCluster({
 // Anatomy View
 function AnatomyView({
   item,
-  onSelect,
 }: {
   item: ParcelValuation | ValuationSegment;
   onSelect: () => void;
@@ -467,7 +465,7 @@ function Scene({
     );
     
     if (parcelsWithCoords.length === 0) {
-      const fallbackPositions = parcels.slice(0, 150).map((parcel, index) => {
+      const fallbackPositions = parcels.slice(0, 150).map((parcel, _index) => {
         const nbhdHash = (parcel.neighborhood || "X").split('').reduce((a, c) => a + c.charCodeAt(0), 0);
         const baseX = ((nbhdHash % 10) - 5) * 1.5;
         const baseZ = ((Math.floor(nbhdHash / 10) % 10) - 5) * 1.5;

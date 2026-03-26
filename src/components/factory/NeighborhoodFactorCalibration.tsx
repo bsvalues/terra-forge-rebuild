@@ -4,8 +4,7 @@
 
 import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -20,7 +19,7 @@ import { useActiveCountyId } from "@/hooks/useActiveCounty";
 import { useNeighborhoodStats } from "@/hooks/useNeighborhoodStats";
 
 // sales_history is not in the generated Supabase types — isolate the cast here
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+ 
 const supabaseAny = supabase as any;
 
 interface SalesHistoryComp {

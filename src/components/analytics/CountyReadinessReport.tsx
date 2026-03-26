@@ -129,7 +129,7 @@ function nextSteps(meta: CountyMeta, coveragePct: number): string[] {
 // ── Download helpers ──────────────────────────────────────────────────────────
 
 function buildMarkdown(
-  slug: string,
+  _slug: string,
   meta: CountyMeta,
   diff: CountySchemaDiff,
   parcelCount: number | null,

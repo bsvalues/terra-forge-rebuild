@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { ExecutiveKpiCards } from "../ExecutiveKpiCards";
 import { AssessmentSparkline } from "../AssessmentSparkline";
 import { ValueChangeExplainer } from "../ValueChangeExplainer";
@@ -12,7 +11,6 @@ import { motion } from "framer-motion";
 import {
   TrendingUp,
   FileText,
-  Calendar,
   DollarSign,
   Home,
   MapPin,
@@ -50,6 +48,8 @@ import { useIsWatched, useToggleWatchlist } from "@/hooks/useParcelWatchlist";
 import { useParcelCharacteristics } from "@/hooks/useParcelCharacteristics";
 import { SalesHistoryPanel } from "../SalesHistoryPanel";
 import { RiskScoreBadge } from "@/components/dossier/RiskScoreBadge";
+import { PermitsPanel } from "../PermitsPanel";
+import { ExemptionsPanel } from "../ExemptionsPanel";
 
 export function SummaryTab() {
   const { parcel } = useWorkbench();
@@ -420,6 +420,14 @@ function ParcelSummaryContent() {
             <BookOpen className="w-3.5 h-3.5" />
             Adjustments
           </TabsTrigger>
+          <TabsTrigger value="permits" className="text-xs gap-1.5">
+            <FileText className="w-3.5 h-3.5" />
+            Permits
+          </TabsTrigger>
+          <TabsTrigger value="exemptions" className="text-xs gap-1.5">
+            <ShieldCheck className="w-3.5 h-3.5" />
+            Exemptions
+          </TabsTrigger>
           <TabsTrigger value="activity" className="text-xs gap-1.5">
             <Activity className="w-3.5 h-3.5" />
             Activity
@@ -549,6 +557,16 @@ function ParcelSummaryContent() {
         {/* Adjustments */}
         <TabsContent value="adjustments">
           <AdjustmentsSection parcelId={parcel.id} />
+        </TabsContent>
+
+        {/* Permits */}
+        <TabsContent value="permits">
+          <PermitsPanel parcelId={parcel.id} />
+        </TabsContent>
+
+        {/* Exemptions */}
+        <TabsContent value="exemptions">
+          <ExemptionsPanel parcelId={parcel.id} />
         </TabsContent>
 
         {/* Activity Feed */}

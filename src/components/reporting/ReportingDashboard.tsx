@@ -5,9 +5,9 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   FileBarChart, BarChart3, Map, TrendingUp, ShieldCheck, DollarSign, FileText,
-  Play, Clock, CheckCircle2, Loader2, Trash2, ChevronRight, Scale, Plus,
+  Play, Clock, CheckCircle2, Loader2, Trash2, ChevronRight, Scale
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";

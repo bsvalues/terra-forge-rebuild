@@ -1,10 +1,8 @@
 // TerraFusion OS — Phase 26: Segment-Driven Revaluation Dashboard
 
-import { useState } from "react";
 import { motion } from "framer-motion";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
-import { Layers, BarChart3, Scale, Zap } from "lucide-react";
+import { Layers, BarChart3, Scale } from "lucide-react";
 import { SegmentManagerPanel } from "./SegmentManagerPanel";
 import { SegmentCalibrationPanel } from "./SegmentCalibrationPanel";
 import { EquityRebalancingPanel } from "./EquityRebalancingPanel";

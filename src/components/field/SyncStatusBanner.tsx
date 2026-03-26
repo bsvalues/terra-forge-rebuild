@@ -2,7 +2,7 @@
 // Persistent banner showing connectivity + sync queue status for field inspectors.
 
 import { motion, AnimatePresence } from "framer-motion";
-import { Wifi, WifiOff, Cloud, CloudOff, Loader2, AlertTriangle, CheckCircle2 } from "lucide-react";
+import { WifiOff, Cloud, Loader2, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";

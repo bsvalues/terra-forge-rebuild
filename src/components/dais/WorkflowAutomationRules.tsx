@@ -1,13 +1,12 @@
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import {
-  Zap, Plus, Play, Pause, Trash2, Settings2,
-  ArrowRight, Clock, Filter, CheckCircle2, AlertTriangle,
+  Zap, Plus, Trash2,
+  ArrowRight, Clock, Filter, CheckCircle2,
   Bell, FileCheck, Scale, ClipboardCheck, X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import {
   Select,
@@ -21,7 +20,6 @@ import {
   useWorkflowAutomationRules,
   useToggleRule,
   useDeleteRule,
-  type AutomationRule,
 } from "@/hooks/useWorkflowAutomationRules";
 
 const domainConfig: Record<string, { icon: React.ElementType; color: string }> = {

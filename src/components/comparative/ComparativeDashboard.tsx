@@ -2,24 +2,21 @@
 // Multi-cycle overlay with YoY delta analysis, trend charts, and snapshot management
 
 import { useState, useMemo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import {
-  BarChart3, TrendingUp, TrendingDown, Minus, Plus, Trash2,
-  Loader2, Calendar, Layers, ArrowUpRight, ArrowDownRight,
-  GitCompare, Camera, ChevronDown, Info,
+  BarChart3, TrendingUp, Minus, Trash2,
+  Loader2, Layers, ArrowUpRight, ArrowDownRight,
+  GitCompare, Camera, Info,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
-  ResponsiveContainer, LineChart, Line, RadarChart, PolarGrid,
-  PolarAngleAxis, PolarRadiusAxis, Radar,
+  ResponsiveContainer, LineChart, Line,
 } from "recharts";
 import {
   useComparisonSnapshots,

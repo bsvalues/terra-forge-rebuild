@@ -11,7 +11,7 @@ import {
   type WorkflowStep,
 } from "@/hooks/useWorkflowTemplates";
 import { BUILT_IN_TEMPLATES } from "@/services/workflowEngine";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,8 +24,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useUserRole } from "@/hooks/useUserRole";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  Plus, Layers, Play, ChevronRight, CheckCircle2,
-  Shield, User, Eye, Trash2, Copy,
+  Plus, Layers, Play,
+  Shield, User, Eye, Trash2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -393,33 +393,6 @@ function CreateTemplateDialog({ onSuccess }: { onSuccess: () => void }) {
   );
 }
 
-// ── Launch Instance Dialog ─────────────────────────────────────────────────────
-
-function LaunchInstanceDialog({
-  templateName,
-  onConfirm,
-}: {
-  templateName: string;
-  onConfirm: (assignedTo: string, notes: string) => void;
-}) {
-  const [open, setOpen] = useState(false);
-  const [notes, setNotes] = useState("");
-
-  async function handleLaunch() {
-    const { data: { user } } = await supabase.auth.getUser();
-    onConfirm(user?.id ?? "", notes);
-    setOpen(false);
-    setNotes("");
-  }
-
-  return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <span className="sr-only" />
-      </DialogTrigger>
-    </Dialog>
-  );
-}
 
 // ── Main Component ─────────────────────────────────────────────────────────────
 

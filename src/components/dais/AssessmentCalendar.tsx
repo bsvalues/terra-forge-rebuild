@@ -150,7 +150,6 @@ export function AssessmentCalendar() {
                   </span>
                   <div className="flex flex-wrap gap-0.5 mt-0.5">
                     {deadlines.slice(0, 3).map((dl) => {
-                      const stCfg = statusConfig[dl.status];
                       return (
                         <div
                           key={dl.id}

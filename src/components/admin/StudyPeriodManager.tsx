@@ -9,7 +9,6 @@ import {
   Play,
   MoreVertical,
   CheckCircle,
-  Clock,
   Archive,
   FileEdit,
   Target,

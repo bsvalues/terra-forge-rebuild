@@ -1,9 +1,8 @@
 import { useState } from "react";
-import { useCostSchedules, useCostScheduleMutations, type CostSchedule } from "@/hooks/useCostSchedule";
+import { useCostSchedules, useCostScheduleMutations } from "@/hooks/useCostSchedule";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
-import { CommitmentButton } from "@/components/ui/commitment-button";
-import { Plus, Trash2, Save } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 export function CostScheduleEditor() {

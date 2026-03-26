@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { formatDistanceToNow } from "date-fns";
 import {
   Users, Shield, Eye, BarChart3, Plus, X, Loader2, UserCircle,
-  Clock, Mail, ChevronDown, ChevronRight,
+  Mail, ChevronDown, ChevronRight
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -248,7 +248,7 @@ export function UserManagementPanel() {
 
   const adminCount = users?.filter(u => u.roles.includes("admin")).length ?? 0;
   const analystCount = users?.filter(u => u.roles.includes("analyst")).length ?? 0;
-  const viewerCount = users?.filter(u => u.roles.includes("viewer")).length ?? 0;
+
   const noRoleCount = users?.filter(u => u.roles.length === 0).length ?? 0;
 
   return (

@@ -1,4 +1,3 @@
-import React from 'react'
 import { Button } from '@/components/ui/button'
 import { useWorkbench } from '@/components/workbench/WorkbenchContext'
 import { X, MapPin } from 'lucide-react'

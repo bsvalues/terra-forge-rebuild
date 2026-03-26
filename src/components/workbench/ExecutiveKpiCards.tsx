@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import {
   Building2, DollarSign, TrendingUp, AlertTriangle,
-  Gavel, Shield, BarChart3, Users,
+  Gavel, BarChart3
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";

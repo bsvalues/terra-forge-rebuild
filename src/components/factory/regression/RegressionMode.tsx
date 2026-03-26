@@ -18,13 +18,8 @@ interface RegressionModeProps {
 
 export function RegressionMode({ neighborhoodCode }: RegressionModeProps) {
   const hook = useCalibration(neighborhoodCode);
-  const [savedRunId, setSavedRunId] = useState<string | null>(null);
+  const [savedRunId, _setSavedRunId] = useState<string | null>(null);
 
-  // Track saved run ID when save completes
-  const handleSave = () => {
-    hook.saveRun();
-    // We'll use latest history entry as the run ID after save
-  };
 
   // Derive calibration run ID from most recent history entry matching current result
   const calibrationRunId = savedRunId || (hook.history.length > 0 ? hook.history[0]?.id : null);

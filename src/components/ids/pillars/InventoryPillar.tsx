@@ -5,7 +5,6 @@
    Receipt, 
    Building2, 
    Clock, 
-   CheckCircle2, 
    AlertCircle,
    RefreshCw,
  } from "lucide-react";

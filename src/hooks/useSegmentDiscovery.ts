@@ -377,12 +377,11 @@ function analyzeFactorImportance(data: any[]): FactorAnalysis[] {
 function calculateFactorStats(
   factor: string,
   label: string,
-  values: number[],
-  ratios: number[],
+  _values: number[],
+  _ratios: number[],
   data: any[]
 ): FactorAnalysis {
   // Calculate correlation between factor and ratio
-  const n = Math.min(values.length, ratios.length);
   const filteredData = data.filter(d => d.parcels?.[factor] != null && d.ratio != null);
   
   if (filteredData.length < 10) {
@@ -442,8 +441,8 @@ function calculateFactorStats(
 function calculateCategoricalFactorStats(
   factor: string,
   label: string,
-  values: string[],
-  ratios: number[],
+  _values: string[],
+  _ratios: number[],
   data: any[]
 ): FactorAnalysis {
   const filteredData = data.filter(d => d.parcels?.[factor] != null && d.ratio != null);
@@ -524,7 +523,7 @@ function createEmptyAnalysis(factor: string, label: string): FactorAnalysis {
 // Approximate p-value from t-statistic (simplified)
 function approximatePValue(t: number, df: number): number {
   // Simplified approximation - in production use proper t-distribution
-  const x = df / (df + t * t);
+
   if (df <= 0 || t === 0) return 1;
   // Very rough approximation
   if (Math.abs(t) > 3.5) return 0.001;

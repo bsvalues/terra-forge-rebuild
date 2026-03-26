@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Check, X, AlertTriangle, Loader2 } from "lucide-react";
+import { Check, X, AlertTriangle } from "lucide-react";
 import { CoefficientRow, RegressionResult } from "@/hooks/useRegressionAnalysis";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -26,7 +26,7 @@ export function MultipleRegressionPanel({ result, isLoading }: MultipleRegressio
     );
   }
 
-  const { coefficients, modelStats, equation } = result;
+  const { coefficients, modelStats } = result;
 
   return (
     <div className="space-y-6">
@@ -149,7 +149,7 @@ function EquationDisplay({ coefficients }: { coefficients: CoefficientRow[] }) {
       <span className="text-tf-transcend-cyan">ŷ</span>
       <span className="text-muted-foreground"> = </span>
       <span className="text-tf-sacred-gold">{formatCoefficient(intercept.coefficient)}</span>
-      {predictors.slice(0, 3).map((c, i) => (
+      {predictors.slice(0, 3).map((c, _i) => (
         <span key={c.variable}>
           <span className="text-muted-foreground"> {c.coefficient >= 0 ? '+' : '-'} </span>
           <span className={c.significant ? "text-tf-optimized-green" : "text-muted-foreground"}>

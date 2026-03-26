@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -17,8 +16,6 @@ import {
   HardDrive,
   FileText,
   ArrowRightLeft,
-  Play,
-  Loader2,
 } from "lucide-react";
 import { useSystemHealth } from "@/hooks/useSystemHealth";
 import { DataSourceRegistry } from "./DataSourceRegistry";
