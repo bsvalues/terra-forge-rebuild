@@ -15,7 +15,7 @@ export function usePacsParcelBridge(parcelId: string | null) {
   return useQuery({
     queryKey: ["pacs-parcel-bridge", parcelId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("parcels")
         .select("prop_id, parcel_number")
         .eq("id", parcelId!)
