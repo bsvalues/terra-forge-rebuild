@@ -84,7 +84,7 @@ export function useExemptionByType(taxYear: number | null) {
   return useQuery<ExemptionByType[]>({
     queryKey: ["exemption-by-type", COUNTY_ID, taxYear],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("vw_exemption_by_type")
         .select("*")
         .eq("county_id", COUNTY_ID)
