@@ -67,7 +67,7 @@ export function useExemptionCountySummary() {
   return useQuery<ExemptionCountySummary[]>({
     queryKey: ["exemption-county-summary", COUNTY_ID],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("vw_exemption_county_summary")
         .select("*")
         .eq("county_id", COUNTY_ID)
