@@ -15,7 +15,7 @@ vi.mock("@/services/terraTrace", () => ({
 }));
 
 vi.mock("@tanstack/react-query", () => ({
-  useQuery: vi.fn((opts: { queryKey: string[]; queryFn: () => Promise<unknown>; enabled?: boolean }) => {
+  useQuery: vi.fn((opts: { queryKey: string[]; queryFn: () => Promise<unknown>; enabled?: boolean } = {} as any) => {
     return { data: undefined, isLoading: false, error: null, fetchStatus: opts.enabled === false ? "idle" : "fetching" };
   }),
   useMutation: vi.fn(() => ({ mutate: vi.fn(), isLoading: false })),

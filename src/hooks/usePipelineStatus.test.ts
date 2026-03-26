@@ -11,7 +11,7 @@ vi.mock("@/hooks/useActiveCounty", () => ({
 }));
 
 vi.mock("@tanstack/react-query", () => ({
-  useQuery: vi.fn((opts: { queryKey: string[]; queryFn: () => Promise<unknown>; enabled?: boolean }) => {
+  useQuery: vi.fn((_opts: { queryKey: string[]; queryFn: () => Promise<unknown>; enabled?: boolean }) => {
     return { data: undefined, isLoading: false, error: null };
   }),
 }));

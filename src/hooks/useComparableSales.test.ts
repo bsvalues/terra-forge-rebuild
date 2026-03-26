@@ -13,7 +13,7 @@ vi.mock("@/integrations/supabase/client", () => ({
 }));
 
 vi.mock("@tanstack/react-query", () => ({
-  useQuery: vi.fn((opts: { queryFn: () => Promise<unknown>; enabled?: boolean }) => {
+  useQuery: vi.fn((_opts: { queryFn: () => Promise<unknown>; enabled?: boolean }) => {
     return { data: undefined, isLoading: false, error: null };
   }),
 }));
