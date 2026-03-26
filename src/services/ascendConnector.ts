@@ -191,7 +191,7 @@ export async function getPropertyByLrsn(
   lrsn: number,
   countyId: string = BENTON_ASCEND_CONFIG.defaultCountyId
 ): Promise<AscendProperty | null> {
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from("ascend_property")
     .select("*")
     .eq("county_id", countyId)
@@ -209,7 +209,7 @@ export async function getPropertyByPin(
   pin: string,
   countyId: string = BENTON_ASCEND_CONFIG.defaultCountyId
 ): Promise<AscendProperty | null> {
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from("ascend_property")
     .select("*")
     .eq("county_id", countyId)
@@ -227,7 +227,7 @@ export async function getImprovements(
   lrsn: number,
   countyId: string = BENTON_ASCEND_CONFIG.defaultCountyId
 ): Promise<AscendImprovement[]> {
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from("ascend_improvements")
     .select("*")
     .eq("county_id", countyId)
@@ -245,7 +245,7 @@ export async function getLand(
   lrsn: number,
   countyId: string = BENTON_ASCEND_CONFIG.defaultCountyId
 ): Promise<AscendLand | null> {
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from("ascend_land")
     .select("*")
     .eq("county_id", countyId)
@@ -264,7 +264,7 @@ export async function getSales(
   lrsn: number,
   countyId: string = BENTON_ASCEND_CONFIG.defaultCountyId
 ): Promise<AscendSale[]> {
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from("ascend_sales")
     .select("*")
     .eq("county_id", countyId)
@@ -284,7 +284,7 @@ export async function getValueHistory(
   lrsn: number,
   countyId: string = BENTON_ASCEND_CONFIG.defaultCountyId
 ): Promise<AscendValue[]> {
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from("ascend_values")
     .select("*")
     .eq("county_id", countyId)
@@ -303,7 +303,7 @@ export async function getValueHistory(
 export async function getFullValueHistory(
   parcelId: string
 ): Promise<FullValueHistoryRow[]> {
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from("vw_full_value_history")
     .select("*")
     .eq("parcel_id", parcelId)
@@ -321,7 +321,7 @@ export async function getBridgeCoverage(
   countyId: string = BENTON_ASCEND_CONFIG.defaultCountyId,
   limit: number = 500
 ): Promise<AscendBridgeCoverage[]> {
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from("vw_ascend_bridge_coverage")
     .select("*")
     .eq("county_id", countyId)
@@ -343,7 +343,7 @@ export async function getBridgeStats(
   withValueHistory: number;
   coveragePct: number;
 }> {
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from("vw_ascend_bridge_coverage")
     .select("has_ascend_link, has_value_history")
     .eq("county_id", countyId);
@@ -370,7 +370,7 @@ export async function getSalesByDateRange(
   countyId: string = BENTON_ASCEND_CONFIG.defaultCountyId,
   sourceFilter?: "land_record" | "excise"
 ): Promise<AscendSale[]> {
-  let query = supabase
+  let query = (supabase as any)
     .from("ascend_sales")
     .select("*")
     .eq("county_id", countyId)
@@ -396,7 +396,7 @@ export async function getValuesByYear(
   taxYear: string,
   countyId: string = BENTON_ASCEND_CONFIG.defaultCountyId
 ): Promise<AscendValue[]> {
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from("ascend_values")
     .select("lrsn, pin, tax_year, mklnd, mkimp, mkttl, avr, trv")
     .eq("county_id", countyId)
@@ -431,7 +431,7 @@ export async function checkConnectorHealth(
   let healthy = true;
 
   for (const table of tables) {
-    const { count, error } = await supabase
+    const { count, error } = await (supabase as any)
       .from(table)
       .select("id", { count: "exact", head: true })
       .eq("county_id", countyId);
