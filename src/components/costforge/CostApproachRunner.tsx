@@ -59,7 +59,7 @@ export function CostApproachRunner() {
         occupancy_code: null,
         is_residential: form.prop_type === "R",
       },
-      form.quality || undefined,
+      form.quality as any || undefined,
       form.prop_type === "R" ? form.extWall || undefined : undefined,
       form.effLife ? toNum(form.effLife) : undefined
     );

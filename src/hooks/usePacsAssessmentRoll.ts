@@ -47,7 +47,7 @@ export function usePacsAssessmentRollByGeo(geoId: string | null) {
   return useQuery({
     queryKey: ["pacs-assessment-roll-geo", geoId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("pacs_assessment_roll")
         .select("*")
         .eq("geo_id", geoId!)

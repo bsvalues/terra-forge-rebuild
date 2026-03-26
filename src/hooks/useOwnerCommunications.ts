@@ -55,8 +55,8 @@ export function useOwnerCommunications(
     queryKey: [COMMS_KEY, parcelId, filters],
     enabled: !!parcelId,
     queryFn: async () => {
-      let query = supabase
-        .from("owner_communications" as "parcels")
+      let query = (supabase as any)
+        .from("owner_communications")
         .select("*")
         .eq("parcel_id", parcelId!)
         .order("created_at", { ascending: false });
@@ -79,7 +79,7 @@ export function useOwnerCommunications(
 
       const { data, error } = await query;
       if (error) throw error;
-      return (data || []) as unknown as OwnerCommunication[];
+      return (data || []) as OwnerCommunication[];
     },
     staleTime: 10_000,
   });
@@ -90,15 +90,15 @@ export function useAddCommunication() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (input: CreateCommInput) => {
-      const { data, error } = await supabase
-        .from("owner_communications" as "parcels")
-        .insert(input as Record<string, unknown>)
+      const { data, error } = await (supabase as any)
+        .from("owner_communications")
+        .insert(input)
         .select()
         .single();
       if (error) throw error;
-      return data as unknown as OwnerCommunication;
+      return data as OwnerCommunication;
     },
-    onSuccess: (_data, variables) => {
+    onSuccess: (_data: OwnerCommunication, variables: CreateCommInput) => {
       qc.invalidateQueries({ queryKey: [COMMS_KEY, variables.parcel_id] });
     },
   });

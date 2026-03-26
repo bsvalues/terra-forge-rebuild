@@ -33,7 +33,7 @@ export function usePacsOwnerSearch(searchTerm: string | null) {
   return useQuery({
     queryKey: ["pacs-owner-search", searchTerm],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("pacs_owners")
         .select("id, prop_id, owner_id, owner_name, pct_ownership, owner_tax_yr")
         .ilike("owner_name", `%${searchTerm}%`)
