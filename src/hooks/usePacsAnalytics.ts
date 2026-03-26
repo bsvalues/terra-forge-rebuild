@@ -14,7 +14,7 @@ export function usePacsTableStats() {
   return useQuery({
     queryKey: ["pacs-table-stats"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("vw_pacs_table_stats")
         .select("*");
       if (error) throw error;
