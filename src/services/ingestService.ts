@@ -14,7 +14,8 @@ export async function batchInsertParcels(
 
   for (let i = 0; i < parcels.length; i += batchSize) {
     const batch = parcels.slice(i, i + batchSize);
-    const { error } = await (supabase as any).from("parcels").insert(batch as any);
+    // Type assertion needed for dynamic record insertion
+    const { error } = await supabase.from("parcels").insert(batch as any);
     if (error) {
       console.error("Insert error:", error);
       failed += batch.length;
@@ -38,7 +39,8 @@ export async function upsertParcels(
 
   for (let i = 0; i < records.length; i += batchSize) {
     const batch = records.slice(i, i + batchSize);
-    const { error } = await (supabase as any).from("parcels").upsert(batch as any[], {
+    // Type assertion needed for dynamic record insertion
+    const { error } = await supabase.from("parcels").upsert(batch as any[], {
       onConflict: "county_id,parcel_number",
     });
     if (error) {
@@ -64,7 +66,8 @@ export async function upsertPermits(
 
   for (let i = 0; i < records.length; i += batchSize) {
     const batch = records.slice(i, i + batchSize);
-    const { error } = await (supabase as any).from("permits").upsert(batch as any[]);
+    // Type assertion needed for dynamic record insertion
+    const { error } = await supabase.from("permits").upsert(batch as any[]);
     if (error) {
       console.error("Permit batch error:", error.message);
       failed += batch.length;
@@ -88,7 +91,8 @@ export async function upsertAssessments(
 
   for (let i = 0; i < records.length; i += batchSize) {
     const batch = records.slice(i, i + batchSize);
-    const { error } = await (supabase as any).from("assessments").upsert(batch as any[], {
+    // Type assertion needed for dynamic record insertion
+    const { error } = await supabase.from("assessments").upsert(batch as any[], {
       onConflict: "parcel_id,tax_year",
     });
     if (error) {
@@ -114,7 +118,8 @@ export async function upsertExemptions(
 
   for (let i = 0; i < records.length; i += batchSize) {
     const batch = records.slice(i, i + batchSize);
-    const { error } = await (supabase as any).from("exemptions").upsert(batch as any[]);
+    // Type assertion needed for dynamic record insertion
+    const { error } = await supabase.from("exemptions").upsert(batch as any[]);
     if (error) {
       console.error("Exemption batch error:", error.message);
       failed += batch.length;
@@ -142,6 +147,8 @@ export async function upsertPacsOwners(
 
   for (let i = 0; i < records.length; i += batchSize) {
     const batch = records.slice(i, i + batchSize);
+    // PACS tables not yet in generated types - using typed client with assertion
+    // See @/types/pacs for type declarations
     const { error } = await (supabase as any).from("pacs_owners").upsert(batch as any[], {
       onConflict: "county_id,prop_id,owner_id,owner_tax_yr,sup_num",
     });
@@ -168,6 +175,8 @@ export async function upsertPacsSales(
 
   for (let i = 0; i < records.length; i += batchSize) {
     const batch = records.slice(i, i + batchSize);
+    // PACS tables not yet in generated types - using typed client with assertion
+    // See @/types/pacs for type declarations
     const { error } = await (supabase as any).from("pacs_sales").upsert(batch as any[], {
       onConflict: "county_id,chg_of_owner_id,prop_id",
     });
@@ -194,6 +203,8 @@ export async function upsertPacsLandDetails(
 
   for (let i = 0; i < records.length; i += batchSize) {
     const batch = records.slice(i, i + batchSize);
+    // PACS tables not yet in generated types - using typed client with assertion
+    // See @/types/pacs for type declarations
     const { error } = await (supabase as any).from("pacs_land_details").upsert(batch as any[], {
       onConflict: "county_id,prop_id,prop_val_yr,sup_num,land_seg_id",
     });
@@ -220,6 +231,8 @@ export async function upsertPacsImprovements(
 
   for (let i = 0; i < records.length; i += batchSize) {
     const batch = records.slice(i, i + batchSize);
+    // PACS tables not yet in generated types - using typed client with assertion
+    // See @/types/pacs for type declarations
     const { error } = await (supabase as any).from("pacs_improvements").upsert(batch as any[], {
       onConflict: "county_id,prop_id,prop_val_yr,sup_num,imprv_id",
     });
@@ -246,6 +259,8 @@ export async function upsertPacsImprovementDetails(
 
   for (let i = 0; i < records.length; i += batchSize) {
     const batch = records.slice(i, i + batchSize);
+    // PACS tables not yet in generated types - using typed client with assertion
+    // See @/types/pacs for type declarations
     const { error } = await (supabase as any).from("pacs_improvement_details").upsert(batch as any[], {
       onConflict: "county_id,prop_id,prop_val_yr,sup_num,imprv_id,imprv_det_id",
     });
@@ -272,6 +287,8 @@ export async function upsertPacsAssessmentRoll(
 
   for (let i = 0; i < records.length; i += batchSize) {
     const batch = records.slice(i, i + batchSize);
+    // PACS tables not yet in generated types - using typed client with assertion
+    // See @/types/pacs for type declarations
     const { error } = await (supabase as any).from("pacs_assessment_roll").upsert(batch as any[], {
       onConflict: "county_id,prop_id,roll_year",
     });
@@ -294,13 +311,15 @@ export async function resolveParcelIds(countyId: string): Promise<Record<string,
   let hasMore = true;
 
   while (hasMore) {
-    const { data } = await (supabase as any)
+    const { data } = await supabase
       .from("parcels")
       .select("id, parcel_number")
       .eq("county_id", countyId)
       .range(offset, offset + 999);
     if (data && data.length > 0) {
-      for (const p of data) lookup[p.parcel_number] = p.id;
+      for (const p of data) {
+        if (p.parcel_number) lookup[p.parcel_number] = p.id;
+      }
       offset += data.length;
       hasMore = data.length === 1000;
     } else {
@@ -313,6 +332,7 @@ export async function resolveParcelIds(countyId: string): Promise<Record<string,
 
 /** Backfill assessments RPC */
 export async function backfillAssessments(countyId: string, taxYear: number): Promise<void> {
+  // Type assertion needed for RPC call - function may not be in generated types
   const { error } = await supabase.rpc("backfill_assessments" as any, {
     p_county_id: countyId,
     p_tax_year: taxYear,
@@ -324,7 +344,7 @@ export async function backfillAssessments(countyId: string, taxYear: number): Pr
 
 /** Pull field assignments from parcels table */
 export async function pullFieldAssignments(limit = 20) {
-  const { data, error } = await (supabase as any)
+  const { data, error } = await supabase
     .from("parcels")
     .select("id, parcel_number, address, city, latitude, longitude, assessed_value, property_class")
     .order("updated_at", { ascending: true })
@@ -336,7 +356,7 @@ export async function pullFieldAssignments(limit = 20) {
 
 /** Fetch parcels for batch preview (BatchApplyPanel) */
 export async function fetchNeighborhoodParcels(neighborhoodCode: string) {
-  const { data, error } = await (supabase as any)
+  const { data, error } = await supabase
     .from("parcels")
     .select("id, address, assessed_value, building_area, land_area, year_built, bedrooms, bathrooms")
     .eq("neighborhood_code", neighborhoodCode)
@@ -349,7 +369,7 @@ export async function fetchNeighborhoodParcels(neighborhoodCode: string) {
 
 /** Fetch value adjustments for batch notice generation */
 export async function fetchActiveAdjustments(calibrationRunId: string) {
-  const { data, error } = await (supabase as any)
+  const { data, error } = await supabase
     .from("value_adjustments")
     .select("parcel_id, previous_value, new_value")
     .eq("calibration_run_id", calibrationRunId)
@@ -362,7 +382,7 @@ export async function fetchActiveAdjustments(calibrationRunId: string) {
 
 /** Fetch parcel details by IDs (for notice generation) */
 export async function fetchParcelDetails(parcelIds: string[]) {
-  const { data } = await (supabase as any)
+  const { data } = await supabase
     .from("parcels")
     .select("id, parcel_number, address, county_id")
     .in("id", parcelIds.slice(0, 500));
@@ -374,7 +394,7 @@ export async function fetchParcelsForEnrichment(
   filters: Record<string, any>,
   batchSize: number
 ): Promise<{ parcels: string[]; total: number }> {
-  let query = (supabase as any)
+  let query = supabase
     .from("parcels")
     .select("parcel_number", { count: "exact" })
     .or("building_area.is.null,year_built.is.null,bedrooms.is.null");
@@ -467,6 +487,6 @@ export async function downloadDossierFile(filePath: string): Promise<Blob | null
 
 /** Fetch parcels for sync runner */
 export async function fetchParcelsForSync(limit = 200) {
-  const { data } = await (supabase as any).from("parcels").select("*").limit(limit);
+  const { data } = await supabase.from("parcels").select("*").limit(limit);
   return (data || []) as Record<string, unknown>[];
 }

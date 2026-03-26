@@ -24,6 +24,8 @@ export async function runGatesForProduct(
   tableName: string,
   sampleSize: number = 1000,
 ): Promise<GateRunResult> {
+  // PACS tables not yet in generated types - using typed client with assertion
+  // See @/types/pacs for type declarations
   const { data, error } = await (supabase as any)
     .from(tableName)
     .select("*")

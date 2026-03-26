@@ -218,8 +218,11 @@ export function CostScheduleManager() {
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                   {multipliers.map((m) => (
-                    <div key={m.id} className="rounded-lg border border-border/40 p-3">
-                      <div className="text-xs text-muted-foreground">{m.multiplier_type} — {m.construction_class}</div>
+                    <div key={m.id} className="rounded-lg border border-border/40 p-3" title={`Section: ${m.section_id ?? "N/A"}`}>
+                      <div className="text-xs text-muted-foreground">
+                        {m.multiplier_type} — {m.construction_class}
+                        {m.section_id !== null && ` (Sec ${m.section_id})`}
+                      </div>
                       <div className="text-lg font-semibold tabular-nums">{m.multiplier ?? "-"}</div>
                     </div>
                   ))}
