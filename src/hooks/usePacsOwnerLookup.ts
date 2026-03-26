@@ -16,7 +16,7 @@ export function usePacsOwnerLookup(propId: number | null) {
   return useQuery({
     queryKey: ["pacs-owners", propId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("pacs_owners")
         .select("id, county_id, prop_id, owner_id, owner_name, pct_ownership, owner_tax_yr, sup_num")
         .eq("prop_id", propId!)
