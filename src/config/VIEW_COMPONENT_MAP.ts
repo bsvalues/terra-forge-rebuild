@@ -75,7 +75,7 @@ const AuditTimeline = lazy(() => import("@/components/workbench/AuditTimeline").
 const AxiomFSDashboard = lazy(() => import("@/components/axiomfs/AxiomFSDashboard").then(m => ({ default: m.AxiomFSDashboard })));
 
 // ── Component Map ─────────────────────────────────────────────────
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+ 
 export type ViewComponent = LazyExoticComponent<ComponentType<any>>;
 
 export interface ViewEntry {

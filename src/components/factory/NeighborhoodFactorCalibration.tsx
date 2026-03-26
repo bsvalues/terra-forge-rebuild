@@ -19,7 +19,7 @@ import { useActiveCountyId } from "@/hooks/useActiveCounty";
 import { useNeighborhoodStats } from "@/hooks/useNeighborhoodStats";
 
 // sales_history is not in the generated Supabase types — isolate the cast here
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+ 
 const supabaseAny = supabase as any;
 
 interface SalesHistoryComp {

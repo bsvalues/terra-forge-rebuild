@@ -303,7 +303,7 @@ export function useNeighborhoodClustering() {
       // K-means (simple implementation, 20 iterations)
       const k = Math.min(CLUSTER_COUNT, neighborhoods.length);
       let centroids = normalized.slice(0, k).map((n) => [...n.norm]);
-      let assignments = new Array(normalized.length).fill(0);
+      const assignments = new Array(normalized.length).fill(0);
 
       for (let iter = 0; iter < 20; iter++) {
         // Assign

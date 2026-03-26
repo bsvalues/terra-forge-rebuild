@@ -29,7 +29,7 @@ export function TopSystemBar({ onOpenCommandPalette, onOpenControlCenter, onOpen
   // Try to use sidebar context (available when rendered inside ModuleShell)
   let sidebarToggle: (() => void) | null = null;
   try {
-    // eslint-disable-next-line react-hooks/rules-of-hooks
+     
     const sidebar = useSidebar();
     sidebarToggle = sidebar.toggleSidebar;
   } catch {

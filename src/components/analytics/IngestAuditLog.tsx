@@ -36,7 +36,7 @@ export function useSeedAuditLog(limit = 50) {
     queryKey: ["seed-audit-log", limit],
     queryFn: async () => {
       // seed_audit_log not yet in generated types
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+       
       const client = supabase as any;
       const { data, error } = await client
         .from("seed_audit_log")

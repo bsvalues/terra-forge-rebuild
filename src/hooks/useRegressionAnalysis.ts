@@ -841,7 +841,7 @@ function normalQuantile(p: number): number {
   const q = p < 0.5 ? p : 1 - p;
   const r = Math.sqrt(-2 * Math.log(q));
   
-  let result = (((((a[0] * r + a[1]) * r + a[2]) * r + a[3]) * r + a[4]) * r + a[5]) /
+  const result = (((((a[0] * r + a[1]) * r + a[2]) * r + a[3]) * r + a[4]) * r + a[5]) /
     (((((b[0] * r + b[1]) * r + b[2]) * r + b[3]) * r + b[4]) * r + 1);
   
   return p < 0.5 ? -result : result;

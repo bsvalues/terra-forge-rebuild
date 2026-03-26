@@ -86,7 +86,7 @@ function useCrossCountyBenchmarks() {
           }
 
           // Pull ratio summary if sales data exists
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+           
           const { data: ratios } = await (supabase as any)
             .from("vw_sales_reconciliation_summary")
             .select("median_ratio, cod, prd")

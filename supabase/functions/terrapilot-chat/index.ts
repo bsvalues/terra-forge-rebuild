@@ -938,13 +938,13 @@ serve(async (req) => {
     }
 
     // Agentic loop: allow up to 3 tool rounds
-    let conversationMessages: ChatMessage[] = [
+    const conversationMessages: ChatMessage[] = [
       { role: "system", content: systemPrompt },
       ...messages,
     ];
     
     const toolCallResults: Array<{ tool_name: string; tool_call_id: string; result: unknown }> = [];
-    let maxRounds = 3;
+    const maxRounds = 3;
     let finalResponse: Response | null = null;
 
     for (let round = 0; round < maxRounds; round++) {

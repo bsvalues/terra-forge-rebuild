@@ -17,7 +17,7 @@ vi.mock("@/integrations/supabase/client", () => ({
 
 vi.mock("@tanstack/react-query", () => ({
   useQuery: vi.fn((opts: { queryFn: () => Promise<unknown> }) => {
-    let data: unknown = undefined;
+    const data: unknown = undefined;
     let error: unknown = null;
     try {
       opts.queryFn();
