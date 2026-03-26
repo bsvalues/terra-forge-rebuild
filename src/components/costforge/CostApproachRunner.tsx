@@ -5,9 +5,27 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useCalcRCNLD, useImprvTypeCodes } from "@/hooks/useCostForgeHooks";
+import type { QualityGrade } from "@/services/costforgeConnector";
 import { Calculator, RefreshCw } from "lucide-react";
 
 const BENTON_COUNTY_ID = "842a6c54-c7c0-4b2d-aa43-0e3ba63fa57d";
+
+const QUALITY_GRADE_MAP: Record<string, QualityGrade> = {
+  "1": "Low",
+  "2": "Fair",
+  "3": "Average",
+  "4": "Good",
+  "5": "Excellent",
+  Low: "Low",
+  Fair: "Fair",
+  Average: "Average",
+  Good: "Good",
+  Excellent: "Excellent",
+};
+
+function toQualityGrade(v: string): QualityGrade | undefined {
+  return QUALITY_GRADE_MAP[v];
+}
 
 interface FormState {
   prop_type: "R" | "C";
@@ -43,6 +61,11 @@ export function CostApproachRunner() {
   const yearNow = new Date().getFullYear();
   const derivedAge = Math.max(0, yearNow - toNum(form.year_built));
 
+  const selectedTypeCode = useMemo(
+    () => imprvTypeCodes.find((c) => c.imprv_det_type_cd === form.imprvTypeCode) ?? null,
+    [imprvTypeCodes, form.imprvTypeCode]
+  );
+
   const run = async () => {
     await calculate(
       {
@@ -55,11 +78,11 @@ export function CostApproachRunner() {
         condition_code: null,
         construction_class_raw: form.prop_type === "C" ? form.sectionClass : null,
         use_code: null,
-        section_id: null,
+        section_id: selectedTypeCode?.section_id ?? null,
         occupancy_code: null,
         is_residential: form.prop_type === "R",
       },
-      form.quality as any || undefined,
+      toQualityGrade(form.quality),
       form.prop_type === "R" ? form.extWall || undefined : undefined,
       form.effLife ? toNum(form.effLife) : undefined
     );

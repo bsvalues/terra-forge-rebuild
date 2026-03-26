@@ -3,6 +3,8 @@ import useSaveCalcTrace from '../../hooks/useCostForgeMutations'
 import { calcRCNLD } from '@/services/costforgeConnector'
 import type { CostForgeCalcInput } from '@/services/costforgeConnector'
 
+const BENTON_COUNTY_ID = "842a6c54-c7c0-4b2d-aa43-0e3ba63fa57d";
+
 type Props = { parcelId?: string | number }
 
 export default function DraftValuationWorkflow({ parcelId }: Props) {
@@ -17,7 +19,7 @@ export default function DraftValuationWorkflow({ parcelId }: Props) {
     const input: CostForgeCalcInput = {
       lrsn: null,
       pin: null,
-      county_id: 'Benton',
+      county_id: BENTON_COUNTY_ID,
       imprv_det_type_cd: improvementType || null,
       yr_built: yearBuilt,
       area_sqft: area,

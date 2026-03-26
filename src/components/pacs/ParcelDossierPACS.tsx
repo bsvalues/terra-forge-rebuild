@@ -9,9 +9,9 @@ import { usePacsParcelBridge } from "@/hooks/usePacsParcelBridge";
 import { Users, DollarSign, Building, AlertTriangle, ClipboardList } from "lucide-react";
 
 interface ParcelDossierPACSProps {
-  /** Supabase parcel UUID — auto-resolves to prop_id via bridge */
+  /** Supabase parcel UUID — used to resolve geo_id via bridge */
   parcelId?: string | null;
-  /** Direct PACS prop_id — bypasses bridge resolution */
+  /** Direct PACS prop_id — required to load legacy record panels */
   propId?: number | null;
   geoId?: string | null;
   hoodCd?: string | null;
@@ -19,7 +19,7 @@ interface ParcelDossierPACSProps {
 
 export function ParcelDossierPACS({ parcelId, propId: directPropId, geoId, hoodCd }: ParcelDossierPACSProps) {
   const bridge = usePacsParcelBridge(directPropId ? null : parcelId ?? null);
-  const resolvedPropId = directPropId ?? bridge.data?.prop_id ?? null;
+  const resolvedPropId = directPropId ?? null;
   const resolvedGeoId = geoId ?? bridge.data?.geo_id ?? null;
 
   if (!directPropId && bridge.isLoading) {
