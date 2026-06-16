@@ -29,7 +29,9 @@
 //   vw_costforge_imprv_inputs
 // ═══════════════════════════════════════════════════════════════
 
-import { supabase } from "@/integrations/supabase/client";
+import { supabase as supabaseTyped } from "@/integrations/supabase/client";
+// CostForge tables are not yet in generated types; cast to any for these queries.
+const supabase = supabaseTyped as any;
 
 // ── Types ────────────────────────────────────────────────────────────────────
 

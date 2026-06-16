@@ -134,9 +134,10 @@ serve(async (req) => {
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (e) {
-    console.error("owner-portal-lookup error:", e);
+    const errorId = crypto.randomUUID();
+    console.error(`[owner-portal-lookup] error ${errorId}:`, e);
     return new Response(
-      JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }),
+      JSON.stringify({ error: "Lookup failed. Please try again or contact support.", errorId }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }

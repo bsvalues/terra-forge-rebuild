@@ -19,8 +19,8 @@ interface ParcelDossierPACSProps {
 
 export function ParcelDossierPACS({ parcelId, propId: directPropId, geoId, hoodCd }: ParcelDossierPACSProps) {
   const bridge = usePacsParcelBridge(directPropId ? null : parcelId ?? null);
-  const resolvedPropId = directPropId ?? bridge.data?.prop_id ?? null;
-  const resolvedGeoId = geoId ?? bridge.data?.geo_id ?? null;
+  const resolvedPropId = directPropId ?? (bridge.data as any)?.prop_id ?? null;
+  const resolvedGeoId = geoId ?? (bridge.data as any)?.geo_id ?? null;
 
   if (!directPropId && bridge.isLoading) {
     return <Skeleton className="h-64 rounded-2xl" />;
