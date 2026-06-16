@@ -203,7 +203,7 @@ export function useCreateWebhookEndpoint() {
       timeout_ms?: number;
       metadata?: Record<string, unknown>;
     }) => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("webhook_endpoints")
         .insert({
           name: input.name,
