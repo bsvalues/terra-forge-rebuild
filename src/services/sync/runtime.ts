@@ -38,6 +38,7 @@ import {
   PACS_ROLL_QUERIES,
 } from "@/config/pacsFieldMappings";
 import { PACS_WORKFLOW_QUERIES } from "@/config/pacsWorkflowMappings";
+import { quarantineBatch, type QuarantineInput } from "@/services/quarantine";
 
 // ============================================================
 // Sync Run Result
@@ -216,6 +217,8 @@ export async function runContractSync(
     productIds?: string[];
     forceFullRefresh?: boolean;
     dryRun?: boolean;
+    /** When provided, schema-drift and gate-failed rows are quarantined under this county. */
+    countyId?: string;
   }
 ): Promise<SyncRunResult> {
   const startTime = Date.now();
