@@ -262,6 +262,16 @@ export async function runContractSync(
       const drift = checkSchemaDrift(product, result.rows);
       if (drift && drift.status === "breaking_change") {
         anyFailed = true;
+        // Quarantine + continue: park the raw rows for review instead of dropping silently.
+        if (options?.countyId && result.rows.length > 0) {
+          await quarantineProductRows(
+            options.countyId,
+            product.id,
+            "schema_drift",
+            `missing required columns: ${drift.missingRequired.join(", ")}`,
+            result.rows,
+          );
+        }
         productResults.push({
           productId: product.id,
           productName: product.name,
@@ -298,6 +308,21 @@ export async function runContractSync(
 
       if (gatesFailed) {
         anyFailed = true;
+        // Quarantine + continue: park the rows that failed the gate so we can
+        // review them and keep the rest of the pipeline moving.
+        if (options?.countyId && cleanRows.length > 0) {
+          const failedGateIds = (gateResults ?? [])
+            .filter((g) => !g.passed)
+            .map((g) => g.gateId)
+            .join(", ");
+          await quarantineProductRows(
+            options.countyId,
+            product.id,
+            "gate_failed",
+            failedGateIds ? `failed gates: ${failedGateIds}` : "quality gate failure",
+            cleanRows,
+          );
+        }
         productResults.push({
           productId: product.id,
           productName: product.name,
