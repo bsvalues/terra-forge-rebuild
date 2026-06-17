@@ -38,6 +38,7 @@ import {
   PACS_ROLL_QUERIES,
 } from "@/config/pacsFieldMappings";
 import { PACS_WORKFLOW_QUERIES } from "@/config/pacsWorkflowMappings";
+import { quarantineBatch, type QuarantineInput } from "@/services/quarantine";
 
 // ============================================================
 // Sync Run Result
@@ -216,6 +217,8 @@ export async function runContractSync(
     productIds?: string[];
     forceFullRefresh?: boolean;
     dryRun?: boolean;
+    /** When provided, schema-drift and gate-failed rows are quarantined under this county. */
+    countyId?: string;
   }
 ): Promise<SyncRunResult> {
   const startTime = Date.now();
@@ -259,6 +262,16 @@ export async function runContractSync(
       const drift = checkSchemaDrift(product, result.rows);
       if (drift && drift.status === "breaking_change") {
         anyFailed = true;
+        // Quarantine + continue: park the raw rows for review instead of dropping silently.
+        if (options?.countyId && result.rows.length > 0) {
+          await quarantineProductRows(
+            options.countyId,
+            product.id,
+            "schema_drift",
+            `missing required columns: ${drift.missingRequired.join(", ")}`,
+            result.rows,
+          );
+        }
         productResults.push({
           productId: product.id,
           productName: product.name,
@@ -295,6 +308,21 @@ export async function runContractSync(
 
       if (gatesFailed) {
         anyFailed = true;
+        // Quarantine + continue: park the rows that failed the gate so we can
+        // review them and keep the rest of the pipeline moving.
+        if (options?.countyId && cleanRows.length > 0) {
+          const failedGateIds = (gateResults ?? [])
+            .filter((g) => g.status === "fail")
+            .map((g) => g.gateId)
+            .join(", ");
+          await quarantineProductRows(
+            options.countyId,
+            product.id,
+            "gate_failed",
+            failedGateIds ? `failed gates: ${failedGateIds}` : "quality gate failure",
+            cleanRows,
+          );
+        }
         productResults.push({
           productId: product.id,
           productName: product.name,
@@ -376,6 +404,43 @@ export async function runContractSync(
   };
 }
 
+// ============================================================
+// Quarantine bridge — park bad rows instead of dropping them.
+// ============================================================
+//
+// Schema-drift and gate-failed products previously vanished into thin air;
+// now every row gets a quarantine record so the OS can surface "X rows
+// awaiting review" and downstream provenance can mark reads as unverified.
+// Caps at 500 rows per product per run to keep the DB happy on bulk syncs.
+
+async function quarantineProductRows(
+  countyId: string,
+  productId: string,
+  reasonCode: "schema_drift" | "gate_failed",
+  reasonDetail: string,
+  rows: Record<string, unknown>[],
+): Promise<void> {
+  const MAX = 500;
+  const slice = rows.slice(0, MAX);
+  const truncated = rows.length > MAX;
+  const inputs: QuarantineInput[] = slice.map((row) => ({
+    countyId,
+    source: "sync.runtime",
+    sourceProduct: productId,
+    reasonCode,
+    reasonDetail: truncated
+      ? `${reasonDetail} (truncated to ${MAX} of ${rows.length})`
+      : reasonDetail,
+    severity: reasonCode === "schema_drift" ? "critical" : "warning",
+    payload: row,
+  }));
+  try {
+    await quarantineBatch(inputs);
+  } catch (err) {
+    console.warn("[sync.runtime] quarantine bridge failed:", err);
+  }
+}
+
 /**
  * Run sync using the registry (auto-selects best connector per product).
  */
@@ -386,6 +451,7 @@ export async function runContractSyncFromRegistry(
     productIds?: string[];
     forceFullRefresh?: boolean;
     dryRun?: boolean;
+    countyId?: string;
   }
 ): Promise<SyncRunResult> {
   const activeLanes = registry.listActive();
