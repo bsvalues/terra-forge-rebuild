@@ -28,9 +28,12 @@
 - Product status (`schema_drift` / `gate_failed`) is unchanged so the
   pipeline UI still reflects the failure; the rows just no longer vanish.
 
-## Phase 4 — DB Integrity Pass (next)
-- Re-lint RLS on all 80+ tables.
-- Audit triggers on `parcels`, `assessments`, `appeals`, `exemptions` →
-  TerraTrace hash chain.
-- Verify GRANTs match policies (anon stripped where `auth.uid()` is required).
-- Add `data_quarantine` review UI on the Admin work mode.
+## ✅ Phase 4 — DB Integrity + Review UI (THIS TURN)
+- Realtime broadcast lockdown: RLS on `realtime.messages` blocks anon, scopes
+  authenticated subs to `user:<uid>` topics, admin role can subscribe to any
+  topic. (Closes Wiz/Supabase `realtime_no_channel_auth` finding.)
+- `useQuarantine` hook: list/counts/mutation, county-scoped, admin-managed.
+- `QuarantineReviewPanel` mounted on Admin → Quarantine tab. Inspect payload,
+  Restore (queue for re-ingest) or Discard (mark intentionally dropped).
+- Pre-existing 80+ table RLS lint findings carried over from earlier phases —
+  not regressed by this slice; tracked separately.
