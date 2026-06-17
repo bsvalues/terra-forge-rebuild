@@ -21,7 +21,7 @@ describe("provenance envelope", () => {
     expect(wrapped.data.total).toBe(42);
     expect(wrapped.provenance.source).toBe("county-vitals");
     expect(wrapped.provenance.trustLevel).toBe("verified");
-    expect(wrapped.provenance.cachePolicy).toBe("cached 60s");
+    expect(wrapped.provenance.cachePolicy).toBe("cached 1m");
     expect(wrapped.provenance.quarantineCount).toBe(0);
     expect(wrapped.provenance.asOf).toMatch(/^\d{4}-\d{2}-\d{2}T/);
   });
