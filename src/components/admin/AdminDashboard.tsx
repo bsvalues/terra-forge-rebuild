@@ -15,7 +15,9 @@ import {
   Map,
   Wifi,
   Bell,
+  ShieldAlert,
 } from "lucide-react";
+import { QuarantineReviewPanel } from "./QuarantineReviewPanel";
 import { StudyPeriodManager } from "./StudyPeriodManager";
 import { ScrapeJobManager } from "./ScrapeJobManager";
 import { DataQualityDashboard } from "./DataQualityDashboard";
@@ -134,6 +136,13 @@ export function AdminDashboard() {
             <Bell className="w-4 h-4" />
             Alerts
           </TabsTrigger>
+          <TabsTrigger
+            value="quarantine"
+            className="gap-2 data-[state=active]:bg-amber-500/20 data-[state=active]:text-amber-400"
+          >
+            <ShieldAlert className="w-4 h-4" />
+            Quarantine
+          </TabsTrigger>
         </TabsList>
 
          <TabsContent value="ids" className="mt-0">
@@ -190,6 +199,10 @@ export function AdminDashboard() {
 
         <TabsContent value="alerts" className="mt-0">
           <AlertEngineDashboard />
+        </TabsContent>
+
+        <TabsContent value="quarantine" className="mt-0">
+          <QuarantineReviewPanel />
         </TabsContent>
       </Tabs>
     </div>
