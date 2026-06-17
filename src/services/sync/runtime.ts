@@ -404,6 +404,43 @@ export async function runContractSync(
   };
 }
 
+// ============================================================
+// Quarantine bridge — park bad rows instead of dropping them.
+// ============================================================
+//
+// Schema-drift and gate-failed products previously vanished into thin air;
+// now every row gets a quarantine record so the OS can surface "X rows
+// awaiting review" and downstream provenance can mark reads as unverified.
+// Caps at 500 rows per product per run to keep the DB happy on bulk syncs.
+
+async function quarantineProductRows(
+  countyId: string,
+  productId: string,
+  reasonCode: "schema_drift" | "gate_failed",
+  reasonDetail: string,
+  rows: Record<string, unknown>[],
+): Promise<void> {
+  const MAX = 500;
+  const slice = rows.slice(0, MAX);
+  const truncated = rows.length > MAX;
+  const inputs: QuarantineInput[] = slice.map((row) => ({
+    countyId,
+    source: "sync.runtime",
+    sourceProduct: productId,
+    reasonCode,
+    reasonDetail: truncated
+      ? `${reasonDetail} (truncated to ${MAX} of ${rows.length})`
+      : reasonDetail,
+    severity: reasonCode === "schema_drift" ? "critical" : "warning",
+    payload: row,
+  }));
+  try {
+    await quarantineBatch(inputs);
+  } catch (err) {
+    console.warn("[sync.runtime] quarantine bridge failed:", err);
+  }
+}
+
 /**
  * Run sync using the registry (auto-selects best connector per product).
  */
@@ -414,6 +451,7 @@ export async function runContractSyncFromRegistry(
     productIds?: string[];
     forceFullRefresh?: boolean;
     dryRun?: boolean;
+    countyId?: string;
   }
 ): Promise<SyncRunResult> {
   const activeLanes = registry.listActive();
