@@ -1,83 +1,47 @@
+# Data Hardening Plan — Runtime Provenance + Quarantine
 
+> Failure mode chosen: **Quarantine + continue**. Bad data is never dropped silently
+> and never blocks the OS, but it is marked `unverified` and rendered with a warning
+> badge so humans can adjudicate. Trust is earned per-row, not per-table.
 
-## Problem
+## Phase 1 — Foundation (THIS TURN)
 
-Seven distinct issues are causing the broken experience:
+The runtime spine every other phase plugs into.
 
-1. **Home defaults to `SLCODemoLanding`** (line 325 of AppLayout.tsx) — shows pipeline/onboarding engineering UI instead of assessor home
-2. **IA_MAP exposes 23 Home views** including `ids`, `sync`, `slco-pipeline`, `slco-demo`, `data-doctor`, `data-ops`, `webhooks` — all engineering plumbing visible in ModuleViewBar
-3. **Unscoped hooks** — `usePipelineStatus`, `useNeighborhoodStats`, `useRevaluationCycles`, `useOnboardingStatus` (parcels + study_periods), `useBatchNoticeJobs`, `useQualityParcels` all query globally without county filter
-4. **Radix SelectItem crash** — empty string `value=""` in `BatchNoticeDashboard.tsx` and `ParcelFilters.tsx` causes runtime errors
-5. **No admin gating** on DataOps, IDS, Sync views
-6. **ModuleViewBar renders everything** from IA_MAP with no role filtering
-7. **GeoEquity is clean** — already fixed with 4 tabs + SyncStatusBadge ✓
+1. **DB: `data_quarantine` table** — holds rejected/suspect rows with source,
+   reason, severity, and original payload (jsonb). RLS county-scoped, admins
+   manage. Indexed on `(county_id, source, status, created_at)`.
+2. **DB: `provenance_envelopes` view** — uniform `{source, as_of, cache_policy,
+   trust_level, quarantine_count}` shape for any query key.
+3. **`src/lib/provenance.ts`** — `wrapWithProvenance<T>()` helper that every hook
+   uses to attach a runtime envelope to its return value. Replaces the ad-hoc
+   `as_of` strings sprinkled around.
+4. **`src/services/quarantine.ts`** — `quarantineRow({ source, reason, severity,
+   payload, countyId })` writes to `data_quarantine` and emits a TerraTrace
+   `data_quarantined` event. Used by sync runtime, quality gates, and write-lane
+   violations.
+5. **`<ProvenanceBadge>` upgrade** — read trust_level + quarantine_count and
+   render an amber warning chip when unverified rows exist.
+6. **Test**: `provenance.test.ts` — round-trips an envelope, quarantines a fake
+   row, asserts the badge renders amber.
 
-## Plan — Parallel Execution Tracks
+## Phase 2 — Write-Lane Enforcement (next turn)
 
-```text
-TRACK A (Data Scoping)          TRACK B (UI Cleanup)           TRACK C (Runtime Fixes)
-─────────────────────           ─────────────────────          ──────────────────────
-A1: usePipelineStatus           B1: AppLayout default          C1: BatchNoticeDashboard
-    + county_id param               SuiteHub not SLCODemo          SelectItem value=""
-A2: useNeighborhoodStats        B2: IA_MAP.ts strip admin      C2: ParcelFilters.tsx
-    + county_id param               views from Home list           SelectItem value=""
-A3: useRevaluationCycles        B3: ModuleViewBar add
-    + .eq("county_id")              admin filter logic
-A4: useOnboardingStatus
-    + .eq("county_id")
-A5: useQualityParcels
-    + .eq("county_id")
-A6: useBatchNoticeJobs
-    + .eq("county_id")
-```
+- Wire `assertWriteLane` into every `forge/dais/dossier/atlas` service entry point.
+- Quarantine cross-lane attempts to `data_quarantine` with severity=critical
+  (instead of throwing in prod).
+- Add `write_lane_violations` → quarantine bridge.
 
-### Track A — County-Scope All Remaining Hooks
+## Phase 3 — Ingest Quality Gates (later)
 
-Each hook gets `useActiveCountyId()` and filters by it. Query is `enabled: !!countyId`.
+- `runContractSync` already runs gates; route gate failures + drift through
+  `quarantineRow` instead of dropping the product.
+- Per-row gates (not just product-level) so 9 good rows publish while 1 bad row
+  quarantines.
 
-| Hook | Fix |
-|------|-----|
-| `usePipelineStatus` | Pass `p_county_id` to RPC (or filter `pipeline_events` table by county_id) |
-| `useNeighborhoodStats` | Add `p_county_id` param to RPC call |
-| `useRevaluationCycles` | Add `.eq("county_id", countyId)` |
-| `useOnboardingStatus` | Add `.eq("county_id", countyId)` to parcels and study_periods counts |
-| `useQualityParcels` | Add `.eq("county_id", countyId)` |
-| `useBatchNoticeJobs` | Add `.eq("county_id", countyId)` (batch_notice_jobs has county_id column) |
+## Phase 4 — DB Integrity Pass (later)
 
-### Track B — Strip Engineering UI from Assessor Shell
-
-**B1: AppLayout.tsx line 324-325** — Change default Home case from `SLCODemoLanding` to `SuiteHub`:
-```tsx
-default:
-  return <SuiteHub onNavigate={handleNavigate} />;
-```
-
-**B2: IA_MAP.ts** — Remove these views from the Home module's `views` array: `ids`, `sync`, `slco-pipeline`, `slco-demo`, `data-doctor`, `webhooks`, `data-ops`. Keep their legacy redirects so deep-links don't break, but they won't appear in the tab bar.
-
-**B3: ModuleViewBar** — Add an `adminOnly` flag to `ViewDefinition`. Views marked `adminOnly` are hidden unless user has admin role. (Optional — removing from IA_MAP views array in B2 is sufficient for now.)
-
-### Track C — Fix Runtime Crashes
-
-Replace all `<SelectItem value="">` with `<SelectItem value="__all__">` in:
-- `src/components/dais/BatchNoticeDashboard.tsx` (line 143)
-- `src/components/geoequity/ParcelFilters.tsx` (lines 106, 126, 146)
-
-Update corresponding `onValueChange` handlers to treat `"__all__"` as "no filter".
-
-### Files Changed
-
-| File | Change |
-|------|--------|
-| `src/hooks/usePipelineStatus.ts` | Add county scoping |
-| `src/hooks/useNeighborhoodStats.ts` | Add county_id param |
-| `src/hooks/useRevaluationCycles.ts` | Add county filter |
-| `src/hooks/useOnboardingStatus.ts` | Scope parcels + study_periods queries |
-| `src/hooks/useQualityPillarData.ts` | Scope parcels query |
-| `src/hooks/useBatchNotices.ts` | Scope batch_notice_jobs query |
-| `src/components/layout/AppLayout.tsx` | Default Home → SuiteHub |
-| `src/config/IA_MAP.ts` | Remove engineering views from Home |
-| `src/components/dais/BatchNoticeDashboard.tsx` | Fix empty SelectItem |
-| `src/components/geoequity/ParcelFilters.tsx` | Fix empty SelectItem |
-
-No data is deleted. No components are removed from the codebase. Engineering views remain accessible via direct navigation for admins.
-
+- Re-lint RLS on all 80+ tables.
+- Audit triggers on `parcels`, `assessments`, `appeals`, `exemptions` →
+  TerraTrace hash chain.
+- Verify GRANTs match policies (anon stripped where `auth.uid()` is required).
