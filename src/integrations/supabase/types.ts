@@ -1019,6 +1019,63 @@ export type Database = {
         }
         Relationships: []
       }
+      data_quarantine: {
+        Row: {
+          county_id: string
+          created_at: string
+          id: string
+          payload: Json
+          payload_hash: string
+          reason_code: string
+          reason_detail: string | null
+          review_notes: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          severity: string
+          source: string
+          source_product: string | null
+          status: string
+          trace_event_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          county_id: string
+          created_at?: string
+          id?: string
+          payload: Json
+          payload_hash: string
+          reason_code: string
+          reason_detail?: string | null
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          severity?: string
+          source: string
+          source_product?: string | null
+          status?: string
+          trace_event_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          county_id?: string
+          created_at?: string
+          id?: string
+          payload?: Json
+          payload_hash?: string
+          reason_code?: string
+          reason_detail?: string | null
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          severity?: string
+          source?: string
+          source_product?: string | null
+          status?: string
+          trace_event_id?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       data_sources: {
         Row: {
           connection_config: Json | null
