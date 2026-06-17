@@ -312,7 +312,7 @@ export async function runContractSync(
         // review them and keep the rest of the pipeline moving.
         if (options?.countyId && cleanRows.length > 0) {
           const failedGateIds = (gateResults ?? [])
-            .filter((g) => !g.passed)
+            .filter((g) => g.status === "fail")
             .map((g) => g.gateId)
             .join(", ");
           await quarantineProductRows(
