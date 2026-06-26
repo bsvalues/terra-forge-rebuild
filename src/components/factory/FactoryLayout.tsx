@@ -12,11 +12,12 @@ import { IncomeMode } from "./income/IncomeMode";
 import { CompMode } from "./comps/CompMode";
 import { ScenarioMode } from "./scenarios/ScenarioMode";
 import { AdjustmentLedger } from "./AdjustmentLedger";
-import { BarChart3, DollarSign, Building2, Grid3X3, FlaskConical, Factory as FactoryIcon } from "lucide-react";
+import { BarChart3, DollarSign, Building2, Grid3X3, FlaskConical, Factory as FactoryIcon, SlidersHorizontal } from "lucide-react";
 import { ScopeHeader } from "@/components/trust";
 import { useCountyVitals } from "@/hooks/useCountyVitals";
+import { NeighborhoodFactorCalibration } from "./NeighborhoodFactorCalibration";
 
-export type FactoryMode = "regression" | "cost" | "income" | "comps" | "scenarios";
+export type FactoryMode = "regression" | "cost" | "income" | "comps" | "scenarios" | "calibration";
 
 interface FactoryLayoutProps {
   initialMode?: string;
@@ -28,9 +29,10 @@ const MODE_META: Record<FactoryMode, { label: string; icon: React.ElementType; d
   income:     { label: "Income", icon: Building2, description: "Cap rate & GRM valuation" },
   comps:      { label: "Comp Review", icon: Grid3X3, description: "Batch ratio review & adjustments" },
   scenarios:  { label: "Scenarios", icon: FlaskConical, description: "What-if impact analysis" },
+  calibration: { label: "Calibration", icon: SlidersHorizontal, description: "PRD/COD/median ratio study" },
 };
 
-const MODES: FactoryMode[] = ["regression", "cost", "income", "comps", "scenarios"];
+const MODES: FactoryMode[] = ["regression", "cost", "income", "comps", "scenarios", "calibration"];
 
 export function FactoryLayout({ initialMode }: FactoryLayoutProps) {
   const [activeMode, setActiveMode] = useState<FactoryMode>(
@@ -132,7 +134,6 @@ export function FactoryLayout({ initialMode }: FactoryLayoutProps) {
 
         {/* Mode Content */}
         {MODES.map((mode) => {
-          const meta = MODE_META[mode];
           return (
             <TabsContent key={mode} value={mode}>
               <motion.div
@@ -148,6 +149,8 @@ export function FactoryLayout({ initialMode }: FactoryLayoutProps) {
                   <IncomeMode neighborhoodCode={neighborhood} />
                 ) : mode === "comps" ? (
                   <CompMode neighborhoodCode={neighborhood} />
+                ) : mode === "calibration" ? (
+                  <NeighborhoodFactorCalibration />
                 ) : (
                   <ScenarioMode neighborhoodCode={neighborhood} />
                 )}
@@ -163,28 +166,3 @@ export function FactoryLayout({ initialMode }: FactoryLayoutProps) {
   );
 }
 
-/** Placeholder for each mode — will be replaced by real implementations in 6.2–6.5 */
-function FactoryPlaceholder({ mode, description, neighborhood }: { mode: string; description: string; neighborhood: string | null }) {
-  const meta = MODE_META[mode as FactoryMode];
-  const Icon = meta.icon;
-
-  return (
-    <div className="material-bento p-12 flex flex-col items-center justify-center text-center space-y-4 min-h-[400px]">
-      <div className="w-16 h-16 rounded-2xl bg-[hsl(var(--tf-elevated))] flex items-center justify-center">
-        <Icon className="w-8 h-8 text-[hsl(var(--tf-transcend-cyan))]" />
-      </div>
-      <div>
-        <h2 className="text-lg font-medium text-foreground">{meta.label}</h2>
-        <p className="text-sm text-muted-foreground mt-1">{description}</p>
-      </div>
-      {neighborhood && (
-        <p className="text-xs text-muted-foreground bg-[hsl(var(--tf-elevated))] px-3 py-1.5 rounded-full">
-          Neighborhood: <span className="text-foreground font-medium">{neighborhood}</span>
-        </p>
-      )}
-      <p className="text-xs text-muted-foreground/60 italic mt-4">
-        Phase 6.{mode === "regression" ? "2" : mode === "cost" ? "3" : mode === "comps" ? "4" : "5"} — Implementation pending
-      </p>
-    </div>
-  );
-}

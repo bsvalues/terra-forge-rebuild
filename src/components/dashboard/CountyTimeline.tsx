@@ -2,7 +2,7 @@
 // "What happened today?" — the county's flight recorder.
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -22,7 +22,6 @@ import {
   ExternalLink,
   Radio,
   Upload,
-  Zap,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useCountyTimeline, type TimelineEvent, type TimelineRange, type CausalFilter, type WindowFilter } from "@/hooks/useCountyTimeline";
@@ -101,7 +100,7 @@ interface CountyTimelineProps {
   compact?: boolean;
 }
 
-export function CountyTimeline({ onNavigate, onMissionPreview, maxHeight = "500px", compact = false }: CountyTimelineProps) {
+export function CountyTimeline({ onNavigate, maxHeight = "500px", compact = false }: CountyTimelineProps) {
   const [range, setRange] = useState<TimelineRange>("7d");
   const [activeTypes, setActiveTypes] = useState<string[]>([]);
   const [searchInput, setSearchInput] = useState("");
@@ -110,7 +109,7 @@ export function CountyTimeline({ onNavigate, onMissionPreview, maxHeight = "500p
   const [causalFilter, setCausalFilter] = useState<CausalFilter | null>(null);
   const [windowFilter, setWindowFilter] = useState<WindowFilter | null>(null);
 
-  const { data, isLoading } = useCountyTimeline({
+  const { data, isLoading, isError } = useCountyTimeline({
     range,
     types: activeTypes.length > 0 ? activeTypes : null,
     search: debouncedSearch,
@@ -133,36 +132,6 @@ export function CountyTimeline({ onNavigate, onMissionPreview, maxHeight = "500p
     setRange("24h");
   };
 
-  // Deep navigation from timeline event links — kernel-legal targets only
-  const handleEventNavigate = (key: string, value: string | null) => {
-    if (!value || !onNavigate) return;
-    // Special case: mission_id opens the preview drawer directly
-    if (key === "mission_id" && onMissionPreview) {
-      onMissionPreview(value);
-      return;
-    }
-    switch (key) {
-      case "mission_id":
-        onNavigate("home:dashboard");
-        break;
-      case "parcel_id":
-        onNavigate("workbench:property");
-        break;
-      case "ingest_job_id":
-        onNavigate("home:ids");
-        break;
-      case "run_id":
-      case "receipt_id":
-      case "trace_id":
-        onNavigate("registry:trust");
-        break;
-      case "neighborhood":
-        onNavigate("factory:calibration");
-        break;
-      default:
-        break;
-    }
-  };
 
   // Precise causal chain: use RPC-level filtering
   const handleCausalFilter = (key: string, value: string) => {
@@ -232,7 +201,7 @@ export function CountyTimeline({ onNavigate, onMissionPreview, maxHeight = "500p
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Radio className="w-3 h-3 text-chart-2 animate-pulse" />
+          <Radio className="w-3 h-3 text-chart-2 animate-core-pulse" />
           <span className="text-[10px] text-chart-2 font-medium uppercase tracking-wider">County Timeline</span>
           {data && (
             <span className="text-[10px] text-muted-foreground">
@@ -321,6 +290,11 @@ export function CountyTimeline({ onNavigate, onMissionPreview, maxHeight = "500p
           {[...Array(5)].map((_, i) => (
             <Skeleton key={i} className="h-14 w-full rounded-lg" />
           ))}
+        </div>
+      ) : isError ? (
+        <div className="flex items-center justify-center h-32 gap-2 text-sm text-destructive">
+          <AlertCircle className="w-4 h-4" />
+          Timeline unavailable — check network or retry.
         </div>
       ) : events.length === 0 ? (
         <div className="text-center py-10 text-muted-foreground">

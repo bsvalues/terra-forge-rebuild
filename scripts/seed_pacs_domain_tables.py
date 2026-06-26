@@ -49,8 +49,8 @@ PACS_CONN = os.getenv(
     "PACS_ODBC_CONN",
     "DRIVER={SQL Server};SERVER=tcp:127.0.0.1,1433;UID=sa;PWD=TF_Pacs2026!;DATABASE=pacs_oltp;"
 )
-URL = os.getenv("SUPABASE_URL", "https://udjoodlluygvlqccwade.supabase.co").rstrip("/")
-KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "")
+URL = os.environ["SUPABASE_URL"].rstrip("/")
+KEY = os.environ["SUPABASE_SERVICE_ROLE_KEY"]
 EXPORTS_DIR = Path(os.getenv("BENTON_EXPORTS", r"E:\Exports\Exports\dataextract"))
 BATCH_SIZE = 200
 BENTON_FIPS = "53005"

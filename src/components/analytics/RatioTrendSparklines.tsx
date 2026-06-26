@@ -6,10 +6,9 @@ import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, ReferenceLine,
 } from "recharts";
-import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ProvenanceNumber } from "@/components/trust";
-import { TrendingUp, ArrowUpRight, ArrowDownRight, Minus } from "lucide-react";
+import { ArrowUpRight, ArrowDownRight, Minus } from "lucide-react";
 import { useRatioTrendSpark } from "@/hooks/useAdvancedAnalytics";
 
 function trendIcon(values: number[], target: number) {

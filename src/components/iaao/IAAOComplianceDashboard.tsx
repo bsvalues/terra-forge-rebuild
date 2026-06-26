@@ -3,11 +3,9 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { useIAAOCompliance, IAAO_THRESHOLDS, type ComplianceGrade, type NeighborhoodCompliance } from "@/hooks/useIAAOCompliance";
+import { useIAAOCompliance, type ComplianceGrade } from "@/hooks/useIAAOCompliance";
 import { IAAOReportExportButton } from "./IAAOReportExportButton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {

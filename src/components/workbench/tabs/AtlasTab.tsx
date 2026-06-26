@@ -8,15 +8,12 @@ import {
   MapPin, 
   Compass, 
   Upload, 
-  Eye, 
-  EyeOff,
   ChevronRight,
   ChevronDown,
   Search,
   ZoomIn,
   ZoomOut,
   Maximize2,
-  Settings,
   Database,
   Loader2,
   ExternalLink,
@@ -25,10 +22,9 @@ import {
 import { useWorkbench } from "../WorkbenchContext";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Collapsible,
   CollapsibleContent,
@@ -78,7 +74,7 @@ export function AtlasTab() {
   const { data: neighborhoodStats = [], isLoading: isLoadingStats } = useNeighborhoodGeoStats(
     studyPeriod.id ?? undefined
   );
-  const { data: parcelsWithGeo = [], isLoading: isLoadingParcels } = useParcelsWithGeometry(
+  const { data: parcelsWithGeo = [] } = useParcelsWithGeometry(
     studyPeriod.id ?? undefined,
     200
   );
@@ -400,7 +396,7 @@ export function AtlasTab() {
                 )}
                 <EquityHeatmap
                   studyPeriodId={studyPeriod.id ?? undefined}
-                  onParcelSelect={(p) => {
+                  onParcelSelect={(_p) => {
                     // Could wire to workbench parcel context in the future
                   }}
                   neighborhoodFilter={hasActiveParcel ? parcel.neighborhoodCode ?? undefined : undefined}

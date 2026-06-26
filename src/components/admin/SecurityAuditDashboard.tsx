@@ -1,14 +1,13 @@
 // TerraFusion OS — Security & Audit Dashboard
 // Surfaces trace-event audit trail, write activity, and role compliance.
 
-import { useMemo } from "react";
 import { motion } from "framer-motion";
 import { formatDistanceToNow } from "date-fns";
 import {
   Shield, Activity, AlertTriangle, CheckCircle2, Eye, Lock,
-  Loader2, FileWarning, Users, BarChart3, Zap, Database,
+  Loader2, FileWarning, BarChart3, Zap, Database,
   TrendingUp, Bell, Gavel, Calculator, FileText, MapPin,
-  Sparkles, Radio,
+  Sparkles,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";

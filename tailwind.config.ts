@@ -22,8 +22,8 @@ export default {
         xs: "480px",
       },
       fontFamily: {
-        sans: ["Inter", "system-ui", "sans-serif"],
-        display: ["Inter", "system-ui", "sans-serif"],
+        sans: ["-apple-system", "BlinkMacSystemFont", "SF Pro Text", "Inter", "Segoe UI", "Roboto", "Helvetica Neue", "sans-serif"],
+        display: ["-apple-system", "BlinkMacSystemFont", "SF Pro Display", "Inter", "Segoe UI", "Roboto", "Helvetica Neue", "sans-serif"],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -135,19 +135,15 @@ export default {
           to: { height: "0" },
         },
         "quantum-pulse": {
-          "0%, 100%": {
-            boxShadow: "0 0 20px hsl(var(--tf-transcend-cyan) / 0.3), 0 0 40px hsl(var(--tf-transcend-cyan) / 0.1)",
-          },
-          "50%": {
-            boxShadow: "0 0 30px hsl(var(--tf-transcend-cyan) / 0.5), 0 0 60px hsl(var(--tf-transcend-cyan) / 0.2)",
-          },
+          "0%, 100%": { opacity: "0.85" },
+          "50%": { opacity: "1" },
         },
         "orb-float": {
           "0%, 100%": { transform: "translateY(0px)" },
-          "50%": { transform: "translateY(-10px)" },
+          "50%": { transform: "translateY(-4px)" },
         },
         "glow-pulse": {
-          "0%, 100%": { opacity: "0.4" },
+          "0%, 100%": { opacity: "0.5" },
           "50%": { opacity: "0.8" },
         },
         shimmer: {
@@ -165,13 +161,16 @@ export default {
       },
       backgroundImage: {
         "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
-        "sovereign-gradient": "linear-gradient(135deg, hsl(var(--tf-transcend-cyan)) 0%, hsl(var(--tf-bright-cyan)) 100%)",
+        "sovereign-gradient": "linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--tf-bright-cyan)) 100%)",
         "glass-gradient": "linear-gradient(180deg, hsl(var(--tf-surface) / 0.8) 0%, hsl(var(--tf-substrate) / 0.9) 100%)",
       },
       boxShadow: {
-        sovereign: "0 0 30px hsl(var(--tf-transcend-cyan) / 0.2), 0 0 60px hsl(var(--tf-transcend-cyan) / 0.1)",
-        "sovereign-lg": "0 0 50px hsl(var(--tf-transcend-cyan) / 0.3), 0 0 100px hsl(var(--tf-transcend-cyan) / 0.15)",
-        glass: "0 8px 32px hsl(var(--tf-substrate) / 0.5)",
+        sovereign: "0 2px 8px hsl(0 0% 0% / 0.1)",
+        "sovereign-lg": "0 8px 30px hsl(0 0% 0% / 0.12), 0 2px 8px hsl(0 0% 0% / 0.06)",
+        glass: "0 1px 3px hsl(0 0% 0% / 0.08)",
+        tahoe: "0 1px 3px hsl(0 0% 0% / 0.08)",
+        "tahoe-md": "0 4px 12px hsl(0 0% 0% / 0.1)",
+        "tahoe-lg": "0 8px 30px hsl(0 0% 0% / 0.12), 0 2px 8px hsl(0 0% 0% / 0.06)",
       },
     },
   },

@@ -7,7 +7,7 @@ import { useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthContext } from "@/contexts/AuthContext";
-import { useActiveCountyId } from "@/hooks/useActiveCounty";
+
 
 // ── Types ──────────────────────────────────────────────────────────
 
@@ -38,7 +38,7 @@ const QK = {
 export function useDBNotifications() {
   const { profile } = useAuthContext();
   const userId = profile?.user_id;
-  const countyId = useActiveCountyId();
+
   const qc = useQueryClient();
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
@@ -47,7 +47,7 @@ export function useDBNotifications() {
     queryKey: QK.list(userId),
     queryFn: async () => {
       if (!userId) return [];
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+       
       const { data, error } = await (supabase as any)
         .from("notifications")
         .select("*")
@@ -112,7 +112,7 @@ export function useDBNotifications() {
 
   const markAsRead = useMutation({
     mutationFn: async (id: string) => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+       
       const { error } = await (supabase as any)
         .from("notifications")
         .update({ read_at: new Date().toISOString() })
@@ -125,7 +125,7 @@ export function useDBNotifications() {
 
   const markAllAsRead = useMutation({
     mutationFn: async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+       
       const { error } = await (supabase as any)
         .from("notifications")
         .update({ read_at: new Date().toISOString() })
@@ -138,7 +138,7 @@ export function useDBNotifications() {
 
   const deleteNotification = useMutation({
     mutationFn: async (id: string) => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+       
       const { error } = await (supabase as any)
         .from("notifications")
         .delete()
@@ -151,7 +151,7 @@ export function useDBNotifications() {
 
   const clearAll = useMutation({
     mutationFn: async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+       
       const { error } = await (supabase as any)
         .from("notifications")
         .delete()

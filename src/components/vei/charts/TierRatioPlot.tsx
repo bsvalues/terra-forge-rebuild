@@ -120,7 +120,7 @@ export function TierRatioPlot({ data }: TierRatioPlotProps) {
             <ReferenceLine y={0.97} stroke="hsl(38, 95%, 55%)" strokeDasharray="4 4" strokeOpacity={0.5} />
             
             <Bar dataKey="median" radius={[8, 8, 0, 0]} maxBarSize={80}>
-              {data.map((entry, index) => (
+              {data.map((_entry, index) => (
                 <Cell key={`cell-${index}`} fill={`url(#tierGradient${index})`} />
               ))}
             </Bar>

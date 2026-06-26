@@ -50,7 +50,7 @@ export function PlanTracePanel({ onSave, saving, currentGLA }: PlanTracePanelPro
   const [scalePoint2, setScalePoint2] = useState<TracePoint | null>(null);
   const [scaleKnownDist, setScaleKnownDist] = useState("");
   const [scalePixelsPerFoot, setScalePixelsPerFoot] = useState(0);
-  const [scaleMethod, setScaleMethod] = useState<ScaleMethod>("two_point");
+  const [scaleMethod, _setScaleMethod] = useState<ScaleMethod>("two_point");
 
   // Trace state
   const [tracing, setTracing] = useState(false);
@@ -61,7 +61,7 @@ export function PlanTracePanel({ onSave, saving, currentGLA }: PlanTracePanelPro
   const [sourceType, setSourceType] = useState<PlanSourceType>("permit_packet");
 
   // Component tagging
-  const [componentType, setComponentType] = useState<ComponentType>("living");
+  const [componentType, _setComponentType] = useState<ComponentType>("living");
 
   // Handle plan upload
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {

@@ -2,13 +2,13 @@
 
 import { motion } from "framer-motion";
 import {
-  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
+  Area, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, ReferenceLine, ComposedChart, Line,
 } from "recharts";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ProvenanceNumber } from "@/components/trust";
-import { TrendingUp, ArrowUpRight } from "lucide-react";
+import { TrendingUp } from "lucide-react";
 import { useAssessmentForecast } from "@/hooks/useAdvancedAnalytics";
 
 export function ForecastPanel() {

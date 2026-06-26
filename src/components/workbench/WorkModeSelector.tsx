@@ -7,7 +7,7 @@ import {
   Briefcase 
 } from "lucide-react";
 import { useWorkbench } from "./WorkbenchContext";
-import { WorkMode, WORK_MODE_CONFIGS } from "./types";
+import { WORK_MODE_CONFIGS } from "./types";
 import { cn } from "@/lib/utils";
 
 const ICONS = {

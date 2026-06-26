@@ -2,7 +2,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { 
   BookOpen, ChevronDown, ChevronRight, Scale, 
-  DollarSign, TrendingUp, Building2, Info, FileText 
+  DollarSign, TrendingUp, Building2, FileText
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";

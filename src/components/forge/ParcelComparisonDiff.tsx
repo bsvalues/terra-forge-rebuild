@@ -5,7 +5,6 @@ import {
   Home, MapPin, DollarSign, Ruler, Calendar, Info,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
 interface ParcelSnapshot {

@@ -12,7 +12,7 @@
 // 🧸 This module is a detective. It finds years hiding under tables.
 // ═══════════════════════════════════════════════════════════
 
-import type { ReadOnlyConnector, ColumnInfo } from "./connectors/types";
+import type { ReadOnlyConnector } from "./connectors/types";
 
 // ============================================================
 // Year Doctrine Types

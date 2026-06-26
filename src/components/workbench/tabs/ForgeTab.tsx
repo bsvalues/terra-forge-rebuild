@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { Hammer, TrendingUp, Activity, Brain, Layers, Microscope, Compass, Factory as FactoryIcon, ExternalLink, FlaskConical, DollarSign, BarChart3, MapPin, Undo2, Target, Grid3X3, BookOpen, Database } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useLatestCalibrationRun } from "@/hooks/useFactoryMetrics";
-import { CompsView } from "./CompsView";
+import { ComparableSalesPanel } from "../ComparableSalesPanel";
 import { VEIDashboard } from "@/components/vei/VEIDashboard";
 import { RegressionStudioDashboard } from "@/components/regression/RegressionStudioDashboard";
 import { AVMStudioDashboard } from "@/components/avm/AVMStudioDashboard";
@@ -22,20 +22,10 @@ import { NeighborhoodEquityMatrix } from "@/components/forge/NeighborhoodEquityM
 import { AssessmentMethodologyViewer } from "@/components/forge/AssessmentMethodologyViewer";
 import { ParcelComparisonDiff } from "@/components/forge/ParcelComparisonDiff";
 import { CostForgeDashboard } from "@/components/costforge/CostForgeDashboard";
+import { CalcTracePanel } from "@/components/costforge/CalcTracePanel";
+import { useWorkbench } from "@/components/workbench/WorkbenchContext";
 import { AscendParcelPanel } from "@/components/forge/AscendParcelPanel";
-import { 
-  PRDDrilldownDialog, 
-  CODDrilldownDialog, 
-  TierSlopeDrilldownDialog,
-  AppealsDrilldownDialog 
-} from "@/components/vei/drilldown";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  useStudyPeriods,
-  useAssessmentRatiosByTier,
-  useAppealsByTier,
-  useSampleSize,
-} from "@/hooks/useVEIData";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import {
   ArrowLeftRight,
@@ -69,6 +59,8 @@ export function ForgeTab() {
   ];
 
   const navigate = useNavigate();
+  const { parcel } = useWorkbench();
+  const parcelId = parcel.id;
 
   // Latest calibration run for context
   const { data: latestRun } = useLatestCalibrationRun();
@@ -145,7 +137,7 @@ export function ForgeTab() {
         {activeView === "avm" && <AVMStudioDashboard />}
         {activeView === "segments" && <SegmentDiscoveryDashboard />}
         {activeView === "anatomy" && <ValuationAnatomyDashboard />}
-        {activeView === "comps" && <CompsView />}
+        {activeView === "comps" && <ComparableSalesPanel />}
         {activeView === "avmrun" && <AvmRunPanel />}
         {activeView === "cost" && <CostApproachPanel />}
         {activeView === "ratio" && <RatioStudyPanel />}
@@ -156,7 +148,17 @@ export function ForgeTab() {
         {activeView === "confidence" && <div className="p-6"><ValuationConfidenceVisualizer /></div>}
         {activeView === "equity-matrix" && <div className="p-6"><NeighborhoodEquityMatrix /></div>}
         {activeView === "methodology" && <div className="p-6"><AssessmentMethodologyViewer /></div>}
-        {activeView === "costforge" && <CostForgeDashboard />}
+        {activeView === "costforge" && (
+          <div className="space-y-6 p-6">
+            <CostForgeDashboard />
+            <div className="space-y-2">
+              <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                Calculation Trace
+              </h3>
+              <CalcTracePanel parcelId={parcelId} />
+            </div>
+          </div>
+        )}
         {activeView === "ascend" && <div className="p-6"><AscendParcelPanel /></div>}
         {activeView === "diff" && <div className="p-6"><ParcelComparisonDiff /></div>}
       </div>

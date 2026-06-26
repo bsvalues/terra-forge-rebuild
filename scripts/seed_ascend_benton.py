@@ -29,7 +29,7 @@ Requirements:
 Configuration:
   Set SUPABASE_SERVICE_ROLE_KEY in environment OR scripts/.env.seed:
     SUPABASE_SERVICE_ROLE_KEY=eyJ...
-    SUPABASE_URL=https://jzuculrmjuwrshramgye.supabase.co
+    SUPABASE_URL=https://udjoodlluygvlqccwade.supabase.co
 
 Usage:
   py -3.12 scripts/seed_ascend_benton.py
@@ -82,8 +82,8 @@ except ImportError:
 
 # ── Configuration ─────────────────────────────────────────────────────────────
 
-SUPABASE_URL = os.getenv("SUPABASE_URL", "https://udjoodlluygvlqccwade.supabase.co").rstrip("/")
-SERVICE_KEY  = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "")
+SUPABASE_URL = os.environ["SUPABASE_URL"].rstrip("/")
+SERVICE_KEY  = os.environ["SUPABASE_SERVICE_ROLE_KEY"]
 
 # Ascend .mdb file paths (Benton County)
 REAL_TABLES_MDB  = Path(os.getenv("ASCEND_REAL_MDB",

@@ -138,6 +138,7 @@ export interface Parcel360Identity {
   countyId: string;
   propertyClass: string | null;
   neighborhoodCode: string | null;
+  lrsn: number | null;
 }
 
 export interface Parcel360Characteristics {

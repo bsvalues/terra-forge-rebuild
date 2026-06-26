@@ -2,21 +2,19 @@
 // Orthogonal wall drawing tool with snap-to-grid, area computation, component tagging
 
 import { useState, useRef, useCallback, useEffect } from "react";
-import { motion } from "framer-motion";
 import {
-  MousePointer2, Minus, Eraser, Tag, Move, Undo2, Redo2,
+  MousePointer2, Minus, Eraser, Tag, Undo2, Redo2,
   Grid3x3, Save, Calculator, ZoomIn, ZoomOut, RotateCcw,
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Toggle } from "@/components/ui/toggle";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type {
   WallSegment, ComponentArea, ComponentType, SketchToolId,
-  SketchCanvasState, MeasurementMethod,
+  MeasurementMethod,
 } from "@/types/sketch";
 
 interface SketchBuilderPanelProps {

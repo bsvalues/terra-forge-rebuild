@@ -1,6 +1,9 @@
 // Quick check if the new Supabase project has tables
-const url = 'https://udjoodlluygvlqccwade.supabase.co/rest/v1/counties?select=id&limit=1';
-const key = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVkam9vZGxsdXlndmxxY2N3YWRlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQxMjE4OTcsImV4cCI6MjA4OTY5Nzg5N30.Usa9Lr6LR2-3kxiIkrChWxWvesAOXhUMgSZW8aIfghg';
+const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+if (!key) { console.error('SUPABASE_SERVICE_ROLE_KEY not set'); process.exit(1); }
+const base = process.env.SUPABASE_URL;
+if (!base) { console.error('SUPABASE_URL not set'); process.exit(1); }
+const url = `${base}/rest/v1/counties?select=id&limit=1`;
 
 fetch(url, {
   headers: { 'apikey': key, 'Authorization': `Bearer ${key}`, 'Prefer': 'count=exact' }

@@ -60,7 +60,7 @@ export function SwarmActivityBar({ phase }: { phase: SwarmPhase }) {
                 currentIndex > i
                   ? "bg-[hsl(var(--tf-electric-cyan))]"
                   : currentIndex === i
-                  ? "bg-[hsl(var(--tf-electric-cyan))] animate-pulse shadow-[0_0_6px_hsl(var(--tf-electric-cyan)/0.5)]"
+                  ? "bg-[hsl(var(--tf-electric-cyan))] animate-core-pulse shadow-[0_0_6px_hsl(var(--tf-electric-cyan)/0.5)]"
                   : "bg-muted"
               )}
             />
@@ -108,7 +108,7 @@ export function SwarmActivityBar({ phase }: { phase: SwarmPhase }) {
                   className={cn(
                     "text-[9px] gap-1 transition-all duration-300",
                     AGENT_COLORS[t.agent] || "border-border text-muted-foreground",
-                    t.status === "active" && "animate-pulse",
+                    t.status === "active" && "animate-core-pulse",
                     t.status === "done" && "opacity-70",
                     t.status === "error" && "border-destructive text-destructive",
                   )}

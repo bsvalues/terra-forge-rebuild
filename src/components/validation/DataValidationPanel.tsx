@@ -1,8 +1,8 @@
 // TerraFusion OS — Phase 51: Data Validation Rules Panel
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { motion } from "framer-motion";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -111,7 +111,7 @@ export function DataValidationPanel() {
     <div className="p-6 max-w-7xl mx-auto space-y-6">
       {/* Header */}
       <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
-        <h1 className="text-2xl sm:text-3xl font-light text-gradient-sovereign tracking-tight">
+        <h1 className="text-2xl sm:text-3xl font-light text-[hsl(var(--tf-transcend-cyan))] tracking-tight">
           Data Validation Engine
         </h1>
         <p className="text-sm text-muted-foreground mt-1">

@@ -70,7 +70,7 @@ export default function PropertySearch() {
 
     try {
       // Build API URL - use search endpoint if searching
-      let apiUrl = `/api/benton-county-live?page=${page}&limit=20`
+      const apiUrl = `/api/benton-county-live?page=${page}&limit=20`
       
       // If searching, we'll filter client-side for now
       // TODO: Add server-side search to Data Pipeline

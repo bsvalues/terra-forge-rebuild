@@ -6,11 +6,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   GitCompareArrows, Plus, X, Search, Trash2, ArrowUpDown
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { useParcelComparison, COMPARISON_FIELDS, type ComparisonParcel } from "@/hooks/useParcelComparison";
+import { useParcelComparison, COMPARISON_FIELDS } from "@/hooks/useParcelComparison";
 import { useParcelLookup } from "@/hooks/useParcelLookup";
 
 function formatValue(value: unknown, format: string): string {

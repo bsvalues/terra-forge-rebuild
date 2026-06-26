@@ -24,7 +24,7 @@ function createNotificationSound(type: "success" | "error" | "warning" | "info")
   oscillator.type = "sine";
   gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
 
-  let time = audioContext.currentTime;
+  const time = audioContext.currentTime;
   freqs.forEach((freq, index) => {
     oscillator.frequency.setValueAtTime(freq, time + index * 0.1);
   });

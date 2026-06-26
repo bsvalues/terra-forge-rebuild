@@ -36,7 +36,7 @@ function saveNotifications(notifications: AppNotification[]) {
 
 // Global state to share across components
 let globalNotifications: AppNotification[] = loadNotifications();
-let listeners: Set<() => void> = new Set();
+const listeners: Set<() => void> = new Set();
 
 function notifyListeners() {
   listeners.forEach((listener) => listener());

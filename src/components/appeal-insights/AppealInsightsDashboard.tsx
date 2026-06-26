@@ -16,7 +16,7 @@ import {
   MapPin,
   BarChart3,
 } from "lucide-react";
-import { useAppealAnalytics, type AppealRecord } from "@/hooks/useAppealAnalytics";
+import { useAppealAnalytics } from "@/hooks/useAppealAnalytics";
 
 const fmt = (v: number) =>
   v >= 1_000_000

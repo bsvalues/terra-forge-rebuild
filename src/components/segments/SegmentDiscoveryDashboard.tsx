@@ -26,7 +26,7 @@ export function SegmentDiscoveryDashboard() {
   const [selectedPeriodId, setSelectedPeriodId] = useState<string | undefined>();
   const [activeTab, setActiveTab] = useState("factors");
   
-  const { data: studyPeriods, isLoading: isLoadingPeriods } = useStudyPeriods();
+  const { data: studyPeriods } = useStudyPeriods();
   const { data: factors } = useFactorAnalysis(selectedPeriodId);
   
   // Check if we have regression data
@@ -67,7 +67,7 @@ export function SegmentDiscoveryDashboard() {
         className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
       >
         <div>
-          <h2 className="text-2xl font-light text-gradient-sovereign">
+          <h2 className="text-2xl font-light text-[hsl(var(--tf-transcend-cyan))]">
             Segment Discovery — Factor Analysis
           </h2>
           <p className="text-sm text-muted-foreground mt-1">

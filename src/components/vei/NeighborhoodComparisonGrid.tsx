@@ -2,7 +2,6 @@ import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 import { MapPin, ArrowUpDown, AlertTriangle, CheckCircle } from "lucide-react";
-import type { RatioStatistics } from "@/hooks/useRatioAnalysis";
 
 export interface NeighborhoodRow {
   neighborhood_code: string;
@@ -159,7 +158,7 @@ export function NeighborhoodComparisonGrid({ data, isLoading }: NeighborhoodComp
             </tr>
           </thead>
           <tbody>
-            {sorted.map((n, i) => {
+            {sorted.map((n, _i) => {
               const cod = n.cod ?? 0;
               const prd = n.prd ?? 1;
               const codColor = getCODStatus(cod);

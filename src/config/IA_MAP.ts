@@ -32,6 +32,8 @@ import {
   Eye,
   Activity,
   FolderTree,
+  PlusCircle,
+  ListChecks,
   type LucideIcon,
 } from "lucide-react";
 
@@ -54,6 +56,17 @@ export type PrimaryModuleId = (typeof PRIMARY_MODULE_IDS)[number];
 
 // ── View IDs (sub-views within a primary module) ──────────────────
 export type ViewId = string;
+
+// ── View Group Definition (sidebar sections for grouped modules) ──
+export interface ViewGroupDefinition {
+  id: string;
+  label: string;
+  icon: LucideIcon;
+  /** Ordered list of view IDs belonging to this group */
+  viewIds: ViewId[];
+  /** URL slug for routing: /home/{slug}/{viewId} */
+  slug: string;
+}
 
 // ── Module Definition ─────────────────────────────────────────────
 export interface ModuleDefinition {
@@ -95,9 +108,11 @@ export const IA_MODULES: ModuleDefinition[] = [
     allowedSuites: ["CountyVitals"],
     views: [
       { id: "dashboard", label: "Command Briefing", icon: Home, scope: "county" },
+      { id: "ids", label: "Data Ingestion", icon: Database, scope: "county" },
       { id: "sync", label: "Legacy Sync", icon: Database, scope: "county" },
       { id: "county-pipeline", label: "County Pipeline", icon: BarChart3, scope: "county" },
       { id: "data-doctor", label: "Data Doctor", icon: Shield, scope: "county" },
+      { id: "data-ops", label: "Data Operations", icon: Database, scope: "county" },
       { id: "webhooks", label: "Webhooks", icon: Mail, scope: "county" },
       { id: "watchlist", label: "Watchlist", icon: Eye, scope: "county" },
       { id: "recents", label: "Recent Parcels", icon: Clock, scope: "county" },
@@ -112,6 +127,7 @@ export const IA_MODULES: ModuleDefinition[] = [
       { id: "reval-notices", label: "Reval Notices", icon: Mail, scope: "county" },
       { id: "appeal-insights", label: "Appeal Insights", icon: Scale, scope: "county" },
       { id: "appeal-risk", label: "Appeal Risk", icon: AlertTriangle, scope: "county" },
+      { id: "nbhd-review", label: "Neighborhood Review", icon: Map, scope: "county" },
       { id: "notices", label: "Notice Center", icon: Mail, scope: "county" },
       { id: "exports", label: "Export Center", icon: Download, scope: "county" },
       { id: "reports", label: "Advanced Reports", icon: BarChart3, scope: "county" },
@@ -126,6 +142,12 @@ export const IA_MODULES: ModuleDefinition[] = [
       { id: "value-change", label: "Value Change Tracker", icon: TrendingUp, scope: "county" },
       { id: "ratio-study", label: "Ratio Study", icon: BarChart3, scope: "county" },
       { id: "exemption-analysis", label: "Exemption Analysis", icon: ShieldCheck, scope: "county" },
+      { id: "schema-diff",          label: "Schema Diff",           icon: GitCompareArrows, scope: "county" },
+      { id: "county-compatibility", label: "County Compatibility",  icon: Compass,          scope: "county" },
+      { id: "county-onboarding",    label: "Onboard County",        icon: PlusCircle,       scope: "county" },
+      { id: "county-benchmarks",    label: "County Benchmarks",     icon: BarChart3,        scope: "county" },
+      { id: "ingest-audit",         label: "Ingest Audit Trail",    icon: ListChecks,       scope: "county" },
+      { id: "county-readiness",      label: "County Readiness",      icon: FileText,         scope: "county" },
       { id: "settings", label: "Settings", icon: Settings, scope: "county" },
     ],
   },
@@ -214,7 +236,13 @@ export const LEGACY_REDIRECTS: LegacyRedirect[] = [
   { legacyId: "pacs-analytics", targetModule: "home", targetView: "pacs-analytics" },
   { legacyId: "value-change", targetModule: "home", targetView: "value-change" },
   { legacyId: "ratio-study", targetModule: "home", targetView: "ratio-study" },
-  { legacyId: "exemption-analysis", targetModule: "home", targetView: "exemption-analysis" },
+  { legacyId: "exemption-analysis",   targetModule: "home", targetView: "exemption-analysis" },
+  { legacyId: "schema-diff",          targetModule: "home", targetView: "schema-diff" },
+  { legacyId: "county-compatibility", targetModule: "home", targetView: "county-compatibility" },
+  { legacyId: "county-onboarding",    targetModule: "home", targetView: "county-onboarding" },
+  { legacyId: "county-benchmarks",    targetModule: "home", targetView: "county-benchmarks" },
+  { legacyId: "ingest-audit",         targetModule: "home", targetView: "ingest-audit" },
+  { legacyId: "county-readiness",     targetModule: "home", targetView: "county-readiness" },
   { legacyId: "pacs-dossier", targetModule: "workbench", targetView: "pacs-dossier" },
   // Factory absorbs these
   { legacyId: "vei", targetModule: "factory", targetView: "vei" },
@@ -235,6 +263,55 @@ export const LEGACY_REDIRECTS: LegacyRedirect[] = [
   // Revaluation actions → Factory calibration
   { legacyId: "launch-reval", targetModule: "factory", targetView: "calibration" },
 ];
+
+// ── Sidebar View Groups (collapsible sections for grouped modules) ─
+// "dashboard" is deliberately excluded — it is the module landing page.
+export const VIEW_GROUPS: Partial<Record<PrimaryModuleId, ViewGroupDefinition[]>> = {
+  home: [
+    {
+      id: "data-ops",
+      label: "Data Operations",
+      icon: Database,
+      slug: "data-ops",
+      viewIds: ["ids", "sync", "quality", "validation", "data-doctor", "schema-diff", "data-ops"],
+    },
+    {
+      id: "valuation",
+      label: "Valuation & Equity",
+      icon: BarChart3,
+      slug: "valuation",
+      viewIds: ["ratio-study", "value-change", "neighborhoods", "nbhd-rollup", "exemption-analysis", "county-benchmarks", "county-compatibility"],
+    },
+    {
+      id: "reval",
+      label: "Revaluation",
+      icon: Zap,
+      slug: "revaluation",
+      viewIds: ["launch-reval", "reval-progress", "reval-report", "reval-notices"],
+    },
+    {
+      id: "appeals",
+      label: "Appeals & Notices",
+      icon: Scale,
+      slug: "appeals",
+      viewIds: ["appeal-insights", "appeal-risk", "nbhd-review", "notices"],
+    },
+    {
+      id: "reports",
+      label: "Reports & Monitoring",
+      icon: FileText,
+      slug: "reports",
+      viewIds: ["exports", "reports", "smart-views", "activity", "watchlist", "recents", "bulk-ops", "scheduler"],
+    },
+    {
+      id: "admin",
+      label: "Admin & Pipeline",
+      icon: Settings,
+      slug: "admin",
+      viewIds: ["settings", "county-pipeline", "webhooks", "county-onboarding", "readiness", "county-readiness", "pacs-quality-gates", "reconciliation", "pacs-analytics", "ingest-audit", "geometry"],
+    },
+  ],
+};
 
 // ── Helpers ───────────────────────────────────────────────────────
 
@@ -265,4 +342,38 @@ export function isLegalNavigation(moduleId: string, viewId?: string): boolean {
   if (!mod) return false;
   if (!viewId) return true;
   return mod.views.some((v) => v.id === viewId);
+}
+
+/** Get the group a view belongs to (for breadcrumbs / sidebar highlighting) */
+export function getViewGroup(moduleId: PrimaryModuleId, viewId: string): ViewGroupDefinition | null {
+  const groups = VIEW_GROUPS[moduleId];
+  if (!groups) return null;
+  return groups.find((g) => g.viewIds.includes(viewId)) ?? null;
+}
+
+/** Get ViewDefinition[] for all views in a group */
+export function getGroupViews(moduleId: PrimaryModuleId, groupId: string): ViewDefinition[] {
+  const mod = getModule(moduleId);
+  const groups = VIEW_GROUPS[moduleId];
+  if (!groups) return [];
+  const group = groups.find((g) => g.id === groupId);
+  if (!group) return [];
+  return group.viewIds
+    .map((vid) => mod.views.find((v) => v.id === vid))
+    .filter((v): v is ViewDefinition => v != null);
+}
+
+/** Build a URL path for a module + view (used by router) */
+export function buildUrlPath(moduleId: PrimaryModuleId, viewId?: string): string {
+  if (!viewId) return `/${moduleId}`;
+  const group = getViewGroup(moduleId, viewId);
+  if (group) return `/${moduleId}/${group.slug}/${viewId}`;
+  return `/${moduleId}/${viewId}`;
+}
+
+/** Resolve a URL group slug + viewId back to module context */
+export function resolveGroupSlug(moduleId: PrimaryModuleId, slug: string): ViewGroupDefinition | null {
+  const groups = VIEW_GROUPS[moduleId];
+  if (!groups) return null;
+  return groups.find((g) => g.slug === slug) ?? null;
 }

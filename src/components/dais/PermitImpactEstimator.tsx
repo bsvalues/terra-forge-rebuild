@@ -15,9 +15,7 @@ import {
   HardHat,
   TrendingUp,
   DollarSign,
-  AlertTriangle,
   Loader2,
-  CheckCircle2,
   Download,
   ArrowRight,
 } from "lucide-react";

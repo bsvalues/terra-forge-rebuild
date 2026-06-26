@@ -16,6 +16,14 @@ scripts/.env.seed
 vitest-output.txt
 vitest-results.txt
 
+# Build artifacts / temp
+push_log.txt
+task_complete
+task_complete.*
+.task_complete
+supabase_schema.json
+supabase/.temp/
+
 # Logs
 logs
 *.log

@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Shield,
-  AlertTriangle,
   Loader2,
   MapPin,
   TrendingUp,
@@ -17,7 +16,6 @@ import {
   BarChart3,
   Target,
   RefreshCw,
-  ArrowUpDown,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";

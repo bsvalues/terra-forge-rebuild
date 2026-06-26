@@ -4,7 +4,7 @@
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -28,7 +28,6 @@ import {
 } from "lucide-react";
 import {
   useRevaluationCycles,
-  type RevaluationCycle,
 } from "@/hooks/useRevaluationCycles";
 import {
   useRevaluationProgress,

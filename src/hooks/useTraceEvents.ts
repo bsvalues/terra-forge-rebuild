@@ -64,7 +64,7 @@ export function useTraceEventsFiltered(filter: TraceEventsFilter = {}) {
   return useQuery({
     queryKey: ["trace-events-filtered", countyId, sourceModule, eventType, parcelId, limit],
     queryFn: async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+       
       let q: any = supabase
         .from("trace_events")
         .select(

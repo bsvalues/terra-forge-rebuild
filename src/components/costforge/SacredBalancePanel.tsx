@@ -149,7 +149,7 @@ export function SacredBalancePanel() {
               key={overallBalance.toFixed(1)}
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="text-4xl font-light text-gradient-sovereign"
+              className="text-4xl font-light text-[hsl(var(--tf-transcend-cyan))]"
             >
               {overallBalance.toFixed(1)}%
             </motion.p>

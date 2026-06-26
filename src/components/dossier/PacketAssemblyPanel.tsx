@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Package, FileText, Brain, Plus, Loader2, CheckCircle,
-  Download, Eye, Lock, ChevronDown, ChevronUp, Sparkles,
+  Package, FileText, Brain, Plus, Loader2,
+  Lock, ChevronDown, ChevronUp, Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,7 +23,6 @@ import { useWorkbench } from "@/components/workbench/WorkbenchContext";
 import { invokeSynthesizeEvidence } from "@/services/ingestService";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import ReactMarkdown from "react-markdown";
 
 interface Props {
   parcelId: string | null;

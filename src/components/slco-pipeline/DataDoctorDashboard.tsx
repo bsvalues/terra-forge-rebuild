@@ -15,8 +15,6 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
-import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
@@ -25,14 +23,13 @@ import {
   LANE_CONFIG,
   LANE_ORDER,
   fixTierLabel,
-  fixTierColor,
-  severityWeight,
   type DQLane,
   type DQIssue,
+  type DQFixTier,
   type LaneSummary,
 } from "@/hooks/useDataDoctor";
 import { useCountyMeta } from "@/hooks/useCountyMeta";
-import { ScopeHeader, ProvenanceBadge } from "@/components/trust";
+import { ScopeHeader } from "@/components/trust";
 import ReactMarkdown from "react-markdown";
 
 // ── Icon map ────────────────────────────────────────────────────
@@ -69,7 +66,7 @@ function FixTierBadge({ tier }: { tier: string }) {
   return (
     <Badge variant="outline" className={`text-[9px] px-1.5 gap-1 ${c.class}`}>
       <Icon className="h-2.5 w-2.5" />
-      {fixTierLabel(tier as any)}
+      {fixTierLabel(tier as DQFixTier)}
     </Badge>
   );
 }

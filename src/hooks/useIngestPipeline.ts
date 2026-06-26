@@ -652,7 +652,7 @@ export function useIngestPipeline() {
 
     } else {
       // ---- SINGLE TABLE MODE (existing logic) ----
-      let parcelLookup: Record<string, string> = {};
+      const parcelLookup: Record<string, string> = {};
       if (targetTable === "sales" || targetTable === "assessments") {
         let offset = 0;
         const PAGE_SIZE = 1000;

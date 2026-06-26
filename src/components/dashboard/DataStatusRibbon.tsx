@@ -140,7 +140,7 @@ const CONFIG = {
     bg: "bg-[hsl(var(--tf-sacred-gold)/0.07)]",
     border: "border-[hsl(var(--tf-sacred-gold)/0.22)]",
     iconClass: "text-tf-gold",
-    dot: "bg-[hsl(var(--tf-sacred-gold))] animate-pulse",
+    dot: "bg-[hsl(var(--tf-sacred-gold))] animate-core-pulse",
     chip: "text-tf-gold border-[hsl(var(--tf-sacred-gold)/0.3)]",
   },
   red: {
@@ -149,7 +149,7 @@ const CONFIG = {
     bg: "bg-destructive/7",
     border: "border-destructive/22",
     iconClass: "text-destructive",
-    dot: "bg-destructive animate-pulse",
+    dot: "bg-destructive animate-core-pulse",
     chip: "text-destructive border-destructive/30",
   },
 };

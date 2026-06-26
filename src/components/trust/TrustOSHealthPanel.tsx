@@ -3,7 +3,6 @@
 // Constitutional: no supabase.* calls — pure hook + constitutionGuards consumption.
 
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
 import {
   ShieldCheck,
   ShieldAlert,

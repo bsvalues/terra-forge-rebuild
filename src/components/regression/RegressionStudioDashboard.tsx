@@ -16,7 +16,7 @@ export function RegressionStudioDashboard() {
   const [activeTab, setActiveTab] = useState("regression");
   const [selectedPeriodId, setSelectedPeriodId] = useState<string | undefined>();
 
-  const { data: studyPeriods, isLoading: isLoadingPeriods } = useStudyPeriods();
+  const { data: studyPeriods } = useStudyPeriods();
   const { data: regressionResult, isLoading: isLoadingRegression } = useRegressionAnalysis(selectedPeriodId);
   const runAnalysis = useRunRegressionAnalysis();
 
@@ -43,7 +43,7 @@ export function RegressionStudioDashboard() {
         className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
       >
         <div>
-          <h2 className="text-2xl font-light text-gradient-sovereign">
+          <h2 className="text-2xl font-light text-[hsl(var(--tf-transcend-cyan))]">
             Regression Studio — Statistical Laboratory
           </h2>
           <p className="text-sm text-muted-foreground mt-1">
@@ -58,10 +58,11 @@ export function RegressionStudioDashboard() {
               onSelect={setSelectedPeriodId}
             />
           )}
-          <RegressionActions 
+          <RegressionActions
             onRunAnalysis={handleRunAnalysis}
             isRunning={runAnalysis.isPending}
             hasResult={!!regressionResult}
+            result={regressionResult}
           />
         </div>
       </motion.div>

@@ -758,13 +758,13 @@ async function handleSimpleFastPath(
   const systemPrompt = buildSystemPrompt(context);
   const allTools = getAllTools(context?.mode || "pilot");
 
-  let conversationMessages: ChatMessage[] = [
+  const conversationMessages: ChatMessage[] = [
     { role: "system", content: systemPrompt },
     ...messages,
   ];
 
   const toolCallResults: Array<{ tool_name: string; tool_call_id: string; result: unknown }> = [];
-  let maxRounds = 3;
+  const maxRounds = 3;
 
   for (let round = 0; round < maxRounds; round++) {
     const aiResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {

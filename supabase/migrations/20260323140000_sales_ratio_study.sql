@@ -64,41 +64,45 @@ WITH base AS (
     is_qualified
   FROM vw_sales_ratio_detail
   WHERE ratio IS NOT NULL
-    AND ratio BETWEEN 0.1 AND 10   -- exclude outliers
+    AND ratio BETWEEN 0.1 AND 10
 ),
-stats AS (
+medians AS (
   SELECT
     neighborhood_code,
     county_id,
     sale_year,
-    COUNT(*)                                      AS sale_count,
-    COUNT(*) FILTER (WHERE is_qualified)          AS qualified_count,
-    -- Central tendency
-    ROUND(AVG(ratio)::numeric, 4)                 AS mean_ratio,
-    ROUND(PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY ratio)::numeric, 4) AS median_ratio,
-    -- Dispersion: COD = (mean absolute deviation from median / median) * 100
-    ROUND(
-      AVG(ABS(ratio - PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY ratio)))::numeric
-      / NULLIF(PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY ratio), 0) * 100
-    , 2) AS cod,
-    -- PRD = mean ratio / (weighted mean ratio)
-    -- weighted mean = sum(assessed) / sum(sale_price)
-    ROUND(
-      AVG(ratio)::numeric /
-      NULLIF(SUM(assessed_value)::numeric / NULLIF(SUM(sale_price), 0), 0)
-    , 4) AS prd,
-    -- Value totals
-    SUM(sale_price)                               AS total_sale_volume,
-    AVG(sale_price)                               AS avg_sale_price,
-    SUM(assessed_value)                           AS total_assessed,
-    AVG(assessed_value)                           AS avg_assessed,
-    MIN(ratio)                                    AS min_ratio,
-    MAX(ratio)                                    AS max_ratio,
-    STDDEV(ratio)                                 AS stddev_ratio,
-    -- IAAO thresholds
-    COUNT(*) FILTER (WHERE ratio BETWEEN 0.9 AND 1.1)  AS within_10pct_count
+    PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY ratio) AS median_ratio
   FROM base
   GROUP BY neighborhood_code, county_id, sale_year
+),
+stats AS (
+  SELECT
+    b.neighborhood_code,
+    b.county_id,
+    b.sale_year,
+    COUNT(*)                                      AS sale_count,
+    COUNT(*) FILTER (WHERE b.is_qualified)        AS qualified_count,
+    ROUND(AVG(b.ratio)::numeric, 4)               AS mean_ratio,
+    ROUND(m.median_ratio::numeric, 4)             AS median_ratio,
+    ROUND(
+      (AVG(ABS(b.ratio - m.median_ratio))
+      / NULLIF(m.median_ratio, 0) * 100)::numeric
+    , 2) AS cod,
+    ROUND(
+      (AVG(b.ratio) /
+      NULLIF(SUM(b.assessed_value) / NULLIF(SUM(b.sale_price), 0), 0))::numeric
+    , 4) AS prd,
+    SUM(b.sale_price)                             AS total_sale_volume,
+    AVG(b.sale_price)                             AS avg_sale_price,
+    SUM(b.assessed_value)                         AS total_assessed,
+    AVG(b.assessed_value)                         AS avg_assessed,
+    MIN(b.ratio)                                  AS min_ratio,
+    MAX(b.ratio)                                  AS max_ratio,
+    STDDEV(b.ratio)                               AS stddev_ratio,
+    COUNT(*) FILTER (WHERE b.ratio BETWEEN 0.9 AND 1.1) AS within_10pct_count
+  FROM base b
+  JOIN medians m USING (neighborhood_code, county_id, sale_year)
+  GROUP BY b.neighborhood_code, b.county_id, b.sale_year, m.median_ratio
 )
 SELECT
   *,
@@ -127,27 +131,34 @@ WITH base AS (
   SELECT sale_year, county_id, ratio, sale_price, assessed_value, is_qualified
   FROM vw_sales_ratio_detail
   WHERE ratio IS NOT NULL AND ratio BETWEEN 0.1 AND 10
+),
+medians AS (
+  SELECT sale_year, county_id,
+    PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY ratio) AS median_ratio
+  FROM base
+  GROUP BY sale_year, county_id
 )
 SELECT
-  sale_year,
-  county_id,
+  b.sale_year,
+  b.county_id,
   COUNT(*)                                      AS total_sales,
-  COUNT(*) FILTER (WHERE is_qualified)          AS qualified_sales,
-  ROUND(AVG(ratio)::numeric, 4)                 AS mean_ratio,
-  ROUND(PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY ratio)::numeric, 4) AS median_ratio,
+  COUNT(*) FILTER (WHERE b.is_qualified)        AS qualified_sales,
+  ROUND(AVG(b.ratio)::numeric, 4)               AS mean_ratio,
+  ROUND(m.median_ratio::numeric, 4)             AS median_ratio,
   ROUND(
-    AVG(ABS(ratio - PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY ratio)))::numeric
-    / NULLIF(PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY ratio), 0) * 100
+    (AVG(ABS(b.ratio - m.median_ratio))
+    / NULLIF(m.median_ratio, 0) * 100)::numeric
   , 2) AS cod,
   ROUND(
-    AVG(ratio)::numeric /
-    NULLIF(SUM(assessed_value)::numeric / NULLIF(SUM(sale_price), 0), 0)
+    (AVG(b.ratio) /
+    NULLIF(SUM(b.assessed_value) / NULLIF(SUM(b.sale_price), 0), 0))::numeric
   , 4) AS prd,
-  MIN(ratio) AS min_ratio,
-  MAX(ratio) AS max_ratio,
-  STDDEV(ratio) AS stddev_ratio,
-  SUM(sale_price) AS total_sale_volume,
-  SUM(assessed_value) AS total_assessed
-FROM base
-GROUP BY sale_year, county_id
-ORDER BY sale_year DESC;
+  MIN(b.ratio) AS min_ratio,
+  MAX(b.ratio) AS max_ratio,
+  STDDEV(b.ratio) AS stddev_ratio,
+  SUM(b.sale_price) AS total_sale_volume,
+  SUM(b.assessed_value) AS total_assessed
+FROM base b
+JOIN medians m USING (sale_year, county_id)
+GROUP BY b.sale_year, b.county_id, m.median_ratio
+ORDER BY b.sale_year DESC;

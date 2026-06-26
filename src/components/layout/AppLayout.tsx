@@ -1,4 +1,4 @@
-import { useState, useCallback, lazy, Suspense } from "react";
+import { useState, useCallback, lazy, Suspense, useEffect } from "react";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { motion, AnimatePresence } from "framer-motion";
 import { TopSystemBar } from "@/components/navigation/TopSystemBar";
@@ -79,6 +79,12 @@ const PacsAnalyticsDashboard = lazy(() => import("@/components/pacs/PacsAnalytic
 const ValueChangeDashboard = lazy(() => import("@/components/assessment/ValueChangeDashboard").then(m => ({ default: m.ValueChangeDashboard })));
 const SalesRatioStudy = lazy(() => import("@/components/analytics/SalesRatioStudy").then(m => ({ default: m.SalesRatioStudy })));
 const ExemptionAnalysis = lazy(() => import("@/components/assessment/ExemptionAnalysis").then(m => ({ default: m.ExemptionAnalysis })));
+const SchemaDiffPanel = lazy(() => import("@/components/analytics/SchemaDiffPanel").then(m => ({ default: m.SchemaDiffPanel })));
+const CountyCompatibilityScore = lazy(() => import("@/components/analytics/CountyCompatibilityScore").then(m => ({ default: m.CountyCompatibilityScore })));
+const CountyOnboardingWizard = lazy(() => import("@/components/admin/CountyOnboardingWizard").then(m => ({ default: m.CountyOnboardingWizard })));
+const CrossCountyBenchmarks = lazy(() => import("@/components/analytics/CrossCountyBenchmarks").then(m => ({ default: m.CrossCountyBenchmarks })));
+const IngestAuditLog = lazy(() => import("@/components/analytics/IngestAuditLog").then(m => ({ default: m.IngestAuditLog })));
+const CountyReadinessReport = lazy(() => import("@/components/analytics/CountyReadinessReport").then(m => ({ default: m.CountyReadinessReport })));
 
 // ── Loading fallback ───────────────────────────────────────────────
 function StageFallback() {
@@ -115,6 +121,17 @@ export function AppLayout({ initialParcel: routeParcel, initialModule, initialFa
   );
 
   useRealtimeNotifications();
+
+  // tf:navigate — allow non-React components (e.g. CountySwitcher CTA) to trigger navigation
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const { module, view } = (e as CustomEvent<{ module: string; view: string }>).detail;
+      if (module) setActiveModule(module as PrimaryModuleId);
+      if (view)   setActiveView(view);
+    };
+    window.addEventListener("tf:navigate", handler);
+    return () => window.removeEventListener("tf:navigate", handler);
+  }, []);
 
   const [pendingParcel, setPendingParcel] = useState<{
     id: string;
@@ -368,6 +385,42 @@ export function AppLayout({ initialParcel: routeParcel, initialModule, initialFa
             return (
               <div className="p-6 max-w-7xl mx-auto">
                 <ExemptionAnalysis />
+              </div>
+            );
+          case "schema-diff":
+            return (
+              <div className="p-6 max-w-7xl mx-auto">
+                <SchemaDiffPanel />
+              </div>
+            );
+          case "county-compatibility":
+            return (
+              <div className="p-6 max-w-7xl mx-auto">
+                <CountyCompatibilityScore />
+              </div>
+            );
+          case "county-onboarding":
+            return (
+              <div className="p-6 max-w-7xl mx-auto">
+                <CountyOnboardingWizard />
+              </div>
+            );
+          case "county-benchmarks":
+            return (
+              <div className="p-6 max-w-7xl mx-auto">
+                <CrossCountyBenchmarks />
+              </div>
+            );
+          case "ingest-audit":
+            return (
+              <div className="p-6 max-w-7xl mx-auto">
+                <IngestAuditLog />
+              </div>
+            );
+          case "county-readiness":
+            return (
+              <div className="p-6 max-w-7xl mx-auto">
+                <CountyReadinessReport />
               </div>
             );
           case "sync":

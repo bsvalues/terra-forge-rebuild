@@ -33,7 +33,7 @@ function loadPrefs(): UserPreferences {
 
 // Global state shared across all hook instances
 let globalPrefs = loadPrefs();
-let prefListeners = new Set<() => void>();
+const prefListeners = new Set<() => void>();
 
 function notifyPrefListeners() {
   prefListeners.forEach((fn) => fn());

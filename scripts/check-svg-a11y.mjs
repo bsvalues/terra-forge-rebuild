@@ -45,7 +45,8 @@ function checkFile(content, filePath) {
     }
   }
 
-  // Find <title ...> opening tags.
+  // Find <title ...> opening tags — only relevant if the file contains <svg>.
+  if (!content.includes("<svg")) return issues;
   const titleTagRegex = /<title\b[^>]*>/g;
   const titleTags = content.match(titleTagRegex) ?? [];
 

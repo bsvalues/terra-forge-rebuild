@@ -12,9 +12,7 @@ import {
   Star,
   Loader2,
   MapPin,
-  DollarSign,
   Trash2,
-  AlertTriangle,
   ChevronRight,
 } from "lucide-react";
 import {

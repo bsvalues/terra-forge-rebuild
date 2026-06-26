@@ -1,9 +1,6 @@
 import { motion } from "framer-motion";
 import {
   Trophy,
-  CheckCircle2,
-  AlertTriangle,
-  XCircle,
   ArrowRight,
   BarChart3,
   Loader2,

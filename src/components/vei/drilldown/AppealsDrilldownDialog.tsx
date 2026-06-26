@@ -197,7 +197,7 @@ export function AppealsDrilldownDialog({ open, onOpenChange, data }: AppealsDril
                         border: '1px solid hsl(var(--border))',
                         borderRadius: '8px'
                       }}
-                      formatter={(value: number, name: string, props: any) => [
+                      formatter={(value: number, _name: string, props: any) => [
                         `${value} (${props.payload.percentage}%)`,
                         props.payload.name
                       ]}

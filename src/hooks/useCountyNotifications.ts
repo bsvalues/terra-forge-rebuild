@@ -37,7 +37,7 @@ export function useCountyNotifications() {
     queryKey: QK.countyList(countyId, userId),
     queryFn: async () => {
       if (!userId) return [];
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+       
       const { data, error } = await (supabase as any)
         .from("notifications")
         .select("*")

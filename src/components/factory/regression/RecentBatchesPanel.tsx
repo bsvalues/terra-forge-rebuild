@@ -3,7 +3,6 @@
 
 import { useState } from "react";
 import { useRecentBatchAdjustments, useRollbackBatch } from "@/hooks/useValueAdjustments";
-import { CommitmentButton } from "@/components/ui/commitment-button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -16,7 +15,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { BookOpen, Undo2, CheckCircle2, Loader2 } from "lucide-react";
+import { BookOpen, Undo2, Loader2 } from "lucide-react";
 
 export function RecentBatchesPanel() {
   const { data: batches, isLoading } = useRecentBatchAdjustments();

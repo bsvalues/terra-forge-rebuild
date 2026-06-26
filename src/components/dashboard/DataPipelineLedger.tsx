@@ -46,7 +46,7 @@ function statusDot(status: PipelineStatus) {
     success:   "bg-[hsl(var(--tf-optimized-green))]",
     failed:    "bg-destructive",
     warning:   "bg-[hsl(var(--tf-sacred-gold))]",
-    running:   "bg-[hsl(var(--tf-transcend-cyan))] animate-pulse",
+    running:   "bg-[hsl(var(--tf-transcend-cyan))] animate-core-pulse",
     never_run: "bg-muted-foreground/20",
   };
   return <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${colors[status] ?? "bg-muted-foreground/20"}`} />;

@@ -318,7 +318,7 @@ export function useCompleteReview() {
 export function useUpdateTaskStatus() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ taskId, status, reviewId }: { taskId: string; status: string; reviewId: string }) => {
+    mutationFn: async ({ taskId, status }: { taskId: string; status: string; reviewId: string }) => {
       const updates: Record<string, unknown> = { status, updated_at: new Date().toISOString() };
       if (status === "completed") updates.completed_at = new Date().toISOString();
       const { error } = await supabase
@@ -338,7 +338,7 @@ export function useUpdateTaskStatus() {
 export function useAssignTask() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ taskId, assignedTo, reviewId }: { taskId: string; assignedTo: string; reviewId: string }) => {
+    mutationFn: async ({ taskId, assignedTo }: { taskId: string; assignedTo: string; reviewId: string }) => {
       const { error } = await supabase
         .from("neighborhood_review_tasks")
         .update({ assigned_to: assignedTo, updated_at: new Date().toISOString() })

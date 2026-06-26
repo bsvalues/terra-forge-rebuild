@@ -53,7 +53,7 @@ interface WorkbenchContentProps {
 }
 
 function WorkbenchContent({ initialParcel, onParcelConsumed, initialTab, onTabConsumed, initialSubTab, onSubTabConsumed }: WorkbenchContentProps) {
-  const { activeTab, pilotMode, workMode, setParcel, setActiveTab } = useWorkbench();
+  const { activeTab, workMode, setParcel, setActiveTab } = useWorkbench();
   const [daisCategory, setDaisCategory] = useState<string | null>(null);
   const [pilotPanelOpen, setPilotPanelOpen] = useState(true);
   const { addRecent } = useRecentParcels();

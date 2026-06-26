@@ -1,6 +1,6 @@
 // TerraFusion OS — Sync Engine Tests (Delta Detection + Workflow Runners + PACS Identity Modes)
 
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect } from "vitest";
 import { detectDeltas, runBulkImport, getPACSKeyField, injectCompositeKeys } from "./syncEngine";
 
 describe("detectDeltas", () => {

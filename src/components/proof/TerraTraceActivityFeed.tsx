@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTraceEvents, useLegacyModelReceipts, useTraceRealtimeSubscription } from "@/hooks/useTraceEvents";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -18,7 +18,6 @@ import {
   Eye,
   Sparkles,
   MapPin,
-  Globe,
   Radio,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -199,7 +198,7 @@ export function TerraTraceActivityFeed({ parcelId, limit = 20, moduleFilter: ext
       <div className="relative pl-6 space-y-3">
         {/* Realtime indicator + module filter */}
         <div className="flex items-center gap-2 mb-2">
-          <Radio className="w-3 h-3 text-chart-2 animate-pulse" />
+          <Radio className="w-3 h-3 text-chart-2 animate-core-pulse" />
           <span className="text-[10px] text-chart-2 font-medium">LIVE</span>
           {!externalFilter && (
             <div className="ml-auto flex gap-1 flex-wrap">

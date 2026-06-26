@@ -4,7 +4,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { emitTraceEventAsync } from "@/services/terraTrace";
-import { useActiveCountyId } from "@/hooks/useActiveCounty";
 
 // ── Types ──────────────────────────────────────────────────────
 

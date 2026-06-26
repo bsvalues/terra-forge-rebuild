@@ -13,7 +13,7 @@ interface RegressionControlPanelProps {
 
 export function RegressionControlPanel({ hook, neighborhoodCode }: RegressionControlPanelProps) {
   const { availableVariables, selectedVars, setSelectedVars, runCalibration, isRunning, saveRun, isSaving, result } = hook;
-  const { cohort, count: fieldCount } = useFieldCohort();
+  const { count: fieldCount } = useFieldCohort();
   const [fieldFilter, setFieldFilter] = useState(false);
 
   const toggleVar = (id: string) => {

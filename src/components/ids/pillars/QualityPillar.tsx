@@ -28,21 +28,6 @@ export function QualityPillar() {
   const { data: ingestJobs } = useQualityIngestJobs();
   const qualityMetrics = useQualityMetrics(parcels);
 
-  // Extract real mismatch patterns from ingest job validation results
-  const mismatchPatterns = (ingestJobs || [])
-    .filter(j => j.validation_results && typeof j.validation_results === "object")
-    .flatMap(j => {
-      const vr = j.validation_results as Record<string, unknown>;
-      const issueCount = (vr.issueCount as number) || 0;
-      if (issueCount === 0) return [];
-      return [{
-        file: j.file_name,
-        issueCount,
-        validRows: (vr.validRows as number) || j.rows_imported || 0,
-        invalidRows: (vr.invalidRows as number) || j.rows_failed || 0,
-        createdAt: j.created_at,
-      }];
-    });
 
   // Latest quality score from pipeline events
   const latestQualityEvent = qualityEvents?.[0];

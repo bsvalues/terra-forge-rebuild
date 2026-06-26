@@ -8,7 +8,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { CommitmentButton } from "@/components/ui/commitment-button";
 import { Plus, Trash2, Ruler } from "lucide-react";
 import { toast } from "sonner";
 

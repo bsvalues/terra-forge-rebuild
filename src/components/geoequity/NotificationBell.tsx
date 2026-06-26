@@ -68,7 +68,7 @@ export function NotificationBell() {
       <PopoverTrigger asChild>
         <Button variant="ghost" size="icon" className="relative">
           {unreadCount > 0 ? (
-            <BellRing className="w-5 h-5 text-tf-cyan animate-pulse" />
+            <BellRing className="w-5 h-5 text-tf-cyan animate-core-pulse" />
           ) : (
             <Bell className="w-5 h-5" />
           )}

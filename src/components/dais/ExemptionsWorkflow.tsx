@@ -24,7 +24,6 @@ import {
   ClipboardCheck,
   Search,
   Calendar,
-  DollarSign,
   Clock,
   CheckCircle,
   XCircle,

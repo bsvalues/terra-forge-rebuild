@@ -19,7 +19,6 @@ import {
   CheckCircle,
   XCircle,
   Loader2,
-  AlertTriangle,
   BarChart3,
   Download,
   Tag,
@@ -70,7 +69,11 @@ export function DQRemediationProgressTracker() {
       if (error) throw error;
       const cats = new Map<string, { total: number; open: number; resolved: number; blockers: number }>();
       for (const row of data || []) {
+<<<<<<< HEAD
         const cat = (row as any).issue_type || "uncategorized";
+=======
+        const cat = row.issue_type || "uncategorized";
+>>>>>>> origin/main
         if (!cats.has(cat)) cats.set(cat, { total: 0, open: 0, resolved: 0, blockers: 0 });
         const c = cats.get(cat)!;
         c.total++;

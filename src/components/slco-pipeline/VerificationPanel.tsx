@@ -3,11 +3,10 @@
 //
 // Re-score → Before/After Deltas → Readiness Gate Checklist → Certification Eligibility
 
-import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import {
   ShieldCheck, ShieldX, ArrowLeft, Loader2, CheckCircle2, XCircle,
-  TrendingUp, TrendingDown, Minus, BarChart3, Clock, RefreshCw,
+  TrendingUp, TrendingDown, Minus, BarChart3, RefreshCw,
   Lock, Unlock, History, Zap, Target, Award,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,7 +14,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
 import {
   useRunVerification,
   useVerificationHistory,
@@ -147,7 +145,7 @@ function GateRow({ gate }: { gate: ReadinessGate }) {
 function SnapshotRow({ snapshot }: { snapshot: VerificationSnapshot }) {
   const score = snapshot.quality_score || 0;
   const passedAll = snapshot.passed_all_gates;
-  const gates = (snapshot.gate_results as any)?.gates as ReadinessGate[] || [];
+  const gates = (snapshot.gate_results as { gates?: ReadinessGate[] })?.gates ?? [];
   const passedCount = gates.filter((g) => g.passed).length;
 
   return (
@@ -197,17 +195,19 @@ export function VerificationPanel({ onBack }: VerificationPanelProps) {
   const latestResult = runVerification.data || null;
   const latestFromHistory = history?.[0] || null;
 
+  type MetricsRecord = { overall_score?: number; total_parcels?: number; spatial_score?: number; address_score?: number; value_score?: number; characteristic_score?: number; duplicate_score?: number; neighborhood_score?: number; spatial_detail?: Record<string, number>; address_detail?: Record<string, number>; value_detail?: Record<string, number>; characteristic_detail?: Record<string, number>; duplicate_detail?: Record<string, number>; neighborhood_detail?: Record<string, number>; [key: string]: unknown };
+
   // Use mutation result if available, else latest from history
-  const activeScores = latestResult?.scores || (latestFromHistory?.metrics as any) || null;
-  const activeGates = latestResult?.gates?.gates as ReadinessGate[] ||
-    (latestFromHistory?.gate_results as any)?.gates as ReadinessGate[] || [];
+  const activeScores = latestResult?.scores || (latestFromHistory?.metrics as MetricsRecord | undefined) || null;
+  const activeGates = (latestResult?.gates?.gates as ReadinessGate[] | undefined) ||
+    ((latestFromHistory?.gate_results as { gates?: ReadinessGate[] } | undefined)?.gates ?? []);
   const passedAll = latestResult?.passed_all ?? latestFromHistory?.passed_all_gates ?? null;
   const qualityScore = activeScores?.overall_score || 0;
   const totalParcels = activeScores?.total_parcels || 0;
 
   // Previous snapshot for delta comparison
   const prevSnapshot = history && history.length > 1 ? history[1] : null;
-  const prevScores = prevSnapshot?.metrics as any || null;
+  const prevScores = (prevSnapshot?.metrics as MetricsRecord | undefined) ?? null;
 
   return (
     <div className="p-6 max-w-6xl mx-auto space-y-5">

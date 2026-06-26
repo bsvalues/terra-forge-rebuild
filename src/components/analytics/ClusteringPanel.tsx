@@ -4,11 +4,11 @@ import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ProvenanceNumber } from "@/components/trust";
-import { Layers, Target } from "lucide-react";
+import { Target } from "lucide-react";
 import { useNeighborhoodClustering } from "@/hooks/useAdvancedAnalytics";
 import {
   ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer, Cell, Legend,
+  ResponsiveContainer, Cell
 } from "recharts";
 
 const CLUSTER_COLORS = [

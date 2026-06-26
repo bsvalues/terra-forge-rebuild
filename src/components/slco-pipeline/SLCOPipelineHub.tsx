@@ -104,7 +104,7 @@ function StageTracker({ stages }: { stages: PipelineStageRow[] }) {
 
   const statusColors: Record<string, string> = {
     pending: "border-muted-foreground/30 bg-muted/30 text-muted-foreground",
-    running: "border-primary bg-primary/20 text-primary animate-pulse",
+    running: "border-primary bg-primary/20 text-primary animate-core-pulse",
     complete: "border-emerald-500 bg-emerald-500/20 text-emerald-400",
     failed: "border-destructive bg-destructive/20 text-destructive",
   };

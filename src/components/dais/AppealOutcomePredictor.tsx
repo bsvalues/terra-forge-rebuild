@@ -7,14 +7,11 @@
  * scores and recommended defense strategies.
  */
 
-import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Scale,
-  TrendingUp,
   TrendingDown,
   Shield,
   AlertTriangle,

@@ -1,17 +1,12 @@
 // TerraFusion OS — Phase 25: Advanced Analytics Dashboard
 // Trend sparklines, time-series forecasting, outlier detection, neighborhood clustering
 
-import { useState } from "react";
 import { motion } from "framer-motion";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
-import { ProvenanceNumber, ProvenanceBadge } from "@/components/trust";
 import {
-  TrendingUp, AlertTriangle, Layers, Radar,
-  ArrowUpRight, ArrowDownRight, Minus,
+  TrendingUp, AlertTriangle, Layers,
+  ArrowUpRight,
 } from "lucide-react";
-import { format, subMonths } from "date-fns";
 import { RatioTrendSparklines } from "./RatioTrendSparklines";
 import { ForecastPanel } from "./ForecastPanel";
 import { OutlierDetectionPanel } from "./OutlierDetectionPanel";
@@ -22,7 +17,7 @@ export function AdvancedAnalyticsDashboard() {
     <div className="space-y-6 p-6 max-w-7xl mx-auto">
       {/* Header */}
       <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
-        <h1 className="text-2xl sm:text-3xl font-light text-gradient-sovereign tracking-tight">
+        <h1 className="text-2xl sm:text-3xl font-light text-[hsl(var(--tf-transcend-cyan))] tracking-tight">
           Advanced Analytics
         </h1>
         <p className="text-sm text-muted-foreground mt-1">

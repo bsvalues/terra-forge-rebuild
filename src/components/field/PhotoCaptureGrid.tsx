@@ -6,7 +6,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Camera, X, ImagePlus, ZoomIn, Trash2, Tag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
 interface CapturedPhoto {

@@ -4,9 +4,9 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Plus, Trash2, GripVertical, Loader2, CheckCircle2, XCircle,
-  Edit2, Save, ChevronDown, ChevronUp, Zap, Users, Bell, GitBranch,
-  Activity, Settings2, Workflow,
+  Plus, Trash2, Loader2, XCircle,
+  Save, ChevronDown, ChevronUp, Zap, Users, Bell, GitBranch,
+  Settings2, Workflow,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -16,7 +16,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import {
   useWorkflowTemplates,
@@ -26,7 +25,6 @@ import {
 } from "@/hooks/useWorkflowTemplates";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { showChangeReceipt } from "@/lib/changeReceipt";
-import { cn } from "@/lib/utils";
 
 const STEP_TYPES: { value: WorkflowStep["type"]; label: string; icon: typeof Zap }[] = [
   { value: "action", label: "Action", icon: Zap },

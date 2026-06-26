@@ -30,7 +30,7 @@ export function AVMStudioDashboard() {
         className="flex items-center justify-between"
       >
         <div>
-          <h2 className="text-2xl font-light text-gradient-sovereign">
+          <h2 className="text-2xl font-light text-[hsl(var(--tf-transcend-cyan))]">
             AVM Studio — ML Laboratory
           </h2>
           <p className="text-sm text-muted-foreground mt-1">

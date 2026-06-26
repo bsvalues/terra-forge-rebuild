@@ -67,7 +67,7 @@ export default function Auth() {
           >
             <span className="text-tf-substrate font-bold text-xl">TF</span>
           </motion.div>
-          <h1 className="text-2xl font-light text-gradient-sovereign">TerraFusion OS</h1>
+          <h1 className="text-2xl font-light text-[hsl(var(--tf-transcend-cyan))]">TerraFusion OS</h1>
           <p className="text-sm text-muted-foreground mt-1">Sovereign Valuation Intelligence</p>
         </div>
 

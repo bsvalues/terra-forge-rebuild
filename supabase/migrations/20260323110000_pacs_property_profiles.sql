@@ -109,6 +109,11 @@ CREATE POLICY "county-scoped update" ON pacs_property_profiles
   FOR UPDATE USING (TRUE);
 
 -- updated_at trigger
+CREATE OR REPLACE FUNCTION _set_updated_at()
+RETURNS TRIGGER LANGUAGE plpgsql AS $$
+BEGIN NEW.updated_at = now(); RETURN NEW; END;
+$$;
+
 CREATE TRIGGER set_updated_at_pacs_property_profiles
   BEFORE UPDATE ON pacs_property_profiles
-  FOR EACH ROW EXECUTE FUNCTION moddatetime(updated_at);
+  FOR EACH ROW EXECUTE FUNCTION _set_updated_at();

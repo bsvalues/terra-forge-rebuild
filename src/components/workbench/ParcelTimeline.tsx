@@ -26,7 +26,7 @@ import { useAssessmentHistory, useParcelSales } from "@/hooks/useParcelDetails";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
-import { format, parseISO } from "date-fns";
+import { format } from "date-fns";
 
 interface TimelineEvent {
   id: string;

@@ -5,18 +5,16 @@
 import { useMemo, useState } from "react";
 import {
   ComposedChart,
-  Area,
   Line,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
   ResponsiveContainer,
   ReferenceLine,
 } from "recharts";
 import { motion } from "framer-motion";
-import { TrendingUp, Database, Loader2, History } from "lucide-react";
+import { TrendingUp, Database, History } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { useFullValueHistory, type ValueHistoryPoint } from "@/hooks/useFullValueHistory";

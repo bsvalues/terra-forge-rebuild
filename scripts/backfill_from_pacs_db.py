@@ -49,11 +49,8 @@ PACS_CONN = os.getenv(
 )
 
 # ── Supabase settings ─────────────────────────────────────────────────────────
-URL = os.getenv("SUPABASE_URL", "https://udjoodlluygvlqccwade.supabase.co").rstrip("/")
-KEY = os.getenv(
-    "SUPABASE_SERVICE_ROLE_KEY",
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVkam9vZGxsdXlndmxxY2N3YWRlIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDEyMTg5NywiZXhwIjoyMDg5Njk3ODk3fQ.VSpL5LPWlhw93x9CJQ2ISSzYbeTpU_3L-7BvBDFcCKg"
-)
+URL = os.environ["SUPABASE_URL"].rstrip("/")
+KEY = os.environ["SUPABASE_SERVICE_ROLE_KEY"]
 
 DEFAULT_BATCH_SIZE = 5000
 

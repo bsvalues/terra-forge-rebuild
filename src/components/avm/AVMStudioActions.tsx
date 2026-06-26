@@ -58,7 +58,7 @@ function useApplyAVMToAssessments() {
       }
 
       // Emit trace event
-      await (supabase as any).from("trace_events").insert({
+      await supabase.from("trace_events").insert({
         county_id: countyId,
         actor_id: user.id,
         source_module: "forge",

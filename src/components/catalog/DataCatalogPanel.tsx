@@ -56,7 +56,7 @@ function DomainCard({ domain }: { domain: CatalogDomain }) {
 
   return (
     <Card
-      className="cursor-pointer hover:shadow-md transition-shadow border-border/50"
+      className="cursor-pointer hover:shadow-lg transition-shadow border-border/50"
       onClick={() => setExpanded(!expanded)}
     >
       <CardHeader className="pb-2 px-4 pt-4">
@@ -154,7 +154,7 @@ export function DataCatalogPanel() {
   return (
     <div className="space-y-6 p-6 max-w-7xl mx-auto">
       <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
-        <h1 className="text-2xl sm:text-3xl font-light text-gradient-sovereign tracking-tight">
+        <h1 className="text-2xl sm:text-3xl font-light text-[hsl(var(--tf-transcend-cyan))] tracking-tight">
           Data Catalog
         </h1>
         <p className="text-sm text-muted-foreground mt-1">

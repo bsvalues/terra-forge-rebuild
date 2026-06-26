@@ -3,7 +3,7 @@
 // Import this in dev tooling, health panels, and any component that needs to
 // validate navigation at runtime before calling handleNavigate().
 
-import { isLegalNavigation, resolveLegacyId, type PrimaryModuleId } from "@/config/IA_MAP";
+import { isLegalNavigation, resolveLegacyId } from "@/config/IA_MAP";
 
 // ── Rule 1: Navigation validation ────────────────────────────────────
 // Call before any programmatic navigation. Returns { ok, reason }.

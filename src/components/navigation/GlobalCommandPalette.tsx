@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/command";
 import { Search, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { IA_MODULES, type PrimaryModuleId } from "@/config/IA_MAP";
+import { IA_MODULES } from "@/config/IA_MAP";
 import { useParcelLookup } from "@/hooks/useParcelLookup";
 import { useRecentParcels } from "@/hooks/useRecentParcels";
 
@@ -101,7 +101,7 @@ export function GlobalCommandPalette({
                 <CommandItem
                   key={p.id}
                   value={`parcel ${p.parcel_number} ${p.address}`}
-                  onSelect={() => handleSelectParcel(p as any)}
+                  onSelect={() => handleSelectParcel(p)}
                   className="flex items-center gap-3"
                 >
                   <Search className="w-4 h-4 text-tf-cyan" />
@@ -127,7 +127,7 @@ export function GlobalCommandPalette({
                 <CommandItem
                   key={r.id}
                   value={`recent ${r.parcelNumber} ${r.address}`}
-                  onSelect={() => handleSelectParcel({ id: r.id, parcel_number: r.parcelNumber, address: r.address, assessed_value: r.assessedValue } as any)}
+                  onSelect={() => handleSelectParcel({ id: r.id, parcel_number: r.parcelNumber, address: r.address, assessed_value: r.assessedValue })}
                   className="flex items-center gap-3"
                 >
                   <Clock className="w-4 h-4 text-muted-foreground" />

@@ -5,7 +5,6 @@
 // Identity Doctrine (current year): prop_id only, sup_num ignored.
 // Neighborhood: always via property_val(prop_val_yr = appr_yr).hood_cd → neighborhood(hood_yr).
 
-import type { PACSIdentityMode } from "./pacsFieldMappings";
 
 // ============================================================
 // Workflow Table Descriptors

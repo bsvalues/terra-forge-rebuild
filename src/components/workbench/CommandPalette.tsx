@@ -10,7 +10,7 @@ import {
   CommandSeparator,
 } from "@/components/ui/command";
 import { useWorkbench } from "./WorkbenchContext";
-import { SuiteTab, WorkMode, WORK_MODE_CONFIGS } from "./types";
+import { SuiteTab, WorkMode } from "./types";
 import {
   LayoutGrid,
   Hammer,

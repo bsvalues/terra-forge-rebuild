@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Dialog,
@@ -16,7 +16,6 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
 import {
-  Upload,
   FileSpreadsheet,
   Database,
   CheckCircle2,
@@ -27,8 +26,6 @@ import {
   MapPin,
   Home,
   DollarSign,
-  Calendar,
-  Ruler,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { batchInsertParcels } from "@/services/ingestService";
@@ -228,7 +225,7 @@ export function ParcelImportWizard({ open, onOpenChange }: ParcelImportWizardPro
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader>
-          <DialogTitle className="text-gradient-sovereign flex items-center gap-2">
+          <DialogTitle className="text-[hsl(var(--tf-transcend-cyan))] flex items-center gap-2">
             <Database className="w-5 h-5" />
             Parcel Import Wizard
           </DialogTitle>

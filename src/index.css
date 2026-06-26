@@ -2,181 +2,177 @@
 @tailwind components;
 @tailwind utilities;
 
-/* TerraFusion OS - Liquid Glass Design System */
-/* "Government. Transcended." - macOS-inspired frosted aesthetics */
+/* TerraFusion OS — Tahoe Design System */
+/* macOS Tahoe: translucent materials, spatial depth, Apple-clean aesthetic */
 
 @layer base {
   :root {
-    /* Liquid Glass Foundation — WCAG AA compliant */
-    --background: 220 50% 4%;              /* #0b1020 - Deep Void */
-    --foreground: 210 20% 93%;             /* Light ethereal text */
+    /* ── Tahoe Dark (default) ─────────────────────────────── */
+    --background: 220 16% 8%;              /* Soft warm dark, not void-black */
+    --foreground: 220 10% 93%;
 
-    --card: 222 47% 6%;                    /* Frosted surface */
-    --card-foreground: 210 20% 93%;
+    --card: 220 14% 11%;                   /* Warm elevated surface */
+    --card-foreground: 220 10% 93%;
 
-    --popover: 220 40% 8%;                 /* Elevated glass */
-    --popover-foreground: 210 20% 93%;
+    --popover: 220 14% 13%;               /* Floating surface */
+    --popover-foreground: 220 10% 93%;
 
-    /* Primary Energy - Transcend Cyan — bumped for 4.5:1 on dark bg */
-    --primary: 180 90% 48%;
-    --primary-foreground: 220 50% 4%;
-
-    --secondary: 220 35% 14%;              /* Subtle surface */
-    --secondary-foreground: 210 20% 90%;
-
-    --muted: 222 28% 11%;
-    --muted-foreground: 210 15% 60%;       /* Raised from 55% → 60% for AA */
-
-    --accent: 180 90% 52%;
-    --accent-foreground: 220 50% 4%;
-
-    --destructive: 0 72% 51%;
-    --destructive-foreground: 210 20% 98%;
-
-    --border: 220 25% 18%;                 /* Raised from 15% → 18% for visibility */
-    --input: 220 28% 14%;
-    --ring: 180 90% 48%;
-
-    --radius: 1rem;
-
-    /* TerraFusion Suite Colors */
-    --tf-substrate: 220 50% 4%;
-    --tf-surface: 222 47% 7%;
-    --tf-elevated: 220 35% 14%;
-    --tf-glass: 220 40% 9%;
-
-    /* Energy Spectrum — AA-safe on dark backgrounds */
-    --tf-transcend-cyan: 180 90% 48%;
-    --tf-bright-cyan: 180 90% 56%;
-    --tf-optimized-green: 155 80% 48%;
-    --tf-sacred-gold: 45 92% 58%;
-    --tf-anomaly-amber: 38 92% 58%;
-    --tf-warning-red: 0 72% 58%;
-    --tf-muse-purple: 280 70% 65%;
-
-    /* Suite Identity Colors */
-    --suite-forge: 180 90% 48%;
-    --suite-atlas: 200 90% 54%;
-    --suite-dais: 45 92% 58%;
-    --suite-dossier: 280 70% 65%;
-
-    /* Work Mode Colors */
-    --mode-overview: 210 90% 54%;
-    --mode-valuation: 180 90% 48%;
-    --mode-mapping: 155 80% 48%;
-    --mode-admin: 45 92% 58%;
-    --mode-case: 280 70% 65%;
-
-    /* VEI Metrics */
-    --vei-excellent: 155 80% 48%;
-    --vei-good: 180 90% 48%;
-    --vei-caution: 38 92% 58%;
-    --vei-concern: 0 72% 58%;
-
-    /* Tier Colors */
-    --tier-q1: 180 90% 52%;
-    --tier-q2: 160 65% 48%;
-    --tier-q3: 38 92% 58%;
-    --tier-q4: 0 72% 54%;
-
-    /* Sacred Geometry */
-    --phi: 1.618;
-    --phi-inverse: 0.618;
-
-    /* Sidebar */
-    --sidebar-background: 222 50% 5%;
-    --sidebar-foreground: 210 20% 90%;
-    --sidebar-primary: 180 90% 48%;
-    --sidebar-primary-foreground: 220 50% 4%;
-    --sidebar-accent: 220 35% 14%;
-    --sidebar-accent-foreground: 210 20% 90%;
-    --sidebar-border: 220 25% 18%;
-    --sidebar-ring: 180 90% 48%;
-
-    /* Chart Colors */
-    --chart-1: 180 90% 48%;
-    --chart-2: 155 80% 48%;
-    --chart-3: 45 92% 58%;
-    --chart-4: 280 70% 65%;
-    --chart-5: 0 72% 58%;
-  }
-
-  /* ── Light mode ── */
-  .light {
-    --background: 220 20% 97%;
-    --foreground: 220 30% 10%;
-
-    --card: 0 0% 100%;
-    --card-foreground: 220 30% 10%;
-
-    --popover: 0 0% 100%;
-    --popover-foreground: 220 30% 10%;
-
-    --primary: 180 80% 30%;
+    /* Primary: macOS accent blue */
+    --primary: 211 100% 50%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 220 15% 92%;
-    --secondary-foreground: 220 30% 15%;
+    --secondary: 220 14% 14%;
+    --secondary-foreground: 220 10% 88%;
 
-    --muted: 220 15% 94%;
-    --muted-foreground: 220 10% 40%;
+    --muted: 220 12% 14%;
+    --muted-foreground: 220 8% 55%;
 
-    --accent: 180 70% 35%;
+    --accent: 211 100% 50%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 15% 85%;
-    --input: 220 15% 90%;
-    --ring: 180 80% 30%;
+    --border: 220 12% 18%;
+    --input: 220 14% 14%;
+    --ring: 211 100% 50%;
 
-    --tf-substrate: 220 20% 97%;
+    --radius: 0.75rem;
+
+    /* Surface layers */
+    --tf-substrate: 220 16% 8%;
+    --tf-surface: 220 14% 11%;
+    --tf-elevated: 220 12% 16%;
+    --tf-glass: 220 14% 10%;
+
+    /* Semantic colors — muted, professional palette */
+    --tf-transcend-cyan: 211 100% 50%;     /* macOS blue replaces neon cyan */
+    --tf-bright-cyan: 211 100% 60%;
+    --tf-optimized-green: 142 71% 45%;     /* System green */
+    --tf-sacred-gold: 38 92% 50%;          /* System orange/gold */
+    --tf-anomaly-amber: 30 92% 50%;
+    --tf-warning-red: 0 84% 60%;           /* System red */
+    --tf-muse-purple: 280 68% 60%;         /* System purple */
+
+    /* Suite Identity Colors */
+    --suite-forge: 211 100% 50%;
+    --suite-atlas: 195 90% 48%;
+    --suite-dais: 38 92% 50%;
+    --suite-dossier: 280 68% 60%;
+
+    /* Work Mode Colors */
+    --mode-overview: 211 100% 50%;
+    --mode-valuation: 195 90% 48%;
+    --mode-mapping: 142 71% 45%;
+    --mode-admin: 38 92% 50%;
+    --mode-case: 280 68% 60%;
+
+    /* VEI Metrics */
+    --vei-excellent: 142 71% 45%;
+    --vei-good: 211 100% 50%;
+    --vei-caution: 30 92% 50%;
+    --vei-concern: 0 84% 60%;
+
+    /* Tier Colors */
+    --tier-q1: 211 100% 50%;
+    --tier-q2: 142 71% 45%;
+    --tier-q3: 38 92% 50%;
+    --tier-q4: 0 84% 60%;
+
+    /* Sidebar — translucent vibrancy (macOS Tahoe) */
+    --sidebar-background: 220 18% 10%;
+    --sidebar-foreground: 220 8% 78%;
+    --sidebar-primary: 211 100% 55%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 10% 18%;          /* subtle hover fill (gray, not blue) */
+    --sidebar-accent-foreground: 220 8% 88%;
+    --sidebar-border: 220 12% 18%;
+    --sidebar-ring: 211 100% 50%;
+
+    /* Chart Colors */
+    --chart-1: 211 100% 50%;
+    --chart-2: 142 71% 45%;
+    --chart-3: 38 92% 50%;
+    --chart-4: 280 68% 60%;
+    --chart-5: 0 84% 60%;
+  }
+
+  /* ── Tahoe Light ────────────────────────────────────────── */
+  .light {
+    --background: 0 0% 96%;               /* macOS Tahoe light grey */
+    --foreground: 0 0% 10%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 10%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 10%;
+
+    --primary: 211 100% 50%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 220 10% 93%;
+    --secondary-foreground: 0 0% 20%;
+
+    --muted: 220 10% 94%;
+    --muted-foreground: 0 0% 40%;
+
+    --accent: 211 100% 50%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 0 0% 88%;
+    --input: 0 0% 91%;
+    --ring: 211 100% 50%;
+
+    --tf-substrate: 0 0% 96%;
     --tf-surface: 0 0% 100%;
-    --tf-elevated: 220 15% 94%;
-    --tf-glass: 220 15% 96%;
+    --tf-elevated: 220 10% 94%;
+    --tf-glass: 0 0% 97%;
 
-    --tf-transcend-cyan: 180 80% 30%;
-    --tf-bright-cyan: 180 80% 38%;
-    --tf-optimized-green: 155 70% 32%;
-    --tf-sacred-gold: 40 85% 42%;
-    --tf-anomaly-amber: 35 85% 42%;
+    --tf-transcend-cyan: 211 100% 45%;
+    --tf-bright-cyan: 211 100% 52%;
+    --tf-optimized-green: 142 64% 35%;
+    --tf-sacred-gold: 35 85% 42%;
+    --tf-anomaly-amber: 30 85% 42%;
     --tf-warning-red: 0 65% 48%;
     --tf-muse-purple: 280 55% 45%;
 
-    --suite-forge: 180 80% 30%;
-    --suite-atlas: 200 80% 38%;
-    --suite-dais: 40 85% 42%;
+    --suite-forge: 211 100% 45%;
+    --suite-atlas: 195 80% 40%;
+    --suite-dais: 35 85% 42%;
     --suite-dossier: 280 55% 45%;
 
-    --mode-overview: 210 80% 40%;
-    --mode-valuation: 180 80% 30%;
-    --mode-mapping: 155 70% 32%;
-    --mode-admin: 40 85% 42%;
+    --mode-overview: 211 100% 45%;
+    --mode-valuation: 195 80% 40%;
+    --mode-mapping: 142 64% 35%;
+    --mode-admin: 35 85% 42%;
     --mode-case: 280 55% 45%;
 
-    --vei-excellent: 155 70% 32%;
-    --vei-good: 180 80% 30%;
-    --vei-caution: 35 85% 42%;
+    --vei-excellent: 142 64% 35%;
+    --vei-good: 211 100% 45%;
+    --vei-caution: 30 85% 42%;
     --vei-concern: 0 65% 48%;
 
-    --tier-q1: 180 80% 35%;
-    --tier-q2: 160 55% 38%;
+    --tier-q1: 211 100% 45%;
+    --tier-q2: 142 64% 35%;
     --tier-q3: 35 85% 42%;
     --tier-q4: 0 65% 48%;
 
-    --sidebar-background: 220 15% 96%;
-    --sidebar-foreground: 220 30% 15%;
-    --sidebar-primary: 180 80% 30%;
+    --sidebar-background: 0 0% 97%;
+    --sidebar-foreground: 0 0% 15%;
+    --sidebar-primary: 211 100% 45%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 15% 92%;
-    --sidebar-accent-foreground: 220 30% 15%;
-    --sidebar-border: 220 15% 85%;
-    --sidebar-ring: 180 80% 30%;
+    --sidebar-accent: 220 10% 93%;
+    --sidebar-accent-foreground: 0 0% 15%;
+    --sidebar-border: 0 0% 88%;
+    --sidebar-ring: 211 100% 45%;
 
-    --chart-1: 180 80% 30%;
-    --chart-2: 155 70% 32%;
-    --chart-3: 40 85% 42%;
+    --chart-1: 211 100% 45%;
+    --chart-2: 142 64% 35%;
+    --chart-3: 35 85% 42%;
     --chart-4: 280 55% 45%;
     --chart-5: 0 65% 48%;
   }
@@ -214,44 +210,54 @@
 
 @layer components {
   /* ========================================
-     LIQUID GLASS SYSTEM
-     macOS-inspired frosted panels
+     TAHOE MATERIAL SYSTEM
+     macOS Tahoe: translucent, subtle, spatial
      ======================================== */
-  
+
+  /* Tahoe Panel — clean elevated surface */
+  .tahoe-panel {
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--border) / 0.6);
+    border-radius: var(--radius);
+    box-shadow: 0 1px 3px hsl(0 0% 0% / 0.08);
+  }
+
+  /* Tahoe Elevated — popovers, dropdowns */
+  .tahoe-elevated {
+    background: hsl(var(--popover));
+    border: 1px solid hsl(var(--border) / 0.4);
+    border-radius: calc(var(--radius) + 2px);
+    box-shadow: 0 8px 30px hsl(0 0% 0% / 0.12), 0 2px 8px hsl(0 0% 0% / 0.06);
+  }
+
+  /* Backward-compat aliases for glass system */
   .glass-panel {
     background: hsl(var(--tf-glass) / 0.7);
     backdrop-filter: blur(40px) saturate(180%);
     -webkit-backdrop-filter: blur(40px) saturate(180%);
-    border: 1px solid hsl(var(--tf-transcend-cyan) / 0.08);
-    box-shadow: 
-      0 8px 32px hsl(var(--tf-substrate) / 0.4),
-      inset 0 1px 0 hsl(255 100% 100% / 0.03);
+    border: 1px solid hsl(var(--border) / 0.3);
+    box-shadow: 0 1px 3px hsl(0 0% 0% / 0.08);
   }
 
   .glass-card {
     background: hsl(var(--tf-surface) / 0.65);
     backdrop-filter: blur(24px) saturate(150%);
     -webkit-backdrop-filter: blur(24px) saturate(150%);
-    border: 1px solid hsl(var(--tf-transcend-cyan) / 0.06);
-    box-shadow: 
-      0 4px 24px hsl(var(--tf-substrate) / 0.3),
-      inset 0 1px 0 hsl(255 100% 100% / 0.02);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid hsl(var(--border) / 0.4);
+    box-shadow: 0 1px 3px hsl(0 0% 0% / 0.06);
+    transition: all 0.2s ease;
   }
 
   .glass-card:hover {
-    border-color: hsl(var(--tf-transcend-cyan) / 0.15);
-    box-shadow: 
-      0 8px 32px hsl(var(--tf-substrate) / 0.4),
-      0 0 0 1px hsl(var(--tf-transcend-cyan) / 0.05),
-      inset 0 1px 0 hsl(255 100% 100% / 0.04);
+    border-color: hsl(var(--border) / 0.6);
+    box-shadow: 0 4px 12px hsl(0 0% 0% / 0.1);
   }
 
   .glass-subtle {
     background: hsl(var(--tf-surface) / 0.4);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
-    border: 1px solid hsl(var(--border) / 0.5);
+    border: 1px solid hsl(var(--border) / 0.3);
   }
 
   /* Context Ribbon - Persistent Header */
@@ -259,8 +265,8 @@
     background: hsl(var(--tf-substrate) / 0.85);
     backdrop-filter: blur(40px) saturate(180%);
     -webkit-backdrop-filter: blur(40px) saturate(180%);
-    border-bottom: 1px solid hsl(var(--tf-transcend-cyan) / 0.1);
-    box-shadow: 0 4px 24px hsl(var(--tf-substrate) / 0.5);
+    border-bottom: 1px solid hsl(var(--border) / 0.5);
+    box-shadow: 0 1px 3px hsl(0 0% 0% / 0.06);
   }
 
   /* Suite Tab Navigation */
@@ -341,63 +347,58 @@
      Shell / Bento / Interactive / Signal
      ======================================== */
 
-  /* Layer 1: Shell — Glass for OS chrome ONLY */
+  /* Layer 1: Shell — Tahoe translucent chrome */
   .material-shell {
-    background: hsl(var(--tf-glass) / 0.7);
-    backdrop-filter: blur(40px) saturate(180%);
-    -webkit-backdrop-filter: blur(40px) saturate(180%);
-    border: 1px solid hsl(var(--tf-transcend-cyan) / 0.08);
-    box-shadow: 
-      0 8px 32px hsl(var(--tf-substrate) / 0.4),
-      inset 0 1px 0 hsl(255 100% 100% / 0.03);
+    background: hsl(var(--tf-glass) / 0.8);
+    backdrop-filter: blur(50px) saturate(190%);
+    -webkit-backdrop-filter: blur(50px) saturate(190%);
+    border: 1px solid hsl(var(--border) / 0.5);
+    box-shadow: 0 1px 3px hsl(0 0% 0% / 0.08);
   }
 
   /* Layer 1 Frost Fallback — solid fill for low-power */
   .material-frost {
     background: hsl(var(--tf-glass));
-    border: 1px solid hsl(var(--tf-transcend-cyan) / 0.08);
-    box-shadow: 0 8px 32px hsl(var(--tf-substrate) / 0.4);
+    border: 1px solid hsl(var(--border) / 0.5);
+    box-shadow: 0 1px 3px hsl(0 0% 0% / 0.06);
   }
 
-  /* Layer 2: Bento — Solid elevated surface for data cards */
+  /* Layer 2: Bento — Tahoe elevated panel */
   .material-bento {
     background: hsl(var(--tf-surface));
-    border: 1px solid hsl(var(--border));
-    box-shadow: 0 2px 12px hsl(var(--tf-substrate) / 0.3);
+    border: 1px solid hsl(var(--border) / 0.6);
+    box-shadow: 0 1px 3px hsl(0 0% 0% / 0.06);
     border-radius: var(--radius);
     will-change: transform;
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
   }
 
   .material-bento:hover {
-    border-color: hsl(var(--tf-transcend-cyan) / 0.2);
-    box-shadow: 0 4px 20px hsl(var(--tf-substrate) / 0.4);
+    border-color: hsl(var(--border));
+    box-shadow: 0 4px 12px hsl(0 0% 0% / 0.1);
   }
 
-  /* Layer 3: Interactive — Commitment actions ONLY */
+  /* Layer 3: Interactive — macOS-style primary button */
   .material-interactive {
-    background: linear-gradient(135deg, 
-      hsl(var(--tf-transcend-cyan)) 0%, 
-      hsl(var(--tf-bright-cyan)) 100%
-    );
-    color: hsl(var(--tf-substrate));
+    background: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
     font-weight: 600;
-    box-shadow: 0 4px 16px hsl(var(--tf-transcend-cyan) / 0.3);
+    box-shadow: 0 1px 3px hsl(0 0% 0% / 0.12);
     border: none;
     cursor: pointer;
+    transition: all 0.15s ease;
   }
 
   .material-interactive:hover {
-    box-shadow: 
-      0 8px 24px hsl(var(--tf-transcend-cyan) / 0.4),
-      0 0 0 1px hsl(var(--tf-bright-cyan) / 0.2);
+    filter: brightness(1.08);
+    box-shadow: 0 2px 8px hsl(0 0% 0% / 0.16);
   }
 
-  /* Layer 4: Signal — Neon alerts for critical system states */
+  /* Layer 4: Signal — semantic status (no neon glow) */
   .material-signal {
     position: relative;
-    font-weight: 700;
-    letter-spacing: 0.02em;
+    font-weight: 600;
+    letter-spacing: 0.01em;
   }
 
   .material-signal::before {
@@ -405,29 +406,25 @@
     position: absolute;
     inset: 0;
     background: currentColor;
-    opacity: 0.08;
+    opacity: 0.06;
     border-radius: inherit;
     pointer-events: none;
   }
 
   .signal-cyan {
     color: hsl(var(--tf-transcend-cyan));
-    text-shadow: 0 0 12px hsl(var(--tf-transcend-cyan) / 0.5);
   }
 
   .signal-gold {
     color: hsl(var(--tf-sacred-gold));
-    text-shadow: 0 0 12px hsl(var(--tf-sacred-gold) / 0.5);
   }
 
   .signal-red {
     color: hsl(var(--tf-warning-red));
-    text-shadow: 0 0 12px hsl(var(--tf-warning-red) / 0.5);
   }
 
   .signal-green {
     color: hsl(var(--tf-optimized-green));
-    text-shadow: 0 0 12px hsl(var(--tf-optimized-green) / 0.5);
   }
 
   /* ========================================
@@ -468,7 +465,7 @@
   }
 
   .dock-item[data-active="true"] {
-    background: hsl(var(--tf-transcend-cyan) / 0.12);
+    background: hsl(var(--primary) / 0.1);
   }
 
   .dock-item[data-active="true"]::after {
@@ -480,41 +477,31 @@
     width: 4px;
     height: 4px;
     border-radius: 50%;
-    background: hsl(var(--tf-transcend-cyan));
-    box-shadow: 0 0 6px hsl(var(--tf-transcend-cyan) / 0.6);
+    background: hsl(var(--primary));
   }
 
-  /* Quantum Glow Effects */
+  /* Tahoe Subtle Glow — replaces quantum-glow, much softer */
   .quantum-glow {
-    box-shadow: 
-      0 0 20px hsl(var(--tf-transcend-cyan) / 0.25),
-      0 0 40px hsl(var(--tf-transcend-cyan) / 0.1);
+    box-shadow: 0 2px 8px hsl(0 0% 0% / 0.1);
   }
 
   .quantum-glow-strong {
-    box-shadow: 
-      0 0 30px hsl(var(--tf-transcend-cyan) / 0.4),
-      0 0 60px hsl(var(--tf-transcend-cyan) / 0.2),
-      0 0 100px hsl(var(--tf-transcend-cyan) / 0.1);
+    box-shadow: 0 4px 16px hsl(0 0% 0% / 0.15);
   }
 
-  /* Sovereign Button - Primary Action */
+  /* Primary Action Button — clean macOS-style */
   .btn-sovereign {
-    background: linear-gradient(135deg, 
-      hsl(var(--tf-transcend-cyan)) 0%, 
-      hsl(var(--tf-bright-cyan)) 100%
-    );
-    color: hsl(var(--tf-substrate));
+    background: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
     font-weight: 600;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 4px 16px hsl(var(--tf-transcend-cyan) / 0.3);
+    transition: all 0.15s ease;
+    box-shadow: 0 1px 3px hsl(0 0% 0% / 0.12);
+    border-radius: var(--radius);
   }
 
   .btn-sovereign:hover {
-    box-shadow: 
-      0 8px 24px hsl(var(--tf-transcend-cyan) / 0.4),
-      0 0 0 1px hsl(var(--tf-bright-cyan) / 0.2);
-    transform: translateY(-1px);
+    filter: brightness(1.08);
+    box-shadow: 0 2px 8px hsl(0 0% 0% / 0.16);
   }
 
   /* Metric Cards */
@@ -724,6 +711,121 @@
   .animate-quantum-pulse {
     animation: quantum-pulse 3s ease-in-out infinite;
   }
+}
+
+/* ── App background: subtle radial gradient for vibrancy depth ───── */
+body {
+  background:
+    radial-gradient(ellipse 80% 60% at 15% 50%, hsl(211 60% 20% / 0.08) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 80% at 85% 20%, hsl(280 40% 20% / 0.05) 0%, transparent 50%),
+    hsl(var(--background));
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   TAHOE SIDEBAR — macOS Precise Overrides
+   These MUST be outside @layer to beat Tailwind utility classes.
+   Target: .tahoe-sidebar applied to the shadcn <Sidebar> component.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* Sidebar: backdrop blur on the outer fixed div */
+.tahoe-sidebar {
+  backdrop-filter: blur(60px) saturate(200%);
+  -webkit-backdrop-filter: blur(60px) saturate(200%);
+}
+
+/* Override the inner bg-sidebar div — make it translucent */
+.tahoe-sidebar [data-sidebar="sidebar"] {
+  background: hsl(var(--sidebar-background) / 0.82) !important;
+  border-right: 1px solid hsl(var(--sidebar-border) / 0.5);
+}
+
+/* ── Group labels: macOS System Settings style ─────────────────── */
+/* Like "GENERAL", "PRIVACY & SECURITY" — tiny, uppercase, muted   */
+.tahoe-sidebar [data-sidebar="group-label"] {
+  font-size: 9.5px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.07em !important;
+  color: hsl(var(--sidebar-foreground) / 0.35) !important;
+  padding-inline: 0.625rem !important;
+  padding-block: 0.5rem 0.2rem !important;
+  height: auto !important;
+  cursor: default;
+}
+
+/* Collapse chevron in group labels */
+.tahoe-sidebar [data-sidebar="group-label"] svg {
+  width: 9px !important;
+  height: 9px !important;
+  opacity: 0.4 !important;
+  flex-shrink: 0;
+}
+
+/* ── Menu items: macOS density ──────────────────────────────────── */
+.tahoe-sidebar [data-sidebar="menu-button"] {
+  height: 28px !important;
+  min-height: 28px;
+  font-size: 13px !important;
+  font-weight: 400 !important;
+  padding-left: 0.625rem !important;
+  padding-right: 0.625rem !important;
+  border-radius: 6px !important;
+  color: hsl(var(--sidebar-foreground) / 0.82) !important;
+  transition: background 0.1s ease, color 0.1s ease !important;
+  gap: 0.5rem !important;
+}
+
+.tahoe-sidebar [data-sidebar="menu-button"]:hover:not([data-active="true"]) {
+  background: hsl(var(--sidebar-foreground) / 0.07) !important;
+  color: hsl(var(--sidebar-foreground)) !important;
+}
+
+/* ── Active item: macOS blue filled roundrect ───────────────────── */
+.tahoe-sidebar [data-sidebar="menu-button"][data-active="true"] {
+  background: hsl(var(--sidebar-primary) / 0.16) !important;
+  color: hsl(var(--sidebar-primary)) !important;
+  font-weight: 500 !important;
+}
+
+.tahoe-sidebar [data-sidebar="menu-button"][data-active="true"] svg {
+  opacity: 1 !important;
+  color: hsl(var(--sidebar-primary)) !important;
+}
+
+/* ── Icon sizing ────────────────────────────────────────────────── */
+.tahoe-sidebar [data-sidebar="menu-button"] > svg:first-child {
+  width: 14px !important;
+  height: 14px !important;
+  opacity: 0.75;
+  flex-shrink: 0;
+}
+
+/* ── Nested view items (slightly smaller/indented) ──────────────── */
+.tahoe-sidebar [data-sidebar="menu-button"][class*="pl-5"],
+.tahoe-sidebar [data-sidebar="menu-button"][class*="pl-6"] {
+  font-size: 12.5px !important;
+  height: 26px !important;
+  min-height: 26px;
+}
+
+/* ── Group section padding ──────────────────────────────────────── */
+.tahoe-sidebar [data-sidebar="group"] {
+  padding-top: 0.125rem !important;
+  padding-bottom: 0.125rem !important;
+}
+
+/* ── Footer items (module switcher) ────────────────────────────── */
+.tahoe-sidebar [data-sidebar="footer"] [data-sidebar="menu-button"] {
+  height: 26px !important;
+  min-height: 26px;
+  font-size: 12px !important;
+  color: hsl(var(--sidebar-foreground) / 0.55) !important;
+}
+
+.tahoe-sidebar [data-sidebar="footer"] [data-sidebar="menu-button"][data-active="true"] {
+  color: hsl(var(--sidebar-primary)) !important;
+  background: hsl(var(--sidebar-primary) / 0.12) !important;
+  font-weight: 500 !important;
 }
 
 /* ── User Preferences: Compact Mode ────────────────────────────── */

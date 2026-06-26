@@ -4,7 +4,7 @@
 import { motion } from "framer-motion";
 import { formatDistanceToNow } from "date-fns";
 import {
-  Activity, CheckCircle2, Clock, AlertTriangle, Loader2,
+  Activity, CheckCircle2, Clock, Loader2,
   Play, Pause, XCircle, ChevronRight,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -39,7 +39,7 @@ function InstanceRow({ instance }: { instance: WorkflowInstance }) {
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
           <span className="text-sm font-medium text-foreground truncate">
-            {(instance.context as any)?.name || `Workflow ${instance.id.slice(0, 8)}`}
+            {(instance.context?.name as string | undefined) || `Workflow ${instance.id.slice(0, 8)}`}
           </span>
           <Badge variant="outline" className={cn("text-[9px] px-1.5 py-0", config.color)}>
             {instance.status}

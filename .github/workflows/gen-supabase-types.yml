@@ -1,0 +1,48 @@
+name: Generate Supabase types
+on:
+  workflow_dispatch:
+jobs:
+  gen:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Generate Supabase types via db-url
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          # Use db-url if available (direct Postgres connection — no sbp_ token required)
+          if [ -n "$SUPABASE_DB_URL" ]; then
+            supabase gen types typescript --db-url "$SUPABASE_DB_URL" --schema public > src/integrations/supabase/types.ts
+          else
+            # Fallback: use Management API to generate types via project ID + access token
+            SUPABASE_ACCESS_TOKEN=${{ secrets.SUPABASE_ACCESS_TOKEN }} \
+            supabase gen types typescript --project-id udjoodlluygvlqccwade --schema public > src/integrations/supabase/types.ts
+          fi
+
+      - name: Commit and push types
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/integrations/supabase/types.ts
+          git commit -m "chore: regenerate supabase types" || echo "no changes to commit"
+          git push

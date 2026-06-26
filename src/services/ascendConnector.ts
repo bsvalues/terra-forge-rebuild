@@ -2,6 +2,7 @@
 // ═══════════════════════════════════════════════════════════════
 // Read-only access to Ascend/Proval pre-2015 legacy data that
 // has been ETL'd into TerraFusion Supabase staging tables.
+import { supabase } from "@/integrations/supabase/client";
 //
 // Table layout:
 //   ascend_property      — master parcel + owner + 5-yr embedded values
@@ -18,7 +19,7 @@
 // Combined history: use vw_full_value_history (Ascend pre-2015 + PACS 2015+)
 // ═══════════════════════════════════════════════════════════════
 
-import { supabase } from "@/integrations/supabase/client";
+
 
 // ── Types ───────────────────────────────────────────────────────────────────
 
@@ -191,8 +192,13 @@ export async function getPropertyByLrsn(
   lrsn: number,
   countyId: string = BENTON_ASCEND_CONFIG.defaultCountyId
 ): Promise<AscendProperty | null> {
+<<<<<<< HEAD
   const { data, error } = await (supabase as any)
     .from("ascend_property")
+=======
+  const { data, error } = await (supabase.from as any)
+    ("ascend_property")
+>>>>>>> origin/main
     .select("*")
     .eq("county_id", countyId)
     .eq("lrsn", lrsn)
@@ -209,8 +215,13 @@ export async function getPropertyByPin(
   pin: string,
   countyId: string = BENTON_ASCEND_CONFIG.defaultCountyId
 ): Promise<AscendProperty | null> {
+<<<<<<< HEAD
   const { data, error } = await (supabase as any)
     .from("ascend_property")
+=======
+  const { data, error } = await (supabase.from as any)
+    ("ascend_property")
+>>>>>>> origin/main
     .select("*")
     .eq("county_id", countyId)
     .eq("pin", pin)
@@ -227,8 +238,13 @@ export async function getImprovements(
   lrsn: number,
   countyId: string = BENTON_ASCEND_CONFIG.defaultCountyId
 ): Promise<AscendImprovement[]> {
+<<<<<<< HEAD
   const { data, error } = await (supabase as any)
     .from("ascend_improvements")
+=======
+  const { data, error } = await (supabase.from as any)
+    ("ascend_improvements")
+>>>>>>> origin/main
     .select("*")
     .eq("county_id", countyId)
     .eq("lrsn", lrsn)
@@ -245,8 +261,13 @@ export async function getLand(
   lrsn: number,
   countyId: string = BENTON_ASCEND_CONFIG.defaultCountyId
 ): Promise<AscendLand | null> {
+<<<<<<< HEAD
   const { data, error } = await (supabase as any)
     .from("ascend_land")
+=======
+  const { data, error } = await (supabase.from as any)
+    ("ascend_land")
+>>>>>>> origin/main
     .select("*")
     .eq("county_id", countyId)
     .eq("lrsn", lrsn)
@@ -264,8 +285,13 @@ export async function getSales(
   lrsn: number,
   countyId: string = BENTON_ASCEND_CONFIG.defaultCountyId
 ): Promise<AscendSale[]> {
+<<<<<<< HEAD
   const { data, error } = await (supabase as any)
     .from("ascend_sales")
+=======
+  const { data, error } = await (supabase.from as any)
+    ("ascend_sales")
+>>>>>>> origin/main
     .select("*")
     .eq("county_id", countyId)
     .eq("lrsn", lrsn)
@@ -284,8 +310,13 @@ export async function getValueHistory(
   lrsn: number,
   countyId: string = BENTON_ASCEND_CONFIG.defaultCountyId
 ): Promise<AscendValue[]> {
+<<<<<<< HEAD
   const { data, error } = await (supabase as any)
     .from("ascend_values")
+=======
+  const { data, error } = await (supabase.from as any)
+    ("ascend_values")
+>>>>>>> origin/main
     .select("*")
     .eq("county_id", countyId)
     .eq("lrsn", lrsn)
@@ -303,8 +334,13 @@ export async function getValueHistory(
 export async function getFullValueHistory(
   parcelId: string
 ): Promise<FullValueHistoryRow[]> {
+<<<<<<< HEAD
   const { data, error } = await (supabase as any)
     .from("vw_full_value_history")
+=======
+  const { data, error } = await (supabase.from as any)
+    ("vw_full_value_history")
+>>>>>>> origin/main
     .select("*")
     .eq("parcel_id", parcelId)
     .order("roll_year", { ascending: false });
@@ -321,8 +357,13 @@ export async function getBridgeCoverage(
   countyId: string = BENTON_ASCEND_CONFIG.defaultCountyId,
   limit: number = 500
 ): Promise<AscendBridgeCoverage[]> {
+<<<<<<< HEAD
   const { data, error } = await (supabase as any)
     .from("vw_ascend_bridge_coverage")
+=======
+  const { data, error } = await (supabase.from as any)
+    ("vw_ascend_bridge_coverage")
+>>>>>>> origin/main
     .select("*")
     .eq("county_id", countyId)
     .limit(limit);
@@ -343,8 +384,13 @@ export async function getBridgeStats(
   withValueHistory: number;
   coveragePct: number;
 }> {
+<<<<<<< HEAD
   const { data, error } = await (supabase as any)
     .from("vw_ascend_bridge_coverage")
+=======
+  const { data, error } = await (supabase.from as any)
+    ("vw_ascend_bridge_coverage")
+>>>>>>> origin/main
     .select("has_ascend_link, has_value_history")
     .eq("county_id", countyId);
 
@@ -370,8 +416,12 @@ export async function getSalesByDateRange(
   countyId: string = BENTON_ASCEND_CONFIG.defaultCountyId,
   sourceFilter?: "land_record" | "excise"
 ): Promise<AscendSale[]> {
+<<<<<<< HEAD
   let query = (supabase as any)
     .from("ascend_sales")
+=======
+  let query = (supabase.from as any)("ascend_sales")
+>>>>>>> origin/main
     .select("*")
     .eq("county_id", countyId)
     .gte("sale_date", fromDate)
@@ -396,8 +446,13 @@ export async function getValuesByYear(
   taxYear: string,
   countyId: string = BENTON_ASCEND_CONFIG.defaultCountyId
 ): Promise<AscendValue[]> {
+<<<<<<< HEAD
   const { data, error } = await (supabase as any)
     .from("ascend_values")
+=======
+  const { data, error } = await (supabase.from as any)
+    ("ascend_values")
+>>>>>>> origin/main
     .select("lrsn, pin, tax_year, mklnd, mkimp, mkttl, avr, trv")
     .eq("county_id", countyId)
     .eq("tax_year", taxYear)
@@ -431,7 +486,11 @@ export async function checkConnectorHealth(
   let healthy = true;
 
   for (const table of tables) {
+<<<<<<< HEAD
     const { count, error } = await (supabase as any)
+=======
+    const { count, error } = await (supabase.from as any)
+>>>>>>> origin/main
       .from(table)
       .select("id", { count: "exact", head: true })
       .eq("county_id", countyId);

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Sparkles, MessageSquare, Lightbulb, Zap, Activity } from "lucide-react";
+import { Sparkles, Lightbulb, Zap, Activity } from "lucide-react";
 import { useWorkbench } from "../WorkbenchContext";
 import { TerraPilotChat } from "../TerraPilotChat";
 import { ToolExecutionTrace } from "../ToolExecutionTrace";

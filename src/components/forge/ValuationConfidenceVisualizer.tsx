@@ -19,6 +19,7 @@ import {
 import { useWorkbench } from "@/components/workbench/WorkbenchContext";
 import { useComparableSales } from "@/hooks/useParcelDetails";
 import { cn } from "@/lib/utils";
+import { ComparableSalesGrid } from "./ComparableSalesGrid";
 
 interface ConfidenceBand {
   label: string;
@@ -209,6 +210,13 @@ export function ValuationConfidenceVisualizer() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Comparable Sales Grid */}
+      <ComparableSalesGrid
+        parcelId={parcel.id}
+        neighborhoodCode={parcel.neighborhoodCode}
+        assessedValue={parcel.assessedValue}
+      />
     </div>
   );
 }

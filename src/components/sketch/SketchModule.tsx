@@ -2,8 +2,7 @@
 // Main container for all sketch tiers: Measurement Plan, Sketch Builder, Plan Trace
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Ruler, PenTool, FileImage, ArrowLeft, Save, Info } from "lucide-react";
+import { Ruler, PenTool, FileImage, ArrowLeft, Info } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";

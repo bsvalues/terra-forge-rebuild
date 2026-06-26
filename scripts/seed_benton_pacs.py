@@ -24,7 +24,7 @@ Requirements:
 Configuration:
   Set SUPABASE_SERVICE_ROLE_KEY in environment OR create scripts/.env.seed:
     SUPABASE_SERVICE_ROLE_KEY=eyJ...
-    SUPABASE_URL=https://jzuculrmjuwrshramgye.supabase.co   # optional
+    SUPABASE_URL=https://udjoodlluygvlqccwade.supabase.co   # optional
 
 Usage:
   py -3.12 scripts/seed_benton_pacs.py
@@ -76,8 +76,8 @@ except ImportError:
 
 # ── Configuration ─────────────────────────────────────────────────────────────
 
-SUPABASE_URL = os.getenv("SUPABASE_URL", "https://udjoodlluygvlqccwade.supabase.co").rstrip("/")
-SERVICE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "")
+SUPABASE_URL = os.environ["SUPABASE_URL"].rstrip("/")
+SERVICE_KEY = os.environ["SUPABASE_SERVICE_ROLE_KEY"]
 
 EXPORTS_DIR = Path(os.getenv("BENTON_EXPORTS", r"E:\Exports\Exports\dataextract"))
 GDB_PATH = os.getenv("BENTON_GDB", r"E:\Benton_County_Assessor.gdb")
@@ -699,7 +699,7 @@ def main() -> int:
     # Gate: service key required (not anon key)
     if not SERVICE_KEY:
         print("\nERROR: SUPABASE_SERVICE_ROLE_KEY is not set.")
-        print("Get it from: https://supabase.com/dashboard/project/jzuculrmjuwrshramgye/settings/api")
+        print("Get it from: https://supabase.com/dashboard/project/udjoodlluygvlqccwade/settings/api")
         print("\nAdd to scripts/.env.seed (this file is NOT committed to git):")
         print("  SUPABASE_SERVICE_ROLE_KEY=eyJ...")
         return 1

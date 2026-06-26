@@ -4,8 +4,7 @@
 import { motion } from "framer-motion";
 import { useRecentBatchAdjustments, useRollbackBatch } from "@/hooks/useValueAdjustments";
 import { Badge } from "@/components/ui/badge";
-import { CommitmentButton } from "@/components/ui/commitment-button";
-import { BookOpen, Undo2, Loader2, CheckCircle2 } from "lucide-react";
+import { BookOpen, Undo2, Loader2 } from "lucide-react";
 
 export function AdjustmentLedger() {
   const { data: batches, isLoading } = useRecentBatchAdjustments();

@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { useModelRegistry, computeModelStats, type ModelRunRecord } from "@/hooks/useModelRegistry";
+import { useModelRegistry, computeModelStats } from "@/hooks/useModelRegistry";
 import { Search, Activity, TrendingUp, BarChart3, Layers } from "lucide-react";
 
 const APPROACH_COLORS: Record<string, string> = {
@@ -64,7 +64,7 @@ export function ModelRegistryPanel() {
   return (
     <div className="space-y-6 p-6 max-w-7xl mx-auto">
       <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
-        <h1 className="text-2xl sm:text-3xl font-light text-gradient-sovereign tracking-tight">
+        <h1 className="text-2xl sm:text-3xl font-light text-[hsl(var(--tf-transcend-cyan))] tracking-tight">
           Model Registry
         </h1>
         <p className="text-sm text-muted-foreground mt-1">

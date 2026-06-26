@@ -19,26 +19,16 @@ SECURITY DEFINER
 SET search_path = public
 AS $$
 DECLARE
-  v_layer_id  uuid;
   v_range_end uuid;
   cnt         integer := 0;
 BEGIN
-  SELECT id INTO v_layer_id
-  FROM   gis_layers
-  WHERE  name = 'Benton Parcels (ArcGIS)'
-  LIMIT  1;
-
-  IF v_layer_id IS NULL THEN
-    RAISE EXCEPTION 'Layer "Benton Parcels (ArcGIS)" not found';
-  END IF;
-
   -- Step 1: id of the _limit-th feature after cursor (with parcel_id and centroid).
+  -- No layer filter — any feature with a parcel_id and centroid is valid.
   SELECT f.id INTO v_range_end
   FROM   gis_features f
-  WHERE  f.layer_id       = v_layer_id
-    AND  f.id             > _cursor
-    AND  f.parcel_id      IS NOT NULL
-    AND  f.centroid_lat   IS NOT NULL
+  WHERE  f.id           > _cursor
+    AND  f.parcel_id    IS NOT NULL
+    AND  f.centroid_lat IS NOT NULL
   ORDER  BY f.id
   LIMIT  1 OFFSET (_limit - 1);
 
@@ -49,8 +39,7 @@ BEGIN
            longitude_wgs84 = f.centroid_lng,
            situs_source    = 'arcgis_centroid'
     FROM   gis_features f
-    WHERE  f.layer_id      = v_layer_id
-      AND  f.id            > _cursor
+    WHERE  f.id            > _cursor
       AND  f.parcel_id     = p.id
       AND  f.centroid_lat  IS NOT NULL
       AND  p.latitude_wgs84 IS NULL;
@@ -69,8 +58,7 @@ BEGIN
          longitude_wgs84 = f.centroid_lng,
          situs_source    = 'arcgis_centroid'
   FROM   gis_features f
-  WHERE  f.layer_id      = v_layer_id
-    AND  f.id            > _cursor
+  WHERE  f.id            > _cursor
     AND  f.id            <= v_range_end
     AND  f.parcel_id     = p.id
     AND  f.centroid_lat  IS NOT NULL

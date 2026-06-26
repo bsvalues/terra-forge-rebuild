@@ -70,8 +70,8 @@ except ImportError:
 
 # ── Configuration ─────────────────────────────────────────────────────────────
 
-SUPABASE_URL = os.getenv("SUPABASE_URL", "https://udjoodlluygvlqccwade.supabase.co").rstrip("/")
-SERVICE_KEY  = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "")
+SUPABASE_URL = os.environ["SUPABASE_URL"].rstrip("/")
+SERVICE_KEY  = os.environ["SUPABASE_SERVICE_ROLE_KEY"]
 
 SCHEDULES_DIR = Path(os.getenv(
     "COSTFORGE_SCHEDULES_DIR",

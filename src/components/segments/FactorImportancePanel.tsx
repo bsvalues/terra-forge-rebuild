@@ -1,7 +1,6 @@
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { Check, X, TrendingUp, MapPin, Building, Calendar, Layers } from "lucide-react";
 import { useFactorAnalysis, FactorAnalysis } from "@/hooks/useSegmentDiscovery";
 import { Skeleton } from "@/components/ui/skeleton";

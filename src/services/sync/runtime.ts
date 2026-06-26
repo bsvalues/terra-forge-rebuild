@@ -21,7 +21,6 @@ import {
   defaultWatermark,
 } from "@/config/pacsBentonContract";
 import {
-  BENTON_QUALITY_GATES,
   PACS_SCHEMA_EXPECTATIONS,
   type QualityGateResult,
   type SchemaDriftResult,

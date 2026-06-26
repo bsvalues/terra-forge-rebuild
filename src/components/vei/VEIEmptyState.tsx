@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Database, TrendingUp, Upload } from "lucide-react";
+import { Database, TrendingUp } from "lucide-react";
 
 export function VEIEmptyState() {
   return (
@@ -20,7 +20,7 @@ export function VEIEmptyState() {
           </div>
         </div>
 
-        <h2 className="text-2xl font-light text-gradient-sovereign mb-3">
+        <h2 className="text-2xl font-light text-[hsl(var(--tf-transcend-cyan))] mb-3">
           Insufficient Data for Ratio Analysis
         </h2>
         
