@@ -1,3 +1,11 @@
+<<<<<<< HEAD
+import React, { useState } from 'react'
+import useSaveCalcTrace from '../../hooks/useCostForgeMutations'
+import { calcRCNLD } from '@/services/costforgeConnector'
+import type { CostForgeCalcInput } from '@/services/costforgeConnector'
+
+const BENTON_COUNTY_ID = "842a6c54-c7c0-4b2d-aa43-0e3ba63fa57d";
+=======
 import { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,6 +22,7 @@ import { useCalcRCNLD, useImprvTypeCodes } from "@/hooks/useCostForgeHooks";
 import { useSaveCalcTrace } from "@/hooks/useCostForgeMutations";
 import type { CostForgeCalcInput, QualityGrade, ConstructionClass } from "@/services/costforgeConnector";
 import { ClipboardCheck, Calculator, Save, ChevronRight, ChevronLeft, CheckCircle2, AlertCircle } from "lucide-react";
+>>>>>>> origin/main
 
 const BENTON_COUNTY_ID = "842a6c54-c7c0-4b2d-aa43-0e3ba63fa57d";
 
@@ -32,6 +41,49 @@ interface DraftForm {
   occupancyCode: string;
 }
 
+<<<<<<< HEAD
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    const input: CostForgeCalcInput = {
+      lrsn: null,
+      pin: null,
+      county_id: BENTON_COUNTY_ID,
+      imprv_det_type_cd: improvementType || null,
+      yr_built: yearBuilt,
+      area_sqft: area,
+      condition_code: null,
+      construction_class_raw: null,
+      use_code: null,
+      section_id: null,
+      occupancy_code: null,
+      is_residential: true,
+    }
+
+    try {
+      const result = await calcRCNLD(input)
+      const trace = {
+        parcel_id: parcelId ?? null,
+        improvement_type: improvementType,
+        area,
+        year_built: yearBuilt,
+        computed_rcnld: result.rcnld ?? null,
+        calc_year: new Date().getFullYear(),
+        created_at: new Date().toISOString(),
+      }
+      saveMutation.mutate(trace)
+    } catch (err) {
+      console.error('calcRCNLD failed', err)
+      saveMutation.mutate({
+        parcel_id: parcelId ?? null,
+        improvement_type: improvementType,
+        area,
+        year_built: yearBuilt,
+        computed_rcnld: null,
+        calc_year: new Date().getFullYear(),
+        created_at: new Date().toISOString(),
+      })
+    }
+=======
 const QUALITY_OPTIONS: QualityGrade[] = ["Low", "Fair", "Average", "Good", "Excellent"];
 
 function toNum(v: string) {
@@ -89,6 +141,7 @@ export default function DraftValuationWorkflow() {
       occupancy_code: selectedCode?.occupancy_code ?? (form.occupancyCode || null),
       is_residential: form.isResidential,
     };
+>>>>>>> origin/main
   }
 
   async function handleCalculate() {
@@ -358,6 +411,28 @@ export default function DraftValuationWorkflow() {
   );
 
   return (
+<<<<<<< HEAD
+    <form onSubmit={handleSubmit} style={{ padding: 12 }}>
+      <div style={{ marginBottom: 8 }}>
+        <label>Improvement Type</label>
+        <input value={improvementType} onChange={e => setImprovementType(e.target.value)} />
+      </div>
+      <div style={{ marginBottom: 8 }}>
+        <label>Area (sqft)</label>
+        <input type="number" value={area} onChange={e => setArea(Number(e.target.value))} />
+      </div>
+      <div style={{ marginBottom: 8 }}>
+        <label>Year Built</label>
+        <input type="number" value={yearBuilt} onChange={e => setYearBuilt(Number(e.target.value))} />
+      </div>
+      <button type="submit">Save Draft Trace</button>
+      {saveMutation.isPending && <div>Saving...</div>}
+      {saveMutation.isError && <div style={{ color: 'red' }}>Error saving trace</div>}
+      {saveMutation.isSuccess && <div style={{ color: 'green' }}>Saved</div>}
+    </form>
+  )
+}
+=======
     <Card className="border-border/40">
       <CardHeader className="pb-3">
         <CardTitle className="text-base flex items-center gap-2">
@@ -412,3 +487,4 @@ function ResultCell({ label, value, highlight }: { label: string; value: string;
     </div>
   );
 }
+>>>>>>> origin/main

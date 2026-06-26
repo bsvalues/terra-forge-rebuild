@@ -3,6 +3,10 @@
 // All tables use (supabase as any) cast — new tables not yet in generated types.
 
 import { useQuery } from "@tanstack/react-query";
+<<<<<<< HEAD
+import { useActiveCountyId } from "@/hooks/useActiveCounty";
+=======
+>>>>>>> origin/main
 import {
   getDepreciationTable,
   getCostMultipliers,

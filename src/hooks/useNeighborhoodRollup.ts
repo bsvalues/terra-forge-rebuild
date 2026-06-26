@@ -52,7 +52,12 @@ export function useNeighborhoodLandSummary() {
   return useQuery({
     queryKey: ["neighborhood-land-summary"],
     queryFn: async () => {
+<<<<<<< HEAD
+      const { data, error } = await (supabase as any)
+        .from("vw_neighborhood_land_summary")
+=======
       const { data, error } = await (supabase.from as any)("vw_neighborhood_land_summary")
+>>>>>>> origin/main
         .select("*")
         .order("total_land_val", { ascending: false });
       if (error) throw error;
@@ -66,7 +71,12 @@ export function useNeighborhoodImprovementSummary() {
   return useQuery({
     queryKey: ["neighborhood-improvement-summary"],
     queryFn: async () => {
+<<<<<<< HEAD
+      const { data, error } = await (supabase as any)
+        .from("vw_neighborhood_improvement_summary")
+=======
       const { data, error } = await (supabase.from as any)("vw_neighborhood_improvement_summary")
+>>>>>>> origin/main
         .select("*")
         .order("total_imprv_val", { ascending: false });
       if (error) throw error;
@@ -80,7 +90,12 @@ export function useNeighborhoodSalesSummary() {
   return useQuery({
     queryKey: ["neighborhood-sales-summary"],
     queryFn: async () => {
+<<<<<<< HEAD
+      const { data, error } = await (supabase as any)
+        .from("vw_neighborhood_sales_summary")
+=======
       const { data, error } = await (supabase.from as any)("vw_neighborhood_sales_summary")
+>>>>>>> origin/main
         .select("*")
         .order("sale_count", { ascending: false });
       if (error) throw error;
@@ -94,7 +109,12 @@ export function useNeighborhoodAssessmentSummary(rollYear?: number) {
   return useQuery({
     queryKey: ["neighborhood-assessment-summary", rollYear],
     queryFn: async () => {
+<<<<<<< HEAD
+      let query = (supabase as any)
+        .from("vw_neighborhood_assessment_summary")
+=======
       let query = (supabase.from as any)("vw_neighborhood_assessment_summary")
+>>>>>>> origin/main
         .select("*")
         .order("total_appraised", { ascending: false });
       if (rollYear) {

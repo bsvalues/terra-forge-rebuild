@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.91.1";
+import { requireAdmin } from "../_shared/auth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -17,6 +18,15 @@ interface HealthCheck {
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
+  }
+
+  // Admin-only: this endpoint exposes DB record counts, ingest pipeline state,
+  // and storage inventory. Never permit unauthenticated access.
+  try {
+    await requireAdmin(req);
+  } catch (res) {
+    if (res instanceof Response) return res;
+    throw res;
   }
 
   const startTime = performance.now();

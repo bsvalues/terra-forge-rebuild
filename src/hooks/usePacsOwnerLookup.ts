@@ -16,7 +16,12 @@ export function usePacsOwnerLookup(propId: number | null) {
   return useQuery({
     queryKey: ["pacs-owners", propId],
     queryFn: async () => {
+<<<<<<< HEAD
+      const { data, error } = await (supabase as any)
+        .from("pacs_owners")
+=======
       const { data, error } = await (supabase.from as any)("pacs_owners")
+>>>>>>> origin/main
         .select("id, county_id, prop_id, owner_id, owner_name, pct_ownership, owner_tax_yr, sup_num")
         .eq("prop_id", propId!)
         .order("owner_tax_yr", { ascending: false });
@@ -32,7 +37,12 @@ export function usePacsOwnerSearch(searchTerm: string | null) {
   return useQuery({
     queryKey: ["pacs-owner-search", searchTerm],
     queryFn: async () => {
+<<<<<<< HEAD
+      const { data, error } = await (supabase as any)
+        .from("pacs_owners")
+=======
       const { data, error } = await (supabase.from as any)("pacs_owners")
+>>>>>>> origin/main
         .select("id, prop_id, owner_id, owner_name, pct_ownership, owner_tax_yr")
         .ilike("owner_name", `%${searchTerm}%`)
         .limit(50);

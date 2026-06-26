@@ -4,7 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+<<<<<<< HEAD
+import { useCalcRCNLD, useImprvTypeCodes, type QualityGrade } from "@/hooks/useCostForgeHooks";
+=======
 import { useCalcRCNLD, useImprvTypeCodes, type CostForgeCalcInput, type QualityGrade } from "@/hooks/useCostForgeHooks";
+>>>>>>> origin/main
 import { Calculator, RefreshCw } from "lucide-react";
 
 const BENTON_COUNTY_ID = "842a6c54-c7c0-4b2d-aa43-0e3ba63fa57d";
@@ -25,6 +29,27 @@ function toNum(v: string) {
   return Number.isFinite(n) ? n : 0;
 }
 
+/**
+ * Map numeric quality codes or strings to QualityGrade type.
+ * Returns undefined for invalid values.
+ */
+function toQualityGrade(value: string | number): QualityGrade | undefined {
+  const qualityMap: Record<string, QualityGrade> = {
+    "1": "Low",
+    "2": "Fair",
+    "3": "Average",
+    "4": "Good",
+    "5": "Excellent",
+    "Low": "Low",
+    "Fair": "Fair",
+    "Average": "Average",
+    "Good": "Good",
+    "Excellent": "Excellent",
+  };
+  const key = String(value).trim();
+  return qualityMap[key];
+}
+
 export function CostApproachRunner() {
   const { result, isLoading, error, calculate, reset } = useCalcRCNLD();
   const { data: imprvTypeCodes = [] } = useImprvTypeCodes(BENTON_COUNTY_ID);
@@ -43,7 +68,32 @@ export function CostApproachRunner() {
   const yearNow = new Date().getFullYear();
   const derivedAge = Math.max(0, yearNow - toNum(form.year_built));
 
+  // Resolve section_id from selected improvement type code
+  const selectedTypeCode = imprvTypeCodes.find(
+    (code) => code.imprv_det_type_cd === form.imprvTypeCode
+  );
+
   const run = async () => {
+<<<<<<< HEAD
+    const qualityGrade = toQualityGrade(form.quality);
+
+    await calculate(
+      {
+        lrsn: null,
+        pin: null,
+        county_id: BENTON_COUNTY_ID,
+        imprv_det_type_cd: form.imprvTypeCode || null,
+        yr_built: toNum(form.year_built) || null,
+        area_sqft: toNum(form.area) || null,
+        condition_code: null,
+        construction_class_raw: form.prop_type === "C" ? form.sectionClass : null,
+        use_code: null,
+        section_id: selectedTypeCode?.section_id ?? null,
+        occupancy_code: null,
+        is_residential: form.prop_type === "R",
+      },
+      qualityGrade,
+=======
     const input: CostForgeCalcInput = {
       lrsn: null,
       pin: null,
@@ -61,6 +111,7 @@ export function CostApproachRunner() {
     await calculate(
       input,
       (form.quality as QualityGrade) || undefined,
+>>>>>>> origin/main
       form.prop_type === "R" ? form.extWall || undefined : undefined,
       form.effLife ? toNum(form.effLife) : undefined
     );
@@ -163,7 +214,11 @@ export function CostApproachRunner() {
                 <SelectContent>
                   <SelectItem value="none">None</SelectItem>
                   {imprvTypeCodes.map((code) => (
+<<<<<<< HEAD
+                    <SelectItem key={code.id} value={code.imprv_det_type_cd}>{code.imprv_det_type_cd}{code.type_desc ? ` — ${code.type_desc}` : ""}</SelectItem>
+=======
                     <SelectItem key={String(code)} value={String(code)}>{String(code)}</SelectItem>
+>>>>>>> origin/main
                   ))}
                 </SelectContent>
               </Select>
@@ -194,6 +249,17 @@ export function CostApproachRunner() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-sm">
               <div className="rounded-md border border-border/40 p-3">
                 <div className="text-xs text-muted-foreground">Base Unit Cost</div>
+<<<<<<< HEAD
+                <div className="font-medium tabular-nums">{result.baseUnitCost?.toFixed(2) ?? "-"}</div>
+              </div>
+              <div className="rounded-md border border-border/40 p-3">
+                <div className="text-xs text-muted-foreground">Local Multiplier</div>
+                <div className="font-medium tabular-nums">{result.localMultiplier?.toFixed(4) ?? "-"}</div>
+              </div>
+              <div className="rounded-md border border-border/40 p-3">
+                <div className="text-xs text-muted-foreground">Current Cost Mult</div>
+                <div className="font-medium tabular-nums">{result.currentCostMult?.toFixed(4) ?? "-"}</div>
+=======
                 <div className="font-medium tabular-nums">{result?.baseUnitCost?.toFixed(2) ?? "-"}</div>
               </div>
               <div className="rounded-md border border-border/40 p-3">
@@ -207,6 +273,7 @@ export function CostApproachRunner() {
               <div className="rounded-md border border-border/40 p-3">
                 <div className="text-xs text-muted-foreground">Area</div>
                 <div className="font-medium tabular-nums">{toNum(form.area).toLocaleString()}</div>
+>>>>>>> origin/main
               </div>
               <div className="rounded-md border border-border/40 p-3">
                 <div className="text-xs text-muted-foreground">RCN</div>
@@ -214,11 +281,19 @@ export function CostApproachRunner() {
               </div>
               <div className="rounded-md border border-border/40 p-3">
                 <div className="text-xs text-muted-foreground">Age / Eff Life</div>
+<<<<<<< HEAD
+                <div className="font-medium tabular-nums">{result.ageYears ?? "-"} / {result.effectiveLifeYears ?? "-"}</div>
+              </div>
+              <div className="rounded-md border border-border/40 p-3">
+                <div className="text-xs text-muted-foreground">Pct Good</div>
+                <div className="font-medium tabular-nums">{result.pctGood?.toFixed(4) ?? "-"}</div>
+=======
                 <div className="font-medium tabular-nums">{result?.ageYears ?? "-"} / {result?.effectiveLifeYears ?? "-"}</div>
               </div>
               <div className="rounded-md border border-border/40 p-3">
                 <div className="text-xs text-muted-foreground">Pct Good</div>
                 <div className="font-medium tabular-nums">{result?.pctGood?.toFixed(4) ?? "-"}</div>
+>>>>>>> origin/main
               </div>
               <div className="rounded-md border border-primary/40 p-3 bg-primary/5">
                 <div className="text-xs text-muted-foreground">RCNLD</div>

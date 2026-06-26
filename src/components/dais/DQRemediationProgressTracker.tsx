@@ -62,14 +62,18 @@ export function DQRemediationProgressTracker() {
   const { data: issueCategories } = useQuery({
     queryKey: ["dq-issue-categories"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("dq_issue_registry")
         .select("issue_type, status, is_hard_blocker")
         .limit(5000);
       if (error) throw error;
       const cats = new Map<string, { total: number; open: number; resolved: number; blockers: number }>();
       for (const row of data || []) {
+<<<<<<< HEAD
+        const cat = (row as any).issue_type || "uncategorized";
+=======
         const cat = row.issue_type || "uncategorized";
+>>>>>>> origin/main
         if (!cats.has(cat)) cats.set(cat, { total: 0, open: 0, resolved: 0, blockers: 0 });
         const c = cats.get(cat)!;
         c.total++;

@@ -21,7 +21,12 @@ export function usePacsSalesHistory(propId: number | null) {
   return useQuery({
     queryKey: ["pacs-sales", propId],
     queryFn: async () => {
+<<<<<<< HEAD
+      const { data, error } = await (supabase as any)
+        .from("pacs_sales")
+=======
       const { data, error } = await (supabase.from as any)("pacs_sales")
+>>>>>>> origin/main
         .select("*")
         .eq("prop_id", propId!)
         .order("sale_date", { ascending: false });
@@ -37,7 +42,12 @@ export function usePacsNeighborhoodSales(hoodCd: string | null) {
   return useQuery({
     queryKey: ["pacs-hood-sales", hoodCd],
     queryFn: async () => {
+<<<<<<< HEAD
+      const { data, error } = await (supabase as any)
+        .from("pacs_sales")
+=======
       const { data, error } = await (supabase.from as any)("pacs_sales")
+>>>>>>> origin/main
         .select("*")
         .eq("hood_cd", hoodCd!)
         .not("ratio", "is", null)

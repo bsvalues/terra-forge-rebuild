@@ -73,7 +73,11 @@ export function CostScheduleManager() {
                 <div className="text-xl font-semibold">{coverage?.depreciation_rows ?? 0}</div>
               </div>
               <div className="rounded-lg border border-border/40 p-3">
+<<<<<<< HEAD
+                <div className="text-xs text-muted-foreground">Type Code Rows</div>
+=======
                 <div className="text-xs text-muted-foreground">Imprv Type Codes</div>
+>>>>>>> origin/main
                 <div className="text-xl font-semibold">{coverage?.type_code_rows ?? 0}</div>
               </div>
             </div>
@@ -110,10 +114,10 @@ export function CostScheduleManager() {
                 <EmptyState label="residential schedules" />
               ) : (
                 <div className="space-y-4">
-                  {Object.entries(groupedResidential).map(([typeCode, rows]) => (
-                    <div key={typeCode} className="border border-border/40 rounded-lg overflow-hidden">
+                  {Object.entries(groupedResidential).map(([grade, rows]) => (
+                    <div key={grade} className="border border-border/40 rounded-lg overflow-hidden">
                       <div className="bg-muted/40 px-3 py-2 text-xs font-medium flex items-center justify-between">
-                        <span>Improvement Type {typeCode}</span>
+                        <span>Quality Grade: {grade}</span>
                         <Badge variant="outline">{rows.length} rows</Badge>
                       </div>
                       <div className="overflow-auto">
@@ -121,6 +125,21 @@ export function CostScheduleManager() {
                           <thead className="bg-muted/20">
                             <tr>
                               <th className="text-left p-2 font-medium">Ext Wall</th>
+<<<<<<< HEAD
+                              <th className="text-right p-2 font-medium">Unit Cost</th>
+                              <th className="text-right p-2 font-medium">Min Area</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {rows.map((r) => (
+                              <tr key={r.id} className="border-t border-border/30">
+                                <td className="p-2">{r.ext_wall_type || "-"}</td>
+                                <td className="p-2 text-right tabular-nums">{r.unit_cost ?? "-"}</td>
+                                <td className="p-2 text-right tabular-nums">{r.min_area ?? "-"}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+=======
                               <th className="text-left p-2 font-medium">Grade</th>
                               <th className="text-right p-2 font-medium">Unit Cost</th>
                               <th className="text-right p-2 font-medium">Min Area</th>
@@ -138,6 +157,7 @@ export function CostScheduleManager() {
                                 </tr>
                               ))}
                             </tbody>
+>>>>>>> origin/main
                         </table>
                       </div>
                     </div>
@@ -162,7 +182,7 @@ export function CostScheduleManager() {
                       <tr>
                         <th className="text-left p-2 font-medium">Section</th>
                         <th className="text-left p-2 font-medium">Class</th>
-                        <th className="text-right p-2 font-medium">Rate</th>
+                        <th className="text-right p-2 font-medium">Unit Cost</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -193,7 +213,7 @@ export function CostScheduleManager() {
                   <table className="w-full text-xs">
                     <thead className="bg-muted/20">
                       <tr>
-                        <th className="text-left p-2 font-medium">Age</th>
+                        <th className="text-left p-2 font-medium">Age (years)</th>
                         <th className="text-right p-2 font-medium">Pct Good</th>
                       </tr>
                     </thead>
@@ -217,9 +237,21 @@ export function CostScheduleManager() {
             <CardContent className="pt-5">
               {multipliersLoading ? (
                 <LoadingTable />
-              ) : !multipliers ? (
+              ) : !multipliers || multipliers.length === 0 ? (
                 <EmptyState label="cost multipliers" />
               ) : (
+<<<<<<< HEAD
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                  {multipliers.map((m) => (
+                    <div key={m.id} className="rounded-lg border border-border/40 p-3" title={`Section: ${m.section_id ?? "N/A"}`}>
+                      <div className="text-xs text-muted-foreground">
+                        {m.multiplier_type} — {m.construction_class}
+                        {m.section_id !== null && ` (Sec ${m.section_id})`}
+                      </div>
+                      <div className="text-lg font-semibold tabular-nums">{m.multiplier ?? "-"}</div>
+                    </div>
+                  ))}
+=======
                 <div className="overflow-auto border border-border/40 rounded-lg">
                   <table className="w-full text-xs">
                     <thead className="bg-muted/20">
@@ -241,6 +273,7 @@ export function CostScheduleManager() {
                       ))}
                     </tbody>
                   </table>
+>>>>>>> origin/main
                 </div>
               )}
             </CardContent>

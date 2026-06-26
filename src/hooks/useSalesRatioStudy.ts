@@ -24,8 +24,13 @@ export function useRatioCountySummary() {
   return useQuery({
     queryKey: ["ratio-county-summary"],
     queryFn: async () => {
+<<<<<<< HEAD
+      const { data, error } = await (supabase as any)
+        .from("vw_sales_ratio_county_summary")
+=======
       const { data, error } = await (supabase.from as any)
         ("vw_sales_ratio_county_summary")
+>>>>>>> origin/main
         .select("*")
         .eq("county_id", BENTON_COUNTY_ID)
         .order("sale_year", { ascending: false });
@@ -65,8 +70,13 @@ export function useRatioByNeighborhood(saleYear: number | null) {
   return useQuery({
     queryKey: ["ratio-by-neighborhood", saleYear],
     queryFn: async () => {
+<<<<<<< HEAD
+      const { data, error } = await (supabase as any)
+        .from("vw_sales_ratio_by_neighborhood")
+=======
       const { data, error } = await (supabase.from as any)
         ("vw_sales_ratio_by_neighborhood")
+>>>>>>> origin/main
         .select("*")
         .eq("county_id", BENTON_COUNTY_ID)
         .eq("sale_year", saleYear!)
@@ -112,7 +122,12 @@ export function useRatioDetail(
   return useQuery({
     queryKey: ["ratio-detail", saleYear, neighborhoodCode, qualifiedOnly, limit],
     queryFn: async () => {
+<<<<<<< HEAD
+      let query = (supabase as any)
+        .from("vw_sales_ratio_detail")
+=======
       let query = (supabase.from as any)("vw_sales_ratio_detail")
+>>>>>>> origin/main
         .select("*")
         .eq("county_id", BENTON_COUNTY_ID)
         .limit(limit)

@@ -30,7 +30,12 @@ export function usePacsAssessmentRoll(propId: number | null) {
   return useQuery({
     queryKey: ["pacs-assessment-roll", propId],
     queryFn: async () => {
+<<<<<<< HEAD
+      const { data, error } = await (supabase as any)
+        .from("pacs_assessment_roll")
+=======
       const { data, error } = await (supabase.from as any)("pacs_assessment_roll")
+>>>>>>> origin/main
         .select("*")
         .eq("prop_id", propId!)
         .order("roll_year", { ascending: false });
@@ -46,7 +51,12 @@ export function usePacsAssessmentRollByGeo(geoId: string | null) {
   return useQuery({
     queryKey: ["pacs-assessment-roll-geo", geoId],
     queryFn: async () => {
+<<<<<<< HEAD
+      const { data, error } = await (supabase as any)
+        .from("pacs_assessment_roll")
+=======
       const { data, error } = await (supabase.from as any)("pacs_assessment_roll")
+>>>>>>> origin/main
         .select("*")
         .eq("geo_id", geoId!)
         .order("roll_year", { ascending: false });
