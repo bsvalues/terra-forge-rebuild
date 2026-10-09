@@ -59,12 +59,12 @@ export function useAuth() {
     return { error };
   };
 
-  const signUp = async (email: string, password: string, displayName?: string) => {
+  const signUp = async (email: string, password: string, displayName?: string, redirectTo?: string) => {
     const { error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        emailRedirectTo: window.location.origin,
+        emailRedirectTo: redirectTo ?? window.location.origin,
         data: { display_name: displayName || email },
       },
     });
