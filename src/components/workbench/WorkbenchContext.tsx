@@ -1,4 +1,6 @@
-import { createContext, useContext, useState, useCallback, ReactNode } from "react";
+import { createContext, useContext, useState, useCallback, useEffect, useRef, ReactNode } from "react";
+import { isEmbedMode } from "@/lib/splitView";
+import { createWindowId, loadLastLinkedParcel, publishParcel, subscribeParcelLink } from "@/lib/parcelLink";
 import { 
   WorkbenchContext as WorkbenchContextType, 
   WorkMode, 
@@ -58,11 +60,18 @@ export function WorkbenchProvider({ children }: WorkbenchProviderProps) {
   const [pilotMode, setPilotModeState] = useState<PilotMode>("pilot");
   const [systemState, setSystemStateState] = useState<SystemState>("idle");
 
-  // Follow parcels opened in the other window.
-  useEffect(() => subscribeParcelLink(windowId, (p) => setParcelState(p)), [windowId]);
-
   // Announce parcel changes made in this window (only when the parcel itself changes).
   const lastPublished = useRef<string | null>(parcel.id);
+
+  // Follow parcels opened in the other window, without echoing them back.
+  useEffect(
+    () =>
+      subscribeParcelLink(windowId, (p) => {
+        lastPublished.current = p.id;
+        setParcelState(p);
+      }),
+    [windowId]
+  );
   useEffect(() => {
     if (parcel.id && parcel.id !== lastPublished.current) {
       lastPublished.current = parcel.id;
