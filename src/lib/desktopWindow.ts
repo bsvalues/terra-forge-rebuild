@@ -43,3 +43,11 @@ export function saveWindowPrefs(prefs: WindowPrefs): void {
   if (typeof window === "undefined") return;
   window.localStorage.setItem(WINDOW_PREFS_KEY, JSON.stringify(prefs));
 }
+
+/** Title for an in-app path like /home/data-ops/validation (module / optional group / view). */
+export function windowTitleForPath(path: string): WindowTitle {
+  const parts = path.split("?")[0].split("#")[0].split("/").filter(Boolean);
+  const moduleId = (parts[0] ?? "home") as PrimaryModuleId;
+  const viewId = parts.length > 1 ? parts[parts.length - 1] : null;
+  return windowTitleFor(moduleId, viewId);
+}

@@ -5,6 +5,7 @@
 import { useEffect, useRef, useState } from "react";
 import { ArrowLeftRight, X } from "lucide-react";
 import { buildEmbedUrl, stripEmbedParam } from "@/lib/splitView";
+import { windowTitleForPath } from "@/lib/desktopWindow";
 
 interface SideWindowProps {
   path: string;
@@ -29,16 +30,14 @@ export function SideWindow({ path, onClose, onSwap }: SideWindowProps) {
     return path;
   };
 
+  // Poll the embedded page's location (same origin) so the title follows in-window navigation.
   useEffect(() => {
-    const id = window.setInterval(() => {
-      try {
-        const t = frameRef.current?.contentDocument?.title;
-        const p = currentPath();
-        setTitle(p.split("/").filter(Boolean).slice(-1)[0]?.replace(/[-_]+/g, " ") || t || "Window");
-      } catch {
-        /* ignore */
-      }
-    }, 1000);
+    const update = () => {
+      const t = windowTitleForPath(currentPath());
+      setTitle(t.subtitle ? `${t.title} · ${t.subtitle}` : t.title);
+    };
+    update();
+    const id = window.setInterval(update, 1000);
     return () => window.clearInterval(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [path]);
@@ -55,7 +54,7 @@ export function SideWindow({ path, onClose, onSwap }: SideWindowProps) {
           <span className="traffic-light bg-muted" aria-hidden />
           <span className="traffic-light bg-muted" aria-hidden />
         </div>
-        <h2 className="text-[13px] font-semibold text-foreground/90 truncate capitalize flex-1">{title}</h2>
+        <h2 className="text-[13px] font-semibold text-foreground/90 truncate flex-1">{title}</h2>
         <button
           onClick={() => onSwap(currentPath())}
           className="flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground"
