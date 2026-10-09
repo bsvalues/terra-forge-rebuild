@@ -17,6 +17,15 @@ import { BreadcrumbBar } from "@/components/navigation/BreadcrumbBar";
 import { TahoeSidebar } from "@/components/navigation/TahoeSidebar";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { logNavAttempt } from "@/lib/constitutionGuards";
+import { DesktopWindow } from "./DesktopWindow";
+import { SpacesDock } from "./SpacesDock";
+import wallpaper from "@/assets/desktop-wallpaper.jpg";
+
+/** "valuation-models" → "Valuation Models" */
+function humanize(id: string | null | undefined): string {
+  if (!id) return "";
+  return id.replace(/[-_:]+/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+}
 
 function StageFallback() {
   return (
@@ -36,6 +45,10 @@ export function ModuleShell() {
 
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const [controlCenterOpen, setControlCenterOpen] = useState(false);
+  const [maximized, setMaximized] = useState(false);
+  const [minimized, setMinimized] = useState(false);
+  const windowTitle = humanize(activeModule);
+  const windowSubtitle = humanize(activeView);
 
   // Navigation handler that bridges legacy string targets to URL navigation
   const handleNavigate = useCallback(
@@ -104,12 +117,15 @@ export function ModuleShell() {
   return (
     <TrustModeProvider>
       <SidebarProvider>
-        <div className="flex h-screen w-full overflow-hidden" style={{ background: "hsl(var(--background))" }}>
+        <div
+          className="desktop-wallpaper relative flex h-screen w-full overflow-hidden"
+          style={{ backgroundImage: `url(${wallpaper})` }}
+        >
           {/* Tahoe Sidebar */}
           <TahoeSidebar onNavigate={handleNavigate} />
 
           {/* Main content area */}
-          <SidebarInset className="flex flex-col flex-1 min-w-0">
+          <SidebarInset className="relative flex flex-col flex-1 min-w-0 bg-transparent">
             {/* Top system bar */}
             <TopSystemBar
               onOpenCommandPalette={() => setCommandPaletteOpen(true)}
@@ -120,30 +136,47 @@ export function ModuleShell() {
               }}
             />
 
+            <DesktopWindow
+              title={windowTitle}
+              subtitle={windowSubtitle}
+              maximized={maximized}
+              minimized={minimized}
+              onClose={() => { setMinimized(false); handleNavigate("home"); }}
+              onMinimize={() => setMinimized(true)}
+              onToggleMaximize={() => setMaximized((m) => !m)}
+            >
             {/* Breadcrumb bar */}
-            <BreadcrumbBar onNavigate={handleNavigate} />
+              <BreadcrumbBar onNavigate={handleNavigate} />
 
-            {/* View content with spatial transitions */}
-            <main id="main-content" role="main" className="flex-1 overflow-auto">
-              <ErrorBoundary fallbackTitle={`${activeModule} module encountered an error`}>
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key={`${activeModule}-${activeView}`}
-                    initial={currentVariant.initial}
-                    animate={currentVariant.animate}
-                    exit={currentVariant.exit}
-                    transition={{ duration: 0.25, ease: [0.32, 0.72, 0, 1] }}
-                  >
-                    <Suspense fallback={<StageFallback />}>
-                      <ViewRenderer
-                        onNavigate={handleNavigate}
-                        onParcelNavigate={handleParcelNavigate}
-                      />
-                    </Suspense>
-                  </motion.div>
-                </AnimatePresence>
-              </ErrorBoundary>
-            </main>
+              {/* View content with spatial transitions */}
+              <main id="main-content" role="main" className="flex-1 overflow-auto">
+                <ErrorBoundary fallbackTitle={`${activeModule} module encountered an error`}>
+                  <AnimatePresence mode="wait">
+                    <motion.div
+                      key={`${activeModule}-${activeView}`}
+                      initial={currentVariant.initial}
+                      animate={currentVariant.animate}
+                      exit={currentVariant.exit}
+                      transition={{ duration: 0.25, ease: [0.32, 0.72, 0, 1] }}
+                    >
+                      <Suspense fallback={<StageFallback />}>
+                        <ViewRenderer
+                          onNavigate={handleNavigate}
+                          onParcelNavigate={handleParcelNavigate}
+                        />
+                      </Suspense>
+                    </motion.div>
+                  </AnimatePresence>
+                </ErrorBoundary>
+              </main>
+            </DesktopWindow>
+            {minimized && <div className="flex-1" aria-hidden />}
+
+            <SpacesDock
+              currentTitle={windowSubtitle ? `${windowTitle} · ${windowSubtitle}` : windowTitle}
+              minimized={minimized}
+              onRestore={() => setMinimized(false)}
+            />
           </SidebarInset>
         </div>
 
