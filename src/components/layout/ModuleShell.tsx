@@ -2,7 +2,8 @@
 // Wraps sidebar + breadcrumb bar + content area for each module.
 // Replaces AppLayout as the main layout component.
 
-import { useState, useCallback, useEffect, Suspense } from "react";
+import { useState, useCallback, useEffect, useRef, Suspense } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { TopSystemBar } from "@/components/navigation/TopSystemBar";
@@ -20,6 +21,10 @@ import { logNavAttempt } from "@/lib/constitutionGuards";
 import { DesktopWindow } from "./DesktopWindow";
 import { SpacesDock } from "./SpacesDock";
 import wallpaper from "@/assets/desktop-wallpaper.jpg";
+import { SideWindow } from "./SideWindow";
+import { OpenBesideMenu } from "./OpenBesideMenu";
+import { SplitHandle } from "./SplitHandle";
+import { clampSplit, isEmbedMode, loadSplitState, saveSplitState, stripEmbedParam } from "@/lib/splitView";
 
 import { windowTitleFor, loadWindowPrefs, saveWindowPrefs } from "@/lib/desktopWindow";
 
@@ -46,6 +51,26 @@ export function ModuleShell() {
   const { title: windowTitle, subtitle: windowSubtitle } = windowTitleFor(activeModule, activeView);
 
   useEffect(() => saveWindowPrefs({ maximized }), [maximized]);
+
+  // Side-by-side windows. Inside a side window (embed mode) the shell renders content only.
+  const location = useLocation();
+  const routerNavigate = useNavigate();
+  const embedded = isEmbedMode(location.search);
+  const currentPath = stripEmbedParam(location.pathname + location.search + location.hash);
+  const [split, setSplit] = useState(() => loadSplitState());
+  const splitRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!embedded) saveSplitState(split);
+  }, [split, embedded]);
+  const openBeside = (path: string) => {
+    setMinimized(false);
+    setSplit((st) => ({ ...st, path }));
+  };
+  const closeBeside = () => setSplit((st) => ({ ...st, path: null }));
+  const swapWindows = (sidePath: string) => {
+    setSplit((st) => ({ ...st, path: currentPath }));
+    routerNavigate(sidePath);
+  };
 
   // Window shortcuts: Ctrl/Cmd+Shift+M minimize/restore, Ctrl/Cmd+Shift+F focus (maximize), Esc restores a hidden window.
   useEffect(() => {
@@ -128,38 +153,10 @@ export function ModuleShell() {
   };
 
   const currentVariant = variants[navigationDirection];
+  const showSplit = !!split.path && !minimized;
 
-  return (
-    <TrustModeProvider>
-      <SidebarProvider>
-        <div
-          className="desktop-wallpaper relative flex h-screen w-full overflow-hidden"
-          style={{ backgroundImage: `url(${wallpaper})` }}
-        >
-          {/* Tahoe Sidebar */}
-          <TahoeSidebar onNavigate={handleNavigate} />
-
-          {/* Main content area */}
-          <SidebarInset className="relative flex flex-col flex-1 min-w-0 bg-transparent">
-            {/* Top system bar */}
-            <TopSystemBar
-              onOpenCommandPalette={() => setCommandPaletteOpen(true)}
-              onOpenControlCenter={() => setControlCenterOpen(true)}
-              onOpenMobileNav={() => {
-                // SidebarProvider handles mobile toggle via useSidebar().toggleSidebar()
-                // This is a no-op; the hamburger in TopSystemBar will be wired to sidebar
-              }}
-            />
-
-            <DesktopWindow
-              title={windowTitle}
-              subtitle={windowSubtitle}
-              maximized={maximized}
-              minimized={minimized}
-              onClose={() => { setMinimized(false); handleNavigate("home"); }}
-              onMinimize={() => setMinimized(true)}
-              onToggleMaximize={() => setMaximized((m) => !m)}
-            >
+  const stage = (
+    <>
             {/* Breadcrumb bar */}
               <BreadcrumbBar onNavigate={handleNavigate} />
 
@@ -184,7 +181,75 @@ export function ModuleShell() {
                   </AnimatePresence>
                 </ErrorBoundary>
               </main>
+    </>
+  );
+
+  // Side-window content: no sidebar, top bar or dock — just the page.
+  if (embedded) {
+    return (
+      <TrustModeProvider>
+        <div className="flex flex-col h-screen w-full overflow-hidden bg-background">{stage}</div>
+      </TrustModeProvider>
+    );
+  }
+
+  return (
+    <TrustModeProvider>
+      <SidebarProvider>
+        <div
+          className="desktop-wallpaper relative flex h-screen w-full overflow-hidden"
+          style={{ backgroundImage: `url(${wallpaper})` }}
+        >
+          {/* Tahoe Sidebar */}
+          <TahoeSidebar onNavigate={handleNavigate} />
+
+          {/* Main content area */}
+          <SidebarInset className="relative flex flex-col flex-1 min-w-0 bg-transparent">
+            {/* Top system bar */}
+            <TopSystemBar
+              onOpenCommandPalette={() => setCommandPaletteOpen(true)}
+              onOpenControlCenter={() => setControlCenterOpen(true)}
+              onOpenMobileNav={() => {
+                // SidebarProvider handles mobile toggle via useSidebar().toggleSidebar()
+                // This is a no-op; the hamburger in TopSystemBar will be wired to sidebar
+              }}
+            />
+
+            <div
+              ref={splitRef}
+              className={showSplit ? (maximized ? "flex flex-1 min-h-0" : "flex flex-1 min-h-0 mx-3 mb-3 mt-2") : "contents"}
+            >
+              <div
+                className={showSplit ? "flex min-h-0 min-w-0" : "contents"}
+                style={showSplit ? { flexBasis: `${split.ratio * 100}%` } : undefined}
+              >
+            <DesktopWindow
+              title={windowTitle}
+              subtitle={windowSubtitle}
+              maximized={maximized}
+              minimized={minimized}
+              onClose={() => { setMinimized(false); handleNavigate("home"); }}
+              onMinimize={() => setMinimized(true)}
+              onToggleMaximize={() => setMaximized((m) => !m)}
+              flush={showSplit}
+              actions={!split.path ? <OpenBesideMenu currentPath={currentPath} onOpen={openBeside} /> : undefined}
+            >
+                {stage}
             </DesktopWindow>
+              </div>
+              {showSplit && (
+                <>
+                  <SplitHandle
+                    ratio={split.ratio}
+                    containerRef={splitRef}
+                    onChange={(r) => setSplit((st) => ({ ...st, ratio: clampSplit(r) }))}
+                  />
+                  <div className="flex min-h-0 min-w-0 flex-1">
+                    <SideWindow path={split.path!} onClose={closeBeside} onSwap={swapWindows} />
+                  </div>
+                </>
+              )}
+            </div>
             {minimized && <div className="flex-1" aria-hidden />}
 
             <SpacesDock

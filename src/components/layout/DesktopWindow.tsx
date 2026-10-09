@@ -14,6 +14,10 @@ interface DesktopWindowProps {
   onClose: () => void;
   onMinimize: () => void;
   onToggleMaximize: () => void;
+  /** Extra controls on the right of the title bar (e.g. "Open beside"). */
+  actions?: ReactNode;
+  /** When true the parent handles spacing (used in side-by-side layout). */
+  flush?: boolean;
   children: ReactNode;
 }
 
@@ -25,6 +29,8 @@ export function DesktopWindow({
   onClose,
   onMinimize,
   onToggleMaximize,
+  actions,
+  flush,
   children,
 }: DesktopWindowProps) {
   if (minimized) return null;
@@ -34,7 +40,7 @@ export function DesktopWindow({
       aria-label={`${title} window`}
       className={cn(
         "desktop-window flex flex-col min-h-0 flex-1 overflow-hidden transition-[margin,border-radius] duration-300",
-        maximized ? "m-0 rounded-none" : "mx-3 mb-3 mt-2 rounded-xl",
+        flush ? "rounded-xl" : maximized ? "m-0 rounded-none" : "mx-3 mb-3 mt-2 rounded-xl",
       )}
     >
       <header
@@ -56,10 +62,11 @@ export function DesktopWindow({
             {maximized ? <Minimize2 className="w-2 h-2" /> : <Maximize2 className="w-2 h-2" />}
           </button>
         </div>
-        <div className="min-w-0 flex items-baseline gap-2">
+        <div className="min-w-0 flex-1 flex items-baseline gap-2">
           <h2 className="text-[13px] font-semibold text-foreground/90 truncate">{title}</h2>
           {subtitle && <span className="text-[11px] text-muted-foreground truncate">{subtitle}</span>}
         </div>
+        {actions && <div className="flex items-center gap-1 shrink-0">{actions}</div>}
       </header>
       <div className="flex-1 min-h-0 flex flex-col overflow-hidden">{children}</div>
     </section>

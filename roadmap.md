@@ -6,4 +6,4 @@
 - [ ] Verify sign-in buttons render and OAuth flow starts in preview
 - [x] Windowed desktop shell: wallpaper, glass panels, window chrome, Spaces dock
 - [x] Desktop polish: page-name titles, remembered full-screen, rename spaces, Ctrl+Alt+1–8 jumps, status + Focus
-- [ ] Next: several windows side by side (e.g. map next to the parcel)
+- [x] Side-by-side windows: Open beside menu, resize handle, Swap, remembered layout
