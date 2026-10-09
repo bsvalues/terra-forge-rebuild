@@ -55,3 +55,21 @@ export function saveSpaces(spaces: Space[]): void {
   if (typeof window === "undefined") return;
   window.localStorage.setItem(SPACES_STORAGE_KEY, JSON.stringify(spaces));
 }
+
+/** Rename a space; blank names are rejected and the list is returned unchanged. */
+export function renameSpace(spaces: Space[], id: string, name: string): Space[] {
+  const trimmed = name.trim();
+  if (!trimmed) return spaces;
+  return spaces.map((s) => (s.id === id ? { ...s, name: trimmed.slice(0, 40) } : s));
+}
+
+/**
+ * Keyboard jump to a space: Ctrl/Cmd + Alt + 1..8 → zero-based index, else null.
+ * Uses `code` so Alt-modified characters on macOS still resolve to the digit.
+ */
+export function spaceIndexFromKey(e: { key: string; code?: string; metaKey: boolean; ctrlKey: boolean; altKey: boolean; shiftKey: boolean }): number | null {
+  if (!(e.metaKey || e.ctrlKey) || !e.altKey || e.shiftKey) return null;
+  const digit = e.code?.startsWith("Digit") ? e.code.slice(5) : e.key;
+  const n = Number(digit);
+  return Number.isInteger(n) && n >= 1 && n <= MAX_SPACES ? n - 1 : null;
+}

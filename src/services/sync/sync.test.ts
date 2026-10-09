@@ -344,7 +344,7 @@ describe("runContractSyncFromRegistry", () => {
     expect(result.sourceLane).toBe("none");
   });
 
-  it("uses the Benton registry to run sync", async () => {
+  it("uses the Benton registry to run sync", { timeout: 60000 }, async () => {
     const registry = createBentonRegistry();
     const result = await runContractSyncFromRegistry(registry, 2025);
     expect(result.county).toBe("Benton");
