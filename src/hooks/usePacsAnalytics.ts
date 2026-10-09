@@ -14,12 +14,8 @@ export function usePacsTableStats() {
   return useQuery({
     queryKey: ["pacs-table-stats"],
     queryFn: async () => {
-<<<<<<< HEAD
       const { data, error } = await (supabase as any)
         .from("vw_pacs_table_stats")
-=======
-      const { data, error } = await (supabase.from as any)("vw_pacs_table_stats")
->>>>>>> origin/main
         .select("*");
       if (error) throw error;
       return (data ?? []) as PacsTableStat[];
@@ -44,12 +40,8 @@ export function usePacsValueByNeighborhood() {
   return useQuery({
     queryKey: ["pacs-value-by-neighborhood"],
     queryFn: async () => {
-<<<<<<< HEAD
       const { data, error } = await (supabase as any)
         .from("vw_pacs_value_by_neighborhood")
-=======
-      const { data, error } = await (supabase.from as any)("vw_pacs_value_by_neighborhood")
->>>>>>> origin/main
         .select("*")
         .limit(100);
       if (error) throw error;
@@ -74,12 +66,8 @@ export function usePacsSalesByYear() {
   return useQuery({
     queryKey: ["pacs-sales-by-year"],
     queryFn: async () => {
-<<<<<<< HEAD
       const { data, error } = await (supabase as any)
         .from("vw_pacs_sales_by_year")
-=======
-      const { data, error } = await (supabase.from as any)("vw_pacs_sales_by_year")
->>>>>>> origin/main
         .select("*");
       if (error) throw error;
       return (data ?? []) as PacsSalesByYear[];
@@ -103,12 +91,8 @@ export function usePacsBridgeCoverage() {
   return useQuery({
     queryKey: ["pacs-bridge-coverage"],
     queryFn: async () => {
-<<<<<<< HEAD
       const { data, error } = await (supabase as any)
         .from("vw_pacs_bridge_coverage")
-=======
-      const { data, error } = await (supabase.from as any)("vw_pacs_bridge_coverage")
->>>>>>> origin/main
         .select("*")
         .single();
       if (error) throw error;
