@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, useSearchParams } from "react-router-dom";
+import { oauthReturnPath } from "@/lib/oauth-return-path";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,6 +30,10 @@ const MicrosoftIcon = () => (
 
 export default function Auth() {
   const { user, loading, signIn, signUp } = useAuthContext();
+  const [searchParams] = useSearchParams();
+  // Validated once; preserves e.g. the MCP consent URL through every login method.
+  const nextPath = oauthReturnPath(searchParams.get("next"));
+  const absoluteNext = new URL(nextPath, window.location.origin).href;
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -49,11 +54,11 @@ export default function Auth() {
     );
   }
 
-  if (user) return <Navigate to="/" replace />;
+  if (user) return <Navigate to={nextPath} replace />;
 
   const handleSocialSignIn = async (provider: "google" | "microsoft") => {
     const result = await lovable.auth.signInWithOAuth(provider, {
-      redirect_uri: window.location.origin,
+      redirect_uri: absoluteNext,
     });
     if (result.error) {
       toast({ title: "Sign in failed", description: result.error.message, variant: "destructive" });
@@ -66,7 +71,7 @@ export default function Auth() {
     setSubmitting(true);
 
     if (isSignUp) {
-      const { error } = await signUp(email, password, displayName);
+      const { error } = await signUp(email, password, displayName, absoluteNext);
       if (error) {
         toast({ title: "Sign up failed", description: error.message, variant: "destructive" });
       } else {

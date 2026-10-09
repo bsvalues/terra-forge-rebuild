@@ -9,4 +9,4 @@
 - Property Workbench is the OS-owned surface for one property/parcel, with Summary, Forge, Atlas, Dais, Dossier, and AI/evidence/actions contexts; parcel work must not become separate suite-owned property screens.
 - Shared OS services comprise identity, authority, search, AI, evidence/provenance, workflows, windowing, data fabric, notifications, and policy; cross-cutting capabilities must not be duplicated within each suite.
 - Shared workflow infrastructure orchestrates operations through domain owners and does not acquire permission to write their data; shared services must preserve the constitutional write-lane matrix.
-- Countywide-to-parcel drill transitions retain county and originating work context, suite switches retain the selected parcel, and return transitions restore the originating workspace; continuity follows the user's object and task rather than service boundaries.
+- The external MCP server lives in src/lib/mcp (one tool per file) behind Supabase OAuth, with tools acting as the caller through RLS; external assistants must never get broader access than the signed-in user.

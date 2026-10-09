@@ -14,6 +14,7 @@ import { ModuleShell } from "@/components/layout/ModuleShell";
 // Lazy-loaded non-shell routes
 const Auth = lazy(() => import("./pages/Auth"));
 const NotFound = lazy(() => import("./pages/NotFound"));
+const OAuthConsent = lazy(() => import("./pages/OAuthConsent"));
 const Property = lazy(() => import("./pages/Property"));
 const OwnerPortal = lazy(() => import("./pages/OwnerPortal"));
 
@@ -55,6 +56,7 @@ function AppShell() {
           <Routes>
             {/* Auth — no shell */}
             <Route path="/auth" element={<Auth />} />
+            <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
 
             {/* Owner portal — no shell */}
             <Route path="/portal" element={<OwnerPortal />} />
