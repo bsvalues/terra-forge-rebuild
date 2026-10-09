@@ -9,5 +9,6 @@
 - [x] Side-by-side windows: Open beside menu, resize handle, Swap, remembered layout
 - [x] Linked parcel: side window opens on and follows the parcel in focus
 - [x] Google sign-in verified end-to-end on live preview (confirmed by founder)
-- [ ] Verify Microsoft sign-in end-to-end on live preview
+- [x] Fix OAuth return trip: /auth/callback page stores the session after provider redirect (was landing signed out)
+- [ ] Publish, then verify Google + Microsoft sign-in end-to-end on the live site
 - [ ] Link on/off toggle in window title bar (compare two parcels side by side)
