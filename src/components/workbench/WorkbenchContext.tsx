@@ -47,12 +47,28 @@ const defaultStudyPeriod: StudyPeriodContext = {
 const WorkbenchCtx = createContext<WorkbenchContextValue | null>(null);
 
 export function WorkbenchProvider({ children }: WorkbenchProviderProps) {
-  const [parcel, setParcelState] = useState<ParcelContext>(defaultParcel);
+  // A side window (embed mode) opens on the parcel already in focus in this tab.
+  const [parcel, setParcelState] = useState<ParcelContext>(() =>
+    (typeof window !== "undefined" && isEmbedMode(window.location.search) && loadLastLinkedParcel()) || defaultParcel
+  );
+  const [windowId] = useState(createWindowId);
   const [studyPeriod, setStudyPeriodState] = useState<StudyPeriodContext>(defaultStudyPeriod);
   const [workMode, setWorkModeState] = useState<WorkMode>("overview");
   const [activeTab, setActiveTabState] = useState<SuiteTab>("summary");
   const [pilotMode, setPilotModeState] = useState<PilotMode>("pilot");
   const [systemState, setSystemStateState] = useState<SystemState>("idle");
+
+  // Follow parcels opened in the other window.
+  useEffect(() => subscribeParcelLink(windowId, (p) => setParcelState(p)), [windowId]);
+
+  // Announce parcel changes made in this window (only when the parcel itself changes).
+  const lastPublished = useRef<string | null>(parcel.id);
+  useEffect(() => {
+    if (parcel.id && parcel.id !== lastPublished.current) {
+      lastPublished.current = parcel.id;
+      publishParcel(windowId, parcel);
+    }
+  }, [parcel, windowId]);
 
   const setParcel = useCallback((updates: Partial<ParcelContext>) => {
     setParcelState(prev => ({ ...prev, ...updates }));
