@@ -1,4 +1,6 @@
-import { createContext, useContext, useState, useCallback, ReactNode } from "react";
+import { createContext, useContext, useState, useCallback, useEffect, useRef, ReactNode } from "react";
+import { isEmbedMode } from "@/lib/splitView";
+import { createWindowId, loadLastLinkedParcel, publishParcel, subscribeParcelLink } from "@/lib/parcelLink";
 import { 
   WorkbenchContext as WorkbenchContextType, 
   WorkMode, 
@@ -47,12 +49,35 @@ const defaultStudyPeriod: StudyPeriodContext = {
 const WorkbenchCtx = createContext<WorkbenchContextValue | null>(null);
 
 export function WorkbenchProvider({ children }: WorkbenchProviderProps) {
-  const [parcel, setParcelState] = useState<ParcelContext>(defaultParcel);
+  // A side window (embed mode) opens on the parcel already in focus in this tab.
+  const [parcel, setParcelState] = useState<ParcelContext>(() =>
+    (typeof window !== "undefined" && isEmbedMode(window.location.search) && loadLastLinkedParcel()) || defaultParcel
+  );
+  const [windowId] = useState(createWindowId);
   const [studyPeriod, setStudyPeriodState] = useState<StudyPeriodContext>(defaultStudyPeriod);
   const [workMode, setWorkModeState] = useState<WorkMode>("overview");
   const [activeTab, setActiveTabState] = useState<SuiteTab>("summary");
   const [pilotMode, setPilotModeState] = useState<PilotMode>("pilot");
   const [systemState, setSystemStateState] = useState<SystemState>("idle");
+
+  // Announce parcel changes made in this window (only when the parcel itself changes).
+  const lastPublished = useRef<string | null>(parcel.id);
+
+  // Follow parcels opened in the other window, without echoing them back.
+  useEffect(
+    () =>
+      subscribeParcelLink(windowId, (p) => {
+        lastPublished.current = p.id;
+        setParcelState(p);
+      }),
+    [windowId]
+  );
+  useEffect(() => {
+    if (parcel.id && parcel.id !== lastPublished.current) {
+      lastPublished.current = parcel.id;
+      publishParcel(windowId, parcel);
+    }
+  }, [parcel, windowId]);
 
   const setParcel = useCallback((updates: Partial<ParcelContext>) => {
     setParcelState(prev => ({ ...prev, ...updates }));

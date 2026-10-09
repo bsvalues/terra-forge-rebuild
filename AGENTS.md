@@ -11,3 +11,4 @@
 - Shared workflow infrastructure orchestrates operations through domain owners and does not acquire permission to write their data; shared services must preserve the constitutional write-lane matrix.
 - The external MCP server lives in src/lib/mcp (one tool per file) behind Supabase OAuth, with tools acting as the caller through RLS; external assistants must never get broader access than the signed-in user.
 - The shell renders the active route in a DesktopWindow over a wallpaper with a SpacesDock; an optional side window loads the same app in embed mode (tf_embed=1) in an iframe, so each window keeps independent routing without nested routers or IA_MAP changes.
+- Workbench windows in one tab share the focused parcel via BroadcastChannel + sessionStorage (src/lib/parcelLink.ts); it shares focus only, never writes, so write lanes stay intact.

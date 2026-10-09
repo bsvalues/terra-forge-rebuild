@@ -7,3 +7,4 @@
 - [x] Windowed desktop shell: wallpaper, glass panels, window chrome, Spaces dock
 - [x] Desktop polish: page-name titles, remembered full-screen, rename spaces, Ctrl+Alt+1–8 jumps, status + Focus
 - [x] Side-by-side windows: Open beside menu, resize handle, Swap, remembered layout
+- [x] Linked parcel: side window opens on and follows the parcel in focus
