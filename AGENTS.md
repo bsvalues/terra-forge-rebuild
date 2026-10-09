@@ -10,3 +10,4 @@
 - Shared OS services comprise identity, authority, search, AI, evidence/provenance, workflows, windowing, data fabric, notifications, and policy; cross-cutting capabilities must not be duplicated within each suite.
 - Shared workflow infrastructure orchestrates operations through domain owners and does not acquire permission to write their data; shared services must preserve the constitutional write-lane matrix.
 - The external MCP server lives in src/lib/mcp (one tool per file) behind Supabase OAuth, with tools acting as the caller through RLS; external assistants must never get broader access than the signed-in user.
+- The shell renders the active route inside one DesktopWindow over a wallpaper, with a SpacesDock of saved routes; this gives the OS-desktop feel without changing IA_MAP routing.

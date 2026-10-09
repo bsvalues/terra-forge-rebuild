@@ -42,7 +42,7 @@ export function TopSystemBar({ onOpenCommandPalette, onOpenControlCenter, onOpen
   const currentYear = new Date().getFullYear();
 
   return (
-    <header className="sticky top-0 z-50 h-11 flex items-center justify-between px-3 sm:px-4 material-shell border-b border-border/30">
+    <header className="sticky top-0 z-50 h-11 flex items-center justify-between px-3 sm:px-4 material-shell desktop-topbar border-b border-border/30">
       {/* Left: Hamburger (mobile) + County Switcher + Year */}
       <div className="flex items-center gap-1.5 sm:gap-2.5">
         {/* Mobile hamburger — toggles sidebar Sheet on mobile */}

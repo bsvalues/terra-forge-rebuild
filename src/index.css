@@ -845,3 +845,82 @@ body {
   animation-iteration-count: 1 !important;
   transition-duration: 0.01ms !important;
 }
+
+/* ── TerraFusion Desktop (windowed OS shell) ─────────────────────── */
+@layer base {
+  :root {
+    --desktop-glass: 220 18% 10%;
+    --desktop-glass-strong: 220 16% 12%;
+    --desktop-edge: 210 20% 80%;
+    --traffic-close: 0 84% 62%;
+    --traffic-min: 40 95% 55%;
+    --traffic-max: 135 60% 48%;
+  }
+}
+
+@layer components {
+  .desktop-wallpaper {
+    background-size: cover;
+    background-position: center;
+  }
+  .desktop-wallpaper::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, hsl(var(--background) / 0.35), hsl(var(--background) / 0.55));
+    pointer-events: none;
+  }
+  .desktop-glass {
+    background: hsl(var(--desktop-glass) / 0.62);
+    backdrop-filter: blur(24px) saturate(140%);
+    -webkit-backdrop-filter: blur(24px) saturate(140%);
+    border: 1px solid hsl(var(--desktop-edge) / 0.1);
+  }
+  .desktop-window {
+    background: hsl(var(--background) / 0.9);
+    backdrop-filter: blur(30px) saturate(140%);
+    -webkit-backdrop-filter: blur(30px) saturate(140%);
+    border: 1px solid hsl(var(--desktop-edge) / 0.12);
+    box-shadow: 0 24px 60px -20px hsl(var(--background) / 0.9), 0 1px 0 hsl(var(--desktop-edge) / 0.06) inset;
+  }
+  .desktop-window-titlebar {
+    background: hsl(var(--desktop-glass-strong) / 0.7);
+    border-bottom: 1px solid hsl(var(--desktop-edge) / 0.08);
+  }
+  .traffic-light {
+    width: 12px;
+    height: 12px;
+    border-radius: 9999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: transparent;
+    transition: color 0.15s;
+  }
+  .group:hover .traffic-light,
+  .traffic-light:focus-visible { color: hsl(var(--background) / 0.75); }
+  .traffic-close { background: hsl(var(--traffic-close)); }
+  .traffic-min { background: hsl(var(--traffic-min)); }
+  .traffic-max { background: hsl(var(--traffic-max)); }
+  .desktop-dock {
+    background: hsl(var(--desktop-glass) / 0.55);
+    backdrop-filter: blur(24px) saturate(140%);
+    -webkit-backdrop-filter: blur(24px) saturate(140%);
+    border: 1px solid hsl(var(--desktop-edge) / 0.1);
+    align-self: flex-start;
+  }
+  .dock-tile {
+    background: hsl(var(--desktop-glass-strong) / 0.6);
+    border: 1px solid hsl(var(--desktop-edge) / 0.08);
+  }
+  .dock-tile:not(:disabled):hover { background: hsl(var(--desktop-glass-strong) / 0.9); transform: translateY(-2px); }
+  .dock-tile-active { border-color: hsl(var(--primary) / 0.7); box-shadow: 0 0 0 1px hsl(var(--primary) / 0.4); }
+  /* Floating glass sidebar over the wallpaper */
+  .tahoe-sidebar [data-sidebar="sidebar"] {
+    background: hsl(var(--desktop-glass) / 0.62) !important;
+    backdrop-filter: blur(24px) saturate(140%);
+    -webkit-backdrop-filter: blur(24px) saturate(140%);
+    border-color: hsl(var(--desktop-edge) / 0.1) !important;
+  }
+  .desktop-topbar { background: hsl(var(--desktop-glass) / 0.5) !important; backdrop-filter: blur(20px); border-color: hsl(var(--desktop-edge) / 0.08) !important; }
+}
