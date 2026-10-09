@@ -21,11 +21,7 @@ import { DesktopWindow } from "./DesktopWindow";
 import { SpacesDock } from "./SpacesDock";
 import wallpaper from "@/assets/desktop-wallpaper.jpg";
 
-/** "valuation-models" → "Valuation Models" */
-function humanize(id: string | null | undefined): string {
-  if (!id) return "";
-  return id.replace(/[-_:]+/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
-}
+import { windowTitleFor, loadWindowPrefs, saveWindowPrefs } from "@/lib/desktopWindow";
 
 function StageFallback() {
   return (
@@ -45,10 +41,29 @@ export function ModuleShell() {
 
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const [controlCenterOpen, setControlCenterOpen] = useState(false);
-  const [maximized, setMaximized] = useState(false);
+  const [maximized, setMaximized] = useState(() => loadWindowPrefs().maximized);
   const [minimized, setMinimized] = useState(false);
-  const windowTitle = humanize(activeModule);
-  const windowSubtitle = humanize(activeView);
+  const { title: windowTitle, subtitle: windowSubtitle } = windowTitleFor(activeModule, activeView);
+
+  useEffect(() => saveWindowPrefs({ maximized }), [maximized]);
+
+  // Window shortcuts: Ctrl/Cmd+Shift+M minimize/restore, Ctrl/Cmd+Shift+F focus (maximize), Esc restores a hidden window.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const mod = e.metaKey || e.ctrlKey;
+      if (mod && e.shiftKey && !e.altKey && e.code === "KeyM") {
+        e.preventDefault();
+        setMinimized((m) => !m);
+      } else if (mod && e.shiftKey && !e.altKey && e.code === "KeyF") {
+        e.preventDefault();
+        setMaximized((m) => !m);
+      } else if (e.key === "Escape") {
+        setMinimized(false);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
   // Navigation handler that bridges legacy string targets to URL navigation
   const handleNavigate = useCallback(
@@ -175,7 +190,9 @@ export function ModuleShell() {
             <SpacesDock
               currentTitle={windowSubtitle ? `${windowTitle} · ${windowSubtitle}` : windowTitle}
               minimized={minimized}
+              focused={maximized}
               onRestore={() => setMinimized(false)}
+              onToggleFocus={() => setMaximized((m) => !m)}
             />
           </SidebarInset>
         </div>
