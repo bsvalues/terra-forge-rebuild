@@ -41,13 +41,8 @@ export function useSalesReconciliationSummary() {
   return useQuery({
     queryKey: ["sales-reconciliation-summary"],
     queryFn: async () => {
-<<<<<<< HEAD
       const { data, error } = await (supabase as any)
         .from("vw_sales_reconciliation_summary")
-=======
-      const { data, error } = await (supabase.from as any)
-        ("vw_sales_reconciliation_summary")
->>>>>>> origin/main
         .select("*");
       if (error) throw error;
       return (data ?? []) as ReconciliationSummary[];
@@ -63,12 +58,8 @@ export function useSalesReconciliationDetails(
   return useQuery({
     queryKey: ["sales-reconciliation-details", matchStatus, limit],
     queryFn: async () => {
-<<<<<<< HEAD
       let query = (supabase as any)
         .from("vw_sales_reconciliation")
-=======
-      let query = (supabase.from as any)("vw_sales_reconciliation")
->>>>>>> origin/main
         .select("*")
         .limit(limit);
       if (matchStatus) {
@@ -126,13 +117,8 @@ export function useAssessmentReconciliationSummary() {
   return useQuery({
     queryKey: ["assessment-reconciliation-summary"],
     queryFn: async () => {
-<<<<<<< HEAD
       const { data, error } = await (supabase as any)
         .from("vw_assessment_reconciliation_summary")
-=======
-      const { data, error } = await (supabase.from as any)
-        ("vw_assessment_reconciliation_summary")
->>>>>>> origin/main
         .select("*");
       if (error) throw error;
       return (data ?? []) as AssessmentReconciliationSummary[];
@@ -148,12 +134,8 @@ export function useAssessmentReconciliationDetails(
   return useQuery({
     queryKey: ["assessment-reconciliation-details", matchStatus, limit],
     queryFn: async () => {
-<<<<<<< HEAD
       let query = (supabase as any)
         .from("vw_assessment_reconciliation")
-=======
-      let query = (supabase.from as any)("vw_assessment_reconciliation")
->>>>>>> origin/main
         .select("*")
         .limit(limit);
       if (matchStatus) {

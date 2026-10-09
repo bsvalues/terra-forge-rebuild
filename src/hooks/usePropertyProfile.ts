@@ -8,14 +8,10 @@ export function usePropertyProfile(propId: number | null) {
   return useQuery({
     queryKey: ["pacs-property-profile", propId],
     queryFn: async () => {
-<<<<<<< HEAD
       // Using typed client - PACS tables require (supabase as any) until types are regenerated
       // but we add proper TypeScript types via @/types/pacs
       const { data, error } = await (supabase as any)
         .from("pacs_property_profiles")
-=======
-      const { data, error } = await (supabase.from as any)("pacs_property_profiles")
->>>>>>> origin/main
         .select("*")
         .eq("prop_id", propId!)
         .order("prop_val_yr", { ascending: false })
@@ -32,14 +28,10 @@ export function usePropertyProfileHistory(propId: number | null) {
   return useQuery({
     queryKey: ["pacs-property-profile-history", propId],
     queryFn: async () => {
-<<<<<<< HEAD
       // Using typed client - PACS tables require (supabase as any) until types are regenerated
       // but we add proper TypeScript types via @/types/pacs
       const { data, error } = await (supabase as any)
         .from("pacs_property_profiles")
-=======
-      const { data, error } = await (supabase.from as any)("pacs_property_profiles")
->>>>>>> origin/main
         .select("*")
         .eq("prop_id", propId!)
         .order("prop_val_yr", { ascending: false });

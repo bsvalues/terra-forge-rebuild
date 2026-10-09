@@ -1,28 +1,9 @@
-<<<<<<< HEAD
 import React, { useState } from 'react'
 import useSaveCalcTrace from '../../hooks/useCostForgeMutations'
 import { calcRCNLD } from '@/services/costforgeConnector'
 import type { CostForgeCalcInput } from '@/services/costforgeConnector'
 
 const BENTON_COUNTY_ID = "842a6c54-c7c0-4b2d-aa43-0e3ba63fa57d";
-=======
-import { useState, useMemo } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { useCalcRCNLD, useImprvTypeCodes } from "@/hooks/useCostForgeHooks";
-import { useSaveCalcTrace } from "@/hooks/useCostForgeMutations";
-import type { CostForgeCalcInput, QualityGrade, ConstructionClass } from "@/services/costforgeConnector";
-import { ClipboardCheck, Calculator, Save, ChevronRight, ChevronLeft, CheckCircle2, AlertCircle } from "lucide-react";
->>>>>>> origin/main
 
 const BENTON_COUNTY_ID = "842a6c54-c7c0-4b2d-aa43-0e3ba63fa57d";
 
@@ -41,7 +22,6 @@ interface DraftForm {
   occupancyCode: string;
 }
 
-<<<<<<< HEAD
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     const input: CostForgeCalcInput = {
@@ -83,65 +63,6 @@ interface DraftForm {
         created_at: new Date().toISOString(),
       })
     }
-=======
-const QUALITY_OPTIONS: QualityGrade[] = ["Low", "Fair", "Average", "Good", "Excellent"];
-
-function toNum(v: string) {
-  const n = Number(v);
-  return Number.isFinite(n) ? n : 0;
-}
-
-export default function DraftValuationWorkflow() {
-  const [step, setStep] = useState<Step>(1);
-  const [form, setForm] = useState<DraftForm>({
-    imprvTypeCd: "",
-    isResidential: true,
-    yearBuilt: "",
-    areaSqft: "",
-    qualityGrade: "Average",
-    extWallType: "Metal or Vinyl Siding",
-    effectiveLife: "45",
-    constructionClass: "D",
-    sectionId: "",
-    occupancyCode: "",
-  });
-
-  const { data: typeCodes = [] } = useImprvTypeCodes(BENTON_COUNTY_ID);
-  const { result, isLoading: calcLoading, error: calcError, calculate, reset } = useCalcRCNLD();
-  const saveMutation = useSaveCalcTrace();
-
-  const yearNow = new Date().getFullYear();
-
-  // Split type codes into residential / commercial
-  const resCodes = useMemo(() => typeCodes.filter((c) => c.is_residential), [typeCodes]);
-  const commCodes = useMemo(() => typeCodes.filter((c) => !c.is_residential), [typeCodes]);
-  const activeCodes = form.isResidential ? resCodes : commCodes;
-
-  // Derived from selected type code
-  const selectedCode = useMemo(
-    () => typeCodes.find((c) => c.imprv_det_type_cd === form.imprvTypeCd) ?? null,
-    [typeCodes, form.imprvTypeCd],
-  );
-
-  const canAdvanceToStep2 = form.imprvTypeCd !== "" && toNum(form.areaSqft) > 0 && toNum(form.yearBuilt) > 0;
-
-  // Build CostForgeCalcInput from form
-  function buildCalcInput(): CostForgeCalcInput {
-    return {
-      lrsn: null,
-      pin: null,
-      county_id: BENTON_COUNTY_ID,
-      imprv_det_type_cd: form.imprvTypeCd,
-      yr_built: toNum(form.yearBuilt) || null,
-      area_sqft: toNum(form.areaSqft) || null,
-      condition_code: null,
-      construction_class_raw: form.constructionClass || null,
-      use_code: null,
-      section_id: selectedCode?.section_id ?? (toNum(form.sectionId) || null),
-      occupancy_code: selectedCode?.occupancy_code ?? (form.occupancyCode || null),
-      is_residential: form.isResidential,
-    };
->>>>>>> origin/main
   }
 
   async function handleCalculate() {
@@ -411,7 +332,6 @@ export default function DraftValuationWorkflow() {
   );
 
   return (
-<<<<<<< HEAD
     <form onSubmit={handleSubmit} style={{ padding: 12 }}>
       <div style={{ marginBottom: 8 }}>
         <label>Improvement Type</label>
@@ -432,59 +352,3 @@ export default function DraftValuationWorkflow() {
     </form>
   )
 }
-=======
-    <Card className="border-border/40">
-      <CardHeader className="pb-3">
-        <CardTitle className="text-base flex items-center gap-2">
-          <ClipboardCheck className="w-4 h-4" />
-          Draft Valuation Workflow
-        </CardTitle>
-        <StepIndicator current={step} />
-      </CardHeader>
-      <CardContent>
-        {step === 1 && Step1}
-        {step === 2 && Step2}
-        {step === 3 && Step3}
-      </CardContent>
-    </Card>
-  );
-}
-
-// ── Helpers ──────────────────────────────────────────────────────────────────
-
-function StepIndicator({ current }: { current: Step }) {
-  const steps = ["Select Improvement", "Cost Parameters", "Review & Save"];
-  return (
-    <div className="flex items-center gap-1 mt-2">
-      {steps.map((label, i) => {
-        const num = (i + 1) as Step;
-        const active = num === current;
-        const done = num < current;
-        return (
-          <div key={label} className="flex items-center gap-1">
-            {i > 0 && <div className={`w-6 h-px ${done || active ? "bg-primary" : "bg-border"}`} />}
-            <span
-              className={`inline-flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-medium
-                ${active ? "bg-primary text-primary-foreground" : done ? "bg-primary/20 text-primary" : "bg-muted text-muted-foreground"}`}
-            >
-              {done ? "✓" : num}
-            </span>
-            <span className={`text-[11px] ${active ? "text-foreground font-medium" : "text-muted-foreground"}`}>
-              {label}
-            </span>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-function ResultCell({ label, value, highlight }: { label: string; value: string; highlight?: boolean }) {
-  return (
-    <div className={`rounded-md p-2 ${highlight ? "bg-primary/10 border border-primary/20" : "bg-muted/50"}`}>
-      <p className="text-[10px] text-muted-foreground">{label}</p>
-      <p className={`text-sm font-medium ${highlight ? "text-primary" : ""}`}>{value}</p>
-    </div>
-  );
-}
->>>>>>> origin/main

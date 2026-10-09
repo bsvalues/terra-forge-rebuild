@@ -67,12 +67,8 @@ export function useExemptionCountySummary() {
   return useQuery<ExemptionCountySummary[]>({
     queryKey: ["exemption-county-summary", COUNTY_ID],
     queryFn: async () => {
-<<<<<<< HEAD
       const { data, error } = await (supabase as any)
         .from("vw_exemption_county_summary")
-=======
-      const { data, error } = await (supabase.from as any)("vw_exemption_county_summary")
->>>>>>> origin/main
         .select("*")
         .eq("county_id", COUNTY_ID)
         .order("tax_year", { ascending: false });
@@ -88,12 +84,8 @@ export function useExemptionByType(taxYear: number | null) {
   return useQuery<ExemptionByType[]>({
     queryKey: ["exemption-by-type", COUNTY_ID, taxYear],
     queryFn: async () => {
-<<<<<<< HEAD
       const { data, error } = await (supabase as any)
         .from("vw_exemption_by_type")
-=======
-      const { data, error } = await (supabase.from as any)("vw_exemption_by_type")
->>>>>>> origin/main
         .select("*")
         .eq("county_id", COUNTY_ID)
         .eq("tax_year", taxYear!)
@@ -116,12 +108,8 @@ export function useExemptionDetail(
   return useQuery<ExemptionDetailRow[]>({
     queryKey: ["exemption-detail", COUNTY_ID, taxYear, exemptionType, status, limit],
     queryFn: async () => {
-<<<<<<< HEAD
       let q = (supabase as any)
         .from("vw_exemption_detail")
-=======
-      let q = (supabase.from as any)("vw_exemption_detail")
->>>>>>> origin/main
         .select("*")
         .eq("county_id", COUNTY_ID)
         .eq("tax_year", taxYear!)

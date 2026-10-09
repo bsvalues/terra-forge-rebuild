@@ -73,11 +73,7 @@ export function CostScheduleManager() {
                 <div className="text-xl font-semibold">{coverage?.depreciation_rows ?? 0}</div>
               </div>
               <div className="rounded-lg border border-border/40 p-3">
-<<<<<<< HEAD
                 <div className="text-xs text-muted-foreground">Type Code Rows</div>
-=======
-                <div className="text-xs text-muted-foreground">Imprv Type Codes</div>
->>>>>>> origin/main
                 <div className="text-xl font-semibold">{coverage?.type_code_rows ?? 0}</div>
               </div>
             </div>
@@ -125,7 +121,6 @@ export function CostScheduleManager() {
                           <thead className="bg-muted/20">
                             <tr>
                               <th className="text-left p-2 font-medium">Ext Wall</th>
-<<<<<<< HEAD
                               <th className="text-right p-2 font-medium">Unit Cost</th>
                               <th className="text-right p-2 font-medium">Min Area</th>
                             </tr>
@@ -139,25 +134,6 @@ export function CostScheduleManager() {
                               </tr>
                             ))}
                           </tbody>
-=======
-                              <th className="text-left p-2 font-medium">Grade</th>
-                              <th className="text-right p-2 font-medium">Unit Cost</th>
-                              <th className="text-right p-2 font-medium">Min Area</th>
-                              <th className="text-right p-2 font-medium">Year</th>
-                            </tr>
-                          </thead>
-                            <tbody>
-                              {rows.map((r) => (
-                                <tr key={r.id} className="border-t border-border/30">
-                                  <td className="p-2">{r.ext_wall_type || "-"}</td>
-                                  <td className="p-2">{r.quality_grade || "-"}</td>
-                                  <td className="p-2 text-right tabular-nums">{r.unit_cost ?? "-"}</td>
-                                  <td className="p-2 text-right tabular-nums">{r.min_area ?? "-"}</td>
-                                  <td className="p-2 text-right tabular-nums">{r.schedule_year ?? "-"}</td>
-                                </tr>
-                              ))}
-                            </tbody>
->>>>>>> origin/main
                         </table>
                       </div>
                     </div>
@@ -240,7 +216,6 @@ export function CostScheduleManager() {
               ) : !multipliers || multipliers.length === 0 ? (
                 <EmptyState label="cost multipliers" />
               ) : (
-<<<<<<< HEAD
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                   {multipliers.map((m) => (
                     <div key={m.id} className="rounded-lg border border-border/40 p-3" title={`Section: ${m.section_id ?? "N/A"}`}>
@@ -251,29 +226,6 @@ export function CostScheduleManager() {
                       <div className="text-lg font-semibold tabular-nums">{m.multiplier ?? "-"}</div>
                     </div>
                   ))}
-=======
-                <div className="overflow-auto border border-border/40 rounded-lg">
-                  <table className="w-full text-xs">
-                    <thead className="bg-muted/20">
-                      <tr>
-                        <th className="text-left p-2 font-medium">Type</th>
-                        <th className="text-left p-2 font-medium">Class</th>
-                        <th className="text-right p-2 font-medium">Section</th>
-                        <th className="text-right p-2 font-medium">Multiplier</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {(multipliers ?? []).map((r) => (
-                        <tr key={r.id} className="border-t border-border/30">
-                          <td className="p-2">{r.multiplier_type}</td>
-                          <td className="p-2">{r.construction_class}</td>
-                          <td className="p-2 text-right tabular-nums">{r.section_id ?? "-"}</td>
-                          <td className="p-2 text-right tabular-nums">{r.multiplier}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
->>>>>>> origin/main
                 </div>
               )}
             </CardContent>
