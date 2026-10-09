@@ -307,7 +307,9 @@ export function useIngestPipeline() {
       setParsedFile(parsed);
 
       // Upload to storage
-      const filePath = `${profile?.county_id || "default"}/${Date.now()}_${file.name}`;
+      const { data: { user: uploader } } = await supabase.auth.getUser();
+      // Personal folder first: storage rules only allow uploads into the caller's own folder.
+      const filePath = `${uploader?.id ?? "anonymous"}/${profile?.county_id || "default"}/${Date.now()}_${file.name}`;
       const { error: uploadError } = await supabase.storage
         .from("data-imports")
         .upload(filePath, file);
