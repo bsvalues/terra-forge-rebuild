@@ -247,7 +247,9 @@ async function routeObservation(obs: FieldObservation): Promise<RouteResult> {
 
       if (photoData.blob && typeof photoData.blob === "string") {
         // Upload base64 photo to dossier-files bucket
-        const fileName = `field-photos/${obs.parcelId}/${obs.id}.jpg`;
+        const { data: { user: uploader } } = await supabase.auth.getUser();
+        // Personal folder first: storage rules only allow uploads into the caller's own folder.
+        const fileName = `${uploader?.id ?? "anonymous"}/field-photos/${obs.parcelId}/${obs.id}.jpg`;
         const base64Data = (photoData.blob as string).split(",")[1] || photoData.blob;
         const binaryData = Uint8Array.from(atob(base64Data), (c) => c.charCodeAt(0));
 

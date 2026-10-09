@@ -41,7 +41,10 @@ export function useUploadDocument(parcelId: string | null) {
       if (!parcelId) throw new Error("No parcel selected");
 
       // Upload to storage
-      const filePath = `${parcelId}/${Date.now()}-${file.name}`;
+      const { data: { user: uploader } } = await supabase.auth.getUser();
+      if (!uploader) throw new Error("Sign in required to upload");
+      // Personal folder first: storage rules only allow uploads into the caller's own folder.
+      const filePath = `${uploader.id}/${parcelId}/${Date.now()}-${file.name}`;
       const { error: uploadError } = await supabase.storage
         .from("dossier-files")
         .upload(filePath, file);
