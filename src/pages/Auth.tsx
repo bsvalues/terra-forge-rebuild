@@ -57,8 +57,12 @@ export default function Auth() {
   if (user) return <Navigate to={nextPath} replace />;
 
   const handleSocialSignIn = async (provider: "google" | "microsoft") => {
+    // Full-page OAuth redirects must land on a public callback route that
+    // stores the returned session — never on a protected route, where the
+    // tokens would sit in the URL unconsumed and the user lands signed out.
+    const callbackUrl = `${window.location.origin}/auth/callback?next=${encodeURIComponent(nextPath)}`;
     const result = await lovable.auth.signInWithOAuth(provider, {
-      redirect_uri: absoluteNext,
+      redirect_uri: callbackUrl,
     });
     if (result.error) {
       toast({ title: "Sign in failed", description: result.error.message, variant: "destructive" });
