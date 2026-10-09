@@ -40,3 +40,28 @@ describe("Spaces", () => {
     expect(parseSpaces(JSON.stringify([{ id: "1", name: "x", path: "https://evil" }]))).toEqual([]);
   });
 });
+
+import { renameSpace, spaceIndexFromKey } from "@/lib/spaces";
+
+describe("Space renaming and shortcuts", () => {
+  it("renames a space and rejects blank names", () => {
+    const list = addSpace([], "A", "/home", "a");
+    expect(renameSpace(list, "a", "  Appeals ")[0].name).toBe("Appeals");
+    expect(renameSpace(list, "a", "   ")[0].name).toBe("A");
+  });
+
+  const k = (o: Partial<Parameters<typeof spaceIndexFromKey>[0]>) =>
+    spaceIndexFromKey({ key: "", metaKey: false, ctrlKey: false, altKey: false, shiftKey: false, ...o });
+
+  it("Ctrl+Alt+1 jumps to the first space, Ctrl+Alt+8 to the eighth", () => {
+    expect(k({ ctrlKey: true, altKey: true, code: "Digit1", key: "¡" })).toBe(0);
+    expect(k({ metaKey: true, altKey: true, key: "8" })).toBe(7);
+  });
+
+  it("ignores 9, 0, missing modifiers and Shift", () => {
+    expect(k({ ctrlKey: true, altKey: true, key: "9" })).toBeNull();
+    expect(k({ ctrlKey: true, altKey: true, key: "0" })).toBeNull();
+    expect(k({ ctrlKey: true, key: "1" })).toBeNull();
+    expect(k({ ctrlKey: true, altKey: true, shiftKey: true, key: "1" })).toBeNull();
+  });
+});
