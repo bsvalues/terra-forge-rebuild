@@ -188,7 +188,7 @@ export function ModuleShell() {
             {minimized && <div className="flex-1" aria-hidden />}
 
             <SpacesDock
-              currentTitle={windowSubtitle ? `${windowTitle} · ${windowSubtitle}` : windowTitle}
+              currentTitle={windowSubtitle ?? windowTitle}
               minimized={minimized}
               focused={maximized}
               onRestore={() => setMinimized(false)}

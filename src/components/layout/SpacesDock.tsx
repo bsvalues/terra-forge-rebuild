@@ -67,7 +67,7 @@ export function SpacesDock({ currentTitle, minimized, focused, onRestore, onTogg
   return (
     <div className="hidden md:flex items-end justify-between gap-3 mx-3 mb-3 shrink-0">
       <nav aria-label="Spaces" className="desktop-dock flex items-end gap-1.5 px-2 py-1.5 rounded-2xl overflow-x-auto">
-        <DockTile label="Desktop" active={location.pathname.startsWith("/home")} onClick={() => go("/home")}>
+        <DockTile label="Desktop" active={location.pathname === "/home" || location.pathname === "/home/"} onClick={() => go("/home")}>
           <Monitor className="w-4 h-4" />
         </DockTile>
 
