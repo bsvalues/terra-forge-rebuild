@@ -56,7 +56,7 @@ export function TahoeSidebar({}: TahoeSidebarProps) {
   const groups = VIEW_GROUPS[activeModule];
 
   return (
-    <Sidebar side="left" variant="sidebar" collapsible="icon" className="tahoe-sidebar">
+    <Sidebar side="left" variant="floating" collapsible="icon" className="tahoe-sidebar">
       {/* ── Header: County info ──────────────────────────────── */}
       <SidebarHeader className="px-2.5 py-2.5">
         <div className="flex items-center gap-2 group-data-[collapsible=icon]:justify-center">
