@@ -7,7 +7,7 @@ import { auth, defineMcp } from "npm:@lovable.dev/mcp-js@3.0.5";
 
 // src/lib/mcp/tools/search-parcels.ts
 import { defineTool, ToolError } from "npm:@lovable.dev/mcp-js@3.0.5";
-import { z } from "npm:zod@^3.23.8";
+import { z } from "npm:zod@^3.25.76";
 
 // src/lib/mcp/supabase.ts
 import { createClient } from "npm:@supabase/supabase-js@^2.91.1";
@@ -89,7 +89,7 @@ var search_parcels_default = defineTool({
 
 // src/lib/mcp/tools/get-parcel.ts
 import { defineTool as defineTool2, ToolError as ToolError2 } from "npm:@lovable.dev/mcp-js@3.0.5";
-import { z as z2 } from "npm:zod@^3.23.8";
+import { z as z2 } from "npm:zod@^3.25.76";
 var get_parcel_default = defineTool2({
   name: "get_parcel",
   title: "Get parcel",
