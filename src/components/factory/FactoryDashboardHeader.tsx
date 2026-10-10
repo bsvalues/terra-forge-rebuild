@@ -1,7 +1,6 @@
 // TerraFusion OS — Factory Dashboard Header
 // Uses useCountyVitals for baseline counts; only runs factory-specific queries locally.
 
-import { motion } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Factory, BarChart3, ShieldCheck, Layers, TrendingUp, AlertTriangle } from "lucide-react";
 import { useCountyVitals } from "@/hooks/useCountyVitals";
@@ -15,9 +14,9 @@ export function FactoryDashboardHeader() {
 
   if (vitalsLoading) {
     return (
-      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
+      <div className="module-data-band">
         {Array.from({ length: 7 }).map((_, i) => (
-          <Skeleton key={i} className="h-20 rounded-xl" />
+          <Skeleton key={i} className="h-16 rounded-md" />
         ))}
       </div>
     );
@@ -94,36 +93,21 @@ export function FactoryDashboardHeader() {
   ];
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: -8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-      className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3"
-    >
-      {metrics.map((m, i) => {
-        const Icon = m.icon;
-        return (
-          <motion.div
-            key={m.label}
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: i * 0.04 }}
-            className="material-bento rounded-xl p-3 flex flex-col items-center justify-center text-center gap-1.5"
-          >
-            <div className={`w-8 h-8 rounded-lg ${m.bgColor} flex items-center justify-center`}>
-              <Icon className={`w-4 h-4 ${m.color}`} />
-            </div>
+    <dl className="module-data-band">
+      {metrics.map((metric) => (
+        <div key={metric.label}>
+          <dt className="text-xs text-muted-foreground">{metric.label}</dt>
+          <dd className="mt-1">
             <ProvenanceNumber
-              source={m.label === "Active Adjustments" ? "factory/active-adjustments" : m.label === "Neighborhoods" ? "factory/neighborhoods" : "county-vitals"}
-              fetchedAt={vitals?.fetchedAt}
-              cachePolicy={m.label === "Active Adjustments" || m.label === "Neighborhoods" ? "cached 120s" : "cached 60s"}
+              source={metric.label === "Active Adjustments" ? "factory/active-adjustments" : metric.label === "Neighborhoods" ? "factory/neighborhoods" : "county-vitals"}
+              fetchedAt={vitals.fetchedAt}
+              cachePolicy={metric.label === "Active Adjustments" || metric.label === "Neighborhoods" ? "cached 120s" : "cached 60s"}
             >
-              <span className="text-lg font-medium text-foreground leading-tight">{m.value}</span>
+              <span className="text-lg font-medium text-foreground tabular-nums">{metric.value}</span>
             </ProvenanceNumber>
-            <span className="text-[10px] text-muted-foreground uppercase tracking-wider leading-tight">{m.label}</span>
-          </motion.div>
-        );
-      })}
-    </motion.div>
+          </dd>
+        </div>
+      ))}
+    </dl>
   );
 }
