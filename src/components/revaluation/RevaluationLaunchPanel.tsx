@@ -22,6 +22,7 @@ import {
 } from "@/hooks/useRevaluationCycles";
 import { useNeighborhoods, useDiscoverNeighborhoods } from "@/hooks/useNeighborhoods";
 import { useCountyVitals } from "@/hooks/useCountyVitals";
+import { knownVital, formatVital } from "@/lib/countyMetric";
 
 // ── Readiness Gate ─────────────────────────────────────────────────
 interface ReadinessGate {
@@ -150,18 +151,22 @@ export function RevaluationLaunchPanel() {
   // Compute readiness gates
   const gates = useMemo<ReadinessGate[]>(() => {
     if (!vitals) return [];
-    const totalParcels = vitals.parcels.total;
+    // An unmeasured gate input fails closed with "Not measured" — never a fabricated pass.
+    const av = vitals.metricAvailability;
+    const totalParcels = knownVital(av, "parcels", vitals.parcels.total);
     const nbhdCount = registeredNbhds.length;
     const calibratedCount = vitals.calibration.calibratedNeighborhoods;
-    const qualityScore = vitals.quality.overall;
-    const hardBlockers = vitals.dataQuality.hardBlockers;
-    const defScore = vitals.defensibility.overall;
+    const qualityScore = knownVital(av, "quality", vitals.quality.overall);
+    const hardBlockers = knownVital(av, "issues", vitals.dataQuality.hardBlockers);
+    const defScore = knownVital(av, "defensibility", vitals.defensibility.overall);
 
     return [
       {
         label: "Data Loaded",
-        passed: totalParcels > 0,
-        detail: totalParcels > 0
+        passed: totalParcels !== null && totalParcels > 0,
+        detail: totalParcels === null
+          ? "Parcel count not measured"
+          : totalParcels > 0
           ? `${totalParcels.toLocaleString()} parcels in database`
           : "No parcel data loaded",
         severity: "critical" as const,
@@ -177,15 +182,17 @@ export function RevaluationLaunchPanel() {
       {
         label: "Zero Hard Blockers",
         passed: hardBlockers === 0,
-        detail: hardBlockers === 0
+        detail: hardBlockers === null
+          ? "Data quality blockers not measured"
+          : hardBlockers === 0
           ? "No hard data quality blockers"
           : `${hardBlockers} hard blocker(s) must be resolved`,
         severity: "critical" as const,
       },
       {
         label: "Data Quality ≥ 60%",
-        passed: qualityScore >= 60,
-        detail: `Current quality score: ${qualityScore}%`,
+        passed: qualityScore !== null && qualityScore >= 60,
+        detail: qualityScore === null ? "Quality score not measured" : `Current quality score: ${qualityScore}%`,
         severity: "warning" as const,
       },
       {
@@ -198,8 +205,8 @@ export function RevaluationLaunchPanel() {
       },
       {
         label: "Defensibility ≥ 50",
-        passed: defScore >= 50,
-        detail: `Current defensibility score: ${defScore}`,
+        passed: defScore !== null && defScore >= 50,
+        detail: defScore === null ? "Defensibility not measured" : `Current defensibility score: ${defScore}`,
         severity: "info" as const,
       },
     ];
@@ -374,10 +381,10 @@ export function RevaluationLaunchPanel() {
           {/* Summary Stats */}
           <div className="grid grid-cols-4 gap-3">
             {[
-              { icon: Building2, label: "Parcels", value: vitals?.parcels.total.toLocaleString() || "0" },
+              { icon: Building2, label: "Parcels", value: formatVital(knownVital(vitals?.metricAvailability, "parcels", vitals?.parcels.total)) },
               { icon: Layers, label: "Neighborhoods", value: String(registeredNbhds.length) },
-              { icon: BarChart3, label: "Calibrated", value: String(vitals?.calibration.calibratedNeighborhoods || 0) },
-              { icon: Shield, label: "Defensibility", value: String(vitals?.defensibility.overall || 0) },
+              { icon: BarChart3, label: "Calibrated", value: vitals ? String(vitals.calibration.calibratedNeighborhoods) : "—" },
+              { icon: Shield, label: "Defensibility", value: formatVital(knownVital(vitals?.metricAvailability, "defensibility", vitals?.defensibility.overall)) },
             ].map((stat) => (
               <div key={stat.label} className="p-3 rounded-lg bg-muted/10 border border-border/20 text-center">
                 <stat.icon className="h-4 w-4 text-primary mx-auto mb-1" />

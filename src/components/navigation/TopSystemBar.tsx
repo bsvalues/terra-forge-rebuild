@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useCountyVitals } from "@/hooks/useCountyVitals";
+import { knownVital, formatVital } from "@/lib/countyMetric";
 import { ProvenanceNumber } from "@/components/trust";
 import { Menu } from "lucide-react";
 import { useSidebar } from "@/components/ui/sidebar";
@@ -36,7 +37,7 @@ export function TopSystemBar({ onOpenCommandPalette, onOpenControlCenter, onOpen
   }
   const { profile } = useAuthContext();
   const { data: vitals } = useCountyVitals();
-  const parcelsCount = vitals?.parcels.total;
+  const parcelsCount = knownVital(vitals?.metricAvailability, "parcels", vitals?.parcels.total);
 
   return (
     <header className="sticky top-0 z-50 h-11 flex items-center justify-between px-3 sm:px-4 material-shell desktop-topbar border-b border-border/30">
@@ -89,13 +90,13 @@ export function TopSystemBar({ onOpenCommandPalette, onOpenControlCenter, onOpen
               <Database className="w-3.5 h-3.5 text-muted-foreground" />
               <span className="text-[10px] text-muted-foreground hidden sm:inline">
                 <ProvenanceNumber source="county-vitals" fetchedAt={vitals?.fetchedAt} cachePolicy="cached 60s">
-                  {parcelsCount?.toLocaleString() ?? "—"}
+                  {formatVital(parcelsCount)}
                 </ProvenanceNumber>
               </span>
             </div>
           </TooltipTrigger>
           <TooltipContent>
-            <p>{parcelsCount !== undefined ? `${parcelsCount.toLocaleString()} county parcels • cached count` : "County parcel count unavailable"}</p>
+            <p>{parcelsCount !== null ? `${parcelsCount.toLocaleString()} county parcels • cached count` : "County parcel count not measured"}</p>
           </TooltipContent>
         </Tooltip>
 

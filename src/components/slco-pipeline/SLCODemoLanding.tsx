@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { useCountyVitals } from "@/hooks/useCountyVitals";
+import { knownVital, formatVital } from "@/lib/countyMetric";
 import { useRevaluationCycles } from "@/hooks/useRevaluationCycles";
 import { DefensibilityScoreCard } from "@/components/analytics/DefensibilityScoreCard";
 
@@ -140,20 +141,23 @@ export function SLCODemoLanding({ onNavigate }: SLCODemoLandingProps) {
   const { data: revalCycles } = useRevaluationCycles();
   const [expandedTemplate, setExpandedTemplate] = useState<string | null>(null);
 
-  const totalParcels = vitals?.parcels?.total || 0;
-  const qualityScore = vitals?.quality?.overall || 0;
+  // Unreported metrics stay null and render "—"; they never count as zero.
+  const av = vitals?.metricAvailability;
+  const totalParcels = knownVital(av, "parcels", vitals?.parcels?.total);
+  const qualityScore = knownVital(av, "quality", vitals?.quality?.overall);
   const defensibility = vitals?.defensibility;
-  const nbhdCount = vitals?.parcels?.withNeighborhood || 0;
+  const defensibilityScore = knownVital(av, "defensibility", defensibility?.overall);
+  const nbhdCount = knownVital(av, "parcels", vitals?.parcels?.withNeighborhood) ?? 0;
   const calibratedNbhds = vitals?.calibration?.calibratedNeighborhoods || 0;
 
   // Determine onboarding state
-  const hasData = totalParcels > 0;
+  const hasData = totalParcels !== null && totalParcels > 0;
   const hasNeighborhoods = nbhdCount > 0 && calibratedNbhds > 0;
   const hasLaunchedReval = (revalCycles || []).some(c => c.status === "launched" || c.status === "completed");
   const onboardingSteps = [
     { title: "Connect Data Sources", desc: "Configure UGRC, Recorder, and CAMA connections", completed: true },
     { title: "Run Initial Pipeline", desc: "Ingest and normalize Salt Lake County parcel data", completed: hasData },
-    { title: "Validate & Remediate Data", desc: "AI-powered diagnosis, PostGIS-driven repair, human-approved fixes", completed: hasData && qualityScore > 60 },
+    { title: "Validate & Remediate Data", desc: "AI-powered diagnosis, PostGIS-driven repair, human-approved fixes", completed: hasData && qualityScore !== null && qualityScore > 60 },
     { title: "Configure Neighborhoods", desc: "Register neighborhood codes, configure model areas, verify calibration readiness", completed: hasNeighborhoods },
     { title: "Launch Revaluation", desc: "Begin annual revaluation cycle with calibrated models", completed: hasLaunchedReval },
   ];
@@ -210,9 +214,9 @@ export function SLCODemoLanding({ onNavigate }: SLCODemoLandingProps) {
           {/* Right stats */}
           <div className="hidden lg:flex gap-4">
             {[
-              { label: "Parcels Loaded", value: totalParcels.toLocaleString(), icon: Database },
-              { label: "Data Quality", value: `${qualityScore}%`, icon: Shield },
-              { label: "Defensibility", value: `${defensibility?.overall ?? 0}`, icon: Shield },
+              { label: "Parcels Loaded", value: formatVital(totalParcels), icon: Database },
+              { label: "Data Quality", value: formatVital(qualityScore, "%"), icon: Shield },
+              { label: "Defensibility", value: formatVital(defensibilityScore), icon: Shield },
               { label: "Onboarding", value: `${onboardingProgress}%`, icon: Rocket },
             ].map((stat) => (
               <div key={stat.label} className="p-3 rounded-xl bg-card/80 border border-border/30 min-w-[110px] text-center">
@@ -276,6 +280,7 @@ export function SLCODemoLanding({ onNavigate }: SLCODemoLandingProps) {
         <DefensibilityScoreCard
           defensibility={defensibility}
           dataQuality={vitals?.dataQuality}
+          available={defensibilityScore !== null}
           onNavigate={onNavigate}
         />
       )}
