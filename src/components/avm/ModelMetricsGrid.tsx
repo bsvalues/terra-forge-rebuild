@@ -1,5 +1,3 @@
-import { motion } from "framer-motion";
-import { cn } from "@/lib/utils";
 import {
   Activity, BarChart3, Percent, Target, TrendingDown, Sigma,
 } from "lucide-react";
@@ -21,39 +19,24 @@ export function ModelMetricsGrid({ champion, challenger }: ModelMetricsGridProps
   ];
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-      {metrics.map((m, index) => {
-        const Icon = m.icon;
-        const rfV = m.rfVal ?? 0;
-        const nnV = m.nnVal ?? 0;
-        const rfWins = m.higherBetter ? rfV >= nnV : rfV <= nnV;
-
-        return (
-          <motion.div
-            key={m.id}
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: index * 0.05 }}
-            className="material-bento rounded-lg p-4"
-          >
-            <div className="flex items-center justify-between mb-3">
-              <Icon className="w-4 h-4 text-muted-foreground" />
-              <span className="text-xs text-muted-foreground">{m.label}</span>
-            </div>
-            <div className="space-y-2">
-              <div className={cn("flex items-center justify-between p-2 rounded", rfWins ? "bg-[hsl(var(--tf-optimized-green)/0.1)] border border-[hsl(var(--tf-optimized-green)/0.3)]" : "bg-muted/30")}>
-                <span className="text-xs text-muted-foreground">RF</span>
-                <span className={cn("text-sm font-medium", rfWins ? "text-[hsl(var(--tf-optimized-green))]" : "text-foreground")}>{m.fmt(rfV)}</span>
-              </div>
-              <div className={cn("flex items-center justify-between p-2 rounded", !rfWins ? "bg-[hsl(var(--tf-transcend-cyan)/0.1)] border border-[hsl(var(--tf-transcend-cyan)/0.3)]" : "bg-muted/30")}>
-                <span className="text-xs text-muted-foreground">NN</span>
-                <span className={cn("text-sm font-medium", !rfWins ? "text-[hsl(var(--tf-transcend-cyan))]" : "text-foreground")}>{m.fmt(nnV)}</span>
-              </div>
-            </div>
-            <p className="text-xs text-muted-foreground mt-2 truncate">{m.label}</p>
-          </motion.div>
-        );
-      })}
-    </div>
+    <section className="module-section" aria-labelledby="model-metrics">
+      <h3 id="model-metrics" className="text-base font-semibold">Model metrics</h3>
+      <div className="mt-3 overflow-x-auto" role="region" aria-label="Model metrics comparison" tabIndex={0}>
+        <table className="w-full min-w-[480px] text-sm">
+          <thead><tr className="border-b border-border text-left">
+            <th scope="col" className="py-3 pr-4 font-medium text-muted-foreground">Metric</th>
+            <th scope="col" className="py-3 px-4 font-medium">{champion?.model_name ?? "Champion not selected"}</th>
+            <th scope="col" className="py-3 pl-4 font-medium">{challenger?.model_name ?? "Challenger not selected"}</th>
+          </tr></thead>
+          <tbody>{metrics.map((metric) => (
+            <tr key={metric.id} className="border-b border-border">
+              <th scope="row" className="py-3 pr-4 text-left font-medium text-muted-foreground">{metric.label}</th>
+              <td className="py-3 px-4 tabular-nums">{metric.rfVal == null ? "—" : metric.fmt(metric.rfVal)}</td>
+              <td className="py-3 pl-4 tabular-nums">{metric.nnVal == null ? "—" : metric.fmt(metric.nnVal)}</td>
+            </tr>
+          ))}</tbody>
+        </table>
+      </div>
+    </section>
   );
 }

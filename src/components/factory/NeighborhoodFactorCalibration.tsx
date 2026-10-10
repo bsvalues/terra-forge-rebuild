@@ -3,15 +3,12 @@
 // Writes calibration runs via the forge write lane.
 
 import { useState, useMemo } from "react";
-import { motion } from "framer-motion";
-import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import {
-  Target, BarChart3, AlertTriangle, CheckCircle2, Loader2, Calculator,
+  BarChart3, AlertTriangle, CheckCircle2, Loader2, Calculator,
 } from "lucide-react";
-import { NeighborhoodSelector } from "./NeighborhoodSelector";
 import { ComparableSalesGrid } from "@/components/forge/ComparableSalesGrid";
 import { supabase } from "@/integrations/supabase/client";
 import { assertWriteLane } from "@/services/writeLane";
@@ -123,10 +120,10 @@ function StatTile({
   label, value, status, description,
 }: { label: string; value: string; status: "healthy" | "warning" | "critical"; description: string }) {
   return (
-    <div className="material-bento rounded-xl p-4 space-y-1">
+    <div className="min-w-0 space-y-1">
       <div className="flex items-center gap-1.5">
         <StatusDot status={status} />
-        <span className="text-[10px] text-muted-foreground uppercase tracking-wider">{label}</span>
+        <span className="text-xs text-muted-foreground">{label}</span>
       </div>
       <div className="text-2xl font-light text-foreground tabular-nums">{value}</div>
       <div className="text-[10px] text-muted-foreground">{description}</div>
@@ -136,8 +133,7 @@ function StatTile({
 
 // ── Main component ────────────────────────────────────────────────────────────
 
-export function NeighborhoodFactorCalibration() {
-  const [neighborhoodCode, setNeighborhoodCode] = useState<string | null>(null);
+export function NeighborhoodFactorCalibration({ neighborhoodCode }: { neighborhoodCode: string | null }) {
   const [isSaving, setIsSaving] = useState(false);
   const countyId = useActiveCountyId();
   const { toast } = useToast();
@@ -156,7 +152,7 @@ export function NeighborhoodFactorCalibration() {
         .from("sales_history")
         .select(`id, sale_date, sale_price, sale_type, deed_type,
           parcel_id, parcels!inner(id, parcel_number, address, city, assessed_value, building_area, neighborhood_code)`)
-        .eq("parcels.neighborhood_code", neighborhoodCode!)
+        .eq("parcels.neighborhood_code", neighborhoodCode)
         .eq("is_qualified", true)
         .order("sale_date", { ascending: false })
         .limit(50);
@@ -209,11 +205,7 @@ export function NeighborhoodFactorCalibration() {
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="space-y-6"
-    >
+    <div className="space-y-5">
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
@@ -225,32 +217,34 @@ export function NeighborhoodFactorCalibration() {
             IAAO ratio study — COD, PRD, median ratio by neighborhood
           </p>
         </div>
-        <NeighborhoodSelector value={neighborhoodCode} onChange={setNeighborhoodCode} />
+        <Button onClick={handleApply} disabled={!canApply} className="gap-2">
+          {isSaving ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <CheckCircle2 className="h-4 w-4" aria-hidden="true" />}
+          {isSaving ? "Saving…" : "Save Calibration Run"}
+        </Button>
       </div>
 
       {/* No selection */}
       {!neighborhoodCode && (
-        <Card className="material-bento border-border/50">
-          <CardContent className="p-8 text-center">
-            <Target className="w-8 h-8 mx-auto mb-2 text-muted-foreground/30" />
+        <section className="module-section">
+          <div className="py-6">
             <p className="text-sm text-muted-foreground">
               Select a neighborhood to run the ratio study
             </p>
-          </CardContent>
-        </Card>
+          </div>
+        </section>
       )}
 
       {/* Loading */}
       {neighborhoodCode && compsLoading && (
-        <div className="grid grid-cols-3 gap-4">
-          {[1, 2, 3].map((i) => <Skeleton key={i} className="h-28 rounded-xl" />)}
+        <div className="module-three-grid">
+          {[1, 2, 3].map((i) => <Skeleton key={i} className="h-28 rounded-md" />)}
         </div>
       )}
 
       {/* Insufficient data */}
       {neighborhoodCode && !compsLoading && !stats && (
-        <Card className="material-bento border-border/50">
-          <CardContent className="p-6 flex items-center gap-3">
+        <section className="module-section">
+          <div className="py-4 flex items-center gap-3">
             <AlertTriangle className="w-5 h-5 text-[hsl(var(--tf-sacred-gold))] shrink-0" />
             <p className="text-sm text-muted-foreground">
               Need ≥3 qualified sales in <strong>{neighborhoodCode}</strong> to calculate ratio statistics.
@@ -258,14 +252,14 @@ export function NeighborhoodFactorCalibration() {
                 <> Found {comps.length} sale{comps.length !== 1 ? "s" : ""}.</>
               )}
             </p>
-          </CardContent>
-        </Card>
+          </div>
+        </section>
       )}
 
       {/* Stats */}
       {stats && (
         <>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="module-data-band">
             <StatTile
               label="Median Ratio"
               value={stats.medianRatio.toFixed(3)}
@@ -284,10 +278,10 @@ export function NeighborhoodFactorCalibration() {
               status={prdStatus(stats.prd)}
               description="Price-related differential · target 0.98–1.03"
             />
-            <div className="material-bento rounded-xl p-4 space-y-1">
+            <div className="min-w-0 space-y-1">
               <div className="flex items-center gap-1.5">
                 <BarChart3 className="w-3.5 h-3.5 text-muted-foreground" />
-                <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Sample</span>
+                <span className="text-xs text-muted-foreground">Sample</span>
               </div>
               <div className="text-2xl font-light text-foreground tabular-nums">{stats.n}</div>
               <div className="text-[10px] text-muted-foreground">Qualified sales</div>
@@ -303,14 +297,13 @@ export function NeighborhoodFactorCalibration() {
 
           {/* Neighborhood Stats RPC Panel */}
           {neighborhoodCode && countyId && (
-            <Card className="material-bento border-border/50">
-              <CardContent className="p-4">
+            <section className="module-section">
+              <div>
                 <div className="flex items-center gap-2 mb-2">
                   <BarChart3 className="w-3.5 h-3.5 text-suite-forge" />
                   <span className="text-xs font-medium text-foreground">
                     Neighborhood Stats — {neighborhoodCode}
                   </span>
-                  <span className="text-[10px] text-muted-foreground">(via RPC)</span>
                 </div>
                 {nbhdStatsLoading && (
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -319,7 +312,7 @@ export function NeighborhoodFactorCalibration() {
                 )}
                 {nbhdStatsError && (
                   <div className="flex items-center gap-2 text-xs text-[hsl(var(--tf-warning-red))]">
-                    <AlertTriangle className="w-3 h-3" /> RPC error loading neighborhood stats.
+                    <AlertTriangle className="w-3 h-3" /> Unable to load neighborhood statistics.
                   </div>
                 )}
                 {!nbhdStatsLoading && !nbhdStatsError && nbhdStats != null && (
@@ -327,29 +320,17 @@ export function NeighborhoodFactorCalibration() {
                     {JSON.stringify(nbhdStats, null, 2)}
                   </pre>
                 )}
-              </CardContent>
-            </Card>
+              </div>
+            </section>
           )}
 
-          {/* Apply button */}
-          <div className="flex justify-end">
-            <Button
-              onClick={handleApply}
-              disabled={!canApply}
-              className="gap-2"
-            >
-              {isSaving
-                ? <><Loader2 className="w-4 h-4 animate-spin" /> Saving…</>
-                : <><CheckCircle2 className="w-4 h-4" /> Save Calibration Run</>}
-            </Button>
-          </div>
         </>
       )}
 
       {/* Comparable sales detail */}
       {neighborhoodCode && comps && comps.length > 0 && (
-        <div className="space-y-2">
-          <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+        <div className="module-section space-y-3">
+          <h3 className="text-sm font-medium text-foreground">
             Sales Detail — {neighborhoodCode}
           </h3>
           {/* Use first parcel's id to anchor the grid; grid shows whole neighborhood */}
@@ -361,6 +342,6 @@ export function NeighborhoodFactorCalibration() {
           />
         </div>
       )}
-    </motion.div>
+    </div>
   );
 }
