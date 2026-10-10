@@ -121,11 +121,13 @@ export function SuiteHub({ onNavigate, onParcelNavigate }: SuiteHubProps) {
     }
   };
 
-  const parcelsTotal = vitals?.parcels.total ?? 0;
-  const salesTotal = vitals?.sales.total ?? 0;
-  const assessmentsTotal = vitals?.assessments.total ?? 0;
-  const qualityOverall = vitals?.quality.overall ?? 0;
-  const totalWorkflows = vitals?.workflows.total ?? 0;
+  const avail = vitals?.metricAvailability;
+  // Unknown metrics render as "—", never as fabricated zeroes (Reality Before Theater).
+  const parcelsTotal = avail && !avail.parcels ? null : vitals?.parcels.total ?? 0;
+  const salesTotal = avail && !avail.sales ? null : vitals?.sales.total ?? 0;
+  const assessmentsTotal = avail && !avail.assessments ? null : vitals?.assessments.total ?? 0;
+  const qualityOverall = avail && !avail.quality ? null : vitals?.quality.overall ?? 0;
+  const totalWorkflows = avail && !avail.workflows ? null : vitals?.workflows.total ?? 0;
 
   const showDropdown = searchFocused && searchValue.trim().length >= 2 && searchResults && searchResults.length > 0;
 
@@ -246,11 +248,11 @@ export function SuiteHub({ onNavigate, onParcelNavigate }: SuiteHubProps) {
 
           {/* Inline vitals — single source */}
           <div className="flex items-center gap-3 sm:gap-6 mt-4 flex-wrap">
-            <Vital label="Parcels" value={parcelsTotal.toLocaleString()} metricKey="parcels.total" fetchedAt={vitals?.fetchedAt} onNavigate={onNavigate} />
-            <Vital label="Sales" value={salesTotal.toLocaleString()} metricKey="sales.total" fetchedAt={vitals?.fetchedAt} onNavigate={onNavigate} />
-            <Vital label="Assessments" value={assessmentsTotal.toLocaleString()} metricKey="assessments.total" fetchedAt={vitals?.fetchedAt} onNavigate={onNavigate} />
-            <Vital label="Data Quality" value={`${qualityOverall}%`} metricKey="quality.overall" fetchedAt={vitals?.fetchedAt} onNavigate={onNavigate} />
-            {totalWorkflows > 0 && (
+            <Vital label="Parcels" value={parcelsTotal === null ? "—" : parcelsTotal.toLocaleString()} metricKey="parcels.total" fetchedAt={vitals?.fetchedAt} onNavigate={onNavigate} />
+            <Vital label="Sales" value={salesTotal === null ? "—" : salesTotal.toLocaleString()} metricKey="sales.total" fetchedAt={vitals?.fetchedAt} onNavigate={onNavigate} />
+            <Vital label="Assessments" value={assessmentsTotal === null ? "—" : assessmentsTotal.toLocaleString()} metricKey="assessments.total" fetchedAt={vitals?.fetchedAt} onNavigate={onNavigate} />
+            <Vital label="Data Quality" value={qualityOverall === null ? "—" : `${qualityOverall}%`} metricKey="quality.overall" fetchedAt={vitals?.fetchedAt} onNavigate={onNavigate} />
+            {totalWorkflows !== null && totalWorkflows > 0 && (
               <Vital label="Pending" value={totalWorkflows.toString()} highlight metricKey="workflows.pendingAppeals" fetchedAt={vitals?.fetchedAt} onNavigate={onNavigate} />
             )}
             <ProvenanceBadge source="county-vitals" fetchedAt={vitals?.fetchedAt} />
@@ -278,8 +280,8 @@ export function SuiteHub({ onNavigate, onParcelNavigate }: SuiteHubProps) {
               <h3 className="text-sm font-medium text-foreground">Data Quality</h3>
               <p className="text-xs text-muted-foreground">Parcel completeness</p>
             </div>
-            <Badge variant="outline" className={qualityBadgeClass(qualityOverall)}>
-              {qualityOverall}%
+            <Badge variant="outline" className={qualityOverall === null ? "" : qualityBadgeClass(qualityOverall)}>
+              {qualityOverall === null ? "Not measured" : `${qualityOverall}%`}
             </Badge>
             <ArrowRight className="w-3.5 h-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
           </div>
