@@ -92,8 +92,8 @@ export function AnalyticsDashboard() {
 
       {/* Index Mode Toggle + Summary */}
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-          <div className="material-bento rounded-xl p-4 col-span-2 md:col-span-1">
+        <div className="module-summary-grid">
+          <div className="material-bento rounded-xl p-4 min-w-0">
             <div className="flex items-center gap-2 mb-2">
               <GradeIcon className={`w-5 h-5 ${grade.color}`} />
               <span className="text-[10px] text-muted-foreground uppercase tracking-wider">
