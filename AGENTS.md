@@ -12,6 +12,7 @@
 
 - Registered views share the scoped `module-interior` contract in primary and embedded windows; common tabs and surfaces stay consistent without changing routes or suite data ownership.
 - Module titles and actions use `ModuleHeader`; scope templates retain controls and rails when their window narrows, so window resizing never removes available work.
+- Analysis result grids respond to module container width and dense fixed-column rows scroll locally; split-window content must not depend on the browser viewport width.
 
 - Workbench county summaries consume the shared County Vitals read model, never independent count queries or absent comparison snapshots; this keeps county scope and caching consistent.
 - Workbench opens with direct parcel controls and an optional toolbar-toggled TerraPilot inspector; this keeps deterministic work primary and prevents floating AI controls from covering the desktop dock.
