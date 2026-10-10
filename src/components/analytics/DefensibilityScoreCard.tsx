@@ -96,6 +96,8 @@ interface DefensibilityScoreCardProps {
   dataQuality?: DataQualityVitals;
   onNavigate?: (target: string) => void;
   compact?: boolean;
+  /** False when the vitals RPC reported no defensibility score; renders "Not measured". */
+  available?: boolean;
 }
 
 export function DefensibilityScoreCard({
@@ -103,7 +105,22 @@ export function DefensibilityScoreCard({
   dataQuality,
   onNavigate,
   compact = false,
+  available = true,
 }: DefensibilityScoreCardProps) {
+  if (!available) {
+    // A missing score is not an "At Risk" verdict — say it was not measured.
+    return (
+      <Card className="border border-border/30">
+        <CardContent className="p-4 flex items-center gap-3">
+          <Shield className="h-4 w-4 text-muted-foreground" />
+          <div>
+            <p className="text-sm font-medium text-foreground">Defensibility — Not measured</p>
+            <p className="text-[10px] text-muted-foreground">No defensibility score was reported for this county.</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
   const verdict = VERDICT_CONFIG[defensibility.verdict] || VERDICT_CONFIG.at_risk;
   const VerdictIcon = verdict.icon;
 

@@ -23,4 +23,5 @@
 - [x] Refine parcel-empty hierarchy and place Pilot controls in the existing toolbar.
 - [x] Verify desktop, narrow-window, and existing window interactions; record handoff (409 tests passed; preview build OK).
 - [x] County Vitals truth audit: availability flags extended (quality/workflows); SuiteHub, DailyBriefing, NextBestAction, DataStatusRibbon, FactoryDashboardHeader render unknowns as "—"/"Not measured" instead of fabricated zeroes; 413 tests green.
-- [ ] Remaining vitals consumers to audit: GeoEquityDashboard, DefensibilityScoreCard, TopSystemBar, CountyTimeline, CommandBriefing, CertificationDashboard, TrustRegistryPage, SLCODemoLanding, ProvenanceExplainPanel, RevaluationLaunchPanel, useSidebarBadges.
+- [x] Audited CommandBriefing, GeoEquityDashboard, DefensibilityScoreCard (Not measured state); TopSystemBar already tolerates undefined.
+- [ ] Remaining vitals consumers to audit: CountyTimeline, CertificationDashboard, TrustRegistryPage, SLCODemoLanding, ProvenanceExplainPanel, RevaluationLaunchPanel, useSidebarBadges.
