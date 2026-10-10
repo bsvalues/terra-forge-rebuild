@@ -12,3 +12,8 @@
 - [x] Fix OAuth return trip: /auth/callback page stores the session after provider redirect (was landing signed out)
 - [x] Publish requested (OAuth callback fix) — verify Google + Microsoft sign-in on the live site once deploy lands
 - [x] Link on/off toggle in window title bar (compare two parcels side by side)
+
+## Current design slice
+- [x] Apply mineral palette and meaningful shell treatments without changing routes.
+- [x] Record consolidated agent principles near the top of coding instructions.
+- [x] Verify shell rendering and existing window interactions (29 tests passed; Workbench and Focus checked; no browser errors).

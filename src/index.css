@@ -2,179 +2,137 @@
 @tailwind components;
 @tailwind utilities;
 
-/* TerraFusion OS — Tahoe Design System */
-/* macOS Tahoe: translucent materials, spatial depth, Apple-clean aesthetic */
+/* TerraFusion OS — Mineral design system */
 
+/* Mineral palette: charcoal work surfaces, teal actions, parchment selection;
+   suite colors identify domain ownership, not fabricated system status. */
 @layer base {
   :root {
-    /* ── Tahoe Dark (default) ─────────────────────────────── */
-    --background: 220 16% 8%;              /* Soft warm dark, not void-black */
-    --foreground: 220 10% 93%;
-
-    --card: 220 14% 11%;                   /* Warm elevated surface */
-    --card-foreground: 220 10% 93%;
-
-    --popover: 220 14% 13%;               /* Floating surface */
-    --popover-foreground: 220 10% 93%;
-
-    /* Primary: macOS accent blue */
-    --primary: 211 100% 50%;
-    --primary-foreground: 0 0% 100%;
-
-    --secondary: 220 14% 14%;
-    --secondary-foreground: 220 10% 88%;
-
-    --muted: 220 12% 14%;
-    --muted-foreground: 220 8% 55%;
-
-    --accent: 211 100% 50%;
-    --accent-foreground: 0 0% 100%;
-
-    --destructive: 0 72% 51%;
-    --destructive-foreground: 0 0% 100%;
-
-    --border: 220 12% 18%;
-    --input: 220 14% 14%;
-    --ring: 211 100% 50%;
-
-    --radius: 0.75rem;
-
-    /* Surface layers */
-    --tf-substrate: 220 16% 8%;
-    --tf-surface: 220 14% 11%;
-    --tf-elevated: 220 12% 16%;
-    --tf-glass: 220 14% 10%;
-
-    /* Semantic colors — muted, professional palette */
-    --tf-transcend-cyan: 211 100% 50%;     /* macOS blue replaces neon cyan */
-    --tf-bright-cyan: 211 100% 60%;
-    --tf-optimized-green: 142 71% 45%;     /* System green */
-    --tf-sacred-gold: 38 92% 50%;          /* System orange/gold */
-    --tf-anomaly-amber: 30 92% 50%;
-    --tf-warning-red: 0 84% 60%;           /* System red */
-    --tf-muse-purple: 280 68% 60%;         /* System purple */
-
-    /* Suite Identity Colors */
-    --suite-forge: 211 100% 50%;
-    --suite-atlas: 195 90% 48%;
-    --suite-dais: 38 92% 50%;
-    --suite-dossier: 280 68% 60%;
-
-    /* Work Mode Colors */
-    --mode-overview: 211 100% 50%;
-    --mode-valuation: 195 90% 48%;
-    --mode-mapping: 142 71% 45%;
-    --mode-admin: 38 92% 50%;
-    --mode-case: 280 68% 60%;
-
-    /* VEI Metrics */
-    --vei-excellent: 142 71% 45%;
-    --vei-good: 211 100% 50%;
-    --vei-caution: 30 92% 50%;
-    --vei-concern: 0 84% 60%;
-
-    /* Tier Colors */
-    --tier-q1: 211 100% 50%;
-    --tier-q2: 142 71% 45%;
-    --tier-q3: 38 92% 50%;
-    --tier-q4: 0 84% 60%;
-
-    /* Sidebar — translucent vibrancy (macOS Tahoe) */
-    --sidebar-background: 220 18% 10%;
-    --sidebar-foreground: 220 8% 78%;
-    --sidebar-primary: 211 100% 55%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 10% 18%;          /* subtle hover fill (gray, not blue) */
-    --sidebar-accent-foreground: 220 8% 88%;
-    --sidebar-border: 220 12% 18%;
-    --sidebar-ring: 211 100% 50%;
-
-    /* Chart Colors */
-    --chart-1: 211 100% 50%;
-    --chart-2: 142 71% 45%;
-    --chart-3: 38 92% 50%;
-    --chart-4: 280 68% 60%;
-    --chart-5: 0 84% 60%;
+    --background: 212.7 15.1% 14.3%;
+    --foreground: 30.0 33.3% 90.6%;
+    --card: 205.0 13.3% 17.6%;
+    --card-foreground: 30.0 33.3% 90.6%;
+    --popover: 201.4 12.7% 21.6%;
+    --popover-foreground: 30.0 33.3% 90.6%;
+    --primary: 192.3 25.6% 66.3%;
+    --primary-foreground: 212.7 15.1% 14.3%;
+    --secondary: 197.1 16.5% 24.9%;
+    --secondary-foreground: 29.4 53.7% 81.4%;
+    --muted: 201.4 12.7% 21.6%;
+    --muted-foreground: 190.0 7.8% 69.8%;
+    --accent: 197.1 34.8% 27.6%;
+    --accent-foreground: 30.0 33.3% 90.6%;
+    --destructive: 8.1 59.8% 65.9%;
+    --destructive-foreground: 212.7 15.1% 14.3%;
+    --border: 200.0 11.4% 31.0%;
+    --input: 203.3 14.5% 24.3%;
+    --ring: 192.3 25.6% 66.3%;
+    --tf-substrate: 212.7 15.1% 14.3%;
+    --tf-surface: 205.0 13.3% 17.6%;
+    --tf-elevated: 197.1 16.5% 24.9%;
+    --tf-glass: 212.7 15.1% 14.3%;
+    --tf-transcend-cyan: 192.3 25.6% 66.3%;
+    --tf-bright-cyan: 188.8 27.4% 75.7%;
+    --tf-optimized-green: 144.9 23.2% 65.3%;
+    --tf-sacred-gold: 29.4 53.7% 81.4%;
+    --tf-anomaly-amber: 33.8 53.4% 65.5%;
+    --tf-warning-red: 8.1 59.8% 65.9%;
+    --tf-muse-purple: 335.0 8.8% 73.3%;
+    --suite-forge: 12.7 43.4% 70.2%;
+    --suite-atlas: 192.3 25.6% 66.3%;
+    --suite-dais: 29.4 53.7% 81.4%;
+    --suite-dossier: 186.0 8.5% 76.9%;
+    --mode-overview: 186.0 8.5% 76.9%;
+    --mode-valuation: 12.7 43.4% 70.2%;
+    --mode-mapping: 192.3 25.6% 66.3%;
+    --mode-admin: 29.4 53.7% 81.4%;
+    --mode-case: 335.0 8.8% 73.3%;
+    --vei-excellent: 144.9 23.2% 65.3%;
+    --vei-good: 192.3 25.6% 66.3%;
+    --vei-caution: 33.8 53.4% 65.5%;
+    --vei-concern: 8.1 59.8% 65.9%;
+    --tier-q1: 192.3 25.6% 66.3%;
+    --tier-q2: 144.9 23.2% 65.3%;
+    --tier-q3: 33.8 53.4% 65.5%;
+    --tier-q4: 8.1 59.8% 65.9%;
+    --sidebar-background: 212.7 15.1% 14.3%;
+    --sidebar-foreground: 186.7 8.4% 79.0%;
+    --sidebar-primary: 29.4 53.7% 81.4%;
+    --sidebar-primary-foreground: 212.7 15.1% 14.3%;
+    --sidebar-accent: 197.1 16.5% 24.9%;
+    --sidebar-accent-foreground: 30.0 33.3% 90.6%;
+    --sidebar-border: 200.0 11.4% 31.0%;
+    --sidebar-ring: 192.3 25.6% 66.3%;
+    --chart-1: 192.3 25.6% 66.3%;
+    --chart-2: 144.9 23.2% 65.3%;
+    --chart-3: 29.4 53.7% 81.4%;
+    --chart-4: 12.7 43.4% 70.2%;
+    --chart-5: 186.0 8.5% 76.9%;
+    --radius: 0.5rem;
   }
 
-  /* ── Tahoe Light ────────────────────────────────────────── */
   .light {
-    --background: 0 0% 96%;               /* macOS Tahoe light grey */
-    --foreground: 0 0% 10%;
-
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 10%;
-
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 10%;
-
-    --primary: 211 100% 50%;
-    --primary-foreground: 0 0% 100%;
-
-    --secondary: 220 10% 93%;
-    --secondary-foreground: 0 0% 20%;
-
-    --muted: 220 10% 94%;
-    --muted-foreground: 0 0% 40%;
-
-    --accent: 211 100% 50%;
-    --accent-foreground: 0 0% 100%;
-
-    --destructive: 0 72% 51%;
-    --destructive-foreground: 0 0% 100%;
-
-    --border: 0 0% 88%;
-    --input: 0 0% 91%;
-    --ring: 211 100% 50%;
-
-    --tf-substrate: 0 0% 96%;
-    --tf-surface: 0 0% 100%;
-    --tf-elevated: 220 10% 94%;
-    --tf-glass: 0 0% 97%;
-
-    --tf-transcend-cyan: 211 100% 45%;
-    --tf-bright-cyan: 211 100% 52%;
-    --tf-optimized-green: 142 64% 35%;
-    --tf-sacred-gold: 35 85% 42%;
-    --tf-anomaly-amber: 30 85% 42%;
-    --tf-warning-red: 0 65% 48%;
-    --tf-muse-purple: 280 55% 45%;
-
-    --suite-forge: 211 100% 45%;
-    --suite-atlas: 195 80% 40%;
-    --suite-dais: 35 85% 42%;
-    --suite-dossier: 280 55% 45%;
-
-    --mode-overview: 211 100% 45%;
-    --mode-valuation: 195 80% 40%;
-    --mode-mapping: 142 64% 35%;
-    --mode-admin: 35 85% 42%;
-    --mode-case: 280 55% 45%;
-
-    --vei-excellent: 142 64% 35%;
-    --vei-good: 211 100% 45%;
-    --vei-caution: 30 85% 42%;
-    --vei-concern: 0 65% 48%;
-
-    --tier-q1: 211 100% 45%;
-    --tier-q2: 142 64% 35%;
-    --tier-q3: 35 85% 42%;
-    --tier-q4: 0 65% 48%;
-
-    --sidebar-background: 0 0% 97%;
-    --sidebar-foreground: 0 0% 15%;
-    --sidebar-primary: 211 100% 45%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 10% 93%;
-    --sidebar-accent-foreground: 0 0% 15%;
-    --sidebar-border: 0 0% 88%;
-    --sidebar-ring: 211 100% 45%;
-
-    --chart-1: 211 100% 45%;
-    --chart-2: 142 64% 35%;
-    --chart-3: 35 85% 42%;
-    --chart-4: 280 55% 45%;
-    --chart-5: 0 65% 48%;
+    --background: 36.0 18.5% 94.7%;
+    --foreground: 212.7 15.1% 14.3%;
+    --card: 0.0 0.0% 100.0%;
+    --card-foreground: 212.7 15.1% 14.3%;
+    --popover: 0.0 0.0% 100.0%;
+    --popover-foreground: 212.7 15.1% 14.3%;
+    --primary: 197.1 34.8% 27.6%;
+    --primary-foreground: 0.0 0.0% 100.0%;
+    --secondary: 32.7 20.0% 89.2%;
+    --secondary-foreground: 197.1 34.8% 27.6%;
+    --muted: 180.0 9.5% 91.8%;
+    --muted-foreground: 190.6 8.9% 37.5%;
+    --accent: 29.4 53.7% 81.4%;
+    --accent-foreground: 212.7 15.1% 14.3%;
+    --destructive: 6.7 50.2% 41.8%;
+    --destructive-foreground: 0.0 0.0% 100.0%;
+    --border: 186.7 8.7% 79.8%;
+    --input: 180.0 9.5% 91.8%;
+    --ring: 197.1 34.8% 27.6%;
+    --tf-substrate: 36.0 18.5% 94.7%;
+    --tf-surface: 0.0 0.0% 100.0%;
+    --tf-elevated: 180.0 9.5% 91.8%;
+    --tf-glass: 36.0 18.5% 94.7%;
+    --tf-transcend-cyan: 197.1 34.8% 27.6%;
+    --tf-bright-cyan: 193.8 29.2% 34.9%;
+    --tf-optimized-green: 150.7 27.7% 30.4%;
+    --tf-sacred-gold: 27.4 38.6% 34.5%;
+    --tf-anomaly-amber: 34.2 63.3% 33.1%;
+    --tf-warning-red: 6.7 50.2% 41.8%;
+    --tf-muse-purple: 327.0 10.1% 38.8%;
+    --suite-forge: 11.0 25.6% 45.9%;
+    --suite-atlas: 197.1 34.8% 27.6%;
+    --suite-dais: 27.4 38.6% 34.5%;
+    --suite-dossier: 190.6 8.9% 37.5%;
+    --mode-overview: 190.6 8.9% 37.5%;
+    --mode-valuation: 11.0 25.6% 45.9%;
+    --mode-mapping: 197.1 34.8% 27.6%;
+    --mode-admin: 27.4 38.6% 34.5%;
+    --mode-case: 327.0 10.1% 38.8%;
+    --vei-excellent: 150.7 27.7% 30.4%;
+    --vei-good: 197.1 34.8% 27.6%;
+    --vei-caution: 34.2 63.3% 33.1%;
+    --vei-concern: 6.7 50.2% 41.8%;
+    --tier-q1: 197.1 34.8% 27.6%;
+    --tier-q2: 150.7 27.7% 30.4%;
+    --tier-q3: 34.2 63.3% 33.1%;
+    --tier-q4: 6.7 50.2% 41.8%;
+    --sidebar-background: 180.0 9.5% 91.8%;
+    --sidebar-foreground: 197.1 16.5% 24.9%;
+    --sidebar-primary: 197.1 34.8% 27.6%;
+    --sidebar-primary-foreground: 0.0 0.0% 100.0%;
+    --sidebar-accent: 186.7 13.0% 86.5%;
+    --sidebar-accent-foreground: 212.7 15.1% 14.3%;
+    --sidebar-border: 186.7 8.7% 79.8%;
+    --sidebar-ring: 197.1 34.8% 27.6%;
+    --chart-1: 197.1 34.8% 27.6%;
+    --chart-2: 150.7 27.7% 30.4%;
+    --chart-3: 34.2 63.3% 33.1%;
+    --chart-4: 11.0 25.6% 45.9%;
+    --chart-5: 190.6 8.9% 37.5%;
+    --radius: 0.5rem;
   }
 }
 
@@ -713,13 +671,8 @@
   }
 }
 
-/* ── App background: subtle radial gradient for vibrancy depth ───── */
-body {
-  background:
-    radial-gradient(ellipse 80% 60% at 15% 50%, hsl(211 60% 20% / 0.08) 0%, transparent 60%),
-    radial-gradient(ellipse 60% 80% at 85% 20%, hsl(280 40% 20% / 0.05) 0%, transparent 50%),
-    hsl(var(--background));
-}
+/* Work surfaces stay quiet; the existing landscape establishes county context. */
+body { background: hsl(var(--background)); }
 
 /* ═══════════════════════════════════════════════════════════════════
    TAHOE SIDEBAR — macOS Precise Overrides
@@ -745,8 +698,8 @@ body {
   font-size: 9.5px !important;
   font-weight: 700 !important;
   text-transform: uppercase !important;
-  letter-spacing: 0.07em !important;
-  color: hsl(var(--sidebar-foreground) / 0.35) !important;
+  letter-spacing: 0 !important;
+  color: hsl(var(--muted-foreground)) !important;
   padding-inline: 0.625rem !important;
   padding-block: 0.5rem 0.2rem !important;
   height: auto !important;
@@ -849,9 +802,9 @@ body {
 /* ── TerraFusion Desktop (windowed OS shell) ─────────────────────── */
 @layer base {
   :root {
-    --desktop-glass: 220 18% 10%;
-    --desktop-glass-strong: 220 16% 12%;
-    --desktop-edge: 210 20% 80%;
+    --desktop-glass: var(--tf-glass);
+    --desktop-glass-strong: var(--tf-elevated);
+    --desktop-edge: var(--muted-foreground);
     --traffic-close: 0 84% 62%;
     --traffic-min: 40 95% 55%;
     --traffic-max: 135 60% 48%;
@@ -871,20 +824,20 @@ body {
     pointer-events: none;
   }
   .desktop-glass {
-    background: hsl(var(--desktop-glass) / 0.62);
+    background: hsl(var(--desktop-glass) / 0.94);
     backdrop-filter: blur(24px) saturate(140%);
     -webkit-backdrop-filter: blur(24px) saturate(140%);
     border: 1px solid hsl(var(--desktop-edge) / 0.1);
   }
   .desktop-window {
-    background: hsl(var(--background) / 0.9);
+    background: hsl(var(--background) / 0.98);
     backdrop-filter: blur(30px) saturate(140%);
     -webkit-backdrop-filter: blur(30px) saturate(140%);
     border: 1px solid hsl(var(--desktop-edge) / 0.12);
-    box-shadow: 0 24px 60px -20px hsl(var(--background) / 0.9), 0 1px 0 hsl(var(--desktop-edge) / 0.06) inset;
+    box-shadow: 0 24px 60px -20px hsl(var(--background) / 0.98), 0 1px 0 hsl(var(--desktop-edge) / 0.06) inset;
   }
   .desktop-window-titlebar {
-    background: hsl(var(--desktop-glass-strong) / 0.7);
+    background: hsl(var(--desktop-glass-strong) / 0.96);
     border-bottom: 1px solid hsl(var(--desktop-edge) / 0.08);
   }
   .traffic-light {
@@ -903,7 +856,7 @@ body {
   .traffic-min { background: hsl(var(--traffic-min)); }
   .traffic-max { background: hsl(var(--traffic-max)); }
   .desktop-dock {
-    background: hsl(var(--desktop-glass) / 0.55);
+    background: hsl(var(--desktop-glass) / 0.94);
     backdrop-filter: blur(24px) saturate(140%);
     -webkit-backdrop-filter: blur(24px) saturate(140%);
     border: 1px solid hsl(var(--desktop-edge) / 0.1);
@@ -917,10 +870,10 @@ body {
   .dock-tile-active { border-color: hsl(var(--primary) / 0.7); box-shadow: 0 0 0 1px hsl(var(--primary) / 0.4); }
   /* Floating glass sidebar over the wallpaper */
   .tahoe-sidebar [data-sidebar="sidebar"] {
-    background: hsl(var(--desktop-glass) / 0.62) !important;
+    background: hsl(var(--desktop-glass) / 0.94) !important;
     backdrop-filter: blur(24px) saturate(140%);
     -webkit-backdrop-filter: blur(24px) saturate(140%);
     border-color: hsl(var(--desktop-edge) / 0.1) !important;
   }
-  .desktop-topbar { background: hsl(var(--desktop-glass) / 0.5) !important; backdrop-filter: blur(20px); border-color: hsl(var(--desktop-edge) / 0.08) !important; }
+  .desktop-topbar { background: hsl(var(--desktop-glass) / 0.96) !important; backdrop-filter: blur(20px); border-color: hsl(var(--desktop-edge) / 0.08) !important; }
 }

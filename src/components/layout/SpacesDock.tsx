@@ -1,11 +1,12 @@
 // TerraFusion OS — Spaces Dock
 // Bottom dock: Desktop (Home), saved Spaces (resumable places), "New Space" to save where you are,
-// plus a system status pill and a Focus toggle (full-stage window).
+// plus a Focus toggle (full-stage window). No inferred system-health display.
 // Keyboard: Ctrl/Cmd + Alt + 1..8 jumps to a space. Double-click a space to rename it.
 
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Monitor, Plus, X, Eye, Cloud, CloudOff, Moon, Sun } from "lucide-react";
+import { Monitor, Plus, X, Eye, Maximize2, Minimize2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   addSpace,
   loadSpaces,
@@ -16,7 +17,6 @@ import {
   MAX_SPACES,
   type Space,
 } from "@/lib/spaces";
-import { useCountyVitals } from "@/hooks/useCountyVitals";
 import { cn } from "@/lib/utils";
 
 interface SpacesDockProps {
@@ -33,8 +33,6 @@ export function SpacesDock({ currentTitle, minimized, focused, onRestore, onTogg
   const [spaces, setSpaces] = useState<Space[]>(() => loadSpaces());
   const [editingId, setEditingId] = useState<string | null>(null);
   const currentPath = location.pathname + location.search;
-  const { data: vitals, isError } = useCountyVitals();
-  const online = !isError && vitals != null;
 
   useEffect(() => saveSpaces(spaces), [spaces]);
 
@@ -119,18 +117,15 @@ export function SpacesDock({ currentTitle, minimized, focused, onRestore, onTogg
       </nav>
 
       <div className="flex items-center gap-2">
-        <div role="status" className="desktop-dock flex items-center gap-2 h-10 px-3 rounded-xl text-[11px] text-foreground/80">
-          {online ? <Cloud className="w-3.5 h-3.5 text-tf-green" /> : <CloudOff className="w-3.5 h-3.5 text-tf-red" />}
-          {online ? "All systems operational" : vitals === undefined && !isError ? "Connecting…" : "Data offline"}
-        </div>
-        <button
+        <Button
+          variant="ghost"
           onClick={onToggleFocus}
           aria-pressed={focused}
           className={cn("desktop-dock flex items-center gap-2 h-10 px-3 rounded-xl text-[11px] text-foreground/80 hover:text-foreground", focused && "dock-tile-active")}
         >
-          {focused ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
+          {focused ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
           {focused ? "Exit focus" : "Focus"}
-        </button>
+        </Button>
       </div>
     </div>
   );
