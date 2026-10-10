@@ -286,9 +286,9 @@ export function SuiteHub({ onNavigate, onParcelNavigate }: SuiteHubProps) {
             <ArrowRight className="w-3.5 h-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
           </div>
           <div className="space-y-2">
-            <QualityRow label="Coordinates" value={vitals?.quality.coords ?? 0} metricKey="quality.coords" fetchedAt={vitals?.fetchedAt} onNavigate={onNavigate} />
-            <QualityRow label="Property Class" value={vitals?.quality.propertyClass ?? 0} metricKey="quality.propertyClass" fetchedAt={vitals?.fetchedAt} onNavigate={onNavigate} />
-            <QualityRow label="Neighborhood" value={vitals?.quality.neighborhood ?? 0} metricKey="quality.neighborhood" fetchedAt={vitals?.fetchedAt} onNavigate={onNavigate} />
+            <QualityRow label="Coordinates" value={qualityOverall === null ? null : vitals?.quality.coords ?? 0} metricKey="quality.coords" fetchedAt={vitals?.fetchedAt} onNavigate={onNavigate} />
+            <QualityRow label="Property Class" value={qualityOverall === null ? null : vitals?.quality.propertyClass ?? 0} metricKey="quality.propertyClass" fetchedAt={vitals?.fetchedAt} onNavigate={onNavigate} />
+            <QualityRow label="Neighborhood" value={qualityOverall === null ? null : vitals?.quality.neighborhood ?? 0} metricKey="quality.neighborhood" fetchedAt={vitals?.fetchedAt} onNavigate={onNavigate} />
           </div>
         </button>
 
@@ -584,16 +584,16 @@ function Vital({ label, value, highlight, metricKey, fetchedAt, onNavigate }: {
 
 function QualityRow({ label, value, metricKey, fetchedAt, onNavigate }: {
   label: string;
-  value: number;
+  value: number | null;
   metricKey?: string;
   fetchedAt?: string | null;
   onNavigate?: (t: string) => void;
 }) {
-  const pct = <span className="text-xs font-mono w-10 text-right text-muted-foreground">{value}%</span>;
+  const pct = <span className="text-xs font-mono w-10 text-right text-muted-foreground">{value === null ? "—" : `${value}%`}</span>;
   return (
     <div className="flex items-center gap-3">
       <span className="text-xs text-muted-foreground w-24 shrink-0">{label}</span>
-      <Progress value={value} className="h-1.5 flex-1" />
+      <Progress value={value ?? 0} className="h-1.5 flex-1" />
       {metricKey ? (
         <ExplainThisPanel metricKey={metricKey} fetchedAt={fetchedAt} onNavigate={onNavigate}>
           {pct}
