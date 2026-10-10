@@ -237,7 +237,9 @@ Deno.serve(async (req) => {
             ? `${skipReasons.missing_vars} parcels had null/zero values for variables (${finalVariables.join(", ")}). Ensure parcel data is populated.`
             : skipReasons.no_sale > 0
               ? "Parcels exist but have no qualified sales."
-              : "No parcels found in this neighborhood.",
+              : parcels.length === 0
+                ? "No parcels found in this neighborhood."
+                : `Only ${parcels.length} parcel(s) in this neighborhood; OLS with ${finalVariables.length} variable(s) needs at least ${minObs} sales. Choose a larger neighborhood or fewer variables.`,
         },
       }), {
         status: 400,
