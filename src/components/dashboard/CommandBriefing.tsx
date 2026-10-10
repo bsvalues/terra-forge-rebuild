@@ -239,7 +239,7 @@ export function CommandBriefing({ onNavigate }: CommandBriefingProps) {
                 className="p-3 rounded-lg bg-tf-surface/50 hover:bg-tf-surface transition-colors text-center"
               >
                 <ProvenanceNumber source="county-vitals" fetchedAt={vitals?.fetchedAt}>
-                  <p className="text-2xl font-light text-suite-dais">{pendingAppeals}</p>
+                  <p className="text-2xl font-light text-suite-dais">{formatVital(pendingAppeals)}</p>
                 </ProvenanceNumber>
                 <p className="text-xs text-muted-foreground mt-1">Appeals</p>
               </button>
@@ -248,7 +248,7 @@ export function CommandBriefing({ onNavigate }: CommandBriefingProps) {
                 className="p-3 rounded-lg bg-tf-surface/50 hover:bg-tf-surface transition-colors text-center"
               >
                 <ProvenanceNumber source="county-vitals" fetchedAt={vitals?.fetchedAt}>
-                  <p className="text-2xl font-light text-tf-gold">{openPermits}</p>
+                  <p className="text-2xl font-light text-tf-gold">{formatVital(openPermits)}</p>
                 </ProvenanceNumber>
                 <p className="text-xs text-muted-foreground mt-1">Permits</p>
               </button>
@@ -257,7 +257,7 @@ export function CommandBriefing({ onNavigate }: CommandBriefingProps) {
                 className="p-3 rounded-lg bg-tf-surface/50 hover:bg-tf-surface transition-colors text-center"
               >
                 <ProvenanceNumber source="county-vitals" fetchedAt={vitals?.fetchedAt}>
-                  <p className="text-2xl font-light text-tf-green">{pendingExemptions}</p>
+                  <p className="text-2xl font-light text-tf-green">{formatVital(pendingExemptions)}</p>
                 </ProvenanceNumber>
                 <p className="text-xs text-muted-foreground mt-1">Exemptions</p>
               </button>
