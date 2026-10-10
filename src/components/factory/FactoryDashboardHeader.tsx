@@ -64,7 +64,7 @@ export function FactoryDashboardHeader() {
     },
     {
       label: "Certified",
-      value: `${vitals.assessments.certRate}%`,
+      value: vitals.metricAvailability?.certified === false ? "—" : `${vitals.assessments.certRate}%`,
       icon: ShieldCheck,
       color: vitals.assessments.certRate === 100
         ? "text-[hsl(var(--tf-optimized-green))]"
@@ -82,7 +82,7 @@ export function FactoryDashboardHeader() {
     },
     {
       label: "Open Blockers",
-      value: vitals.workflows.total.toString(),
+      value: vitals.metricAvailability?.workflows === false ? "—" : vitals.workflows.total.toString(),
       icon: AlertTriangle,
       color: vitals.workflows.total > 0
         ? "text-destructive"
