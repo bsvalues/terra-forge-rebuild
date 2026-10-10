@@ -11,7 +11,8 @@ export type CountyMetricKey =
   | "issues"
   | "sales"
   | "quality"
-  | "workflows";
+  | "workflows"
+  | "defensibility";
 
 /**
  * Derive which county metrics the vitals RPC actually reported.
@@ -31,5 +32,24 @@ export function availabilityFromRaw(raw: Record<string, any> | null | undefined)
     sales: countyMetric(raw?.sales?.total, false) !== null,
     quality: parcelsKnown,
     workflows: appealsKnown,
+    defensibility: countyMetric(raw?.defensibility?.score ?? raw?.defensibility?.overall, false) !== null,
   };
+}
+
+/**
+ * Read a vitals value only when its source metric was reported.
+ * Returns null (render as "—") while loading or when the RPC omitted it.
+ */
+export function knownVital(
+  availability: Partial<Record<CountyMetricKey, boolean>> | undefined,
+  key: CountyMetricKey,
+  value: number | null | undefined,
+): number | null {
+  if (availability?.[key] === false) return null;
+  return countyMetric(value, false);
+}
+
+/** Format an optional count for display; unknown renders as an em dash. */
+export function formatVital(value: number | null, suffix = ""): string {
+  return value === null ? "—" : `${value.toLocaleString()}${suffix}`;
 }

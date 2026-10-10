@@ -20,6 +20,7 @@ import { TerraTraceActivityFeed } from "@/components/proof/TerraTraceActivityFee
 import { SystemHealthPanel } from "./SystemHealthPanel";
 import { NeighborhoodLeaderboard } from "./NeighborhoodLeaderboard";
 import { useCountyVitals } from "@/hooks/useCountyVitals";
+import { formatVital, knownVital } from "@/lib/countyMetric";
 import { useCountyMeta } from "@/hooks/useCountyMeta";
 import { ProvenanceNumber, ScopeHeader } from "@/components/trust";
 
@@ -31,12 +32,14 @@ export function CommandBriefing({ onNavigate }: CommandBriefingProps) {
   const { data: vitals } = useCountyVitals();
   const countyMeta = useCountyMeta();
 
-  const parcelsCount = vitals?.parcels.total ?? 0;
-  const salesCount = vitals?.sales.total ?? 0;
-  const assessmentsCount = vitals?.assessments.total ?? 0;
-  const pendingAppeals = vitals?.workflows.pendingAppeals ?? 0;
-  const openPermits = vitals?.workflows.openPermits ?? 0;
-  const pendingExemptions = vitals?.workflows.pendingExemptions ?? 0;
+  // Unknown metrics stay null and render "—"; never present a defaulted zero as a count.
+  const avail = vitals?.metricAvailability;
+  const parcelsCount = knownVital(avail, "parcels", vitals?.parcels.total);
+  const salesCount = knownVital(avail, "sales", vitals?.sales.total);
+  const assessmentsCount = knownVital(avail, "assessments", vitals?.assessments.total);
+  const pendingAppeals = knownVital(avail, "workflows", vitals?.workflows.pendingAppeals);
+  const openPermits = knownVital(avail, "workflows", vitals?.workflows.openPermits);
+  const pendingExemptions = knownVital(avail, "workflows", vitals?.workflows.pendingExemptions);
   const certStats = vitals?.assessments;
   const dataQuality = vitals?.quality;
   const recentJobs = vitals?.ingest.recentJobs ?? [];
@@ -47,7 +50,8 @@ export function CommandBriefing({ onNavigate }: CommandBriefingProps) {
     { label: "Assessments", value: assessmentsCount, icon: CheckCircle2, color: "text-tf-gold" },
   ];
 
-  const needsData = salesCount < 100;
+  // Only suggest loading data when we actually measured a low sales count.
+  const needsData = salesCount !== null && salesCount < 100;
 
   const quickActions = [
     {
@@ -124,7 +128,7 @@ export function CommandBriefing({ onNavigate }: CommandBriefingProps) {
                   <div>
                     <p className="text-sm text-muted-foreground">{card.label}</p>
                     <ProvenanceNumber source="county-vitals" fetchedAt={vitals?.fetchedAt}>
-                      <p className="text-3xl font-light">{card.value.toLocaleString()}</p>
+                      <p className="text-3xl font-light">{formatVital(card.value)}</p>
                     </ProvenanceNumber>
                   </div>
                   <Icon className={`w-10 h-10 ${card.color} opacity-50`} />

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { availabilityFromRaw, countyMetric } from "./countyMetric";
+import { availabilityFromRaw, countyMetric, formatVital, knownVital } from "./countyMetric";
 
 describe("countyMetric", () => {
   it("preserves a real zero instead of treating it as missing", () => {
@@ -37,5 +37,31 @@ describe("availabilityFromRaw", () => {
     const a = availabilityFromRaw({ workflows: { pendingAppeals: 3 } });
     expect(a.appeals).toBe(true);
     expect(a.workflows).toBe(true);
+  });
+});
+
+describe("knownVital", () => {
+  it("hides a defaulted zero when the metric was not reported", () => {
+    expect(knownVital({ sales: false }, "sales", 0)).toBeNull();
+  });
+  it("keeps a reported zero", () => {
+    expect(knownVital({ sales: true }, "sales", 0)).toBe(0);
+  });
+  it("is unknown while vitals are still loading", () => {
+    expect(knownVital(undefined, "parcels", undefined)).toBeNull();
+  });
+  it("formats unknown as an em dash and known with separators", () => {
+    expect(formatVital(null)).toBe("—");
+    expect(formatVital(110029)).toBe("110,029");
+    expect(formatVital(42, "%")).toBe("42%");
+  });
+});
+
+describe("defensibility availability", () => {
+  it("is unknown when the RPC returns no defensibility score", () => {
+    expect(availabilityFromRaw({ parcels: { total: 5 } }).defensibility).toBe(false);
+  });
+  it("is known for a reported score of zero", () => {
+    expect(availabilityFromRaw({ defensibility: { score: 0 } }).defensibility).toBe(true);
   });
 });

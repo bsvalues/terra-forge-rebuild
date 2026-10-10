@@ -16,6 +16,7 @@ import { SyncStatusBadge } from "./SyncStatusBadge";
 import { useScrapeJobNotifications } from "@/hooks/useScrapeJobNotifications";
 import { useGISDataSources, useGISLayers, useNeighborhoodGeoStats } from "@/hooks/useGISData";
 import { useCountyVitals } from "@/hooks/useCountyVitals";
+import { formatVital, knownVital } from "@/lib/countyMetric";
 import { DataSourcesPanel } from "./DataSourcesPanel";
 import { GISLayersPanel } from "./GISLayersPanel";
 import { IngestControlPanel } from "./IngestControlPanel";
@@ -60,10 +61,11 @@ export function GeoEquityDashboard({ onNavigateToWorkbench }: GeoEquityDashboard
   const isLoading = isLoadingPeriods || isLoadingStats;
 
   // Stats derived from county vitals
-  const totalParcels = vitals?.parcels.total ?? 0;
-  const geocodedPct = vitals?.quality.coords ?? 0;
+  const avail = vitals?.metricAvailability;
+  const totalParcels = knownVital(avail, "parcels", vitals?.parcels.total);
+  const geocodedPct = knownVital(avail, "quality", vitals?.quality.coords);
   const neighborhoodCount = neighborhoodStats.length;
-  const dataCompleteness = vitals?.quality.overall ?? 0;
+  const dataCompleteness = knownVital(avail, "quality", vitals?.quality.overall);
 
   return (
     <div className="p-6 space-y-6">
@@ -96,11 +98,11 @@ export function GeoEquityDashboard({ onNavigateToWorkbench }: GeoEquityDashboard
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="material-bento p-4 rounded-lg">
           <div className="flex items-center gap-2 text-muted-foreground text-xs mb-1"><Database className="w-4 h-4" />Total Parcels</div>
-          <div className="text-2xl font-light text-foreground">{totalParcels.toLocaleString()}</div>
+          <div className="text-2xl font-light text-foreground">{formatVital(totalParcels)}</div>
         </div>
         <div className="material-bento p-4 rounded-lg">
           <div className="flex items-center gap-2 text-muted-foreground text-xs mb-1"><MapPin className="w-4 h-4" />Geocoded</div>
-          <div className="text-2xl font-light text-tf-cyan">{geocodedPct}%</div>
+          <div className="text-2xl font-light text-tf-cyan">{formatVital(geocodedPct, "%")}</div>
         </div>
         <div className="material-bento p-4 rounded-lg">
           <div className="flex items-center gap-2 text-muted-foreground text-xs mb-1"><Map className="w-4 h-4" />Neighborhoods</div>
@@ -108,7 +110,7 @@ export function GeoEquityDashboard({ onNavigateToWorkbench }: GeoEquityDashboard
         </div>
         <div className="material-bento p-4 rounded-lg">
           <div className="flex items-center gap-2 text-muted-foreground text-xs mb-1"><CheckCircle2 className="w-4 h-4" />Data Completeness</div>
-          <div className="text-2xl font-light text-tf-sacred-gold">{dataCompleteness}%</div>
+          <div className="text-2xl font-light text-tf-sacred-gold">{formatVital(dataCompleteness, "%")}</div>
         </div>
       </motion.div>
 
