@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useCallback, useEffect, useRef, ReactNode } from "react";
 import { isEmbedMode } from "@/lib/splitView";
-import { createWindowId, loadLastLinkedParcel, publishParcel, subscribeParcelLink } from "@/lib/parcelLink";
+import { createWindowId, isParcelLinkEnabled, loadLastLinkedParcel, publishParcel, subscribeParcelLink, subscribeParcelLinkToggle } from "@/lib/parcelLink";
 import { 
   WorkbenchContext as WorkbenchContextType, 
   WorkMode, 
@@ -63,21 +63,25 @@ export function WorkbenchProvider({ children }: WorkbenchProviderProps) {
   // Announce parcel changes made in this window (only when the parcel itself changes).
   const lastPublished = useRef<string | null>(parcel.id);
 
+  // Link on/off: when off, this window keeps its own parcel so two different
+  // parcels can be compared side by side.
+  const [linkEnabled, setLinkEnabled] = useState(isParcelLinkEnabled);
+  useEffect(() => subscribeParcelLinkToggle(setLinkEnabled), []);
+
   // Follow parcels opened in the other window, without echoing them back.
-  useEffect(
-    () =>
-      subscribeParcelLink(windowId, (p) => {
-        lastPublished.current = p.id;
-        setParcelState(p);
-      }),
-    [windowId]
-  );
   useEffect(() => {
-    if (parcel.id && parcel.id !== lastPublished.current) {
+    if (!linkEnabled) return;
+    return subscribeParcelLink(windowId, (p) => {
+      lastPublished.current = p.id;
+      setParcelState(p);
+    });
+  }, [windowId, linkEnabled]);
+  useEffect(() => {
+    if (linkEnabled && parcel.id && parcel.id !== lastPublished.current) {
       lastPublished.current = parcel.id;
       publishParcel(windowId, parcel);
     }
-  }, [parcel, windowId]);
+  }, [parcel, windowId, linkEnabled]);
 
   const setParcel = useCallback((updates: Partial<ParcelContext>) => {
     setParcelState(prev => ({ ...prev, ...updates }));
