@@ -32,7 +32,9 @@ function generateNarrative(
   pipeline: ReturnType<typeof usePipelineStatus>["data"]
 ): string {
   if (!today || today.total === 0) {
+    const qualityKnown = vitals?.metricAvailability?.quality !== false;
     const quality = vitals?.quality.overall ?? 0;
+    if (!qualityKnown) return "No activity yet today. Data quality has not been measured yet — start by importing data or running a quality check.";
     if (quality >= 90) return "No activity yet today. Your county data is in excellent shape — consider running calibration or reviewing appeals.";
     if (quality >= 70) return "No activity yet today. Data quality is good but there are a few gaps worth addressing.";
     return "No activity yet today. Start by importing data or addressing the top recommended action below.";
@@ -46,11 +48,12 @@ function generateNarrative(
   if (today.workflows > 0) parts.push(`${today.workflows} workflow action${today.workflows > 1 ? "s" : ""}`);
 
   const narrative = parts.join(", ");
+  const qualityKnown = vitals?.metricAvailability?.quality !== false;
   const quality = vitals?.quality.overall ?? 0;
   const hasFailed = pipeline?.overall === "failed";
 
   if (hasFailed) return `Today: ${narrative}. ⚠️ A pipeline stage needs attention — check the data status above.`;
-  if (quality >= 90) return `Today: ${narrative}. County data is in great shape.`;
+  if (qualityKnown && quality >= 90) return `Today: ${narrative}. County data is in great shape.`;
   if (today.fixes > 0) return `Today: ${narrative}. Nice progress on data quality.`;
   return `Today: ${narrative}.`;
 }
