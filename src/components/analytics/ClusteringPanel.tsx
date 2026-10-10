@@ -15,19 +15,19 @@ const CLUSTER_COLORS = [
   "hsl(var(--primary))",
   "hsl(var(--tf-sacred-gold))",
   "hsl(var(--tf-optimized-green))",
-  "hsl(var(--tf-warning-red))",
+  "hsl(var(--destructive))",
 ];
 
 export function ClusteringPanel() {
   const { data, isLoading } = useNeighborhoodClustering();
 
   if (isLoading) {
-    return <Skeleton className="h-96 rounded-2xl" />;
+    return <div role="status" aria-label="Loading neighborhood clusters" className="space-y-5"><div className="module-three-grid">{[1, 2, 3].map((i) => <Skeleton key={i} className="h-28 rounded-md" />)}</div><Skeleton className="h-[360px] rounded-md" /></div>;
   }
 
   if (!data || data.clusters.length === 0) {
     return (
-      <div className="material-bento rounded-2xl p-12 text-center">
+      <div className="py-8 text-center border-t border-border">
         <p className="text-muted-foreground text-sm">Insufficient neighborhood data for clustering (need ≥3 neighborhoods with data).</p>
       </div>
     );
@@ -38,14 +38,14 @@ export function ClusteringPanel() {
   return (
     <div className="space-y-6">
       {/* Cluster summary cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="module-three-grid">
         {centroids.map((c, i) => (
           <motion.div
             key={c.id}
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.1 }}
-            className="material-bento rounded-xl p-4"
+            className="min-w-0"
           >
             <div className="flex items-center gap-2 mb-2">
               <div
@@ -88,8 +88,8 @@ export function ClusteringPanel() {
       </div>
 
       {/* Scatter plot: Value vs Sqft colored by cluster */}
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="material-bento rounded-2xl p-6">
-        <div className="flex items-center gap-2 mb-4">
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="module-section">
+        <div className="flex flex-wrap items-center gap-2 mb-4">
           <Target className="w-4 h-4 text-primary" />
           <h3 className="text-sm font-medium text-foreground">Cluster Scatter: Value vs. Square Footage</h3>
           <Badge variant="outline" className="text-[10px] ml-auto">K-Means (k={centroids.length})</Badge>
@@ -147,7 +147,7 @@ export function ClusteringPanel() {
         </div>
 
         {/* Legend */}
-        <div className="flex items-center gap-4 mt-3">
+        <div className="flex flex-wrap items-center gap-4 mt-3">
           {centroids.map((c, i) => (
             <span key={c.id} className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
               <span
@@ -161,10 +161,10 @@ export function ClusteringPanel() {
       </motion.div>
 
       {/* Neighborhood assignment table */}
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="material-bento rounded-2xl p-5">
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="module-section">
         <h3 className="text-sm font-medium text-foreground mb-3">Neighborhood Cluster Assignments</h3>
-        <div className="overflow-x-auto">
-          <table className="w-full text-xs">
+        <div className="overflow-x-auto" role="region" aria-label="Analysis results" tabIndex={0}>
+          <table className="w-full min-w-[680px] text-xs">
             <thead>
               <tr className="border-b border-border/50">
                 <th className="text-left py-2 px-2 text-muted-foreground font-medium">Neighborhood</th>

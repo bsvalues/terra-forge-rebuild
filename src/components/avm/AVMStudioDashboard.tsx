@@ -41,7 +41,7 @@ export function AVMStudioDashboard() {
         <TabsContent value="training" className="space-y-6 mt-6">
           {isLoading ? (
             <div className="space-y-4">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="module-analysis-grid">
                 <Skeleton className="h-64 rounded-lg" />
                 <Skeleton className="h-64 rounded-lg" />
               </div>
@@ -59,7 +59,7 @@ export function AVMStudioDashboard() {
               <ModelMetricsGrid champion={champion ?? null} challenger={challenger ?? null} />
 
               {/* Visualization Row */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="module-three-grid">
                 <motion.div
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
