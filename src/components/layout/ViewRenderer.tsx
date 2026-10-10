@@ -63,10 +63,11 @@ export function ViewRenderer({ onNavigate, onParcelNavigate }: ViewRendererProps
     </Suspense>
   );
 
-  // Apply wrapper class if specified (replaces the inline div wrappers from old AppLayout)
-  if (entry.wrapperClass) {
-    return <div className={entry.wrapperClass}>{content}</div>;
-  }
-
-  return content;
+  // The same interior contract applies to primary and embedded windows.
+  // Legacy wrappers retain layout behavior; CSS removes only duplicate outer insets.
+  return (
+    <div className="module-interior" data-module={activeModule}>
+      {entry.wrapperClass ? <div className={`module-view-frame ${entry.wrapperClass}`}>{content}</div> : content}
+    </div>
+  );
 }
