@@ -74,14 +74,16 @@ export function EquityHeatmap({ studyPeriodId, onParcelSelect, neighborhoodFilte
   // Init map
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
-    const map = L.map(containerRef.current, { center: [46.28, -119.28], zoom: 12 });
+    const map = L.map(containerRef.current, { center: [46.28, -119.28], zoom: 12, zoomAnimation: false });
     L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
       attribution: '&copy; <a href="https://carto.com">CARTO</a>',
     }).addTo(map);
     pinLayerRef.current.addTo(map);
     overlayLayerRef.current.addTo(map);
     mapRef.current = map;
-    return () => { map.remove(); mapRef.current = null; };
+    // A tab/window may unmount while Leaflet is still moving. Stop first so no
+    // queued pan/zoom reads a removed pane during the route transition.
+    return () => { map.stop(); map.remove(); mapRef.current = null; };
   }, []);
 
   const handleNbhdSelect = useCallback((code: string | null) => {
@@ -91,7 +93,7 @@ export function EquityHeatmap({ studyPeriodId, onParcelSelect, neighborhoodFilte
     const o = overlays.find((n) => n.code === code);
     if (!o) return;
     const bounds = L.latLngBounds([o.boundingBox.minLat, o.boundingBox.minLng], [o.boundingBox.maxLat, o.boundingBox.maxLng]);
-    if (bounds.isValid()) mapRef.current.fitBounds(bounds, { padding: [40, 40], maxZoom: 16 });
+    if (bounds.isValid()) mapRef.current.fitBounds(bounds, { padding: [40, 40], maxZoom: 16, animate: false });
   }, [overlays, onNeighborhoodSelect]);
 
   // Draw overlays
@@ -131,7 +133,7 @@ export function EquityHeatmap({ studyPeriodId, onParcelSelect, neighborhoodFilte
     const allLngs = pins.map((p) => p.lng).concat(overlays.map((o) => o.centerLng));
     if (allLats.length === 0) return;
     const bounds = L.latLngBounds([Math.min(...allLats) - 0.01, Math.min(...allLngs) - 0.01], [Math.max(...allLats) + 0.01, Math.max(...allLngs) + 0.01]);
-    if (bounds.isValid()) mapRef.current.fitBounds(bounds, { padding: [30, 30], maxZoom: 14 });
+    if (bounds.isValid()) mapRef.current.fitBounds(bounds, { padding: [30, 30], maxZoom: 14, animate: false });
   }, [pins, overlays]);
 
   const summary = useMemo(() => {
