@@ -83,3 +83,43 @@ export function subscribeParcelLink(selfId: string, onParcel: (p: ParcelContext)
   };
   return () => ch.close();
 }
+
+// ---- Link on/off -----------------------------------------------------------
+// When the link is off, windows keep their own parcels so two different
+// parcels can be compared side by side. The flag lives in localStorage (shared
+// by the same-origin side window) and changes are announced on the channel.
+
+export const PARCEL_LINK_ENABLED_KEY = "tf:parcel-link:enabled:v1";
+
+export function isParcelLinkEnabled(): boolean {
+  if (typeof window === "undefined") return true;
+  try {
+    return window.localStorage.getItem(PARCEL_LINK_ENABLED_KEY) !== "off";
+  } catch {
+    return true;
+  }
+}
+
+export function setParcelLinkEnabled(enabled: boolean): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(PARCEL_LINK_ENABLED_KEY, enabled ? "on" : "off");
+  } catch {
+    /* storage blocked: in-memory listeners still get the broadcast */
+  }
+  if (typeof BroadcastChannel === "undefined") return;
+  const ch = new BroadcastChannel(PARCEL_LINK_CHANNEL);
+  ch.postMessage({ type: "link-toggle", enabled });
+  ch.close();
+}
+
+/** Listen for link on/off changes made in any window of this tab. */
+export function subscribeParcelLinkToggle(onToggle: (enabled: boolean) => void): () => void {
+  if (typeof BroadcastChannel === "undefined") return () => {};
+  const ch = new BroadcastChannel(PARCEL_LINK_CHANNEL);
+  ch.onmessage = (e: MessageEvent) => {
+    const d = e.data as Record<string, unknown> | null;
+    if (d && d.type === "link-toggle" && typeof d.enabled === "boolean") onToggle(d.enabled);
+  };
+  return () => ch.close();
+}
