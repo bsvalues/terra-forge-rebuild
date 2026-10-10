@@ -14,6 +14,6 @@
 - [x] Link on/off toggle in window title bar (compare two parcels side by side)
 
 ## Current design slice
-- [ ] Apply mineral palette and meaningful shell treatments without changing routes.
-- [ ] Record consolidated agent principles near the top of coding instructions.
-- [ ] Verify shell rendering and existing window interactions.
+- [x] Apply mineral palette and meaningful shell treatments without changing routes.
+- [x] Record consolidated agent principles near the top of coding instructions.
+- [x] Verify shell rendering and existing window interactions (29 tests passed; Workbench and Focus checked; no browser errors).
