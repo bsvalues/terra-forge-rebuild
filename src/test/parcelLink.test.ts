@@ -54,3 +54,25 @@ describe("parcel link", () => {
     expect(gotSelf).toEqual([]);
   });
 });
+
+describe("parcel link on/off", () => {
+  beforeEach(() => localStorage.clear());
+
+  it("is on by default and remembers the choice", () => {
+    expect(isParcelLinkEnabled()).toBe(true);
+    setParcelLinkEnabled(false);
+    expect(isParcelLinkEnabled()).toBe(false);
+    setParcelLinkEnabled(true);
+    expect(isParcelLinkEnabled()).toBe(true);
+  });
+
+  it("announces toggles to other windows", async () => {
+    const events: boolean[] = [];
+    const off = subscribeParcelLinkToggle((on) => events.push(on));
+    setParcelLinkEnabled(false);
+    setParcelLinkEnabled(true);
+    await new Promise((r) => setTimeout(r, 30));
+    off();
+    expect(events).toEqual([false, true]);
+  });
+});
