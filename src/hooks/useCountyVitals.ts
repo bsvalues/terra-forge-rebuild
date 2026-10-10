@@ -6,6 +6,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useActiveCountyId } from "@/hooks/useActiveCounty";
+import { countyMetric } from "@/lib/countyMetric";
 
 export type DefensibilityVerdict = "strong" | "watch" | "at_risk";
 
@@ -33,6 +34,8 @@ export interface DataQualityVitals {
 }
 
 export interface CountyVitals {
+  /** Preserve source presence for summaries without breaking legacy numeric consumers. */
+  metricAvailability?: Record<"parcels" | "assessments" | "certified" | "appeals" | "issues" | "sales", boolean>;
   parcels: {
     total: number;
     withCoords: number;
@@ -105,6 +108,14 @@ async function fetchCountyVitals(countyId: string): Promise<CountyVitals> {
   const calibRunCount = raw.calibration?.runCount ?? calibratedNbhds;
 
   return {
+    metricAvailability: {
+      parcels: countyMetric(raw.parcels?.total, false) !== null,
+      assessments: countyMetric(raw.assessments?.total, false) !== null,
+      certified: countyMetric(raw.assessments?.certified, false) !== null,
+      appeals: countyMetric(raw.appeals?.pending ?? raw.workflows?.pendingAppeals, false) !== null,
+      issues: countyMetric(raw.dataQuality?.openIssues, false) !== null,
+      sales: countyMetric(raw.sales?.total, false) !== null,
+    },
     parcels: { total, withCoords: coordsCount, withClass: classCount, withNeighborhood: nbhdCount },
     sales: { total: raw.sales?.total ?? 0 },
     assessments: {

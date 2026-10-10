@@ -14,12 +14,12 @@ export function ExecutiveKpiCards() {
   const { data: vitals, isLoading, isError, refetch, isFetching } = useCountyVitals();
 
   const cards = [
-    { label: "Parcels", value: vitals?.parcels.total, icon: Building2 },
-    { label: "Assessments", value: vitals?.assessments.total, icon: FileText },
-    { label: "Certified assessments", value: vitals?.assessments.certified, icon: FileCheck2 },
-    { label: "Pending appeals", value: vitals?.workflows.pendingAppeals, icon: Gavel },
-    { label: "Open data issues", value: vitals?.dataQuality.openIssues, icon: AlertTriangle },
-    { label: "Sales records", value: vitals?.sales.total, icon: BarChart3 },
+    { label: "Parcels", value: vitals?.metricAvailability?.parcels ? vitals.parcels.total : null, icon: Building2 },
+    { label: "Assessments", value: vitals?.metricAvailability?.assessments ? vitals.assessments.total : null, icon: FileText },
+    { label: "Certified assessments", value: vitals?.metricAvailability?.certified ? vitals.assessments.certified : null, icon: FileCheck2 },
+    { label: "Pending appeals", value: vitals?.metricAvailability?.appeals ? vitals.workflows.pendingAppeals : null, icon: Gavel },
+    { label: "Open data issues", value: vitals?.metricAvailability?.issues ? vitals.dataQuality.openIssues : null, icon: AlertTriangle },
+    { label: "Sales records", value: vitals?.metricAvailability?.sales ? vitals.sales.total : null, icon: BarChart3 },
   ];
 
   return (
