@@ -1,5 +1,15 @@
 # TerraFusion OS Architecture
 
+## Consolidated agent rule
+
+- **FAMILIARITY BEFORE NOVELTY:** Follow established platform and product-category interaction conventions unless a capability materially requires departure. Do not invent navigation, gestures, controls, AI affordances or visual metaphors for ordinary actions.
+- **SEMANTICS BEFORE STYLE:** Every surface, visual treatment, animation, color, elevation, badge, panel and interaction must communicate a concrete product-relevant distinction; remove it otherwise.
+- **PRODUCT IDENTITY BEFORE TREND:** Derive TerraFusion visually and structurally from government, geospatial work and evidence, and Introspect from learning, thought, sources and evidence; never generic AI/SaaS aesthetics.
+- **REALITY BEFORE THEATER:** Never fabricate operational metrics, statuses, records, evidence, users, activity or system health to fill a UI.
+- **DIRECT ACTION BEFORE CHAT:** Use normal controls for deterministic actions. Use AI only where language, ambiguity, synthesis, reasoning, contextual interpretation or generation materially improves the interaction.
+
+## Architecture rules
+
 - Model the OS as Home, county context, countywide suites, Property Workbench, and shared OS services; this separates operating scope from domain ownership.
 - Preserve the current IA_MAP routing contract until an explicit navigation migration is implemented; the target product architecture must not silently invalidate existing routes.
 - Home provides County GIS, search, recent work, contextual AI, quick actions, and launch/orientation; it establishes context rather than duplicating suite workspaces.
