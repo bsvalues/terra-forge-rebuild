@@ -19,6 +19,6 @@
 - [x] Verify shell rendering and existing window interactions (29 tests passed; Workbench and Focus checked; no browser errors).
 
 ## Workbench refinement
-- [ ] Distinguish missing county metrics from genuine zero values with regression tests.
-- [ ] Refine parcel-empty hierarchy and place Pilot controls in the existing toolbar.
-- [ ] Verify desktop, narrow-window, and existing window interactions; record handoff.
+- [x] Distinguish missing county metrics from genuine zero values with regression tests.
+- [x] Refine parcel-empty hierarchy and place Pilot controls in the existing toolbar.
+- [x] Verify desktop, narrow-window, and existing window interactions; record handoff (409 tests passed; preview build OK).
