@@ -25,6 +25,8 @@ import { SideWindow } from "./SideWindow";
 import { OpenBesideMenu } from "./OpenBesideMenu";
 import { SplitHandle } from "./SplitHandle";
 import { clampSplit, isEmbedMode, loadSplitState, saveSplitState, stripEmbedParam } from "@/lib/splitView";
+import { isParcelLinkEnabled, setParcelLinkEnabled, subscribeParcelLinkToggle } from "@/lib/parcelLink";
+import { Link2, Link2Off } from "lucide-react";
 
 import { windowTitleFor, loadWindowPrefs, saveWindowPrefs } from "@/lib/desktopWindow";
 
@@ -70,6 +72,15 @@ export function ModuleShell() {
   const swapWindows = (sidePath: string) => {
     setSplit((st) => ({ ...st, path: currentPath }));
     routerNavigate(sidePath);
+  };
+
+  // Parcel link between the two windows: on = both follow one parcel, off = compare two.
+  const [parcelLinked, setParcelLinked] = useState(isParcelLinkEnabled);
+  useEffect(() => subscribeParcelLinkToggle(setParcelLinked), []);
+  const toggleParcelLink = () => {
+    const next = !parcelLinked;
+    setParcelLinked(next);
+    setParcelLinkEnabled(next);
   };
 
   // Window shortcuts: Ctrl/Cmd+Shift+M minimize/restore, Ctrl/Cmd+Shift+F focus (maximize), Esc restores a hidden window.
@@ -232,7 +243,23 @@ export function ModuleShell() {
               onMinimize={() => setMinimized(true)}
               onToggleMaximize={() => setMaximized((m) => !m)}
               flush={showSplit}
-              actions={!split.path ? <OpenBesideMenu currentPath={currentPath} onOpen={openBeside} /> : undefined}
+              actions={
+                <>
+                  {showSplit && (
+                    <button
+                      aria-label={parcelLinked ? "Unlink windows (compare two parcels)" : "Link windows (follow one parcel)"}
+                      aria-pressed={parcelLinked}
+                      title={parcelLinked ? "Linked: both windows follow one parcel" : "Unlinked: compare two parcels"}
+                      onClick={toggleParcelLink}
+                      className="flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground px-1"
+                    >
+                      {parcelLinked ? <Link2 className="w-3.5 h-3.5" /> : <Link2Off className="w-3.5 h-3.5" />}
+                      {parcelLinked ? "Linked" : "Unlinked"}
+                    </button>
+                  )}
+                  {!split.path && <OpenBesideMenu currentPath={currentPath} onOpen={openBeside} />}
+                </>
+              }
             >
                 {stage}
             </DesktopWindow>
