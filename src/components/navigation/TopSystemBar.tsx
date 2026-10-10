@@ -4,8 +4,7 @@
 import { useAuthContext } from "@/contexts/AuthContext";
 import {
   User,
-  Wifi,
-  WifiOff,
+  Database,
   Command,
   SlidersHorizontal,
 } from "lucide-react";
@@ -37,9 +36,7 @@ export function TopSystemBar({ onOpenCommandPalette, onOpenControlCenter, onOpen
   }
   const { profile } = useAuthContext();
   const { data: vitals } = useCountyVitals();
-  const parcelsCount = vitals?.parcels.total ?? 0;
-  const isOnline = vitals !== undefined;
-  const currentYear = new Date().getFullYear();
+  const parcelsCount = vitals?.parcels.total;
 
   return (
     <header className="sticky top-0 z-50 h-11 flex items-center justify-between px-3 sm:px-4 material-shell desktop-topbar border-b border-border/30">
@@ -57,8 +54,6 @@ export function TopSystemBar({ onOpenCommandPalette, onOpenControlCenter, onOpen
         )}
         <CountySwitcher />
 
-        <span className="text-muted-foreground/40 hidden sm:inline text-xs">|</span>
-        <span className="text-muted-foreground/60 text-xs hidden sm:inline font-mono">FY {currentYear}</span>
       </div>
 
       {/* Center: Cmd+K hint */}
@@ -85,26 +80,22 @@ export function TopSystemBar({ onOpenCommandPalette, onOpenControlCenter, onOpen
       {/* Right */}
       <div className="flex items-center gap-1 sm:gap-2">
         <Badge variant="outline" className="hidden md:inline-flex text-[10px] px-2 py-0.5 border-tf-cyan/30 text-tf-cyan">
-          {profile?.display_name || "Analyst"}
+          {profile?.display_name || "Account"}
         </Badge>
 
         <Tooltip>
           <TooltipTrigger asChild>
             <div className="flex items-center gap-1 px-1.5 sm:px-2 py-1 rounded-md">
-              {isOnline ? (
-                <Wifi className="w-3.5 h-3.5 text-tf-green" />
-              ) : (
-                <WifiOff className="w-3.5 h-3.5 text-tf-red" />
-              )}
+              <Database className="w-3.5 h-3.5 text-muted-foreground" />
               <span className="text-[10px] text-muted-foreground hidden sm:inline">
                 <ProvenanceNumber source="county-vitals" fetchedAt={vitals?.fetchedAt} cachePolicy="cached 60s">
-                  {parcelsCount?.toLocaleString() || "—"}
+                  {parcelsCount?.toLocaleString() ?? "—"}
                 </ProvenanceNumber>
               </span>
             </div>
           </TooltipTrigger>
           <TooltipContent>
-            <p>{isOnline ? `Synced: ${parcelsCount?.toLocaleString()} parcels` : "Offline"}</p>
+            <p>{parcelsCount !== undefined ? `${parcelsCount.toLocaleString()} county parcels • cached count` : "County parcel count unavailable"}</p>
           </TooltipContent>
         </Tooltip>
 
@@ -119,8 +110,8 @@ export function TopSystemBar({ onOpenCommandPalette, onOpenControlCenter, onOpen
           <TooltipContent>Control Center</TooltipContent>
         </Tooltip>
 
-        <div className="w-7 h-7 rounded-full bg-gradient-to-br from-tf-cyan to-tf-green flex items-center justify-center">
-          <User className="w-3.5 h-3.5 text-tf-substrate" />
+        <div className="w-7 h-7 rounded-full bg-muted flex items-center justify-center">
+          <User className="w-3.5 h-3.5 text-muted-foreground" />
         </div>
       </div>
     </header>
