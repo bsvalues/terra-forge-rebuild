@@ -1,5 +1,16 @@
 # Workbench refinement handoff
 
+## Calibration and training interiors — 2026-10-10
+
+- Completed: calibration now consumes the Factory-selected neighborhood instead of a separate local selector. Selection persisted across Cost Tables → Calibration in browser checks. Save stays in its toolbar even when results are loading or unavailable. Existing ratio math, thresholds and save payload are unchanged.
+- Factory county summary is now a compact unframed metric band, reducing the height before working controls. Shared Factory tabs and neighborhood selector use normal theme-aware controls.
+- AVM comparison uses recorded model names/statuses and unknowns for absent metrics; no glowing champion banner, invented zero scores or winner highlights. Metrics are a readable locally scrollable table with actual model labels. Configuration shows recorded inputs, not presumed IQR/Z-score stage completion.
+- Removed no-run simulated epochs, random loss updates and fake active jobs. No-run panel now reports absence of run records. A recorded champion named Random Forest v3.3 remains legitimately visible; the browser script's old 'Simulated job visible' label counts that existing record, not simulated telemetry.
+- Evidence: 419 tests across 39 files passed; latest preview build OK; no page errors or document overflow in primary and real 520px embedded windows. One neighborhood selector, selection 13010, tab-return continuity and visible save action checked. AVM live records and model configuration were observed. Screenshots/scripts: `/tmp/browser/calibration-training/`.
+- Limits: calibration results were still loading at capture, so completed statistics/detail rendering and save execution remain unverified. No writes, training jobs, database migrations or publication were performed. Direct `/factory/calibration` currently initially renders Regression; checks selected the existing Calibration tab. Route migration remains out of scope.
+- Next focused slice: remaining Factory mode interiors and Adjustment Ledger; retain controls, selected neighborhood and suite ownership. County Vitals consumer audit stays deferred. No active credential or environment changes.
+- Suggested commit, not executed: `refactor(ui): unify calibration scope and evidence-based training interiors. The model and I work alone.`
+
 ## Valuation and advanced analytics interiors — 2026-10-10
 
 - Completed: AI Valuation uses standard single-selection controls, a plain input band and unframed result sections. Existing hardcoded property is explicitly labeled as an example, not county evidence. Removed promotional quantum/sacred styling without changing request payloads or valuation math; supplemental model scores remain visible with their validation limitation.

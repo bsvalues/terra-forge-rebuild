@@ -95,7 +95,7 @@ export function FactoryLayout({ initialMode }: FactoryLayoutProps) {
 
       {/* Mode Tabs */}
       <Tabs value={activeMode} onValueChange={handleModeChange} className="space-y-6">
-        <TabsList className="bg-[hsl(var(--tf-surface))] border border-border p-1 h-auto">
+        <TabsList aria-label="Factory modes">
           {MODES.map((mode) => {
             const meta = MODE_META[mode];
             const Icon = meta.icon;
@@ -103,7 +103,7 @@ export function FactoryLayout({ initialMode }: FactoryLayoutProps) {
               <TabsTrigger
                 key={mode}
                 value={mode}
-                className="flex items-center gap-2 px-4 py-2.5 data-[state=active]:bg-[hsl(var(--tf-elevated))] data-[state=active]:text-[hsl(var(--tf-transcend-cyan))] data-[state=active]:shadow-sm"
+                className="gap-2"
               >
                 <Icon className="w-4 h-4" />
                 <span className="text-sm font-medium">{meta.label}</span>
@@ -130,7 +130,7 @@ export function FactoryLayout({ initialMode }: FactoryLayoutProps) {
                 ) : mode === "comps" ? (
                   <CompMode neighborhoodCode={neighborhood} />
                 ) : mode === "calibration" ? (
-                  <NeighborhoodFactorCalibration />
+                  <NeighborhoodFactorCalibration neighborhoodCode={neighborhood} />
                 ) : (
                   <ScenarioMode neighborhoodCode={neighborhood} />
                 )}

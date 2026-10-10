@@ -29,7 +29,7 @@ export function NeighborhoodSelector({ value, onChange, year }: NeighborhoodSele
       value={value ?? "all"}
       onValueChange={(v) => onChange(v === "all" ? null : v)}
     >
-      <SelectTrigger className="w-[200px] bg-[hsl(var(--tf-surface))] border-border">
+      <SelectTrigger aria-label="Neighborhood" className="w-[200px] max-w-full bg-background border-border">
         <SelectValue placeholder={isLoading ? "Loading…" : "All Neighborhoods"} />
       </SelectTrigger>
       <SelectContent>

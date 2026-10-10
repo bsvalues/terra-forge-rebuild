@@ -35,3 +35,7 @@
 ## Current interior continuation
 - [x] Align AI Valuation content and advanced analytics panels with shared headers, controls and unframed result sections.
 - [x] Verify tab/mode continuity, loading controls and narrow embedded layouts; run existing regressions and record evidence (419 tests; preview build OK; true 520px iframe checks passed).
+
+## Calibration and training interiors
+- [x] Align calibration selectors, result sections and model-training panels; remove simulated operational UI.
+- [x] Verify shared neighborhood continuity, narrow windows and existing regressions; record handoff (419 tests; preview build OK; 520px embedded checks passed).
