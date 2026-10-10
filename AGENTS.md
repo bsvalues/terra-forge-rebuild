@@ -15,6 +15,7 @@
 - Analysis result grids respond to module container width and dense fixed-column rows scroll locally; split-window content must not depend on the browser viewport width.
 - Analysis controls remain outside result sections and visible during loading or empty states; shared unframed sections and metric bands separate configuration from evidence.
 - Factory calibration consumes the parent neighborhood selection so scope survives tab changes without contradictory local selectors.
+- Factory Cost, Income, Comps and Scenario interiors share container-based work grids, named locally scrolling record regions and always-visible ledger actions; narrowing a window must not remove work or imply full-dataset coverage.
 - AVM interiors render run-record statuses and configured inputs only; absent telemetry never becomes simulated progress or inferred preprocessing completion.
 
 - Workbench county summaries consume the shared County Vitals read model, never independent count queries or absent comparison snapshots; this keeps county scope and caching consistent.

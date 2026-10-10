@@ -39,3 +39,7 @@
 ## Calibration and training interiors
 - [x] Align calibration selectors, result sections and model-training panels; remove simulated operational UI.
 - [x] Verify shared neighborhood continuity, narrow windows and existing regressions; record handoff (419 tests; preview build OK; 520px embedded checks passed).
+
+## Factory mode interiors and ledger
+- [x] Align Cost, Income, Comp Review and Scenario work areas with shared module-window doctrine; retain math, routes and actions.
+- [x] Make Adjustment Ledger states and actions accessible; verify real narrow windows and regressions, then record handoff (419 tests; preview build OK; no browser errors/overflow).

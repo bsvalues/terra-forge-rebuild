@@ -1,5 +1,16 @@
 # Workbench refinement handoff
 
+## Factory modes and Adjustment Ledger — 2026-10-10
+
+- Completed: Cost and Income tools now use shared tabs and container-based layouts. Calculators have associated labels, restrained unframed results, and existing numeric inputs/formulas. Dense cost/income tables scroll inside named keyboard-focusable regions; add/delete commands use shared named buttons.
+- Comp Review uses a loaded-record metric band, locally scrollable ratio grid, explicit loading/error/empty states and named parcel-open buttons. Existing destination, ratios, COD thresholds and query behavior are unchanged. Counts describe the loaded sample, not complete county coverage.
+- Scenario controls stack before results in narrow windows, sliders have accessible names on their actual thumbs, Reset restores existing defaults, and Save/Apply use ordinary controls. Session-only scenarios are labeled accordingly. Removed decorative motion/cards; no formula or mutation changes.
+- Ledger is an unframed section with distinct loading/error/empty states, sample-aware counts, and always-visible rollback buttons. No mutation was executed. Existing rollback implementation remains unchanged; this UI verification does not certify its production safety.
+- Evidence: 419 tests across 39 files passed after slider accessibility changes; preview build OK. Browser checked Cost/Income/Comps/Scenarios in primary and real 520px embedded windows: no document overflow or page errors; Cost grid resolves to one 488px track, income input changes, land slider 0 → 0.5 → Reset 0, 186 named parcel actions. Screenshots inspected under `/tmp/browser/factory-interiors/`. Final scenario Apply treatment received an additional visual check.
+- Limits: no cost/income add/delete, scenario Save/Apply or ledger rollback was executed. Ledger had zero loaded batches, so populated/error states are not verified against live records. Cost schedules had zero loaded records. Existing scope/query limits, valuation calculations and backend processing were not audited in this presentation-only slice.
+- Next scoped slice: remaining batch-apply and depreciation subpanels, followed by the full-page Registry adjustment ledger; preserve county selection, domain ownership and all existing work. County Vitals audit remains deferred. No routes, database, permissions, credentials or publication changed.
+- Suggested commit, not executed: `refactor(ui): align Factory work areas and accessible ledger controls. The sliders and I work alone.`
+
 ## Calibration and training interiors — 2026-10-10
 
 - Completed: calibration now consumes the Factory-selected neighborhood instead of a separate local selector. Selection persisted across Cost Tables → Calibration in browser checks. Save stays in its toolbar even when results are loading or unavailable. Existing ratio math, thresholds and save payload are unchanged.

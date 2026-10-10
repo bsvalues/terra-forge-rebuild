@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useIncomeProperties, useUpsertIncomeProperty, useDeleteIncomeProperty } from "@/hooks/useIncomeApproach";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Trash2, DollarSign } from "lucide-react";
@@ -41,18 +42,18 @@ export function IncomeDataManager({ neighborhoodCode }: IncomeDataManagerProps) 
 
   if (!neighborhoodCode) {
     return (
-      <div className="material-bento p-8 text-center">
-        <DollarSign className="w-6 h-6 text-muted-foreground mx-auto mb-2" />
+      <div className="module-section py-6">
+        
         <p className="text-sm text-muted-foreground">Select a neighborhood to manage income data</p>
       </div>
     );
   }
 
   return (
-    <div className="material-bento overflow-hidden">
-      <div className="p-4 border-b border-border flex items-center justify-between">
+    <div className="module-section space-y-4">
+      <div className="module-toolbar">
         <div className="flex items-center gap-2">
-          <DollarSign className="w-4 h-4 text-[hsl(var(--tf-transcend-cyan))]" />
+          <DollarSign className="w-4 h-4 text-primary" />
           <div>
             <h3 className="text-sm font-medium text-foreground">Income Property Data</h3>
             <p className="text-xs text-muted-foreground">
@@ -60,11 +61,11 @@ export function IncomeDataManager({ neighborhoodCode }: IncomeDataManagerProps) 
             </p>
           </div>
         </div>
-        <Badge variant="outline" className="text-xs">{incomeProps.length} records</Badge>
+        <Badge variant="outline" className="text-xs">{isLoading ? "Loading…" : `${incomeProps.length} loaded records`}</Badge>
       </div>
 
-      <div className="max-h-[400px] overflow-auto">
-        <Table>
+      <div className="module-records max-h-[400px]" role="region" aria-label="Income property records" tabIndex={0}>
+        <Table className="min-w-[780px]">
           <TableHeader>
             <TableRow className="hover:bg-transparent">
               <TableHead className="text-xs">Parcel</TableHead>
@@ -91,37 +92,37 @@ export function IncomeDataManager({ neighborhoodCode }: IncomeDataManagerProps) 
                 <TableCell className="text-right font-mono text-xs">{ip.cap_rate ? `${(ip.cap_rate * 100).toFixed(1)}%` : "—"}</TableCell>
                 <TableCell className="text-right font-mono text-xs">{ip.grm?.toFixed(1) ?? "—"}</TableCell>
                 <TableCell>
-                  <button onClick={() => remove.mutate(ip.id)} className="text-muted-foreground hover:text-destructive transition-colors">
+                  <Button variant="ghost" size="icon" aria-label={`Delete income record ${ip.parcel_id}`} title="Delete income record" onClick={() => remove.mutate(ip.id)} className="text-muted-foreground hover:text-destructive">
                     <Trash2 className="w-3.5 h-3.5" />
-                  </button>
+                  </Button>
                 </TableCell>
               </TableRow>
             ))}
             {/* Add row */}
-            <TableRow className="bg-[hsl(var(--tf-elevated)/0.3)]">
+            <TableRow className="bg-muted/30">
               <TableCell>
-                <Input placeholder="Parcel ID" value={newRow.parcel_id} onChange={(e) => setNewRow((p) => ({ ...p, parcel_id: e.target.value }))} className="h-7 text-xs w-24" />
+                <Input aria-label="Parcel ID" placeholder="Parcel ID" value={newRow.parcel_id} onChange={(e) => setNewRow((p) => ({ ...p, parcel_id: e.target.value }))} className="h-7 text-xs w-24" />
               </TableCell>
               <TableCell>
-                <Input type="number" value={newRow.gross_rental_income || ""} onChange={(e) => setNewRow((p) => ({ ...p, gross_rental_income: +e.target.value }))} className="h-7 text-xs w-20 text-right" />
+                <Input aria-label="Gross rental income" type="number" value={newRow.gross_rental_income || ""} onChange={(e) => setNewRow((p) => ({ ...p, gross_rental_income: +e.target.value }))} className="h-7 text-xs w-20 text-right" />
               </TableCell>
               <TableCell>
-                <Input type="number" step="0.01" value={newRow.vacancy_rate} onChange={(e) => setNewRow((p) => ({ ...p, vacancy_rate: +e.target.value }))} className="h-7 text-xs w-14 text-right" />
+                <Input aria-label="Vacancy rate" type="number" step="0.01" value={newRow.vacancy_rate} onChange={(e) => setNewRow((p) => ({ ...p, vacancy_rate: +e.target.value }))} className="h-7 text-xs w-14 text-right" />
               </TableCell>
               <TableCell>
-                <Input type="number" value={newRow.operating_expenses || ""} onChange={(e) => setNewRow((p) => ({ ...p, operating_expenses: +e.target.value }))} className="h-7 text-xs w-20 text-right" />
+                <Input aria-label="Operating expenses" type="number" value={newRow.operating_expenses || ""} onChange={(e) => setNewRow((p) => ({ ...p, operating_expenses: +e.target.value }))} className="h-7 text-xs w-20 text-right" />
               </TableCell>
               <TableCell className="text-xs text-muted-foreground text-right">auto</TableCell>
               <TableCell>
-                <Input type="number" step="0.005" value={newRow.cap_rate} onChange={(e) => setNewRow((p) => ({ ...p, cap_rate: +e.target.value }))} className="h-7 text-xs w-14 text-right" />
+                <Input aria-label="Cap rate" type="number" step="0.005" value={newRow.cap_rate} onChange={(e) => setNewRow((p) => ({ ...p, cap_rate: +e.target.value }))} className="h-7 text-xs w-14 text-right" />
               </TableCell>
               <TableCell>
-                <Input type="number" step="0.5" value={newRow.grm} onChange={(e) => setNewRow((p) => ({ ...p, grm: +e.target.value }))} className="h-7 text-xs w-14 text-right" />
+                <Input aria-label="Gross rent multiplier" type="number" step="0.5" value={newRow.grm} onChange={(e) => setNewRow((p) => ({ ...p, grm: +e.target.value }))} className="h-7 text-xs w-14 text-right" />
               </TableCell>
               <TableCell>
-                <button onClick={handleAdd} className="text-[hsl(var(--tf-transcend-cyan))] hover:text-foreground transition-colors">
+                <Button variant="ghost" size="icon" aria-label="Add record" title="Add record" onClick={handleAdd} className="text-primary">
                   <Plus className="w-4 h-4" />
-                </button>
+                </Button>
               </TableCell>
             </TableRow>
           </TableBody>

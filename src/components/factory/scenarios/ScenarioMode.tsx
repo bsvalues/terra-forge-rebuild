@@ -1,14 +1,14 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useId } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useScenarioParcels, useScenarioSales } from "@/hooks/useScenarioData";
 import { applyScenarioAdjustments } from "@/services/suites/forgeService";
 import { invalidateFactory } from "@/lib/queryInvalidation";
 import { FlaskConical, TrendingUp, TrendingDown, DollarSign, Percent, BarChart3, RefreshCw, Save, CheckCircle2, Loader2, Target, AlertTriangle } from "lucide-react";
-import { motion } from "framer-motion";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
-import { CommitmentButton } from "@/components/ui/commitment-button";
 import { toast } from "sonner";
 
 interface ScenarioModeProps {
@@ -45,7 +45,7 @@ export function ScenarioMode({ neighborhoodCode }: ScenarioModeProps) {
   const queryClient = useQueryClient();
 
   // Use extracted hooks (Data Constitution compliance)
-  const { data: parcels, isLoading } = useScenarioParcels(neighborhoodCode);
+  const { data: parcels, isLoading, isError } = useScenarioParcels(neighborhoodCode);
   const { data: sales } = useScenarioSales(neighborhoodCode);
 
   // Compute scenario impact
@@ -194,24 +194,21 @@ export function ScenarioMode({ neighborhoodCode }: ScenarioModeProps) {
 
   if (!neighborhoodCode) {
     return (
-      <div className="material-bento p-16 flex flex-col items-center justify-center text-center space-y-4 min-h-[400px]">
-        <div className="w-16 h-16 rounded-2xl bg-[hsl(var(--tf-elevated))] flex items-center justify-center">
-          <FlaskConical className="w-8 h-8 text-[hsl(var(--tf-transcend-cyan)/0.5)]" />
-        </div>
+      <div className="module-section space-y-2 py-6">
         <h2 className="text-lg font-medium text-foreground">Scenario Modeling</h2>
-        <p className="text-sm text-muted-foreground">Select a neighborhood to begin what-if analysis</p>
+        <p className="text-sm text-muted-foreground">No neighborhood selected.</p>
       </div>
     );
   }
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-[340px_1fr] gap-6">
+    <div className="module-control-grid">
       {/* Left: Controls */}
       <div className="space-y-4">
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="material-bento p-5 space-y-5">
+        <div className="module-section space-y-5">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-medium text-foreground flex items-center gap-2">
-              <FlaskConical className="w-4 h-4 text-tf-cyan" />
+              <FlaskConical className="w-4 h-4 text-primary" />
               Scenario Parameters
             </h3>
             <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => setConfig(DEFAULT_SCENARIO)}>
@@ -249,11 +246,11 @@ export function ScenarioMode({ neighborhoodCode }: ScenarioModeProps) {
               {isLoading ? "Loading..." : `${parcels?.length || 0} parcels in scope`}
             </p>
           </div>
-        </motion.div>
+        </div>
 
         {/* VEI Ratio Impact Preview */}
         {ratioPreview && (
-          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="material-bento p-4 space-y-3">
+          <div className="module-section space-y-3">
             <h3 className="text-sm font-medium text-foreground flex items-center gap-2">
               <Target className="w-4 h-4 text-primary" />
               VEI Ratio Impact
@@ -283,63 +280,64 @@ export function ScenarioMode({ neighborhoodCode }: ScenarioModeProps) {
             <p className="text-[10px] text-muted-foreground text-center">
               Based on {ratioPreview.sampleSize} qualified sales
             </p>
-          </motion.div>
+          </div>
         )}
 
         {/* Save & Apply Actions */}
         {impact && (
-          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="material-bento p-4 space-y-3">
-            <div className="flex gap-2">
-              <input
+          <div className="module-section space-y-3">
+            <Label htmlFor="factory-scenario-name" className="text-xs">Scenario name</Label>
+            <div className="flex flex-wrap gap-2">
+              <Input id="factory-scenario-name"
                 type="text"
                 placeholder="Scenario name..."
                 value={scenarioName}
                 onChange={(e) => setScenarioName(e.target.value)}
-                className="flex-1 text-xs bg-muted/50 border border-border/50 rounded-lg px-3 py-1.5 focus:outline-none focus:border-primary/50"
+                className="min-w-0 flex-1 text-sm"
               />
               <Button variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={handleSaveScenario}>
                 <Save className="w-3 h-3" /> Save
               </Button>
             </div>
 
-            <CommitmentButton
+            <Button
               onClick={() => applyMutation.mutate()}
               disabled={applyMutation.isPending || impact.increases + impact.decreases === 0}
-              variant="gold"
+              variant="default" className="h-auto max-w-full whitespace-normal"
             >
               {applyMutation.isPending ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
               ) : (
                 <CheckCircle2 className="w-4 h-4" />
               )}
-              {applyMutation.isPending ? "Applying…" : `Apply to ${impact.increases + impact.decreases} Parcels`}
-            </CommitmentButton>
+              {applyMutation.isPending ? "Applying…" : `Apply to ${impact.increases + impact.decreases} ${impact.increases + impact.decreases === 1 ? "parcel" : "parcels"}`}
+            </Button>
 
             {impact.increases + impact.decreases === 0 && (
               <p className="text-[10px] text-muted-foreground text-center flex items-center justify-center gap-1">
                 <AlertTriangle className="w-3 h-3" /> Adjust parameters to create changes
               </p>
             )}
-          </motion.div>
+          </div>
         )}
 
         {/* Saved Scenarios */}
         {savedScenarios.length > 0 && (
-          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="material-bento p-4 space-y-2">
-            <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Saved Scenarios</h3>
+          <div className="module-section space-y-2">
+            <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Session scenarios</h3>
             {savedScenarios.map(sc => (
-              <button
+              <Button variant="ghost"
                 key={sc.id}
                 onClick={() => loadScenario(sc)}
-                className="w-full flex items-center justify-between text-xs p-2 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors text-left"
+                className="h-auto w-full min-w-0 justify-between gap-3 whitespace-normal py-2 text-left"
               >
                 <span className="font-medium text-foreground truncate">{sc.name}</span>
                 <span className={`font-mono ${sc.avgChange >= 0 ? "text-primary" : "text-destructive"}`}>
                   {sc.avgChange >= 0 ? "+" : ""}{sc.avgChange.toFixed(1)}%
                 </span>
-              </button>
+              </Button>
             ))}
-          </motion.div>
+          </div>
         )}
       </div>
 
@@ -348,7 +346,7 @@ export function ScenarioMode({ neighborhoodCode }: ScenarioModeProps) {
         {impact ? (
           <>
             {/* Impact Summary Cards */}
-            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="module-data-band">
               <ImpactCard
                 icon={DollarSign}
                 label="Total Δ"
@@ -373,30 +371,27 @@ export function ScenarioMode({ neighborhoodCode }: ScenarioModeProps) {
                 value={impact.decreases.toString()}
                 accent="text-destructive"
               />
-            </motion.div>
+            </div>
 
             {/* Capped notice */}
             {impact.cappedCount > 0 && (
-              <div className="flex items-center gap-2 text-xs text-tf-amber bg-[hsl(var(--tf-amber)/0.1)] rounded-lg px-4 py-2">
+              <div className="flex items-center gap-2 text-xs text-tf-amber bg-muted/50 rounded-lg px-4 py-2">
                 <BarChart3 className="w-3.5 h-3.5" />
                 {impact.cappedCount} parcel{impact.cappedCount !== 1 ? "s" : ""} capped at {config.maxCapPct}% max increase
               </div>
             )}
 
             {/* Parcel Impact Table */}
-            <motion.div
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.05 }}
-              className="material-bento rounded-2xl p-5"
+            <div
+              className="module-section space-y-3"
             >
               <h4 className="text-sm font-medium text-foreground mb-3 flex items-center gap-2">
-                <BarChart3 className="w-4 h-4 text-tf-cyan" />
+                <BarChart3 className="w-4 h-4 text-primary" />
                 Parcel Impact Preview
                 <Badge variant="outline" className="text-[10px] ml-auto">{impact.details.length} parcels</Badge>
               </h4>
-              <div className="overflow-x-auto max-h-[400px] overflow-y-auto">
-                <table className="w-full text-sm">
+              <div className="module-records max-h-[400px]" role="region" aria-label="Scenario parcel impact" tabIndex={0}>
+                <table className="w-full min-w-[560px] text-sm">
                   <thead className="sticky top-0 bg-card">
                     <tr className="border-b border-border/50 text-muted-foreground text-xs">
                       <th className="text-left py-2 pr-3">PIN</th>
@@ -434,12 +429,13 @@ export function ScenarioMode({ neighborhoodCode }: ScenarioModeProps) {
                   </p>
                 )}
               </div>
-            </motion.div>
+            </div>
           </>
         ) : (
-          <div className="material-bento p-16 flex flex-col items-center justify-center text-center space-y-4 min-h-[400px]">
-            <FlaskConical className="w-8 h-8 text-muted-foreground/30" />
-            <p className="text-sm text-muted-foreground">Loading scenario data...</p>
+          <div className="module-section space-y-2 py-6">
+            <p role={isError ? "alert" : "status"} className="text-sm text-muted-foreground">
+              {isLoading ? "Loading scenario data…" : isError ? "Scenario data could not be loaded." : "No parcels in the loaded scenario scope."}
+            </p>
           </div>
         )}
       </div>
@@ -453,10 +449,11 @@ function ScenarioSlider({
   label: string; value: number; onChange: (v: number) => void;
   min: number; max: number; step: number; suffix?: string;
 }) {
+  const labelId = useId();
   return (
     <div className="space-y-2">
-      <div className="flex items-center justify-between">
-        <span className="text-xs text-muted-foreground">{label}</span>
+      <div className="flex items-center justify-between gap-3">
+        <span id={labelId} className="text-xs text-muted-foreground">{label}</span>
         <span className={`text-xs font-mono font-medium ${
           value > 0 ? "text-tf-green" : value < 0 ? "text-destructive" : "text-muted-foreground"
         }`}>
@@ -464,8 +461,9 @@ function ScenarioSlider({
         </span>
       </div>
       <Slider
+        aria-labelledby={labelId}
         value={[value]}
-        onValueChange={([v]) => onChange(v)}
+        onValueChange={([v]) => { if (v !== undefined) onChange(v); }}
         min={min} max={max} step={step}
         className="w-full"
       />
@@ -475,10 +473,10 @@ function ScenarioSlider({
 
 function ImpactCard({ icon: Icon, label, value, accent }: { icon: any; label: string; value: string; accent: string }) {
   return (
-    <div className="material-bento rounded-xl p-4 text-center">
-      <Icon className={`w-4 h-4 mx-auto mb-1 ${accent}`} />
+    <div className="min-w-0">
+      <Icon className={`w-4 h-4 mb-2 ${accent}`} />
       <div className={`text-lg font-medium ${accent}`}>{value}</div>
-      <div className="text-[10px] text-muted-foreground uppercase tracking-wider">{label}</div>
+      <div className="text-xs text-muted-foreground">{label}</div>
     </div>
   );
 }

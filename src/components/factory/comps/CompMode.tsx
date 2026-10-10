@@ -2,7 +2,8 @@ import { useNavigate } from "react-router-dom";
 import { useCompGrid } from "@/hooks/useCompGrid";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Grid3X3, ExternalLink } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { ExternalLink } from "lucide-react";
 
 interface CompModeProps {
   neighborhoodCode: string | null;
@@ -24,9 +25,9 @@ function ratioBadge(ratio: number | null) {
 
 export function CompMode({ neighborhoodCode }: CompModeProps) {
   const navigate = useNavigate();
-  const { data: parcels = [], isLoading } = useCompGrid(neighborhoodCode);
+  const { data: parcels = [], isLoading, isError, refetch } = useCompGrid(neighborhoodCode);
 
-  const ratios = parcels.filter((p) => p.ratio != null).map((p) => p.ratio!);
+  const ratios = parcels.flatMap((p) => p.ratio == null ? [] : [p.ratio]);
   const medianRatio = ratios.length > 0 ? ratios.sort((a, b) => a - b)[Math.floor(ratios.length / 2)] : null;
   const cod = medianRatio && ratios.length > 0
     ? (ratios.reduce((sum, r) => sum + Math.abs(r - medianRatio), 0) / ratios.length / medianRatio) * 100
@@ -34,38 +35,33 @@ export function CompMode({ neighborhoodCode }: CompModeProps) {
 
   if (!neighborhoodCode) {
     return (
-      <div className="material-bento p-16 flex flex-col items-center justify-center text-center space-y-4 min-h-[400px]">
-        <div className="w-16 h-16 rounded-2xl bg-[hsl(var(--tf-elevated))] flex items-center justify-center">
-          <Grid3X3 className="w-8 h-8 text-[hsl(var(--tf-transcend-cyan)/0.5)]" />
-        </div>
-        <div>
-          <h2 className="text-lg font-medium text-foreground">Comp Review</h2>
-          <p className="text-sm text-muted-foreground mt-1">Select a neighborhood to begin ratio review</p>
-        </div>
-      </div>
+      <section className="module-section space-y-2 py-6">
+        <h2 className="text-sm font-medium">Comp Review</h2>
+        <p className="text-sm text-muted-foreground">No neighborhood selected.</p>
+      </section>
     );
   }
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-4 gap-3">
-        <StatCard label="Parcels" value={parcels.length.toString()} />
-        <StatCard label="With Sales" value={ratios.length.toString()} />
+      <div className="module-data-band">
+        <StatCard label="Loaded parcels" value={isLoading || isError ? "—" : parcels.length.toString()} />
+        <StatCard label="With sales" value={isLoading || isError ? "—" : ratios.length.toString()} />
         <StatCard label="Median Ratio" value={medianRatio?.toFixed(4) ?? "—"} highlight={medianRatio != null && medianRatio >= 0.9 && medianRatio <= 1.1} />
         <StatCard label="COD" value={cod?.toFixed(2) ?? "—"} highlight={cod != null && cod <= 15} />
       </div>
 
-      <div className="material-bento overflow-hidden">
-        <div className="p-4 border-b border-border">
+      <div className="module-section space-y-3">
+        <div className="space-y-1">
           <h3 className="text-sm font-medium text-foreground">Parcel Ratio Grid</h3>
           <p className="text-xs text-muted-foreground">
-            {neighborhoodCode} — {parcels.length} parcels, {ratios.length} with qualified sales
+            {neighborhoodCode} — {isLoading ? "Loading parcels…" : isError ? "Records unavailable" : `${parcels.length} loaded parcels, ${ratios.length} with qualified sales`}
           </p>
         </div>
-        <div className="max-h-[500px] overflow-y-auto">
-          <Table>
+        <div className="module-records max-h-[500px]" role="region" aria-label="Parcel ratio grid" tabIndex={0}>
+          <Table className="min-w-[760px]">
             <TableHeader>
-              <TableRow className="hover:bg-transparent sticky top-0 bg-[hsl(var(--tf-surface))]">
+              <TableRow className="hover:bg-transparent sticky top-0 bg-background">
                 <TableHead className="text-xs">Parcel #</TableHead>
                 <TableHead className="text-xs">Address</TableHead>
                 <TableHead className="text-xs text-right">Assessed</TableHead>
@@ -79,7 +75,12 @@ export function CompMode({ neighborhoodCode }: CompModeProps) {
               {isLoading && (
                 <TableRow><TableCell colSpan={7} className="text-center text-sm text-muted-foreground py-8">Loading…</TableCell></TableRow>
               )}
-              {parcels.map((p) => (
+              {isError && <TableRow><TableCell colSpan={7} className="py-6 text-center">
+                <p className="mb-2 text-sm text-muted-foreground">Parcel ratios could not be loaded.</p>
+                <Button variant="outline" size="sm" onClick={() => refetch()}>Retry</Button>
+              </TableCell></TableRow>}
+              {!isLoading && !isError && parcels.length === 0 && <TableRow><TableCell colSpan={7} className="py-6 text-center text-sm text-muted-foreground">No parcels in the loaded review.</TableCell></TableRow>}
+              {!isError && parcels.map((p) => (
                 <TableRow key={p.id}>
                   <TableCell className="font-mono text-sm">{p.parcel_number}</TableCell>
                   <TableCell className="text-sm text-muted-foreground truncate max-w-[200px]">{p.address}</TableCell>
@@ -98,12 +99,12 @@ export function CompMode({ neighborhoodCode }: CompModeProps) {
                     )}
                   </TableCell>
                   <TableCell className="text-center">
-                    <button
+                    <Button variant="ghost" size="icon" aria-label={`Open parcel ${p.parcel_number}`} title="Open parcel"
                       onClick={() => navigate(`/property/${p.id}`)}
-                      className="inline-flex items-center gap-1 text-[10px] text-tf-cyan hover:underline"
+                      className="text-primary"
                     >
                       <ExternalLink className="w-3 h-3" />
-                    </button>
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))}
@@ -117,8 +118,8 @@ export function CompMode({ neighborhoodCode }: CompModeProps) {
 
 function StatCard({ label, value, highlight }: { label: string; value: string; highlight?: boolean }) {
   return (
-    <div className="material-bento p-3 text-center">
-      <p className="text-[10px] text-muted-foreground mb-1">{label}</p>
+    <div className="min-w-0">
+      <p className="text-xs text-muted-foreground mb-1">{label}</p>
       <p className={`text-lg font-mono ${highlight ? "text-tf-green" : "text-foreground"}`}>{value}</p>
     </div>
   );
