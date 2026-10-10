@@ -27,6 +27,7 @@
 - Deferred by founder: remaining County Vitals consumer audit; focus on module-interior UI/UX instead.
 
 ## Module-interior doctrine
+- [ ] Continue into Analytics, AVM and Ratio Studies; standardize titles, mode controls and narrow-window layouts.
 - [x] Apply shared window-interior surfaces, tab navigation and typography across registered views.
 - [x] Unify GeoEquity, Factory, Registry and valuation headers; preserve actions and scope.
 - [x] Keep template controls accessible in narrow side windows; verify interactions and regressions (419 tests passed; preview build OK).

@@ -4,6 +4,8 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { ModuleHeader } from "@/components/layout/ModuleHeader";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import {
   BarChart, Bar,
   XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip,
@@ -77,16 +79,16 @@ export function AnalyticsDashboard() {
     : [];
 
   return (
-    <div className="space-y-6 p-6 max-w-7xl mx-auto">
+    <div className="module-page space-y-4">
       {/* Header */}
-      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
-        <h1 className="text-2xl sm:text-3xl font-light text-[hsl(var(--tf-transcend-cyan))] tracking-tight">
-          Analytics Engine
-        </h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Data readiness, feature completeness, pipeline health — always-on quality metrics
-        </p>
-      </motion.div>
+      <ModuleHeader title="Analytics" description="Data readiness and feature coverage" actions={
+        <ToggleGroup type="single" value={indexMode} onValueChange={(value) => {
+          if (value === "model" || value === "roll") setIndexMode(value);
+        }} aria-label="Readiness mode" variant="outline" size="sm" className="flex-wrap justify-start">
+          <ToggleGroupItem value="model" className="gap-2"><Cpu className="h-4 w-4" />Model Readiness</ToggleGroupItem>
+          <ToggleGroupItem value="roll" className="gap-2"><ScrollText className="h-4 w-4" />Roll Readiness</ToggleGroupItem>
+        </ToggleGroup>
+      } />
 
       {/* Index Mode Toggle + Summary */}
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>

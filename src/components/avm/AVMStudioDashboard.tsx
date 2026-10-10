@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { ModuleHeader } from "@/components/layout/ModuleHeader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ModelComparisonPanel } from "./ModelComparisonPanel";
 import { FeatureEngineeringPipeline } from "./FeatureEngineeringPipeline";
@@ -22,31 +23,17 @@ export function AVMStudioDashboard() {
   const hasRuns = runs && runs.length > 0;
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="module-page space-y-4">
       {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="flex items-center justify-between"
-      >
-        <div>
-          <h2 className="text-2xl font-light text-[hsl(var(--tf-transcend-cyan))]">
-            AVM Studio — ML Laboratory
-          </h2>
-          <p className="text-sm text-muted-foreground mt-1">
-            Dual-Model Training • Random Forest vs Neural Network • AI Valuation
-          </p>
-        </div>
-        <AVMStudioActions />
-      </motion.div>
+      <ModuleHeader title="AVM Studio" description="Model training, comparison and valuation" actions={<AVMStudioActions />} />
 
       {/* Tabs for different views */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full max-w-md grid-cols-2 bg-[hsl(var(--tf-elevated)/0.5)]">
-          <TabsTrigger value="training" className="data-[state=active]:bg-[hsl(var(--tf-transcend-cyan)/0.2)]">
+        <TabsList aria-label="AVM Studio views">
+          <TabsTrigger value="training">
             Model Training
           </TabsTrigger>
-          <TabsTrigger value="ai-valuation" className="data-[state=active]:bg-[hsl(var(--tf-transcend-cyan)/0.2)]">
+          <TabsTrigger value="ai-valuation">
             AI Valuation
           </TabsTrigger>
         </TabsList>
