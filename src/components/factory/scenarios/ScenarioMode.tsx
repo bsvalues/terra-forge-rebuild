@@ -9,7 +9,6 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
-import { CommitmentButton } from "@/components/ui/commitment-button";
 import { toast } from "sonner";
 
 interface ScenarioModeProps {
@@ -301,18 +300,18 @@ export function ScenarioMode({ neighborhoodCode }: ScenarioModeProps) {
               </Button>
             </div>
 
-            <CommitmentButton
+            <Button
               onClick={() => applyMutation.mutate()}
               disabled={applyMutation.isPending || impact.increases + impact.decreases === 0}
-              variant="gold"
+              variant="default" className="h-auto max-w-full whitespace-normal"
             >
               {applyMutation.isPending ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
               ) : (
                 <CheckCircle2 className="w-4 h-4" />
               )}
-              {applyMutation.isPending ? "Applying…" : `Apply to ${impact.increases + impact.decreases} Parcels`}
-            </CommitmentButton>
+              {applyMutation.isPending ? "Applying…" : `Apply to ${impact.increases + impact.decreases} ${impact.increases + impact.decreases === 1 ? "parcel" : "parcels"}`}
+            </Button>
 
             {impact.increases + impact.decreases === 0 && (
               <p className="text-[10px] text-muted-foreground text-center flex items-center justify-center gap-1">
@@ -325,7 +324,7 @@ export function ScenarioMode({ neighborhoodCode }: ScenarioModeProps) {
         {/* Saved Scenarios */}
         {savedScenarios.length > 0 && (
           <div className="module-section space-y-2">
-            <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Saved Scenarios</h3>
+            <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Session scenarios</h3>
             {savedScenarios.map(sc => (
               <Button variant="ghost"
                 key={sc.id}
