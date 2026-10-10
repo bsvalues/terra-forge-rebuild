@@ -3,6 +3,7 @@
 // Uses existing data hooks where available, falls back to null (no badge).
 
 import { useCountyVitals } from "@/hooks/useCountyVitals";
+import { knownVital } from "@/lib/countyMetric";
 
 export interface GroupBadge {
   /** Number to display. null = no badge shown. */
@@ -18,8 +19,10 @@ export interface GroupBadge {
 export function useSidebarBadges(): Record<string, GroupBadge> {
   const { data: vitals } = useCountyVitals();
 
-  const pendingAppeals = vitals?.workflows?.pendingAppeals ?? 0;
-  const totalWorkflows = vitals?.workflows?.total ?? 0;
+  // Unmeasured counts show no badge rather than an implied zero.
+  const av = vitals?.metricAvailability;
+  const pendingAppeals = knownVital(av, "appeals", vitals?.workflows?.pendingAppeals) ?? 0;
+  const totalWorkflows = knownVital(av, "workflows", vitals?.workflows?.total) ?? 0;
 
   return {
     "data-ops": {

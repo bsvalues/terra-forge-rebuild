@@ -3,6 +3,7 @@ import { ShieldCheck, ShieldX, BarChart3, CheckCircle2, AlertTriangle } from "lu
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCountyVitals } from "@/hooks/useCountyVitals";
+import { knownVital, formatVital } from "@/lib/countyMetric";
 import { ProvenanceBadge } from "@/components/trust";
 import { useNeighborhoodCertification } from "@/hooks/useDaisWorkflows";
 
@@ -19,16 +20,23 @@ export function CertificationDashboard() {
     );
   }
 
-  const totalParcels = vitals.parcels.total;
-  const certifiedParcels = vitals.assessments.certified;
-  const uncertifiedParcels = totalParcels - certifiedParcels;
-  const certRate = vitals.assessments.certRate;
+  // Unreported metrics stay unknown (null → "—"); never coerce them to zero.
+  const av = vitals.metricAvailability;
+  const totalParcels = knownVital(av, "parcels", vitals.parcels.total);
+  const certifiedParcels = knownVital(av, "certified", vitals.assessments.certified);
+  const assessmentTotal = knownVital(av, "assessments", vitals.assessments.total);
+  const uncertifiedParcels =
+    totalParcels !== null && certifiedParcels !== null ? Math.max(0, totalParcels - certifiedParcels) : null;
+  const certRate = assessmentTotal !== null && certifiedParcels !== null ? vitals.assessments.certRate : null;
 
-  const pendingAppeals = vitals.workflows.pendingAppeals;
-  const openPermits = vitals.workflows.openPermits;
-  const pendingExemptions = vitals.workflows.pendingExemptions;
-  const missingAssessments = Math.max(0, totalParcels - vitals.assessments.total);
-  const totalBlockers = pendingAppeals + openPermits + pendingExemptions;
+  const pendingAppeals = knownVital(av, "workflows", vitals.workflows.pendingAppeals);
+  const openPermits = knownVital(av, "workflows", vitals.workflows.openPermits);
+  const pendingExemptions = knownVital(av, "workflows", vitals.workflows.pendingExemptions);
+  const missingAssessments =
+    totalParcels !== null && assessmentTotal !== null ? Math.max(0, totalParcels - assessmentTotal) : null;
+  const totalBlockers = [pendingAppeals, openPermits, pendingExemptions, missingAssessments]
+    .reduce<number>((sum, v) => sum + (v ?? 0), 0);
+  const blockersUnmeasured = [pendingAppeals, openPermits, pendingExemptions, missingAssessments].some((v) => v === null);
 
   return (
     <div className="space-y-6">
@@ -51,32 +59,32 @@ export function CertificationDashboard() {
           <div className="flex items-center gap-3">
             <ProvenanceBadge source="county-vitals" fetchedAt={vitals.fetchedAt} />
             <div className="text-right">
-              <div className="text-3xl font-light text-foreground">{certRate}%</div>
+              <div className="text-3xl font-light text-foreground">{certRate === null ? "—" : `${certRate}%`}</div>
               <div className="text-xs text-muted-foreground">certified</div>
             </div>
           </div>
         </div>
 
-        <Progress value={certRate} className="h-3 mb-4" />
+        <Progress value={certRate ?? 0} className="h-3 mb-4" />
 
         <div className="grid grid-cols-3 gap-4 text-center">
           <div className="rounded-lg bg-[hsl(var(--tf-elevated)/0.5)] p-3">
-            <div className="text-lg font-medium text-foreground">{totalParcels.toLocaleString()}</div>
+            <div className="text-lg font-medium text-foreground">{formatVital(totalParcels)}</div>
             <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Total</div>
           </div>
           <div className="rounded-lg bg-[hsl(var(--tf-optimized-green)/0.1)] p-3">
-            <div className="text-lg font-medium text-tf-green">{certifiedParcels.toLocaleString()}</div>
+            <div className="text-lg font-medium text-tf-green">{formatVital(certifiedParcels)}</div>
             <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Certified</div>
           </div>
           <div className="rounded-lg bg-[hsl(var(--tf-amber)/0.1)] p-3">
-            <div className="text-lg font-medium text-tf-amber">{uncertifiedParcels.toLocaleString()}</div>
+            <div className="text-lg font-medium text-tf-amber">{formatVital(uncertifiedParcels)}</div>
             <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Remaining</div>
           </div>
         </div>
       </motion.div>
 
       {/* Blockers */}
-      {totalBlockers > 0 && (
+      {(totalBlockers > 0 || blockersUnmeasured) && (
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
@@ -88,10 +96,10 @@ export function CertificationDashboard() {
             Roll Certification Blockers
           </h4>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <BlockerCard label="Pending Appeals" count={pendingAppeals} severity={pendingAppeals > 0 ? "high" : "none"} />
-            <BlockerCard label="Open Permits" count={openPermits} severity={openPermits > 5 ? "medium" : "low"} />
-            <BlockerCard label="Pending Exemptions" count={pendingExemptions} severity={pendingExemptions > 0 ? "medium" : "none"} />
-            <BlockerCard label="Missing Assessments" count={missingAssessments} severity={missingAssessments > 100 ? "high" : missingAssessments > 0 ? "medium" : "none"} />
+            <BlockerCard label="Pending Appeals" count={pendingAppeals} severity={pendingAppeals === null ? "low" : pendingAppeals > 0 ? "high" : "none"} />
+            <BlockerCard label="Open Permits" count={openPermits} severity={openPermits !== null && openPermits > 5 ? "medium" : "low"} />
+            <BlockerCard label="Pending Exemptions" count={pendingExemptions} severity={pendingExemptions === null ? "low" : pendingExemptions > 0 ? "medium" : "none"} />
+            <BlockerCard label="Missing Assessments" count={missingAssessments} severity={missingAssessments === null ? "low" : missingAssessments > 100 ? "high" : missingAssessments > 0 ? "medium" : "none"} />
           </div>
         </motion.div>
       )}
@@ -131,7 +139,7 @@ export function CertificationDashboard() {
   );
 }
 
-function BlockerCard({ label, count, severity }: { label: string; count: number; severity: "high" | "medium" | "low" | "none" }) {
+function BlockerCard({ label, count, severity }: { label: string; count: number | null; severity: "high" | "medium" | "low" | "none" }) {
   const colors = {
     high: "bg-destructive/10 text-destructive border-destructive/20",
     medium: "bg-[hsl(var(--tf-amber)/0.1)] text-tf-amber border-[hsl(var(--tf-amber)/0.2)]",
@@ -141,7 +149,7 @@ function BlockerCard({ label, count, severity }: { label: string; count: number;
 
   return (
     <div className={`rounded-lg border p-3 text-center ${colors[severity]}`}>
-      <div className="text-xl font-medium">{count}</div>
+      <div className="text-xl font-medium">{formatVital(count)}</div>
       <div className="text-[10px] uppercase tracking-wider mt-0.5">{label}</div>
     </div>
   );
