@@ -4,6 +4,8 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { ModuleHeader } from "@/components/layout/ModuleHeader";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import {
   BarChart, Bar,
   XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip,
@@ -77,47 +79,21 @@ export function AnalyticsDashboard() {
     : [];
 
   return (
-    <div className="space-y-6 p-6 max-w-7xl mx-auto">
+    <div className="module-page space-y-4">
       {/* Header */}
-      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
-        <h1 className="text-2xl sm:text-3xl font-light text-[hsl(var(--tf-transcend-cyan))] tracking-tight">
-          Analytics Engine
-        </h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Data readiness, feature completeness, pipeline health — always-on quality metrics
-        </p>
-      </motion.div>
+      <ModuleHeader title="Analytics" description="Data readiness and feature coverage" actions={
+        <ToggleGroup type="single" value={indexMode} onValueChange={(value) => {
+          if (value === "model" || value === "roll") setIndexMode(value);
+        }} aria-label="Readiness mode" variant="outline" size="sm" className="flex-wrap justify-start">
+          <ToggleGroupItem value="model" className="gap-2"><Cpu className="h-4 w-4" />Model Readiness</ToggleGroupItem>
+          <ToggleGroupItem value="roll" className="gap-2"><ScrollText className="h-4 w-4" />Roll Readiness</ToggleGroupItem>
+        </ToggleGroup>
+      } />
 
       {/* Index Mode Toggle + Summary */}
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-        {/* Toggle */}
-        <div className="flex gap-2 mb-4">
-          <button
-            onClick={() => setIndexMode("model")}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-              indexMode === "model"
-                ? "bg-primary text-primary-foreground"
-                : "bg-muted/40 text-muted-foreground hover:bg-muted/60"
-            }`}
-          >
-            <Cpu className="w-3.5 h-3.5" />
-            Model Readiness
-          </button>
-          <button
-            onClick={() => setIndexMode("roll")}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-              indexMode === "roll"
-                ? "bg-primary text-primary-foreground"
-                : "bg-muted/40 text-muted-foreground hover:bg-muted/60"
-            }`}
-          >
-            <ScrollText className="w-3.5 h-3.5" />
-            Roll Readiness
-          </button>
-        </div>
-
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-          <div className="material-bento rounded-xl p-4 col-span-2 md:col-span-1">
+        <div className="module-summary-grid">
+          <div className="material-bento rounded-xl p-4 min-w-0">
             <div className="flex items-center gap-2 mb-2">
               <GradeIcon className={`w-5 h-5 ${grade.color}`} />
               <span className="text-[10px] text-muted-foreground uppercase tracking-wider">
@@ -170,7 +146,7 @@ export function AnalyticsDashboard() {
 
         {/* ═══ Panel 1: Feature Coverage ═══ */}
         <TabsContent value="model-readiness">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="module-analysis-grid">
             {/* Field Coverage Bars */}
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="material-bento rounded-2xl p-6">
               <h3 className="text-sm font-medium text-foreground mb-1">Feature Coverage</h3>
@@ -229,7 +205,8 @@ export function AnalyticsDashboard() {
                 <p className="text-[11px] text-muted-foreground mb-4">
                   Lowest readiness neighborhoods — fix these first
                 </p>
-                <div className="space-y-1">
+                <div className="overflow-x-auto">
+                <div className="min-w-[32rem] space-y-1">
                   <div className="flex items-center gap-3 py-1.5 text-[10px] text-muted-foreground uppercase tracking-wider border-b border-border/50">
                     <span className="w-20">Code</span>
                     <span className="w-12 text-right">Parcels</span>
@@ -262,6 +239,7 @@ export function AnalyticsDashboard() {
                       </motion.div>
                     );
                   })}
+                </div>
                 </div>
               </motion.div>
             </div>

@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Play, Download, Loader2, CheckSquare, AlertTriangle } from "lucide-react";
 import { useTrainAVM, useAVMRuns, type AVMRun } from "@/hooks/useAVMRuns";
@@ -119,7 +118,7 @@ function ApplyAssessmentsDialog({ champion }: { champion: AVMRun | null }) {
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <AlertTriangle className="w-5 h-5 text-amber-400" />
+              <AlertTriangle className="w-5 h-5 text-tf-amber" />
               Apply AVM Predictions
             </DialogTitle>
             <DialogDescription>
@@ -175,12 +174,12 @@ export function AVMStudioActions() {
   const champion = runs?.find((r) => r.status === "champion") ?? null;
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex flex-wrap items-center gap-2">
       <ApplyAssessmentsDialog champion={champion} />
 
-      <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+      <div>
         <Button
-          className="gap-2 btn-sovereign"
+          className="gap-2"
           onClick={() => trainMutation.mutate()}
           disabled={trainMutation.isPending}
         >
@@ -196,14 +195,14 @@ export function AVMStudioActions() {
             </>
           )}
         </Button>
-      </motion.div>
+      </div>
 
-      <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+      <div>
         <Button variant="outline" size="sm" className="gap-2">
           <Download className="w-4 h-4" />
           Export
         </Button>
-      </motion.div>
+      </div>
     </div>
   );
 }

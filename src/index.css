@@ -978,3 +978,14 @@ body { background: hsl(var(--background)); }
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Tool results adapt to the window, not the browser width. */
+.module-analysis-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.25rem; }
+.module-interior :is(.material-bento, .glass-card, [data-ui="card"]) { min-width: 0; }
+@container module (max-width: 900px) {
+  .module-analysis-grid { grid-template-columns: minmax(0, 1fr); }
+}
+.module-summary-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 1rem; }
+@container module (max-width: 760px) {
+  .module-summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}

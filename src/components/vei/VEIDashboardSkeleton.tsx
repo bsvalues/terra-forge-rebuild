@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { ModuleHeader } from "@/components/layout/ModuleHeader";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const containerVariants = {
@@ -22,16 +23,9 @@ export function VEIDashboardSkeleton() {
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      className="space-y-6 p-6"
+      className="module-page space-y-4"
     >
-      {/* Header Skeleton */}
-      <motion.div variants={itemVariants} className="flex items-center justify-between">
-        <div className="space-y-2">
-          <Skeleton className="h-9 w-64" />
-          <Skeleton className="h-4 w-96" />
-        </div>
-        <Skeleton className="h-10 w-32" />
-      </motion.div>
+      <ModuleHeader title="Ratio Studies" description="Assessment-to-sale ratios and equity review" />
 
       {/* Summary Panel Skeleton */}
       <motion.div variants={itemVariants}>
@@ -57,7 +51,7 @@ export function VEIDashboardSkeleton() {
       </motion.div>
 
       {/* Charts Grid Skeleton */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="module-analysis-grid">
         {[1, 2].map((i) => (
           <motion.div key={i} variants={itemVariants} className="material-bento rounded-lg p-6">
             <div className="flex items-center justify-between mb-4">
@@ -92,7 +86,7 @@ export function VEIDashboardSkeleton() {
 
       {/* Footer Skeleton */}
       <motion.div variants={itemVariants} className="text-center py-4 space-y-2">
-        <Skeleton className="h-3 w-96 mx-auto" />
+        <Skeleton className="h-3 w-full max-w-96 mx-auto" />
         <Skeleton className="h-3 w-64 mx-auto" />
       </motion.div>
     </motion.div>

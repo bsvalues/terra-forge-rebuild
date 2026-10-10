@@ -1,5 +1,14 @@
 # Workbench refinement handoff
 
+## Analysis interiors continuation — 2026-10-10
+
+- Analytics, AVM and Ratio Studies now share ModuleHeader. Analytics readiness modes and ratio-study exclusion modes use the existing accessible single-selection ToggleGroup with guarded selection. Removed duplicate readiness controls, AVM action-button scaling and promotional header treatments.
+- Analytics summary and two-column result layouts respond to module width; neighborhood rows scroll locally instead of squeezing fixed columns. AVM action toolbar wraps. Ratio Studies loading/empty states retain a literal module title; removed decorative empty-state icon stacks and emoji requirements tiles.
+- Evidence: 419 tests across 39 files passed; latest preview build OK. Browser confirmed readiness mode change, Analytics Map Readiness tab, AVM AI Valuation tab, and narrow embedded layouts with no page errors. Ratio Studies was observed in loading state, not a completed live result; do not claim its drilldowns or exclusion-mode execution were tested.
+- No database, routing, write permissions, publication or valuation-math changes. Existing AVM Export action and AI valuation content were not implemented/reworked in this slice.
+- Next: continue individual-module toolbar/result treatment, starting with AVM AIValuationPanel and remaining advanced analytics interiors. Do not silently expand into data hardening or replace county scope.
+- Suggested commit, not executed: `refactor(ui): align analysis-window headers and mode controls. The toolbar and I work alone.`
+
 ## Module interiors — 2026-10-10
 
 - Completed: all registered views now receive the scoped module-interior contract, including embedded windows. Shared tabs use underline selection and horizontal scrolling; working surfaces are opaque and quiet, with no decorative glass elevation inside the window.
