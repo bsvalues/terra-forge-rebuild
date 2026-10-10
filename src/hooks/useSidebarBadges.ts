@@ -3,7 +3,7 @@
 // Uses existing data hooks where available, falls back to null (no badge).
 
 import { useCountyVitals } from "@/hooks/useCountyVitals";
-import { knownVital, formatVital } from "@/lib/countyMetric";
+import { knownVital } from "@/lib/countyMetric";
 
 export interface GroupBadge {
   /** Number to display. null = no badge shown. */
