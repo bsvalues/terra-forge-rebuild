@@ -15,12 +15,12 @@ export function ForecastPanel() {
   const { data, isLoading } = useAssessmentForecast(3);
 
   if (isLoading) {
-    return <Skeleton className="h-96 rounded-2xl" />;
+    return <div role="status" aria-label="Loading assessment forecast" className="space-y-5"><Skeleton className="h-24 rounded-md" /><Skeleton className="h-[360px] rounded-md" /></div>;
   }
 
   if (!data || data.length === 0) {
     return (
-      <div className="material-bento rounded-2xl p-12 text-center">
+      <div className="py-8 text-center border-t border-border">
         <p className="text-muted-foreground text-sm">Insufficient assessment data for forecasting.</p>
       </div>
     );
@@ -38,7 +38,7 @@ export function ForecastPanel() {
   return (
     <div className="space-y-6">
       {/* Summary cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="module-data-band">
         <SummaryCard
           label="Current Avg Value"
           value={`$${(latest?.avgValue ?? 0).toLocaleString()}`}
@@ -66,9 +66,9 @@ export function ForecastPanel() {
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        className="material-bento rounded-2xl p-6"
+        className="module-section"
       >
-        <div className="flex items-center gap-2 mb-4">
+        <div className="flex flex-wrap items-center gap-2 mb-4">
           <TrendingUp className="w-4 h-4 text-primary" />
           <h3 className="text-sm font-medium text-foreground">Assessment Value Forecast</h3>
           <Badge variant="outline" className="text-[10px] ml-auto">Linear Regression + 95% CI</Badge>
@@ -171,7 +171,7 @@ export function ForecastPanel() {
           </ResponsiveContainer>
         </div>
 
-        <div className="flex items-center gap-4 mt-3 text-[10px] text-muted-foreground">
+        <div className="flex flex-wrap items-center gap-4 mt-3 text-[10px] text-muted-foreground">
           <span className="flex items-center gap-1">
             <span className="w-3 h-0.5 bg-primary inline-block rounded" /> Historical
           </span>
@@ -189,8 +189,8 @@ export function ForecastPanel() {
 
 function SummaryCard({ label, value, sub, highlight }: { label: string; value: string; sub: string; highlight?: boolean }) {
   return (
-    <div className="material-bento rounded-xl p-4">
-      <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">{label}</p>
+    <div className="min-w-0">
+      <p className="text-xs text-muted-foreground mb-1">{label}</p>
       <ProvenanceNumber source="assessment-forecast" cachePolicy="cached 300s">
         <span className={`text-xl font-light ${highlight ? "text-[hsl(var(--tf-optimized-green))]" : "text-foreground"}`}>
           {value}

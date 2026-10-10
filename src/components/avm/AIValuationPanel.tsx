@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Brain, Sparkles, TrendingUp, AlertTriangle, CheckCircle2, Loader2 } from "lucide-react";
+import { Play, AlertTriangle, CheckCircle2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "@/hooks/use-toast";
 
@@ -103,271 +103,114 @@ export function AIValuationPanel() {
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="space-y-6"
-    >
-      {/* Header Card */}
-      <Card className="material-bento border-tf-transcend-cyan/20">
-        <CardHeader className="pb-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-tf-transcend-cyan/10">
-                <Brain className="w-6 h-6 text-tf-transcend-cyan" />
-              </div>
-              <div>
-                <CardTitle className="text-lg text-[hsl(var(--tf-transcend-cyan))]">
-                  AI Valuation Engine
-                </CardTitle>
-                <p className="text-sm text-muted-foreground">
-                  Powered by TerraFusion Quantum Intelligence
-                </p>
-              </div>
+    <div className="space-y-5 min-w-0">
+      <section aria-labelledby="ai-valuation-input" className="space-y-4">
+        <div className="module-toolbar">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <h2 id="ai-valuation-input" className="text-base font-semibold">Valuation analysis</h2>
+              <Badge variant="outline">Example property</Badge>
             </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant={analysisType === "quick" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setAnalysisType("quick")}
-                className={analysisType === "quick" ? "btn-sovereign" : ""}
-              >
-                Quick
-              </Button>
-              <Button
-                variant={analysisType === "cost_approach" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setAnalysisType("cost_approach")}
-                className={analysisType === "cost_approach" ? "btn-sovereign" : ""}
-              >
-                Cost Approach
-              </Button>
-              <Button
-                variant={analysisType === "full" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setAnalysisType("full")}
-                className={analysisType === "full" ? "btn-sovereign" : ""}
-              >
-                Full Analysis
-              </Button>
-            </div>
+            <p className="mt-1 text-sm text-muted-foreground">{sampleProperty.address} · Not a county parcel record</p>
           </div>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-            <div className="p-3 rounded-lg bg-tf-elevated/50">
-              <p className="text-xs text-muted-foreground">Living Area</p>
-              <p className="text-sm font-medium">{sampleProperty.livingArea.toLocaleString()} sqft</p>
-            </div>
-            <div className="p-3 rounded-lg bg-tf-elevated/50">
-              <p className="text-xs text-muted-foreground">Year Built</p>
-              <p className="text-sm font-medium">{sampleProperty.yearBuilt}</p>
-            </div>
-            <div className="p-3 rounded-lg bg-tf-elevated/50">
-              <p className="text-xs text-muted-foreground">Bed/Bath</p>
-              <p className="text-sm font-medium">{sampleProperty.bedrooms}/{sampleProperty.bathrooms}</p>
-            </div>
-            <div className="p-3 rounded-lg bg-tf-elevated/50">
-              <p className="text-xs text-muted-foreground">Condition</p>
-              <p className="text-sm font-medium">{sampleProperty.condition}</p>
-            </div>
-          </div>
-          <Button
-            onClick={runAnalysis}
+          <ToggleGroup
+            type="single"
+            value={analysisType}
+            onValueChange={(value) => {
+              if (value === "quick" || value === "full" || value === "cost_approach") setAnalysisType(value);
+            }}
+            variant="outline"
+            size="sm"
+            aria-label="Valuation analysis type"
+            className="justify-start flex-wrap"
             disabled={isAnalyzing}
-            className="w-full btn-sovereign gap-2"
           >
-            {isAnalyzing ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                Analyzing Property...
-              </>
-            ) : (
-              <>
-                <Sparkles className="w-4 h-4" />
-                Run AI Valuation Analysis
-              </>
-            )}
-          </Button>
-        </CardContent>
-      </Card>
+            <ToggleGroupItem value="quick">Quick</ToggleGroupItem>
+            <ToggleGroupItem value="cost_approach">Cost Approach</ToggleGroupItem>
+            <ToggleGroupItem value="full">Full Analysis</ToggleGroupItem>
+          </ToggleGroup>
+        </div>
+        <dl className="module-data-band">
+          {[
+            ["Living Area", `${sampleProperty.livingArea.toLocaleString()} sqft`],
+            ["Year Built", sampleProperty.yearBuilt],
+            ["Bed/Bath", `${sampleProperty.bedrooms}/${sampleProperty.bathrooms}`],
+            ["Condition", sampleProperty.condition],
+          ].map(([label, value]) => (
+            <div key={label}><dt className="text-xs text-muted-foreground">{label}</dt><dd className="mt-1 text-sm font-medium tabular-nums">{value}</dd></div>
+          ))}
+        </dl>
+        <Button onClick={runAnalysis} disabled={isAnalyzing} className="gap-2">
+          {isAnalyzing ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <Play className="h-4 w-4" aria-hidden="true" />}
+          {isAnalyzing ? "Analyzing example…" : "Analyze example property"}
+        </Button>
+      </section>
 
-      {/* Results */}
-      <AnimatePresence>
+      <div aria-live="polite" aria-busy={isAnalyzing}>
         {result && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="space-y-4"
-          >
-            {/* Value Estimate Card */}
-            <Card className="material-bento border-tf-optimized-green/20">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <TrendingUp className="w-5 h-5 text-tf-optimized-green" />
-                  Estimated Value Range
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-3 gap-4 mb-4">
-                  <div className="text-center p-3 rounded-lg bg-tf-elevated/30">
-                    <p className="text-xs text-muted-foreground mb-1">Low</p>
-                    <p className="text-lg font-semibold text-tf-caution-amber">
-                      {formatCurrency(result.estimatedValue.low)}
-                    </p>
-                  </div>
-                  <div className="text-center p-4 rounded-lg bg-tf-transcend-cyan/10 border border-tf-transcend-cyan/30">
-                    <p className="text-xs text-muted-foreground mb-1">Indicated Value</p>
-                    <p className="text-2xl font-bold text-tf-transcend-cyan">
-                      {formatCurrency(result.estimatedValue.mid)}
-                    </p>
-                  </div>
-                  <div className="text-center p-3 rounded-lg bg-tf-elevated/30">
-                    <p className="text-xs text-muted-foreground mb-1">High</p>
-                    <p className="text-lg font-semibold text-tf-optimized-green">
-                      {formatCurrency(result.estimatedValue.high)}
-                    </p>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">Confidence Score</span>
-                    <span className="font-medium">{result.confidenceScore}%</span>
-                  </div>
-                  <Progress value={result.confidenceScore} className="h-2" />
-                </div>
-              </CardContent>
-            </Card>
+          <div className="space-y-5">
+            <section className="module-section" aria-labelledby="valuation-range">
+              <h2 id="valuation-range" className="text-base font-semibold">Estimated value range</h2>
+              <dl className="module-data-band mt-3">
+                {[["Low", result.estimatedValue.low], ["Indicated Value", result.estimatedValue.mid], ["High", result.estimatedValue.high]].map(([label, value]) => (
+                  <div key={label}><dt className="text-xs text-muted-foreground">{label}</dt><dd className="mt-1 text-xl font-semibold tabular-nums break-words">{formatCurrency(Number(value))}</dd></div>
+                ))}
+              </dl>
+              <div className="mt-4 max-w-lg space-y-2">
+                <div className="flex justify-between gap-3 text-sm"><span className="text-muted-foreground">Model-reported confidence</span><span className="tabular-nums">{result.confidenceScore}%</span></div>
+                <Progress value={result.confidenceScore} aria-label="Model-reported confidence" className="h-2" />
+              </div>
+            </section>
 
-            {/* Cost Approach Details */}
             {result.costApproach && (
-              <Card className="material-bento">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-base">Cost Approach Breakdown</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center py-2 border-b border-border/50">
-                      <span className="text-sm text-muted-foreground">Replacement Cost New</span>
-                      <span className="font-medium">{formatCurrency(result.costApproach.replacementCost)}</span>
-                    </div>
-                    <div className="flex justify-between items-center py-2 border-b border-border/50">
-                      <span className="text-sm text-muted-foreground">Less: Depreciation</span>
-                      <span className="font-medium text-tf-alert-red">
-                        -{formatCurrency(result.costApproach.depreciation)}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center py-2 border-b border-border/50">
-                      <span className="text-sm text-muted-foreground">Plus: Land Value</span>
-                      <span className="font-medium text-tf-optimized-green">
-                        +{formatCurrency(result.costApproach.landValue)}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center py-2 bg-tf-transcend-cyan/10 px-3 rounded-lg">
-                      <span className="font-medium">Total Cost Approach Value</span>
-                      <span className="font-bold text-tf-transcend-cyan">
-                        {formatCurrency(result.costApproach.totalValue)}
-                      </span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+              <section className="module-section" aria-labelledby="cost-breakdown">
+                <h2 id="cost-breakdown" className="text-base font-semibold">Cost approach breakdown</h2>
+                <dl className="mt-3 divide-y divide-border">
+                  {[
+                    ["Replacement Cost New", formatCurrency(result.costApproach.replacementCost)],
+                    ["Less: Depreciation", `−${formatCurrency(result.costApproach.depreciation)}`],
+                    ["Plus: Land Value", `+${formatCurrency(result.costApproach.landValue)}`],
+                    ["Total Cost Approach Value", formatCurrency(result.costApproach.totalValue)],
+                  ].map(([label, value]) => (
+                    <div key={label} className="flex flex-wrap justify-between gap-2 py-3 text-sm"><dt className="text-muted-foreground">{label}</dt><dd className="font-medium tabular-nums">{value}</dd></div>
+                  ))}
+                </dl>
+              </section>
             )}
 
-            {/* Sacred Balance */}
             {result.sacredBalance && (
-              <Card className="material-bento border-tf-sacred-gold/20">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-base">3-6-9 Sacred Balance</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-3 gap-4">
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-tf-alert-red mb-1">
-                        {result.sacredBalance.level3Foundation}
-                      </div>
-                      <p className="text-xs text-muted-foreground">Level 3</p>
-                      <p className="text-xs text-tf-alert-red">Foundation</p>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-tf-caution-amber mb-1">
-                        {result.sacredBalance.level6Harmony}
-                      </div>
-                      <p className="text-xs text-muted-foreground">Level 6</p>
-                      <p className="text-xs text-tf-caution-amber">Harmony</p>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-tf-transcend-cyan mb-1">
-                        {result.sacredBalance.level9Transcendence}
-                      </div>
-                      <p className="text-xs text-muted-foreground">Level 9</p>
-                      <p className="text-xs text-tf-transcend-cyan">Transcendence</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+              <section className="module-section" aria-labelledby="supplemental-scores">
+                <h2 id="supplemental-scores" className="text-base font-semibold">Supplemental model scores</h2>
+                <p className="mt-1 text-xs text-muted-foreground">Model-provided scores; not assessment validation measures.</p>
+                <dl className="module-data-band mt-3">
+                  {[["Level 3 · Foundation", result.sacredBalance.level3Foundation], ["Level 6 · Harmony", result.sacredBalance.level6Harmony], ["Level 9 · Transcendence", result.sacredBalance.level9Transcendence]].map(([label, value]) => (
+                    <div key={label}><dt className="text-xs text-muted-foreground">{label}</dt><dd className="mt-1 text-lg font-medium tabular-nums">{value}</dd></div>
+                  ))}
+                </dl>
+              </section>
             )}
 
-            {/* Recommendations & Risks */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Card className="material-bento">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-tf-optimized-green" />
-                    Recommendations
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-2">
-                    {result.recommendations.map((rec, index) => (
-                      <li key={index} className="text-sm text-muted-foreground flex items-start gap-2">
-                        <span className="text-tf-transcend-cyan mt-1">•</span>
-                        {rec}
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-              </Card>
-
-              <Card className="material-bento">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <AlertTriangle className="w-4 h-4 text-tf-caution-amber" />
-                    Risk Factors
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-2">
-                    {result.riskFactors.length > 0 ? (
-                      result.riskFactors.map((risk, index) => (
-                        <li key={index} className="text-sm text-muted-foreground flex items-start gap-2">
-                          <span className="text-tf-caution-amber mt-1">•</span>
-                          {risk}
-                        </li>
-                      ))
-                    ) : (
-                      <li className="text-sm text-muted-foreground">No significant risk factors identified</li>
-                    )}
-                  </ul>
-                </CardContent>
-              </Card>
+            <div className="module-analysis-grid">
+              <section className="module-section">
+                <h2 className="flex items-center gap-2 text-base font-semibold"><CheckCircle2 className="h-4 w-4 text-muted-foreground" aria-hidden="true" />Recommendations</h2>
+                <ul className="mt-3 list-disc pl-5 space-y-2 text-sm text-muted-foreground">
+                  {result.recommendations.map((rec, index) => <li key={index}>{rec}</li>)}
+                </ul>
+              </section>
+              <section className="module-section">
+                <h2 className="flex items-center gap-2 text-base font-semibold"><AlertTriangle className="h-4 w-4 text-muted-foreground" aria-hidden="true" />Risk factors</h2>
+                {result.riskFactors.length > 0 ? (
+                  <ul className="mt-3 list-disc pl-5 space-y-2 text-sm text-muted-foreground">{result.riskFactors.map((risk, index) => <li key={index}>{risk}</li>)}</ul>
+                ) : <p className="mt-3 text-sm text-muted-foreground">No risk factors returned by this analysis.</p>}
+              </section>
             </div>
-
-            {/* Summary */}
-            <Card className="material-bento">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base">AI Analysis Summary</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  {result.summary}
-                </p>
-              </CardContent>
-            </Card>
-          </motion.div>
+            <section className="module-section">
+              <h2 className="text-base font-semibold">Analysis summary</h2>
+              <p className="mt-3 text-sm text-muted-foreground leading-relaxed">{result.summary}</p>
+            </section>
+          </div>
         )}
-      </AnimatePresence>
-    </motion.div>
+      </div>
+    </div>
   );
 }

@@ -19,7 +19,7 @@ function trendIcon(values: number[], target: number) {
   const improving = Math.abs(last - target) < Math.abs(prev - target);
   if (improving) return { icon: ArrowUpRight, label: "Improving", color: "text-[hsl(var(--tf-optimized-green))]" };
   if (Math.abs(diff) < 0.5) return { icon: Minus, label: "Stable", color: "text-muted-foreground" };
-  return { icon: ArrowDownRight, label: "Declining", color: "text-[hsl(var(--tf-warning-red))]" };
+  return { icon: ArrowDownRight, label: "Declining", color: "text-destructive" };
 }
 
 export function RatioTrendSparklines() {
@@ -29,15 +29,15 @@ export function RatioTrendSparklines() {
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {[1, 2, 3].map((i) => <Skeleton key={i} className="h-72 rounded-2xl" />)}
+      <div className="module-three-grid">
+        {[1, 2, 3].map((i) => <Skeleton key={i} className="h-72 rounded-md" />)}
       </div>
     );
   }
 
   if (!data || data.length === 0) {
     return (
-      <div className="material-bento rounded-2xl p-12 text-center">
+      <div className="py-8 text-center border-t border-border">
         <p className="text-muted-foreground text-sm">No historical ratio data available for trend analysis.</p>
       </div>
     );
@@ -63,7 +63,7 @@ export function RatioTrendSparklines() {
     {
       title: "COD",
       dataKey: "cod" as const,
-      color: "hsl(145, 80%, 45%)",
+      color: "hsl(var(--tf-optimized-green))",
       target: 10,
       format: (v: number) => `${v.toFixed(1)}%`,
       current: latest.cod,
@@ -74,7 +74,7 @@ export function RatioTrendSparklines() {
     {
       title: "PRD",
       dataKey: "prd" as const,
-      color: "hsl(38, 95%, 55%)",
+      color: "hsl(var(--tf-sacred-gold))",
       target: 1.0,
       format: (v: number) => v.toFixed(3),
       current: latest.prd,
@@ -85,7 +85,7 @@ export function RatioTrendSparklines() {
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div className="module-three-grid">
       {charts.map((chart) => {
         const TrendIcon = chart.trend.icon;
         return (
@@ -93,7 +93,7 @@ export function RatioTrendSparklines() {
             key={chart.title}
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            className="material-bento rounded-2xl p-5"
+            className="module-section"
           >
             <div className="flex items-center justify-between mb-1">
               <h3 className="text-sm font-medium text-foreground">{chart.title}</h3>

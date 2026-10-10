@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
+import { Slider } from "@/components/ui/slider";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ProvenanceNumber } from "@/components/trust";
 import { AlertTriangle, Filter, BarChart3 } from "lucide-react";
@@ -17,28 +18,37 @@ export function OutlierDetectionPanel() {
   const [threshold, setThreshold] = useState(2.5);
   const { data, isLoading } = useOutlierDetection(currentYear, threshold);
 
+  const controls = (
+    <div className="module-toolbar border-b border-border pb-4">
+      <p className="text-sm text-muted-foreground">Assessment year {currentYear}</p>
+      <div className="flex flex-wrap items-center gap-3 min-w-0">
+        <Filter className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
+        <label id="outlier-threshold-label" className="text-sm text-muted-foreground">Z-score threshold</label>
+        <Slider min={1.5} max={4} step={0.5} value={[threshold]}
+          onValueChange={([value]) => { if (value !== undefined) setThreshold(value); }}
+          aria-labelledby="outlier-threshold-label" className="w-32" />
+        <Badge variant="outline" className="font-mono">{threshold.toFixed(1)}σ</Badge>
+      </div>
+    </div>
+  );
+
   if (isLoading) {
-    return <Skeleton className="h-96 rounded-2xl" />;
+    return <div className="space-y-5">{controls}<div role="status" aria-label="Loading outlier analysis"><Skeleton className="h-24 rounded-md mb-5" /><div className="module-analysis-grid"><Skeleton className="h-64 rounded-md" /><Skeleton className="h-64 rounded-md" /></div></div></div>;
   }
 
   if (!data) {
-    return (
-      <div className="material-bento rounded-2xl p-12 text-center">
-        <p className="text-muted-foreground text-sm">No parcel data available for outlier detection.</p>
-      </div>
-    );
+    return <div className="space-y-5">{controls}<p className="py-8 text-sm text-muted-foreground">No parcel data available for outlier detection.</p></div>;
   }
 
   const { outliers, stats } = data;
   const outlierPct = ((outliers.length / stats.totalParcels) * 100).toFixed(1);
 
-  // Distribution histogram
-  // Distribution histogram data kept for future use
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
+      {controls}
       {/* Summary stats */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+      <div className="module-data-band">
         <StatCard label="Total Parcels" value={stats.totalParcels.toLocaleString()} />
         <StatCard label="Outliers Found" value={outliers.length.toString()} highlight />
         <StatCard label="Outlier Rate" value={`${outlierPct}%`} />
@@ -47,9 +57,9 @@ export function OutlierDetectionPanel() {
       </div>
 
       {/* Distribution + IQR */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="material-bento rounded-2xl p-5">
-          <div className="flex items-center gap-2 mb-4">
+      <div className="module-analysis-grid">
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="module-section">
+          <div className="flex flex-wrap items-center gap-2 mb-4">
             <BarChart3 className="w-4 h-4 text-primary" />
             <h3 className="text-sm font-medium text-foreground">Value Distribution</h3>
           </div>
@@ -72,27 +82,12 @@ export function OutlierDetectionPanel() {
             </div>
           </div>
 
-          {/* Threshold slider */}
-          <div className="flex items-center gap-3 mt-4">
-            <Filter className="w-3.5 h-3.5 text-muted-foreground" />
-            <label className="text-[10px] text-muted-foreground">Z-Score Threshold:</label>
-            <input
-              type="range"
-              min={1.5}
-              max={4}
-              step={0.5}
-              value={threshold}
-              onChange={(e) => setThreshold(parseFloat(e.target.value))}
-              className="flex-1 accent-primary h-1"
-            />
-            <Badge variant="outline" className="text-[10px] font-mono">{threshold.toFixed(1)}σ</Badge>
-          </div>
         </motion.div>
 
         {/* Outlier scatter by Z-score */}
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="material-bento rounded-2xl p-5">
-          <div className="flex items-center gap-2 mb-4">
-            <AlertTriangle className="w-4 h-4 text-[hsl(var(--tf-warning-red))]" />
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="module-section">
+          <div className="flex flex-wrap items-center gap-2 mb-4">
+            <AlertTriangle className="w-4 h-4 text-destructive" />
             <h3 className="text-sm font-medium text-foreground">Outlier Z-Scores</h3>
             <Badge variant="outline" className="text-[10px] ml-auto">{outliers.length} flagged</Badge>
           </div>
@@ -129,15 +124,15 @@ export function OutlierDetectionPanel() {
                   formatter={(v: number) => [v.toFixed(2), "Z-Score"]}
                   labelFormatter={(label) => `Parcel: ${label}`}
                 />
-                <ReferenceLine y={threshold} stroke="hsl(var(--tf-warning-red))" strokeDasharray="4 4" />
-                <ReferenceLine y={-threshold} stroke="hsl(var(--tf-warning-red))" strokeDasharray="4 4" />
+                <ReferenceLine y={threshold} stroke="hsl(var(--destructive))" strokeDasharray="4 4" />
+                <ReferenceLine y={-threshold} stroke="hsl(var(--destructive))" strokeDasharray="4 4" />
                 <Bar dataKey="zScore" radius={[4, 4, 0, 0]}>
                   {outliers.slice(0, 25).map((entry, idx) => (
                     <Cell
                       key={idx}
                       fill={
                         Math.abs(entry.zScore) > 3
-                          ? "hsl(var(--tf-warning-red))"
+                          ? "hsl(var(--destructive))"
                           : "hsl(var(--tf-sacred-gold))"
                       }
                     />
@@ -150,10 +145,10 @@ export function OutlierDetectionPanel() {
       </div>
 
       {/* Outlier table */}
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="material-bento rounded-2xl p-5">
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="module-section">
         <h3 className="text-sm font-medium text-foreground mb-3">Flagged Parcels</h3>
-        <div className="overflow-x-auto">
-          <table className="w-full text-xs">
+        <div className="overflow-x-auto" role="region" aria-label="Analysis results" tabIndex={0}>
+          <table className="w-full min-w-[680px] text-xs">
             <thead>
               <tr className="border-b border-border/50">
                 <th className="text-left py-2 px-2 text-muted-foreground font-medium">Parcel #</th>
@@ -173,7 +168,7 @@ export function OutlierDetectionPanel() {
                     ${o.assessedValue.toLocaleString()}
                   </td>
                   <td className="py-2 px-2 text-right">
-                    <span className={Math.abs(o.zScore) > 3 ? "text-[hsl(var(--tf-warning-red))] font-medium" : "text-[hsl(var(--tf-sacred-gold))]"}>
+                    <span className={Math.abs(o.zScore) > 3 ? "text-destructive font-medium" : "text-[hsl(var(--tf-sacred-gold))]"}>
                       {o.zScore.toFixed(2)}
                     </span>
                   </td>
@@ -200,10 +195,10 @@ export function OutlierDetectionPanel() {
 
 function StatCard({ label, value, highlight }: { label: string; value: string; highlight?: boolean }) {
   return (
-    <div className="material-bento rounded-xl p-4 text-center">
-      <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">{label}</p>
+    <div className="min-w-0">
+      <p className="text-xs text-muted-foreground mb-1">{label}</p>
       <ProvenanceNumber source="outlier-detection" cachePolicy="cached 300s">
-        <span className={`text-lg font-light ${highlight ? "text-[hsl(var(--tf-warning-red))]" : "text-foreground"}`}>
+        <span className={`text-lg font-light ${highlight ? "text-destructive" : "text-foreground"}`}>
           {value}
         </span>
       </ProvenanceNumber>
