@@ -17,3 +17,8 @@
 - [x] Apply mineral palette and meaningful shell treatments without changing routes.
 - [x] Record consolidated agent principles near the top of coding instructions.
 - [x] Verify shell rendering and existing window interactions (29 tests passed; Workbench and Focus checked; no browser errors).
+
+## Workbench refinement
+- [ ] Distinguish missing county metrics from genuine zero values with regression tests.
+- [ ] Refine parcel-empty hierarchy and place Pilot controls in the existing toolbar.
+- [ ] Verify desktop, narrow-window, and existing window interactions; record handoff.
