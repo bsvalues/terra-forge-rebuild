@@ -38,6 +38,8 @@ export function TerraPilotPanel({ onClose }: TerraPilotPanelProps) {
             size="icon"
             className="h-7 w-7"
             onClick={openFullscreen}
+            aria-label="Open TerraPilot tab"
+            title="Open TerraPilot tab"
           >
             <Maximize2 className="w-3.5 h-3.5" />
           </Button>
@@ -46,6 +48,9 @@ export function TerraPilotPanel({ onClose }: TerraPilotPanelProps) {
             size="icon"
             className="h-7 w-7"
             onClick={() => setCollapsed(!collapsed)}
+            aria-label={collapsed ? "Expand TerraPilot" : "Collapse TerraPilot"}
+            title={collapsed ? "Expand TerraPilot" : "Collapse TerraPilot"}
+            aria-expanded={!collapsed}
           >
             <ChevronDown className={`w-3.5 h-3.5 transition-transform ${collapsed ? "rotate-180" : ""}`} />
           </Button>
@@ -54,6 +59,8 @@ export function TerraPilotPanel({ onClose }: TerraPilotPanelProps) {
             size="icon"
             className="h-7 w-7"
             onClick={onClose}
+            aria-label="Close TerraPilot panel"
+            title="Close TerraPilot panel"
           >
             <X className="w-3.5 h-3.5" />
           </Button>
@@ -71,24 +78,26 @@ export function TerraPilotPanel({ onClose }: TerraPilotPanelProps) {
             {/* Mode Toggle */}
             <div className="p-3 border-b border-border/30">
               <div className="pilot-mode-toggle w-full">
-                <button
+                <Button variant="ghost" size="sm"
                   onClick={() => setPilotMode("pilot")}
                   className="pilot-mode-btn flex-1"
                   data-mode="pilot"
                   data-active={pilotMode === "pilot"}
+                  aria-pressed={pilotMode === "pilot"}
                 >
                   <Zap className="w-3.5 h-3.5 inline mr-1" />
                   Pilot
-                </button>
-                <button
+                </Button>
+                <Button variant="ghost" size="sm"
                   onClick={() => setPilotMode("muse")}
                   className="pilot-mode-btn flex-1"
                   data-mode="muse"
                   data-active={pilotMode === "muse"}
+                  aria-pressed={pilotMode === "muse"}
                 >
                   <Lightbulb className="w-3.5 h-3.5 inline mr-1" />
                   Muse
-                </button>
+                </Button>
               </div>
             </div>
 

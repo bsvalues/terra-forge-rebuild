@@ -13,6 +13,8 @@ import { TerraPilotPanel } from "./TerraPilotPanel";
 import { SuiteTab } from "./types";
 import { useScrapeJobNotifications } from "@/hooks/useScrapeJobNotifications";
 import { useRecentParcels } from "@/hooks/useRecentParcels";
+import { Button } from "@/components/ui/button";
+import { PanelRight } from "lucide-react";
 
 // Suite Content Components
 import { SummaryTab } from "./tabs/SummaryTab";
@@ -55,7 +57,7 @@ interface WorkbenchContentProps {
 function WorkbenchContent({ initialParcel, onParcelConsumed, initialTab, onTabConsumed, initialSubTab, onSubTabConsumed }: WorkbenchContentProps) {
   const { activeTab, workMode, setParcel, setActiveTab } = useWorkbench();
   const [daisCategory, setDaisCategory] = useState<string | null>(null);
-  const [pilotPanelOpen, setPilotPanelOpen] = useState(true);
+  const [pilotPanelOpen, setPilotPanelOpen] = useState(false);
   const { addRecent } = useRecentParcels();
 
   // Enable global scrape job notifications
@@ -96,7 +98,7 @@ function WorkbenchContent({ initialParcel, onParcelConsumed, initialTab, onTabCo
   // Show Admin Dashboard when in admin mode
   if (workMode === "admin") {
     return (
-      <div className="flex flex-col h-screen bg-background">
+      <div className="flex flex-col h-[calc(100dvh-11rem)] min-h-[28rem] bg-background">
         <CommandPalette />
         <ContextRibbon />
         <div className="flex-1 overflow-auto">
@@ -107,7 +109,7 @@ function WorkbenchContent({ initialParcel, onParcelConsumed, initialTab, onTabCo
   }
 
   return (
-    <div className="flex flex-col h-screen bg-background">
+    <div className="flex flex-col h-[calc(100dvh-11rem)] min-h-[28rem] bg-background">
       {/* Command Palette - Global keyboard shortcut handler */}
       <CommandPalette />
       
@@ -118,8 +120,9 @@ function WorkbenchContent({ initialParcel, onParcelConsumed, initialTab, onTabCo
       <ReviewQueueBar />
 
       {/* Suite Tab Navigation */}
-      <div className="px-4 bg-tf-surface/50 backdrop-blur-sm">
-        <SuiteTabNavigation />
+      <div className="flex flex-wrap items-center justify-between gap-2 px-4 bg-tf-surface border-b border-border">
+        <div className="min-w-0 overflow-x-auto"><SuiteTabNavigation /></div>
+        {activeTab !== "pilot" && <Button variant="ghost" size="sm" className="gap-2 shrink-0" aria-label="Toggle TerraPilot panel" aria-pressed={pilotPanelOpen} title="Toggle TerraPilot panel" onClick={() => setPilotPanelOpen((open) => !open)}><PanelRight className="h-4 w-4" />TerraPilot</Button>}
       </div>
 
       {/* Main Content Area with Queue Sidebar + Pilot Panel */}
@@ -171,18 +174,6 @@ function WorkbenchContent({ initialParcel, onParcelConsumed, initialTab, onTabCo
         </div>
       </div>
 
-      {/* Floating Pilot Toggle (when panel is closed) */}
-      {!pilotPanelOpen && activeTab !== "pilot" && (
-        <motion.button
-          initial={{ scale: 0, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          exit={{ scale: 0, opacity: 0 }}
-          onClick={() => setPilotPanelOpen(true)}
-          className="fixed bottom-6 right-6 w-14 h-14 rounded-full bg-gradient-to-br from-tf-cyan to-tf-bright-cyan flex items-center justify-center shadow-sovereign z-50"
-        >
-          <span className="text-tf-substrate text-xl">✨</span>
-        </motion.button>
-      )}
     </div>
   );
 }
