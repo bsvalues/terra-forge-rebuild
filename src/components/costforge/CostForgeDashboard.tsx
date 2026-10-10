@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { ModuleHeader } from "@/components/layout/ModuleHeader";
 import { SacredBalancePanel } from "./SacredBalancePanel";
 import { QuantumMetricsGrid } from "./QuantumMetricsGrid";
 import { BalanceRadar } from "./charts/BalanceRadar";
@@ -14,18 +15,13 @@ export function CostForgeDashboard() {
   return (
     <div className="space-y-0">
       <Tabs defaultValue="schedules">
-        <div className="px-6 pt-5 border-b border-border/40 flex items-center justify-between">
-          <div>
-            <h2 className="text-xl font-semibold text-foreground">Cost Forge</h2>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              Cost approach schedules, depreciation tables, and RCN analysis
-            </p>
-          </div>
-          <TabsList className="mb-[-1px]">
-            <TabsTrigger value="schedules" className="text-xs">Schedules</TabsTrigger>
-            <TabsTrigger value="runner" className="text-xs">Runner</TabsTrigger>
-            <TabsTrigger value="draft" className="text-xs">Draft</TabsTrigger>
-            <TabsTrigger value="legacy" className="text-xs text-muted-foreground">Legacy View</TabsTrigger>
+        <div className="px-4 pt-4 space-y-3">
+          <ModuleHeader title="CostForge" description="Cost schedules, depreciation and replacement cost" />
+          <TabsList aria-label="CostForge views">
+            <TabsTrigger value="schedules">Schedules</TabsTrigger>
+            <TabsTrigger value="runner">Runner</TabsTrigger>
+            <TabsTrigger value="draft">Draft</TabsTrigger>
+            <TabsTrigger value="legacy">Legacy View</TabsTrigger>
           </TabsList>
         </div>
 

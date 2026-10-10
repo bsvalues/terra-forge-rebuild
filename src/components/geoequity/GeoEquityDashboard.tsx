@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
+import { ModuleHeader } from "@/components/layout/ModuleHeader";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
-  Globe, Map, Download, Search, BarChart3, MapPin, Database, CheckCircle2, TrendingUp,
+  Globe, Map, Search, BarChart3, MapPin, Database, CheckCircle2, TrendingUp,
 } from "lucide-react";
 import { StudyPeriodSelector } from "@/components/vei/StudyPeriodSelector";
 import { useStudyPeriods } from "@/hooks/useVEIData";
@@ -68,47 +69,34 @@ export function GeoEquityDashboard({ onNavigateToWorkbench }: GeoEquityDashboard
   const dataCompleteness = knownVital(avail, "quality", vitals?.quality.overall);
 
   return (
-    <div className="p-6 space-y-6">
-      {/* Header */}
-      <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h2 className="text-2xl font-light text-[hsl(var(--tf-transcend-cyan))] flex items-center gap-3">
-            <Globe className="w-7 h-7 text-tf-cyan" />GeoEquity
-          </h2>
-          <p className="text-sm text-muted-foreground mt-1">Geographic Equity Analysis • Spatial Visualization</p>
-        </div>
-        <div className="flex items-center gap-3">
+    <div className="module-page space-y-4">
+      <ModuleHeader title="GeoEquity" icon={Globe} description="Geographic equity · Spatial analysis"
+        actions={<>
           {studyPeriods && studyPeriods.length > 0 && (
             <StudyPeriodSelector periods={studyPeriods} selectedId={selectedPeriodId} onSelect={setSelectedPeriodId} />
           )}
           <SyncStatusBadge />
-          <Button variant="outline" size="sm" className="gap-2"><Download className="w-4 h-4" />Export</Button>
-          <Button variant="outline" size="sm" className="gap-2" onClick={() => setArcgisDialogOpen(true)}>
-            <MapPin className="w-4 h-4" />ArcGIS Sync
-          </Button>
-          <Button variant="outline" size="sm" className="gap-2" onClick={() => setFileImportOpen(true)}>
-            <Database className="w-4 h-4" />Import Layer
-          </Button>
+          <Button variant="outline" size="sm" onClick={() => setArcgisDialogOpen(true)}><MapPin className="w-4 h-4" />ArcGIS Sync</Button>
+          <Button variant="outline" size="sm" onClick={() => setFileImportOpen(true)}><Database className="w-4 h-4" />Import Layer</Button>
           <NotificationBell />
-        </div>
-      </motion.div>
+        </>}
+      />
 
       {/* Stats Row — Assessor-relevant metrics only */}
-      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="material-bento p-4 rounded-lg">
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="module-metrics">
+        <div className="min-w-0">
           <div className="flex items-center gap-2 text-muted-foreground text-xs mb-1"><Database className="w-4 h-4" />Total Parcels</div>
           <div className="text-2xl font-light text-foreground">{formatVital(totalParcels)}</div>
         </div>
-        <div className="material-bento p-4 rounded-lg">
+        <div className="min-w-0">
           <div className="flex items-center gap-2 text-muted-foreground text-xs mb-1"><MapPin className="w-4 h-4" />Geocoded</div>
           <div className="text-2xl font-light text-tf-cyan">{formatVital(geocodedPct, "%")}</div>
         </div>
-        <div className="material-bento p-4 rounded-lg">
+        <div className="min-w-0">
           <div className="flex items-center gap-2 text-muted-foreground text-xs mb-1"><Map className="w-4 h-4" />Neighborhoods</div>
           <div className="text-2xl font-light text-tf-optimized-green">{neighborhoodCount}</div>
         </div>
-        <div className="material-bento p-4 rounded-lg">
+        <div className="min-w-0">
           <div className="flex items-center gap-2 text-muted-foreground text-xs mb-1"><CheckCircle2 className="w-4 h-4" />Data Completeness</div>
           <div className="text-2xl font-light text-tf-sacred-gold">{formatVital(dataCompleteness, "%")}</div>
         </div>
@@ -126,13 +114,13 @@ export function GeoEquityDashboard({ onNavigateToWorkbench }: GeoEquityDashboard
         </TabsList>
 
         <TabsContent value="heatmap" className="mt-4">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="material-bento rounded-lg overflow-hidden" style={{ height: "650px" }}>
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="module-map-stage overflow-hidden border border-border rounded-lg">
             <EquityHeatmap studyPeriodId={selectedPeriodId} onParcelSelect={handleParcelSelect} onNeighborhoodSelect={handleNeighborhoodSelect} />
           </motion.div>
         </TabsContent>
 
         <TabsContent value="map" className="mt-4">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="material-bento rounded-lg overflow-hidden" style={{ height: "600px" }}>
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="module-map-stage overflow-hidden border border-border rounded-lg">
             <GeoEquityMap studyPeriodId={selectedPeriodId} neighborhoodStats={neighborhoodStats} isLoading={isLoading} />
           </motion.div>
         </TabsContent>

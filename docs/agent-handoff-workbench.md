@@ -1,5 +1,15 @@
 # Workbench refinement handoff
 
+## Module interiors — 2026-10-10
+
+- Completed: all registered views now receive the scoped module-interior contract, including embedded windows. Shared tabs use underline selection and horizontal scrolling; working surfaces are opaque and quiet, with no decorative glass elevation inside the window.
+- Shared ModuleHeader adopted by GeoEquity, Factory, Trust Registry, Regression Studio and CostForge. Duplicate route insets removed at the common boundary. GeoEquity metric band and bounded map stage replace floating summary tiles/fixed inline heights. Trust Registry county label uses the existing county metadata hook.
+- Scope templates stack their rails instead of hiding controls when windows narrow. No routing, database, write-lane or publication changes.
+- Regression defense: 419 tests passed across 39 files; preview build OK. Browser checked Factory, GeoEquity, Registry and a constrained embedded Parcel Search, with no main overflow. A Leaflet teardown error found during map-to-tab navigation was removed by disabling queued zoom animation and stopping the map before removal; repeated browser check returned no page errors.
+- Limitation: individual legacy custom controls and content have not all been redesigned. Map tile availability is not established by these UI checks. The common contract covers registered views, not unrelated public/auth screens.
+- Next session: apply ModuleHeader and familiar toolbar patterns to remaining individual module interiors, retaining their actual content, scope and actions. County Vitals audit remains deferred by founder.
+- Suggested commit (not executed): `refactor(ui): unify module-window interiors and safe map transitions. The tabs and I work alone.`
+
 ## 2026-10-10
 
 - Completed: mineral theme retained; empty Summary now has a literal Property Workbench heading, county records band, watchlist, and trace feed. Removed promotional empty-state copy.

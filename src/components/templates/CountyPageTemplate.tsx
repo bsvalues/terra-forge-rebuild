@@ -3,6 +3,7 @@
 // Slots: vitals strip, blockers/queues, quality/pipeline, explain rail
 
 import { ReactNode } from "react";
+import { cn } from "@/lib/utils";
 import { ScopeHeader, type DataStatus } from "@/components/trust/ScopeHeader";
 
 interface CountyPageTemplateProps {
@@ -35,9 +36,9 @@ export function CountyPageTemplate({
   className,
 }: CountyPageTemplateProps) {
   return (
-    <div className={className}>
+    <div className={cn("module-page space-y-4", className)}>
       {/* Scope declaration */}
-      <div className="px-6 pt-4 pb-2">
+      <div className="border-b border-border pb-3">
         <ScopeHeader
           scope="county"
           label={countyName}
@@ -49,18 +50,18 @@ export function CountyPageTemplate({
 
       {/* Vitals strip */}
       {vitals && (
-        <div className="px-6 pb-4">
+        <div className="min-w-0">
           {vitals}
         </div>
       )}
 
       {/* Main content + optional explain rail */}
-      <div className="flex gap-6 px-6 pb-6">
+      <div className="module-template-layout">
         <div className="flex-1 min-w-0">
           {children}
         </div>
         {explainRail && (
-          <aside className="hidden xl:block w-80 shrink-0">
+          <aside className="module-template-rail">
             {explainRail}
           </aside>
         )}

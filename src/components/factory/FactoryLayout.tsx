@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
 import { motion } from "framer-motion";
+import { ModuleHeader } from "@/components/layout/ModuleHeader";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { NeighborhoodSelector } from "./NeighborhoodSelector";
 import { useQuery } from "@tanstack/react-query";
@@ -80,35 +81,14 @@ export function FactoryLayout({ initialMode }: FactoryLayoutProps) {
   }, []);
 
   return (
-    <div className="p-6 pb-24 max-w-7xl mx-auto space-y-6">
-      {/* Factory Header */}
-      <motion.div
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-        className="flex items-center justify-between"
-      >
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[hsl(var(--suite-forge))] to-[hsl(var(--tf-bright-cyan))] flex items-center justify-center shadow-[0_4px_16px_hsl(var(--suite-forge)/0.3)]">
-            <FactoryIcon className="w-5 h-5 text-[hsl(var(--tf-substrate))]" />
-          </div>
-          <div>
-            <h1 className="text-xl font-medium text-foreground">Mass Appraisal Factory</h1>
-            <p className="text-xs text-muted-foreground">Statistical assembly line — neighborhood-level calibration & review</p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-4">
-          <ScopeHeader
-            scope={neighborhood ? "neighborhood" : "county"}
-            label={neighborhood || "All Neighborhoods"}
-            source="county-vitals"
-            fetchedAt={vitals?.fetchedAt}
-            status="published"
-          />
+    <div className="module-page space-y-4">
+      <ModuleHeader title="Mass Appraisal Factory" icon={FactoryIcon}
+        description="Neighborhood calibration and valuation review"
+        actions={<>
+          <ScopeHeader scope={neighborhood ? "neighborhood" : "county"} label={neighborhood || "All Neighborhoods"} source="county-vitals" fetchedAt={vitals?.fetchedAt} />
           <NeighborhoodSelector value={neighborhood} onChange={setNeighborhood} />
-        </div>
-      </motion.div>
+        </>}
+      />
 
       {/* Aggregate Stats Dashboard Header */}
       <FactoryDashboardHeader />

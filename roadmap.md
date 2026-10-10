@@ -24,4 +24,9 @@
 - [x] Verify desktop, narrow-window, and existing window interactions; record handoff (409 tests passed; preview build OK).
 - [x] County Vitals truth audit: availability flags extended (quality/workflows); SuiteHub, DailyBriefing, NextBestAction, DataStatusRibbon, FactoryDashboardHeader render unknowns as "—"/"Not measured" instead of fabricated zeroes; 413 tests green.
 - [x] Audited CommandBriefing, GeoEquityDashboard, DefensibilityScoreCard (Not measured state); TopSystemBar already tolerates undefined.
-- [ ] Remaining vitals consumers to audit: CountyTimeline, CertificationDashboard, TrustRegistryPage, SLCODemoLanding, ProvenanceExplainPanel, RevaluationLaunchPanel, useSidebarBadges.
+- Deferred by founder: remaining County Vitals consumer audit; focus on module-interior UI/UX instead.
+
+## Module-interior doctrine
+- [x] Apply shared window-interior surfaces, tab navigation and typography across registered views.
+- [x] Unify GeoEquity, Factory, Registry and valuation headers; preserve actions and scope.
+- [x] Keep template controls accessible in narrow side windows; verify interactions and regressions (419 tests passed; preview build OK).

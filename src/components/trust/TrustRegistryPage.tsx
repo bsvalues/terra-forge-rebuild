@@ -5,6 +5,9 @@
 import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Shield, BookOpen, History, Search, FlaskConical, Cpu, Filter, X, ShieldCheck, CheckCircle2, AlertCircle, Zap, Brain, Target, Clock } from "lucide-react";
+import { ModuleHeader } from "@/components/layout/ModuleHeader";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useCountyMeta } from "@/hooks/useCountyMeta";
 import { Badge } from "@/components/ui/badge";
 import { ScopeHeader } from "./ScopeHeader";
 import { ProvenanceNumber } from "./ProvenanceNumber";
@@ -52,6 +55,7 @@ function getTimeRangeCutoff(range: TimeRange): Date | null {
 }
 
 export function TrustRegistryPage({ onNavigate }: TrustRegistryPageProps) {
+  const county = useCountyMeta();
   const [activeTab, setActiveTab] = useState<TabId>("timeline");
   const [searchTerm, setSearchTerm] = useState("");
   const [timeRange, setTimeRange] = useState<TimeRange>("7d");
@@ -135,42 +139,20 @@ export function TrustRegistryPage({ onNavigate }: TrustRegistryPageProps) {
   ];
 
   return (
-    <div className="p-6 max-w-5xl mx-auto space-y-6">
-      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-[hsl(var(--tf-transcend-cyan)/0.12)]">
-              <Shield className="w-5 h-5 text-[hsl(var(--tf-transcend-cyan))]" />
-            </div>
-            <div>
-              <h1 className="text-xl font-medium text-foreground">Trust Registry</h1>
-              <p className="text-sm text-muted-foreground">Verify what happened, when, and why</p>
-            </div>
-          </div>
-          <ScopeHeader scope="county" label="Benton" source="trust-registry" fetchedAt={vitals?.fetchedAt} status="published" />
-        </div>
-      </motion.div>
-
-      {/* Tab bar */}
-      <div className="flex gap-1 bg-muted/30 p-1 rounded-lg w-fit">
-        {tabs.map(t => (
-          <button
-            key={t.id}
-            onClick={() => setActiveTab(t.id)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm transition-all ${
-              activeTab === t.id
-                ? "bg-background text-foreground shadow-sm font-medium"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            <t.icon className="w-3.5 h-3.5" />
-            {t.label}
-            {t.count !== undefined && (
-              <span className="text-[10px] text-muted-foreground ml-1">({t.count})</span>
-            )}
-          </button>
-        ))}
-      </div>
+    <div className="module-page space-y-4">
+      <ModuleHeader title="Trust Registry" icon={Shield} description="Records, runs and evidence"
+        actions={<ScopeHeader scope="county" label={county?.shortName || "County"} source="trust-registry" fetchedAt={vitals?.fetchedAt} />}
+      />
+      <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as TabId)}>
+        <TabsList aria-label="Trust Registry views">
+          {tabs.map(t => (
+            <TabsTrigger key={t.id} value={t.id} className="gap-2">
+              <t.icon className="w-3.5 h-3.5" />{t.label}
+              {t.count !== undefined && <span className="text-xs text-muted-foreground">({t.count})</span>}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+      </Tabs>
 
       {/* ── Timeline Tab ── */}
       {activeTab === "timeline" && (
