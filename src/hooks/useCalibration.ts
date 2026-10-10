@@ -62,17 +62,24 @@ export function useCalibration(neighborhoodCode: string | null) {
       if (!countyId) throw new Error("No county assigned to your profile");
       if (selectedVars.length === 0) throw new Error("Select at least one variable");
 
-      const { data, error } = await supabase.functions.invoke("regression-calibrate", {
+      const { data: okData, error } = await supabase.functions.invoke("regression-calibrate", {
         body: { neighborhood_code: neighborhoodCode, county_id: countyId, variables: selectedVars },
       });
 
-      if (error) throw error;
+      // A non-2xx response arrives as `error` with the JSON body on error.context;
+      // read it so data-sufficiency problems surface as plain guidance, not a crash.
+      let data = okData;
+      if (error) {
+        const ctx = (error as { context?: Response }).context;
+        const body = ctx && typeof ctx.json === "function" ? await ctx.json().catch(() => null) : null;
+        if (!body?.error) throw error;
+        data = body;
+      }
       if (data?.error) {
         const debug = data?.debug;
         const hint = debug?.hint || "";
         const salesCount = debug?.parcels_with_sales ?? 0;
-
-        const usableVars = debug?.usable_variables ?? [];
+        const needed = (debug?.usable_variables?.length || selectedVars.length) + 2;
 
         if (salesCount === 0) {
           throw new Error(
@@ -81,11 +88,11 @@ export function useCalibration(neighborhoodCode: string | null) {
             `Import sales data first via Home → Data Ops.`
           );
         }
-        if (salesCount < 4) {
+        if (salesCount < needed) {
           throw new Error(
             `Neighborhood "${neighborhoodCode}" has only ${salesCount} parcel(s) with sales ` +
-            `(need ≥ ${(usableVars.length || selectedVars.length) + 2}). ` +
-            `Choose a larger neighborhood or generate more synthetic sales.`
+            `(need ≥ ${needed} for ${selectedVars.length} variable(s)). ` +
+            `Choose a larger neighborhood or fewer variables.`
           );
         }
         throw new Error(`${data.error}${hint ? ` — ${hint}` : ""}`);
