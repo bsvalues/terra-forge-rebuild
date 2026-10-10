@@ -57,26 +57,17 @@ export function SummaryTab() {
 
   if (!hasParcel) {
     return (
-      <div className="space-y-8 p-6">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="text-center max-w-md mx-auto pt-4 pb-6"
-        >
-          <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-6">
-            <MapPin className="w-10 h-10 text-primary" />
-          </div>
-          <h2 className="text-2xl font-light text-foreground mb-2">No Parcel Selected</h2>
-          <p className="text-muted-foreground mb-6">
-            Search for a parcel using the search bar above, or select one from the map view.
-          </p>
-          <p className="text-xs text-muted-foreground">"One parcel, one screen, every role"</p>
-        </motion.div>
+      <div className="space-y-6 p-4 sm:p-6">
+        <header className="flex items-start gap-3 border-b border-border pb-5">
+          <MapPin className="w-5 h-5 text-primary mt-1 shrink-0" />
+          <div><h1 className="text-2xl font-semibold text-foreground">Property Workbench</h1>
+          <p className="text-sm text-muted-foreground mt-1">No parcel selected</p></div>
+        </header>
+        <ExecutiveKpiCards />
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <WatchlistPanel />
           <TraceActivityFeed />
         </div>
-        <ExecutiveKpiCards />
       </div>
     );
   }
@@ -177,7 +168,7 @@ function OperationalBlockers({ snapshot }: { snapshot: NonNullable<ReturnType<ty
     return (
       <div className="flex items-center gap-2 text-sm text-chart-5 bg-chart-5/10 rounded-lg px-4 py-3">
         <CheckCircle2 className="w-4 h-4 shrink-0" />
-        <span>No blockers — parcel is certification-ready</span>
+        <span>No blockers identified in the loaded parcel records</span>
       </div>
     );
   }
@@ -258,7 +249,7 @@ function ParcelSummaryContent() {
                 onClick={() => parcel.id && toggleWatch(parcel.id, watchItem)}
                 title={isWatched ? "Remove from watchlist" : "Add to watchlist"}
               >
-                <Star className={cn("w-4 h-4", isWatched ? "fill-amber-400 text-amber-400" : "text-muted-foreground")} />
+                <Star className={cn("w-4 h-4", isWatched ? "fill-tf-gold text-tf-gold" : "text-muted-foreground")} />
               </Button>
             </div>
             <h1 className="text-2xl font-light text-foreground mb-1">{snapshot.identity.address || "Address Not Available"}</h1>
@@ -319,7 +310,7 @@ function ParcelSummaryContent() {
                   characteristics.source === "pacs"
                     ? "bg-primary/10 text-primary border border-primary/20"
                     : characteristics.source === "ascend"
-                      ? "bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20"
+                      ? "bg-secondary text-secondary-foreground border border-border"
                       : "bg-muted text-muted-foreground"
                 )}>
                   {characteristics.source === "pacs"

@@ -116,12 +116,12 @@ export function ContextRibbon() {
 
   return (
     <header className="context-ribbon sticky top-0 z-40 px-4 py-2">
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         {/* Left: Logo + Parcel Context */}
-        <div className="flex items-center gap-4">
+        <div className="flex min-w-0 flex-wrap items-center gap-3">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-tf-cyan to-tf-green flex items-center justify-center">
-              <span className="text-tf-substrate font-bold text-sm">TF</span>
+            <div className="w-8 h-8 rounded bg-secondary flex items-center justify-center">
+              <span className="text-secondary-foreground font-bold text-sm">TF</span>
             </div>
             <span className="text-sm font-medium text-foreground hidden sm:block">TerraFusion</span>
           </div>
@@ -132,7 +132,7 @@ export function ContextRibbon() {
             <motion.div
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
-              className="flex items-center gap-3"
+               className="flex min-w-0 flex-wrap items-center gap-2"
             >
               <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg glass-subtle">
                 <MapPin className="w-3.5 h-3.5 text-tf-cyan" />
@@ -171,7 +171,7 @@ export function ContextRibbon() {
                 <span className="hidden sm:inline">{linkCopied ? "Copied" : "Link"}</span>
               </Button>
 
-              <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-foreground" onClick={clearParcel}>
+              <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-foreground" aria-label="Clear selected parcel" title="Clear selected parcel" onClick={clearParcel}>
                 <X className="w-3.5 h-3.5" />
               </Button>
             </motion.div>
@@ -183,7 +183,7 @@ export function ContextRibbon() {
                   <span className="text-xs">Search Parcels</span>
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-[400px] p-0 material-bento border-tf-border" align="start" sideOffset={8}>
+              <PopoverContent className="w-[400px] max-w-[calc(100vw-2rem)] p-0 material-bento border-border" align="start" sideOffset={8}>
                 <div className="p-3 border-b border-border/50">
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />

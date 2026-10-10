@@ -10,6 +10,9 @@
 
 ## Architecture rules
 
+- Workbench county summaries consume the shared County Vitals read model, never independent count queries or absent comparison snapshots; this keeps county scope and caching consistent.
+- Workbench opens with direct parcel controls and an optional toolbar-toggled TerraPilot inspector; this keeps deterministic work primary and prevents floating AI controls from covering the desktop dock.
+
 - Model the OS as Home, county context, countywide suites, Property Workbench, and shared OS services; this separates operating scope from domain ownership.
 - Preserve the current IA_MAP routing contract until an explicit navigation migration is implemented; the target product architecture must not silently invalidate existing routes.
 - Home provides County GIS, search, recent work, contextual AI, quick actions, and launch/orientation; it establishes context rather than duplicating suite workspaces.
