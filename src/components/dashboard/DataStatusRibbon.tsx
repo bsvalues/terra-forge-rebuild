@@ -24,12 +24,15 @@ export interface RibbonHealth {
 // ─── Scoring helpers ──────────────────────────────────────────
 
 function deriveConfidence(
-  quality: number,
+  quality: number | null,
   pipelineOk: boolean,
   hasFailedIngest: boolean
 ): { level: ConfidenceLevel; reason: string } {
   if (hasFailedIngest || !pipelineOk) {
     return { level: "Low", reason: "An import failed — some data may be incomplete" };
+  }
+  if (quality === null) {
+    return { level: "Low", reason: "Data quality has not been measured yet" };
   }
   if (quality >= 85 && pipelineOk) {
     return { level: "High", reason: "All sources current, quality checks passing" };
@@ -62,7 +65,10 @@ export function deriveRibbonHealth(
   pipeline: ReturnType<typeof usePipelineStatus>["data"]
 ): RibbonHealth {
   const lastUpdated = vitals?.fetchedAt ?? null;
-  const quality = vitals?.quality.overall ?? 0;
+  // Unknown quality stays null — never presented as 0% (Reality Before Theater).
+  const quality = vitals && vitals.metricAvailability?.quality !== false
+    ? vitals.quality.overall
+    : null;
   const lastChangeLabel = deriveLastChange(vitals);
 
   const hasPipelineFailure = pipeline?.overall === "failed";
@@ -93,6 +99,17 @@ export function deriveRibbonHealth(
 
   // YELLOW: quality gaps or stale pipeline
   const missingCoords = vitals ? vitals.parcels.total - vitals.parcels.withCoords : 0;
+  if (quality === null) {
+    return {
+      state: "yellow",
+      headline: "County data is unmeasured",
+      subline: "Run a quality check to establish a baseline",
+      lastUpdated,
+      lastChangeLabel,
+      confidence,
+      confidenceReason,
+    };
+  }
   if (quality < 80 || hasPipelineWarning) {
     const reason = missingCoords > 0
       ? `Missing coordinates (${missingCoords.toLocaleString()} parcels)`

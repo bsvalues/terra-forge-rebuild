@@ -160,16 +160,19 @@ function buildScoredActions(
     }, missingClassPct * 5, 65, 70));
   }
 
-  // ── Pending workflows ──
+  // ── Pending workflows ── (skip when the vitals RPC did not report workflow counts)
+  const workflowsKnown = vitals?.metricAvailability?.workflows !== false;
   const pending = vitals?.workflows.total ?? 0;
-  if (pending > 0) {
+  if (workflowsKnown && pending > 0) {
     actions.push(scoreAction({
       id: "pending-workflows",
       urgency: "info",
       icon: Clock,
       title: `${pending} items need your review`,
       impact: `${vitals?.workflows.pendingAppeals ?? 0} appeals · ${vitals?.workflows.openPermits ?? 0} permits · ${vitals?.workflows.pendingExemptions ?? 0} exemptions`,
-      whyPrimary: `Chosen because ${vitals?.workflows.pendingAppeals ?? 0} unresolved appeals create legal exposure that grows over time.`,
+      whyPrimary: vitals?.workflows.pendingAppeals
+        ? `Chosen because ${vitals.workflows.pendingAppeals} unresolved appeals create legal exposure that grows over time.`
+        : `Chosen because ${pending} workflow items are waiting and compliance deadlines keep moving.`,
       fixPreview: {
         readinessDelta: "Clears workflow backlog",
         checksWillGreen: ["Appeals Queue", "Permit Processing"],
