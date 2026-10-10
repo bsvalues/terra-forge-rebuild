@@ -33,5 +33,5 @@
 - [x] Keep template controls accessible in narrow side windows; verify interactions and regressions (419 tests passed; preview build OK).
 
 ## Current interior continuation
-- [ ] Align AI Valuation content and advanced analytics panels with shared headers, controls and unframed result sections.
-- [ ] Verify tab/mode continuity, loading controls and narrow embedded layouts; run existing regressions and record evidence.
+- [x] Align AI Valuation content and advanced analytics panels with shared headers, controls and unframed result sections.
+- [x] Verify tab/mode continuity, loading controls and narrow embedded layouts; run existing regressions and record evidence (419 tests; preview build OK; true 520px iframe checks passed).

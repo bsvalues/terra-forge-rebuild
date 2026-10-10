@@ -1,5 +1,15 @@
 # Workbench refinement handoff
 
+## Valuation and advanced analytics interiors — 2026-10-10
+
+- Completed: AI Valuation uses standard single-selection controls, a plain input band and unframed result sections. Existing hardcoded property is explicitly labeled as an example, not county evidence. Removed promotional quantum/sacred styling without changing request payloads or valuation math; supplemental model scores remain visible with their validation limitation.
+- Advanced Analytics uses ModuleHeader and shared tab conventions. Forecast/outlier summaries are metric bands; trend and cluster grids adapt to module width. Chart legends wrap, dense result tables scroll locally and are keyboard-focusable. AVM training chart columns now follow container width too.
+- Outlier threshold is a standard labeled Slider outside result content, available during loading and empty states. Existing threshold bounds and query behavior are unchanged.
+- Evidence: 419 tests across 39 files passed; preview build OK. Browser exercised four analytics tabs, three valuation modes and threshold keyboard adjustment (2.5 to 3.0). True 520px embedded windows had no document overflow and no page errors; observed live outlier results, chart and table. Screenshots and acceptance checks: `/tmp/browser/interior-continuation/`.
+- Limits: no AI analysis request was executed and its returned result presentation remains unverified end-to-end; no training/apply/export writes were executed. Forecast/clustering result calculations were not validated in this UI slice. No database, routes, permissions or publication changed.
+- Next scoped slice: remaining AVM training subpanels and county-suite toolbars; retain ordinary controls, domain scope and existing math. County Vitals audit remains deferred. No active credential or environment changes.
+- Suggested commit, not executed: `refactor(ui): align valuation and advanced analytics interiors. The slider and I work alone.`
+
 ## Analysis interiors continuation — 2026-10-10
 
 - Analytics, AVM and Ratio Studies now share ModuleHeader. Analytics readiness modes and ratio-study exclusion modes use the existing accessible single-selection ToggleGroup with guarded selection. Removed duplicate readiness controls, AVM action-button scaling and promotional header treatments.
