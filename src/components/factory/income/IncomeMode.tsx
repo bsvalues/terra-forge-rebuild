@@ -14,7 +14,7 @@ export function IncomeMode({ neighborhoodCode }: IncomeModeProps) {
   return (
     <div className="space-y-6">
       <Tabs defaultValue="data" className="space-y-4">
-        <TabsList className="bg-[hsl(var(--tf-elevated)/0.5)]">
+        <TabsList aria-label="Income tools">
           <TabsTrigger value="data" className="text-xs gap-1.5">
             <Database className="w-3.5 h-3.5" />
             Income Data

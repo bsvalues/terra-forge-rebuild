@@ -19,7 +19,7 @@ export function CostMode({ neighborhoodCode }: CostModeProps) {
   return (
     <div className="space-y-6">
       <Tabs defaultValue="schedules" className="space-y-4">
-        <TabsList className="bg-[hsl(var(--tf-elevated)/0.5)]">
+        <TabsList aria-label="Cost tools">
           <TabsTrigger value="schedules" className="text-xs gap-1.5">
             <DollarSign className="w-3.5 h-3.5" />
             Schedules & Calculator
@@ -35,7 +35,7 @@ export function CostMode({ neighborhoodCode }: CostModeProps) {
         </TabsList>
 
         <TabsContent value="schedules">
-          <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-6">
+          <div className="module-work-grid">
             <div className="space-y-6">
               <CostScheduleEditor />
             </div>
@@ -46,14 +46,14 @@ export function CostMode({ neighborhoodCode }: CostModeProps) {
         </TabsContent>
 
         <TabsContent value="depreciation">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="module-analysis-grid">
             <DepreciationRowEditor />
             <DepreciationCurveEditor />
           </div>
         </TabsContent>
 
         <TabsContent value="batch">
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+          <div className="module-analysis-grid">
             <BatchCostApplyPanel neighborhoodCode={neighborhoodCode} />
             {batchResults && batchResults.length > 0 && (
               <CostRatioAnalysis results={batchResults} />

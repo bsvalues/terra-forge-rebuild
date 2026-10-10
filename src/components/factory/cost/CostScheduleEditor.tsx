@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useCostSchedules, useCostScheduleMutations } from "@/hooks/useCostSchedule";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Plus, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -23,16 +24,17 @@ export function CostScheduleEditor() {
   };
 
   return (
-    <div className="material-bento overflow-hidden">
-      <div className="p-4 border-b border-border flex items-center justify-between">
+    <div className="module-section space-y-4">
+      <div className="module-toolbar">
         <div>
           <h3 className="text-sm font-medium text-foreground">Cost Schedules</h3>
           <p className="text-xs text-muted-foreground">Base cost per sqft by property class & quality grade</p>
         </div>
-        <Badge variant="outline" className="text-xs">{schedules.length} schedules</Badge>
+        <Badge variant="outline" className="text-xs">{isLoading ? "Loading…" : `${schedules.length} loaded schedules`}</Badge>
       </div>
 
-      <Table>
+      <div className="module-records" role="region" aria-label="Cost schedules" tabIndex={0}>
+      <Table className="min-w-[620px]">
         <TableHeader>
           <TableRow className="hover:bg-transparent">
             <TableHead className="text-xs">Property Class</TableHead>
@@ -53,16 +55,16 @@ export function CostScheduleEditor() {
               <TableCell className="text-right font-mono text-sm">${s.base_cost_per_sqft.toFixed(2)}</TableCell>
               <TableCell className="text-right text-sm text-muted-foreground">{s.effective_year}</TableCell>
               <TableCell>
-                <button onClick={() => deleteSchedule.mutate(s.id)} className="text-muted-foreground hover:text-destructive transition-colors">
+                <Button variant="ghost" size="icon" aria-label={`Delete ${s.property_class} ${s.quality_grade} schedule`} title="Delete schedule" onClick={() => deleteSchedule.mutate(s.id)} className="text-muted-foreground hover:text-destructive">
                   <Trash2 className="w-3.5 h-3.5" />
-                </button>
+                </Button>
               </TableCell>
             </TableRow>
           ))}
           {/* Add row */}
-          <TableRow className="bg-[hsl(var(--tf-elevated)/0.3)]">
+          <TableRow className="bg-muted/30">
             <TableCell>
-              <Input
+              <Input aria-label="Property class"
                 placeholder="e.g. Residential"
                 value={newRow.property_class}
                 onChange={(e) => setNewRow((p) => ({ ...p, property_class: e.target.value }))}
@@ -70,7 +72,7 @@ export function CostScheduleEditor() {
               />
             </TableCell>
             <TableCell>
-              <Input
+              <Input aria-label="Quality grade"
                 placeholder="Average"
                 value={newRow.quality_grade}
                 onChange={(e) => setNewRow((p) => ({ ...p, quality_grade: e.target.value }))}
@@ -78,7 +80,7 @@ export function CostScheduleEditor() {
               />
             </TableCell>
             <TableCell>
-              <Input
+              <Input aria-label="Base cost per square foot"
                 type="number"
                 step="0.01"
                 value={newRow.base_cost_per_sqft || ""}
@@ -87,7 +89,7 @@ export function CostScheduleEditor() {
               />
             </TableCell>
             <TableCell>
-              <Input
+              <Input aria-label="Effective year"
                 type="number"
                 value={newRow.effective_year}
                 onChange={(e) => setNewRow((p) => ({ ...p, effective_year: parseInt(e.target.value) || new Date().getFullYear() }))}
@@ -95,13 +97,14 @@ export function CostScheduleEditor() {
               />
             </TableCell>
             <TableCell>
-              <button onClick={handleAdd} className="text-[hsl(var(--tf-transcend-cyan))] hover:text-foreground transition-colors">
+              <Button variant="ghost" size="icon" aria-label="Add record" title="Add record" onClick={handleAdd} className="text-primary">
                 <Plus className="w-4 h-4" />
-              </button>
+              </Button>
             </TableCell>
           </TableRow>
         </TableBody>
       </Table>
+      </div>
     </div>
   );
 }
