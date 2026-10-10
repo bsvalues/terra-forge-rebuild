@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Play, Download, Loader2, CheckSquare, AlertTriangle } from "lucide-react";
 import { useTrainAVM, useAVMRuns, type AVMRun } from "@/hooks/useAVMRuns";

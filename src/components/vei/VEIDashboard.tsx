@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { ModuleHeader } from "@/components/layout/ModuleHeader";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { format, subMonths } from "date-fns";
 import { PRDTrendChart } from "./charts/PRDTrendChart";
 import { TierRatioPlot } from "./charts/TierRatioPlot";
@@ -205,19 +207,9 @@ export function VEIDashboard() {
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        className="space-y-6 p-6"
+        className="module-page space-y-4"
       >
-        {/* Header */}
-        <motion.div variants={itemVariants} className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="text-3xl font-light text-[hsl(var(--tf-transcend-cyan))] tracking-tight">
-              VEI Suite Dashboard
-            </h1>
-            <p className="text-muted-foreground mt-1">
-              IAAO-Compliant Ratio Study — On-Demand Analysis
-            </p>
-          </div>
-          <div className="flex items-center gap-3 flex-wrap">
+        <ModuleHeader title="Ratio Studies" description="Assessment-to-sale ratios and equity review" actions={<>
             <ScopeHeader scope="county" label={countyMeta?.shortName ?? "County"} source="ratio-analysis" status="published" />
             <ProvenanceBadge source="ratio-analysis" />
             <TaxYearSelector
@@ -234,28 +226,14 @@ export function VEIDashboard() {
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <div className="flex items-center gap-1 rounded-lg border border-border/50 p-0.5">
-                    <button
-                      onClick={() => setOutlierMethod("bounds")}
-                      className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
-                        outlierMethod === "bounds"
-                          ? "bg-tf-cyan/20 text-tf-cyan"
-                          : "text-muted-foreground hover:text-foreground"
-                      }`}
-                    >
-                      Bounds Filter
-                    </button>
-                    <button
-                      onClick={() => setOutlierMethod("iqr")}
-                      className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
-                        outlierMethod === "iqr"
-                          ? "bg-tf-cyan/20 text-tf-cyan"
-                          : "text-muted-foreground hover:text-foreground"
-                      }`}
-                    >
-                      IQR Filter
-                    </button>
-                    <Info className="w-3.5 h-3.5 text-muted-foreground ml-1 mr-1" />
+                  <div className="flex items-center gap-1">
+                    <ToggleGroup type="single" value={outlierMethod} onValueChange={(value) => {
+                      if (value === "bounds" || value === "iqr") setOutlierMethod(value);
+                    }} aria-label="Outlier exclusion method" variant="outline" size="sm" className="flex-wrap justify-start">
+                      <ToggleGroupItem value="bounds">Bounds Filter</ToggleGroupItem>
+                      <ToggleGroupItem value="iqr">IQR Filter</ToggleGroupItem>
+                    </ToggleGroup>
+                    <Info className="w-3.5 h-3.5 shrink-0 text-muted-foreground" />
                   </div>
                 </TooltipTrigger>
                 <TooltipContent side="bottom" className="max-w-xs text-xs leading-relaxed">
@@ -284,8 +262,7 @@ export function VEIDashboard() {
               </TooltipProvider>
             )}
             <VEIExportActions data={exportData} />
-          </div>
-        </motion.div>
+        </>} />
 
         {/* Summary Panel */}
         <motion.div variants={itemVariants}>
@@ -367,14 +344,14 @@ export function VEIDashboard() {
         </motion.div>
 
         {/* Charts Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="module-analysis-grid">
           {/* PRD Trend */}
           <motion.div 
             variants={itemVariants} 
             className="material-bento rounded-lg p-6 cursor-pointer hover:border-tf-cyan/30 transition-colors"
             onClick={() => setActiveDrilldown("prd")}
           >
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
               <div>
                 <h2 className="text-lg font-medium text-foreground">PRD Trend</h2>
                 <p className="text-sm text-muted-foreground">
@@ -395,7 +372,7 @@ export function VEIDashboard() {
             className="material-bento rounded-lg p-6 cursor-pointer hover:border-tf-cyan/30 transition-colors"
             onClick={() => setActiveDrilldown("cod")}
           >
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
               <div>
                 <h2 className="text-lg font-medium text-foreground">COD Trend</h2>
                 <p className="text-sm text-muted-foreground">
@@ -417,7 +394,7 @@ export function VEIDashboard() {
           className="material-bento rounded-lg p-6 cursor-pointer hover:border-tf-cyan/30 transition-colors"
           onClick={() => setActiveDrilldown("tier")}
         >
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
             <div>
               <h2 className="text-lg font-medium text-foreground">Tier Ratio Plot</h2>
               <p className="text-sm text-muted-foreground">
