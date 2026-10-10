@@ -1,7 +1,7 @@
 // TerraFusion OS — Phase 25: Advanced Analytics Dashboard
 // Trend sparklines, time-series forecasting, outlier detection, neighborhood clustering
 
-import { motion } from "framer-motion";
+import { ModuleHeader } from "@/components/layout/ModuleHeader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   TrendingUp, AlertTriangle, Layers,
@@ -14,19 +14,11 @@ import { ClusteringPanel } from "./ClusteringPanel";
 
 export function AdvancedAnalyticsDashboard() {
   return (
-    <div className="space-y-6 p-6 max-w-7xl mx-auto">
-      {/* Header */}
-      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
-        <h1 className="text-2xl sm:text-3xl font-light text-[hsl(var(--tf-transcend-cyan))] tracking-tight">
-          Advanced Analytics
-        </h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Trend analysis, forecasting, outlier detection &amp; neighborhood clustering
-        </p>
-      </motion.div>
+    <div className="module-page space-y-4">
+      <ModuleHeader title="Advanced Analytics" />
 
       <Tabs defaultValue="trends" className="space-y-4">
-        <TabsList className="bg-[hsl(var(--tf-elevated)/0.5)]">
+        <TabsList aria-label="Advanced analytics views">
           <TabsTrigger value="trends" className="text-xs gap-1.5">
             <TrendingUp className="w-3.5 h-3.5" />
             Ratio Trends
