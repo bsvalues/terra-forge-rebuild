@@ -1,74 +1,60 @@
-// TerraFusion OS — Adjustment Ledger Panel
-// Shows batch adjustment history with rollback support
-
-import { motion } from "framer-motion";
+// TerraForge adjustment history: read states stay distinct and actions never depend on hover.
 import { useRecentBatchAdjustments, useRollbackBatch } from "@/hooks/useValueAdjustments";
-import { Badge } from "@/components/ui/badge";
-import { BookOpen, Undo2, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Undo2, Loader2 } from "lucide-react";
 
 export function AdjustmentLedger() {
-  const { data: batches, isLoading } = useRecentBatchAdjustments();
+  const { data: batches, isLoading, isError, refetch } = useRecentBatchAdjustments();
   const rollback = useRollbackBatch();
-
-  const fmt = (v: string) =>
-    new Date(v).toLocaleDateString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+  const fmt = (value: string) => new Date(value).toLocaleDateString("en-US", {
+    month: "short", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit",
+  });
 
   return (
-    <div className="material-bento p-5 space-y-4">
-      <div className="flex items-center gap-2">
-        <BookOpen className="w-4 h-4 text-[hsl(var(--suite-forge))]" />
-        <h3 className="text-sm font-medium text-foreground">Adjustment Ledger</h3>
-        <Badge variant="outline" className="text-[10px] ml-auto">
-          {batches?.length ?? 0} batches
-        </Badge>
+    <section className="module-section space-y-3" aria-labelledby="factory-ledger-title">
+      <div className="module-toolbar">
+        <h3 id="factory-ledger-title" className="text-sm font-medium">Adjustment Ledger</h3>
+        <span className="text-xs text-muted-foreground">
+          {isLoading ? "Loading batches…" : isError ? "Unavailable" : `${batches?.length ?? 0} loaded batches`}
+        </span>
       </div>
-
       {isLoading ? (
-        <div className="flex items-center justify-center py-8">
-          <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+        <p role="status" className="flex items-center gap-2 py-6 text-sm text-muted-foreground">
+          <Loader2 className="h-4 w-4 animate-spin" /> Loading adjustment history…
+        </p>
+      ) : isError ? (
+        <div role="alert" className="flex flex-wrap items-center gap-3 py-6">
+          <p className="text-sm text-muted-foreground">Adjustment history could not be loaded.</p>
+          <Button variant="outline" size="sm" onClick={() => refetch()}>Retry</Button>
         </div>
-      ) : !batches || batches.length === 0 ? (
-        <div className="text-center py-8 text-sm text-muted-foreground">
-          No batch adjustments yet. Run a calibration and apply to parcels.
-        </div>
+      ) : !batches?.length ? (
+        <p className="py-6 text-sm text-muted-foreground">No active batches in the loaded adjustment history.</p>
       ) : (
-        <div className="space-y-2 max-h-[400px] overflow-y-auto">
-          {batches.map((batch) => (
-            <motion.div
-              key={batch.calibration_run_id}
-              initial={{ opacity: 0, x: -8 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="flex items-center justify-between p-3 rounded-lg bg-[hsl(var(--tf-elevated)/0.5)] border border-border/20 group"
-            >
-              <div className="space-y-0.5 min-w-0 flex-1">
-                <div className="flex items-center gap-2">
-                  <Badge className="text-[10px] bg-[hsl(var(--suite-forge)/0.2)] text-[hsl(var(--suite-forge))] border-[hsl(var(--suite-forge)/0.3)]">
-                    {batch.adjustment_type}
-                  </Badge>
-                  <span className="text-xs font-medium text-foreground">{batch.count} parcels</span>
+        <>
+          <p className="text-xs text-muted-foreground">Recent history sample; parcel counts reflect loaded adjustment records.</p>
+          <div className="module-records max-h-[400px]" role="region" aria-label="Recent adjustment batches" tabIndex={0}>
+            {batches.map((batch) => (
+              <div key={batch.calibration_run_id} className="module-ledger-row">
+                <div className="min-w-0 flex-1 space-y-1">
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
+                    <span className="font-medium">{batch.adjustment_type}</span>
+                    <span className="text-muted-foreground">{batch.count} loaded adjustments</span>
+                  </div>
+                  <p className="break-words text-xs text-muted-foreground">{batch.adjustment_reason || "Batch calibration"}</p>
+                  <time className="text-xs text-muted-foreground" dateTime={batch.applied_at}>{fmt(batch.applied_at)}</time>
                 </div>
-                <p className="text-[11px] text-muted-foreground truncate">
-                  {batch.adjustment_reason || "Batch calibration"}
-                </p>
-                <p className="text-[10px] text-muted-foreground/60">{fmt(batch.applied_at)}</p>
+                <Button variant="outline" size="sm"
+                  aria-label={`Rollback ${batch.adjustment_type} batch from ${fmt(batch.applied_at)}`}
+                  onClick={() => rollback.mutate(batch.calibration_run_id)} disabled={rollback.isPending}>
+                  {rollback.isPending && rollback.variables === batch.calibration_run_id
+                    ? <Loader2 className="h-4 w-4 animate-spin" /> : <Undo2 className="h-4 w-4" />}
+                  Rollback
+                </Button>
               </div>
-
-              <button
-                className="opacity-0 group-hover:opacity-100 transition-opacity ml-2 h-7 px-2.5 text-[10px] rounded-md border border-border text-muted-foreground hover:text-foreground hover:bg-muted/50 inline-flex items-center gap-1"
-                onClick={() => rollback.mutate(batch.calibration_run_id)}
-                disabled={rollback.isPending}
-              >
-                {rollback.isPending ? (
-                  <Loader2 className="w-3 h-3 animate-spin" />
-                ) : (
-                  <Undo2 className="w-3 h-3" />
-                )}
-                Rollback
-              </button>
-            </motion.div>
-          ))}
-        </div>
+            ))}
+          </div>
+        </>
       )}
-    </div>
+    </section>
   );
 }
