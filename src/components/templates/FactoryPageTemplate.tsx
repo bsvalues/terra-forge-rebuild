@@ -3,6 +3,7 @@
 // Slots: left controls, center results/QA, right explain/preview/publish
 
 import { ReactNode } from "react";
+import { cn } from "@/lib/utils";
 import { ScopeHeader, type DataScope, type DataStatus } from "@/components/trust/ScopeHeader";
 
 interface FactoryPageTemplateProps {
@@ -38,9 +39,9 @@ export function FactoryPageTemplate({
   className,
 }: FactoryPageTemplateProps) {
   return (
-    <div className={className}>
+    <div className={cn("module-page space-y-4", className)}>
       {/* Scope declaration */}
-      <div className="px-6 pt-4 pb-2">
+      <div className="border-b border-border pb-3">
         <ScopeHeader
           scope={scope}
           label={scopeLabel}
@@ -51,10 +52,10 @@ export function FactoryPageTemplate({
       </div>
 
       {/* Three-column layout */}
-      <div className="flex gap-4 px-6 pb-6 min-h-0">
+      <div className="module-template-layout">
         {/* Left: controls */}
         {controls && (
-          <aside className="hidden lg:block w-64 shrink-0 space-y-4 overflow-auto">
+          <aside className="module-template-rail space-y-4">
             {controls}
           </aside>
         )}
@@ -66,7 +67,7 @@ export function FactoryPageTemplate({
 
         {/* Right: explain + publish */}
         {explainPanel && (
-          <aside className="hidden xl:block w-80 shrink-0 space-y-4 overflow-auto">
+          <aside className="module-template-rail space-y-4">
             {explainPanel}
           </aside>
         )}

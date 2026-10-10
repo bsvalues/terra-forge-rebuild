@@ -3,6 +3,7 @@
 // Slots: parcel header, snapshot summary, workflow rail, detail sections
 
 import { ReactNode } from "react";
+import { cn } from "@/lib/utils";
 import { ScopeHeader, type DataStatus } from "@/components/trust/ScopeHeader";
 
 interface ParcelPageTemplateProps {
@@ -35,9 +36,9 @@ export function ParcelPageTemplate({
   className,
 }: ParcelPageTemplateProps) {
   return (
-    <div className={className}>
+    <div className={cn("module-page space-y-4", className)}>
       {/* Scope declaration */}
-      <div className="px-6 pt-4 pb-2">
+      <div className="border-b border-border pb-3">
         <ScopeHeader
           scope="parcel"
           label={parcelLabel}
@@ -49,18 +50,18 @@ export function ParcelPageTemplate({
 
       {/* Snapshot summary */}
       {summary && (
-        <div className="px-6 pb-4">
+        <div className="min-w-0">
           {summary}
         </div>
       )}
 
       {/* Main content + workflow rail */}
-      <div className="flex gap-6 px-6 pb-6">
+      <div className="module-template-layout">
         <div className="flex-1 min-w-0">
           {children}
         </div>
         {workflowRail && (
-          <aside className="hidden lg:block w-80 shrink-0">
+          <aside className="module-template-rail">
             {workflowRail}
           </aside>
         )}

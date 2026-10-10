@@ -3,6 +3,7 @@
 // Slots: filter bar, tab content (Changes/Catalog/Runs/Models), drill drawers
 
 import { ReactNode } from "react";
+import { cn } from "@/lib/utils";
 import { ScopeHeader, type DataStatus } from "@/components/trust/ScopeHeader";
 
 interface RegistryPageTemplateProps {
@@ -32,9 +33,9 @@ export function RegistryPageTemplate({
   className,
 }: RegistryPageTemplateProps) {
   return (
-    <div className={className}>
+    <div className={cn("module-page space-y-4", className)}>
       {/* Scope declaration */}
-      <div className="px-6 pt-4 pb-2">
+      <div className="border-b border-border pb-3">
         <ScopeHeader
           scope="run"
           label={scopeLabel}
@@ -46,13 +47,13 @@ export function RegistryPageTemplate({
 
       {/* Filter bar */}
       {filterBar && (
-        <div className="px-6 pb-4">
+        <div className="min-w-0">
           {filterBar}
         </div>
       )}
 
       {/* Content */}
-      <div className="px-6 pb-6">
+      <div className="min-w-0">
         {children}
       </div>
     </div>

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { ModuleHeader } from "@/components/layout/ModuleHeader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RegressionActions } from "./RegressionActions";
 import { MultipleRegressionPanel } from "./MultipleRegressionPanel";
@@ -35,37 +35,13 @@ export function RegressionStudioDashboard() {
   };
 
   return (
-    <div className="p-6 space-y-6">
-      {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
-      >
-        <div>
-          <h2 className="text-2xl font-light text-[hsl(var(--tf-transcend-cyan))]">
-            Regression Studio — Statistical Laboratory
-          </h2>
-          <p className="text-sm text-muted-foreground mt-1">
-            PhD-Level Analytics • Multiple Regression • ANOVA • Diagnostic Testing
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          {studyPeriods && studyPeriods.length > 0 && (
-            <StudyPeriodSelector
-              periods={studyPeriods}
-              selectedId={selectedPeriodId}
-              onSelect={setSelectedPeriodId}
-            />
-          )}
-          <RegressionActions
-            onRunAnalysis={handleRunAnalysis}
-            isRunning={runAnalysis.isPending}
-            hasResult={!!regressionResult}
-            result={regressionResult}
-          />
-        </div>
-      </motion.div>
+    <div className="module-page space-y-4">
+      <ModuleHeader title="Regression Studio" description="Multiple regression · ANOVA · Diagnostics"
+        actions={<>
+          {studyPeriods && studyPeriods.length > 0 && <StudyPeriodSelector periods={studyPeriods} selectedId={selectedPeriodId} onSelect={setSelectedPeriodId} />}
+          <RegressionActions onRunAnalysis={handleRunAnalysis} isRunning={runAnalysis.isPending} hasResult={!!regressionResult} result={regressionResult} />
+        </>}
+      />
 
       {/* Summary Cards */}
       <RegressionSummaryCards 
