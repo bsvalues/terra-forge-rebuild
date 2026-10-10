@@ -19,16 +19,23 @@ export function CertificationDashboard() {
     );
   }
 
-  const totalParcels = vitals.parcels.total;
-  const certifiedParcels = vitals.assessments.certified;
-  const uncertifiedParcels = totalParcels - certifiedParcels;
-  const certRate = vitals.assessments.certRate;
+  // Unreported metrics stay unknown (null → "—"); never coerce them to zero.
+  const av = vitals.metricAvailability;
+  const totalParcels = knownVital(av, "parcels", vitals.parcels.total);
+  const certifiedParcels = knownVital(av, "certified", vitals.assessments.certified);
+  const assessmentTotal = knownVital(av, "assessments", vitals.assessments.total);
+  const uncertifiedParcels =
+    totalParcels !== null && certifiedParcels !== null ? Math.max(0, totalParcels - certifiedParcels) : null;
+  const certRate = assessmentTotal !== null && certifiedParcels !== null ? vitals.assessments.certRate : null;
 
-  const pendingAppeals = vitals.workflows.pendingAppeals;
-  const openPermits = vitals.workflows.openPermits;
-  const pendingExemptions = vitals.workflows.pendingExemptions;
-  const missingAssessments = Math.max(0, totalParcels - vitals.assessments.total);
-  const totalBlockers = pendingAppeals + openPermits + pendingExemptions;
+  const pendingAppeals = knownVital(av, "workflows", vitals.workflows.pendingAppeals);
+  const openPermits = knownVital(av, "workflows", vitals.workflows.openPermits);
+  const pendingExemptions = knownVital(av, "workflows", vitals.workflows.pendingExemptions);
+  const missingAssessments =
+    totalParcels !== null && assessmentTotal !== null ? Math.max(0, totalParcels - assessmentTotal) : null;
+  const totalBlockers = [pendingAppeals, openPermits, pendingExemptions, missingAssessments]
+    .reduce<number>((sum, v) => sum + (v ?? 0), 0);
+  const blockersUnmeasured = [pendingAppeals, openPermits, pendingExemptions, missingAssessments].some((v) => v === null);
 
   return (
     <div className="space-y-6">
