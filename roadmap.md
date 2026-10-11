@@ -43,3 +43,9 @@
 ## Factory mode interiors and ledger
 - [x] Align Cost, Income, Comp Review and Scenario work areas with shared module-window doctrine; retain math, routes and actions.
 - [x] Make Adjustment Ledger states and actions accessible; verify real narrow windows and regressions, then record handoff (419 tests; preview build OK; no browser errors/overflow).
+
+## TerraFusion Sync 2.0 (foundation slice, plan pending approval)
+- [ ] Additive Sync schema: sources, runs, evidence, mapping versions, entity links, assertions, reconciliation, publications
+- [ ] Run engine with checkpoints, replay keys, manifest hash + TerraTrace receipts
+- [ ] Read-only Benton source/canonical inventory check
+- [ ] Move Benton PACS archives + sales CSV out of public/uploads into private storage
