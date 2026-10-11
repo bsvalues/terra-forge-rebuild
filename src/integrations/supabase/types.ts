@@ -4507,6 +4507,554 @@ export type Database = {
           },
         ]
       }
+      sync_assertion_evidence: {
+        Row: {
+          assertion_id: string
+          county_id: string
+          evidence_id: string
+          role: string
+        }
+        Insert: {
+          assertion_id: string
+          county_id: string
+          evidence_id: string
+          role?: string
+        }
+        Update: {
+          assertion_id?: string
+          county_id?: string
+          evidence_id?: string
+          role?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sync_assertion_evidence_assertion_id_fkey"
+            columns: ["assertion_id"]
+            isOneToOne: false
+            referencedRelation: "sync_assertions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sync_assertion_evidence_county_id_fkey"
+            columns: ["county_id"]
+            isOneToOne: false
+            referencedRelation: "counties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sync_assertion_evidence_evidence_id_fkey"
+            columns: ["evidence_id"]
+            isOneToOne: false
+            referencedRelation: "sync_evidence"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sync_assertions: {
+        Row: {
+          asserted_value: Json | null
+          county_id: string
+          created_at: string
+          derivation: string
+          effective_period: string
+          entity_type: string
+          field: string
+          governed_id: string
+          id: string
+          publication_id: string | null
+          status: string
+        }
+        Insert: {
+          asserted_value?: Json | null
+          county_id: string
+          created_at?: string
+          derivation?: string
+          effective_period?: string
+          entity_type: string
+          field: string
+          governed_id: string
+          id?: string
+          publication_id?: string | null
+          status?: string
+        }
+        Update: {
+          asserted_value?: Json | null
+          county_id?: string
+          created_at?: string
+          derivation?: string
+          effective_period?: string
+          entity_type?: string
+          field?: string
+          governed_id?: string
+          id?: string
+          publication_id?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sync_assertions_county_id_fkey"
+            columns: ["county_id"]
+            isOneToOne: false
+            referencedRelation: "counties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sync_assertions_publication_id_fkey"
+            columns: ["publication_id"]
+            isOneToOne: false
+            referencedRelation: "sync_publications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sync_entity_links: {
+        Row: {
+          county_id: string
+          created_at: string
+          entity_type: string
+          evidence_id: string | null
+          governed_id: string
+          id: string
+          is_alias: boolean
+          related_governed_id: string | null
+          relation: string
+          source_id: string
+          source_system: string
+          valid_from: string | null
+          valid_to: string | null
+        }
+        Insert: {
+          county_id: string
+          created_at?: string
+          entity_type: string
+          evidence_id?: string | null
+          governed_id: string
+          id?: string
+          is_alias?: boolean
+          related_governed_id?: string | null
+          relation?: string
+          source_id: string
+          source_system: string
+          valid_from?: string | null
+          valid_to?: string | null
+        }
+        Update: {
+          county_id?: string
+          created_at?: string
+          entity_type?: string
+          evidence_id?: string | null
+          governed_id?: string
+          id?: string
+          is_alias?: boolean
+          related_governed_id?: string | null
+          relation?: string
+          source_id?: string
+          source_system?: string
+          valid_from?: string | null
+          valid_to?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sync_entity_links_county_id_fkey"
+            columns: ["county_id"]
+            isOneToOne: false
+            referencedRelation: "counties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sync_entity_links_evidence_id_fkey"
+            columns: ["evidence_id"]
+            isOneToOne: false
+            referencedRelation: "sync_evidence"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sync_evidence: {
+        Row: {
+          batch_key: string
+          county_id: string
+          dataset: string
+          effective_period: string
+          id: string
+          landed_at: string
+          payload: Json
+          payload_hash: string
+          replay_key: string
+          run_id: string
+          source_id: string
+          source_record_key: string
+        }
+        Insert: {
+          batch_key: string
+          county_id: string
+          dataset: string
+          effective_period?: string
+          id?: string
+          landed_at?: string
+          payload: Json
+          payload_hash: string
+          replay_key: string
+          run_id: string
+          source_id: string
+          source_record_key: string
+        }
+        Update: {
+          batch_key?: string
+          county_id?: string
+          dataset?: string
+          effective_period?: string
+          id?: string
+          landed_at?: string
+          payload?: Json
+          payload_hash?: string
+          replay_key?: string
+          run_id?: string
+          source_id?: string
+          source_record_key?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sync_evidence_county_id_fkey"
+            columns: ["county_id"]
+            isOneToOne: false
+            referencedRelation: "counties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sync_evidence_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "sync_runs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sync_evidence_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "sync_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sync_mapping_versions: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          county_id: string
+          created_at: string
+          dataset: string
+          id: string
+          legacy_profile_id: string | null
+          mappings: Json
+          proposed_by: string | null
+          source_id: string
+          status: string
+          version: number
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          county_id: string
+          created_at?: string
+          dataset: string
+          id?: string
+          legacy_profile_id?: string | null
+          mappings?: Json
+          proposed_by?: string | null
+          source_id: string
+          status?: string
+          version: number
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          county_id?: string
+          created_at?: string
+          dataset?: string
+          id?: string
+          legacy_profile_id?: string | null
+          mappings?: Json
+          proposed_by?: string | null
+          source_id?: string
+          status?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sync_mapping_versions_county_id_fkey"
+            columns: ["county_id"]
+            isOneToOne: false
+            referencedRelation: "counties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sync_mapping_versions_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "sync_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sync_publications: {
+        Row: {
+          county_id: string
+          created_at: string
+          domain: string
+          id: string
+          lineage_count: number
+          manifest_hash: string | null
+          previous_publication_id: string | null
+          published_at: string | null
+          published_by: string | null
+          record_counts: Json
+          status: string
+          version: number
+        }
+        Insert: {
+          county_id: string
+          created_at?: string
+          domain: string
+          id?: string
+          lineage_count?: number
+          manifest_hash?: string | null
+          previous_publication_id?: string | null
+          published_at?: string | null
+          published_by?: string | null
+          record_counts?: Json
+          status?: string
+          version: number
+        }
+        Update: {
+          county_id?: string
+          created_at?: string
+          domain?: string
+          id?: string
+          lineage_count?: number
+          manifest_hash?: string | null
+          previous_publication_id?: string | null
+          published_at?: string | null
+          published_by?: string | null
+          record_counts?: Json
+          status?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sync_publications_county_id_fkey"
+            columns: ["county_id"]
+            isOneToOne: false
+            referencedRelation: "counties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sync_publications_previous_publication_id_fkey"
+            columns: ["previous_publication_id"]
+            isOneToOne: false
+            referencedRelation: "sync_publications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sync_reconciliation_items: {
+        Row: {
+          assertion_ids: string[]
+          conflict_type: string
+          county_id: string
+          created_at: string
+          decided_at: string | null
+          decided_by: string | null
+          decision: Json | null
+          decision_evidence: Json | null
+          entity_type: string
+          field: string | null
+          governed_id: string | null
+          id: string
+          owner_domain: string
+          status: string
+        }
+        Insert: {
+          assertion_ids?: string[]
+          conflict_type: string
+          county_id: string
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          decision?: Json | null
+          decision_evidence?: Json | null
+          entity_type: string
+          field?: string | null
+          governed_id?: string | null
+          id?: string
+          owner_domain: string
+          status?: string
+        }
+        Update: {
+          assertion_ids?: string[]
+          conflict_type?: string
+          county_id?: string
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          decision?: Json | null
+          decision_evidence?: Json | null
+          entity_type?: string
+          field?: string | null
+          governed_id?: string | null
+          id?: string
+          owner_domain?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sync_reconciliation_items_county_id_fkey"
+            columns: ["county_id"]
+            isOneToOne: false
+            referencedRelation: "counties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sync_runs: {
+        Row: {
+          batch_key: string
+          checkpoint: Json
+          counts: Json
+          county_id: string
+          dataset: string
+          error: string | null
+          finished_at: string | null
+          id: string
+          manifest_hash: string | null
+          mapping_version_id: string | null
+          publication_id: string | null
+          source_id: string
+          stage: string
+          started_at: string
+          started_by: string | null
+          status: string
+        }
+        Insert: {
+          batch_key: string
+          checkpoint?: Json
+          counts?: Json
+          county_id: string
+          dataset: string
+          error?: string | null
+          finished_at?: string | null
+          id?: string
+          manifest_hash?: string | null
+          mapping_version_id?: string | null
+          publication_id?: string | null
+          source_id: string
+          stage?: string
+          started_at?: string
+          started_by?: string | null
+          status?: string
+        }
+        Update: {
+          batch_key?: string
+          checkpoint?: Json
+          counts?: Json
+          county_id?: string
+          dataset?: string
+          error?: string | null
+          finished_at?: string | null
+          id?: string
+          manifest_hash?: string | null
+          mapping_version_id?: string | null
+          publication_id?: string | null
+          source_id?: string
+          stage?: string
+          started_at?: string
+          started_by?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sync_runs_county_id_fkey"
+            columns: ["county_id"]
+            isOneToOne: false
+            referencedRelation: "counties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sync_runs_mapping_version_id_fkey"
+            columns: ["mapping_version_id"]
+            isOneToOne: false
+            referencedRelation: "sync_mapping_versions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sync_runs_publication_id_fkey"
+            columns: ["publication_id"]
+            isOneToOne: false
+            referencedRelation: "sync_publications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sync_runs_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "sync_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sync_sources: {
+        Row: {
+          authority_scope: Json
+          county_id: string
+          created_at: string
+          created_by: string | null
+          datasets: Json
+          display_name: string
+          extraction_contract: Json
+          id: string
+          is_active: boolean
+          kind: string
+          source_key: string
+          updated_at: string
+        }
+        Insert: {
+          authority_scope?: Json
+          county_id: string
+          created_at?: string
+          created_by?: string | null
+          datasets?: Json
+          display_name: string
+          extraction_contract?: Json
+          id?: string
+          is_active?: boolean
+          kind: string
+          source_key: string
+          updated_at?: string
+        }
+        Update: {
+          authority_scope?: Json
+          county_id?: string
+          created_at?: string
+          created_by?: string | null
+          datasets?: Json
+          display_name?: string
+          extraction_contract?: Json
+          id?: string
+          is_active?: boolean
+          kind?: string
+          source_key?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sync_sources_county_id_fkey"
+            columns: ["county_id"]
+            isOneToOne: false
+            referencedRelation: "counties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sync_watermarks: {
         Row: {
           county_id: string
@@ -6568,6 +7116,7 @@ export type Database = {
         Args: { geom: unknown; move: number; wrap: number }
         Returns: unknown
       }
+      sync_canonical_inventory: { Args: { p_county_id: string }; Returns: Json }
       unlockrows: { Args: { "": string }; Returns: number }
       updategeometrysrid: {
         Args: {
