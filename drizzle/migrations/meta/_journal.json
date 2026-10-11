@@ -8,6 +8,13 @@
       "when": 1791587678093,
       "tag": "0000_tighten_storage_and_scrape_jobs",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1791686487271,
+      "tag": "0001_sync2_foundation",
+      "breakpoints": true
     }
   ]
 }
