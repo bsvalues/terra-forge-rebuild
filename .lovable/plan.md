@@ -1,99 +1,83 @@
-# TerraFusion Sync 2.0 — One Governed Path from Source Record to Product
+# TerraFusion Sync 2.0: Foundation Slice (revised with the architecture review)
 
-## Goal
+## Direction
 
-Replace today's separate ways of loading data (scrapers, PACS sync, CSV uploads, GIS jobs, Redfin, UGRC, statewide scrape) with **one engine**. Every county, every source and every record goes through the same stages. Each value on screen can be traced back to the original record it came from.
+One engine, one governed path from source record to publication, and one canonical authority per domain and effective context. One preserved chain of evidence, with acceptance tested on the real product.
 
-Guiding rule: **no silent data loss, no invented authority, no second version of the truth, and no calling it done until the real screens work on real data.**
+- The existing WACO release keeps shipping on today's canonical tables. It gets no new county or connector requirements.
+- Sync 2.0 starts as a **shadow path** next to the current data. It is not a competing source of truth.
+- We do **not** restart Benton's conversion, rebuild working PACS infrastructure or replace settled identity decisions.
+- This slice is the additive evidence/run/publication boundary only. It does not add a new frontend, 39 connectors or another planner.
 
-Scope boundary: the current WACO release keeps shipping on today's tables. Sync 2.0 is built alongside the existing tables and switched over county by county. It does not stop current work.
-
-## The pipeline (same for every county and source)
+## Pipeline
 
 ```text
-SOURCE            PACS export / live PACS / GIS service / CSV / public records / API
-  |
-1 CONNECT         Registered source + connector (read-only), credentials scoped to county
-  |
-2 LAND            Immutable evidence: original file/rows stored as-is, SHA-256 hashed, never edited
-  |
-3 MAP             Source fields -> canonical fields (remembered per county, AI suggests, human confirms)
-  |
-4 RESOLVE         Source IDs -> stable TerraFusion parcel ID (survives vendor/ID changes)
-  |
-5 VALIDATE        Rules + cross-source reconciliation; failures quarantined, never dropped
-  |
-6 PUBLISH         Versioned canonical records, one owner per field, lineage to the evidence row
-  |
-CONSUMERS         Workbench, TerraForge/WACO, Atlas, Dais, Dossier, County Vitals, AI agents
+1 CONNECT       authorized source + dataset capability, county, credential scope, extraction contract
+2 LAND          original files/records, source keys, hashes, extraction evidence (restricted writes)
+3 PROFILE & MAP approved, versioned mappings; AI may only propose
+4 RESOLVE       governed identities: property, improvement, assessment, sale, instrument, split/merge
+5 VALIDATE      semantic rules, overlaps, exceptions preserved, every record accounted for
+6 REVIEW        authorized disposition of material ambiguity before affected facts are promoted
+7 PUBLISH       atomic, immutable, versioned publication with lineage
+8 SERVE/VERIFY  prove the real screens read that publication and show correct values
 ```
 
-## Source-of-truth policy (resolves "I'm not sure")
+## Corrections built into the design
 
-No single source wins everything. Each **field** has a ranked list of trusted sources per county, for example:
-
-| Field group | Benton ranking |
+| Area | Rule |
 |---|---|
-| Identity, ownership, legal | PACS > state parcels |
-| Characteristics (area, year built, beds/baths) | PACS improvements > field capture > public assessor pages |
-| Values, certification | PACS only |
-| Sales | PACS sales > county recorder > Redfin (labelled as market data) |
-| Geometry, coordinates | County GIS > state parcels |
-| Neighborhood | PACS hood code > GIS polygon assignment |
+| Canonical truth | The typed tables (parcels, sales, assessments, geometry) stay the product contract. `sync_assertions` records claims and provenance behind them and is never a second EAV database. |
+| Idempotency | The replay key is source scope + logical source identity + batch/version + effective period. The payload hash proves content only, never record identity. |
+| Authority | Authority is resolved per field meaning, effective year, jurisdiction, certification and source. A highest rank never means automatic publication. |
+| Identity | Separate governed identities for property, improvement, assessment `(prop_id, year, supplement)`, sale and instrument, plus split/merge history. |
+| Evidence integrity | Restricted writes, plus a run manifest whose hash is anchored in TerraTrace, plus recovery checks. Append-only alone is not enough. |
+| Publishing | A run commits one coherent publication version. Consumers never see a mix of source generations. |
+| Performance | Checkpointed durable jobs, bulk operations, bounded calls, and limits based on observed performance. No universal 12–30 s or 50-row rules for Sync jobs. |
+| Lineage | Many-to-many: one observation can support many facts, and one fact or calculation can depend on many observations. |
+| Privacy | Evidence views respect record- and field-level permissions. There is no universal "open raw record" button. |
+| Cutover | Scoped by county + domain + publication version. The previous publication is kept for rollback, then the old direct-write route is retired. |
 
-The published value is taken from the highest-ranked source that holds a valid value. Values from other sources are kept as competing evidence. When sources disagree beyond a set tolerance, a reconciliation item is raised; the system does not pick one silently. Rankings are configuration, not code, so each county can have its own.
+## Benton authority (inherits accepted PACS/GIS crosswalk)
 
-## Data model (new, additive; existing tables untouched until cutover)
+- **Identity:** PACS `prop_id` is primary. The GIS `Prop_ID` links through the approved crosswalk. `geo_id` and `Parcel_ID` are kept as aliases.
+- **Ownership:** PACS for roll owner. Recorded instruments are kept separately as conveyance evidence.
+- **Characteristics:** official PACS property and improvement records. Field capture is retained with its own date and authority.
+- **Certified values:** PACS, scoped by year, certification and supplement. Never "pick the highest".
+- **Sales:** official county sales and recorded evidence, with qualification governed separately. Redfin is reference data only.
+- **Geometry:** county GIS. State datasets are labelled as reference.
+- **Neighborhood:** effective-dated PACS `hood_cd`. GIS membership is an explicitly derived relationship.
 
-- **sync_sources**: a registered source per county (kind, connector, schedule, trust rank).
-- **sync_runs**: one row per load (source, started/finished, counts landed/mapped/resolved/quarantined/published, status).
-- **sync_evidence**: immutable raw records (run, source row key, raw payload, payload hash). Append-only, enforced the same way as TerraTrace.
-- **sync_field_maps**: county + source field → canonical field, with confidence and who confirmed it (replaces ingest_mapping_rules/profiles).
-- **parcel_identity_links**: source system + source ID → parcel UUID, with validity dates (builds on the existing parcel spine).
-- **canonical_field_values**: parcel, field, value, source, evidence row, version, valid-from. This is the lineage record behind every published number.
-- **reconciliation_items**: disagreements between sources and their resolution.
-- **data_quarantine** (existing): reused for validation failures.
-- `parcels`, `sales`, `assessments` stay in place as **published views/projections**. Every current screen keeps working.
+Only genuinely ungoverned conflicts are escalated to the founder.
 
-## Phases
+## This slice: what gets built
 
-### Phase 0 — Foundation (no visible change)
-- Create the tables above with county-scoped access rules.
-- Lock evidence as append-only and enforce hash chaining.
-- A single "run" service that every connector must use; it writes progress to sync_runs.
-- Tests: evidence cannot be updated or deleted; a run cannot publish without lineage.
+1. **Schema (additive, county-scoped access rules, grants):**
+   - `sync_sources` (+ dataset capabilities, authority scope)
+   - `sync_runs` (checkpoints, terminal state, mapping version, publication id, manifest hash)
+   - `sync_evidence` (source record key distinct from payload hash, replay key unique, restricted writes)
+   - `sync_mapping_versions` (adapts existing ingest_mapping_profiles/rules, does not replace them)
+   - `sync_entity_links` (entity type, source system/id → governed id, effective dates, split/merge relation)
+   - `sync_assertions` (claim → canonical entity/field, many-to-many to evidence)
+   - `sync_reconciliation_items` (typed conflict, owner domain, decision, decision evidence)
+   - `sync_publications` (county, domain, version, status, immutable once published, previous version for rollback)
+   - `data_quarantine` is reused.
+2. **Run engine service:** start, checkpoint, land, account for every record, finish, with TerraTrace receipts for start, completion and failure, and the manifest hash.
+3. **Benton inventory check (read-only):** establish which approved source artifacts and canonical records already exist and are complete. New extracts are requested only for gaps it proves.
+4. **Security fix:** the Benton PACS archives and sales CSV in `public/uploads` are downloadable by anyone from the published site. Move them out of the public folder into private storage, and switch the one IngestWizard sample loader to private storage.
 
-### Phase 1 — Benton end to end (the proof)
-- Connectors: PACS CSV/backup extract (property, imprv, imprv_detail, sales, land), Benton GIS.
-- Field maps for Benton confirmed once, then reused.
-- Identity resolution from PACS prop_id to parcel UUID.
-- Publish characteristics, sales, values, neighborhoods and coordinates with full lineage.
-- Success check: neighborhood 13010 gets building area and year built from PACS improvements, and calibration runs on it. County Vitals numbers match a direct count. Every Workbench value opens to its source record.
+## Acceptance for this slice
 
-### Phase 2 — Trust visible in the product
-- A "where did this come from" view on any value: source, run, original record, competing values.
-- Reconciliation queue in Admin, next to Quarantine.
-- Sync runs page: each run with counts at every stage and failures listed.
+- Replaying the same batch creates no duplicates. Two distinct records with identical payloads are both kept.
+- Evidence rows cannot be updated or deleted by app users.
+- A publication cannot be marked published without lineage and a manifest. A published version is immutable.
+- A failed or restarted run leaves no partial publication.
+- The inventory report lists Benton source artifacts and record counts by domain with clear cohorts.
+- The archives in `public/uploads` are no longer reachable at a public web address.
+- No current screen changes behavior: existing tests stay green, and Workbench and `/forge` read exactly what they read today.
 
-### Phase 3 — Retire the parallel paths
-- Move the scrapers, Redfin, UGRC and statewide imports onto the same engine as ordinary connectors.
-- Stop old paths writing straight into parcels/sales; old functions are deprecated and do not stay as a second route.
-- Multi-county: SLCO and the other WA counties become configuration (sources + rankings + field maps), not custom code.
+## Later slices (not in this one)
 
-### Phase 4 — Continuous refresh and export
-- Scheduled incremental refresh using watermarks (sync_watermarks exists).
-- County-owned export: canonical data + lineage in an open format.
-
-## Technical details
-
-- Every stage is idempotent and keyed by payload hash, so re-running a load never creates duplicates.
-- Publishing goes through write-lane checks: canonical fields keep their single domain owner (OS core for identity, TerraForge for characteristics/valuation, TerraAtlas for geometry, TerraDais for workflow).
-- Large loads are processed in batches with 12–30 s timeouts, and IN-clause lookups in groups of 50.
-- PostGIS/native Postgres only: reprojection with ST_Transform, fuzzy matching with pg_trgm.
-- Connectors are read-only against county systems.
-- Cutover runs one county at a time behind a per-county flag, and `useParcel360` / County Vitals switch to the published projections only after a parity check passes.
-
-## Decisions needed before Phase 1
-
-- Confirm the Benton source rankings above.
-- Upload the Benton PACS extracts (property_val, imprv, imprv_detail, sales, land detail), or confirm the server backup in `public/uploads` is the source.
+- Benton shadow processing and parity (identities, improvement aggregation for area/year built, year-specific neighborhoods, sales and valuations), with 13010 as a regression case.
+- Review UI and evidence view with permissions.
+- Controlled per-domain cutover, verified on Workbench, County Vitals and TerraForge `/forge` (the WACO acceptance surface). Calibration stays TerraForge's job.
+- Retiring the parallel ingest paths, onboarding other counties as configuration, county-owned export.
