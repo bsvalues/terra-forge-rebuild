@@ -18,47 +18,43 @@ Deno.serve(async (req) => {
     const { countyId, userId } = auth;
     const serviceClient = createServiceClient();
 
-    // Fetch parcel data with sales for the county
-    const { data: parcels, error: parcelErr } = await serviceClient
-      .from("parcels")
-      .select("id, assessed_value, building_area, land_area, year_built, bedrooms, bathrooms, neighborhood_code, property_class")
-      .eq("county_id", countyId)
-      .not("assessed_value", "is", null)
-      .not("building_area", "is", null)
-      .limit(500);
-
-    if (parcelErr) throw parcelErr;
-
-    const { data: sales, error: salesErr } = await serviceClient
+    // Fetch qualified county sales already joined to their parcel, so the
+    // sample is guaranteed to overlap (independent samples rarely did).
+    const { data: rows, error: salesErr } = await serviceClient
       .from("sales")
-      .select("parcel_id, sale_price")
+      .select("parcel_id, sale_price, sale_date, parcels!inner(id, county_id, assessed_value, building_area, land_area, year_built, bedrooms, bathrooms, neighborhood_code)")
       .eq("is_qualified", true)
-      .not("sale_price", "is", null)
-      .limit(500);
+      .gt("sale_price", 0)
+      .eq("parcels.county_id", countyId)
+      .gt("parcels.building_area", 0)
+      .order("sale_date", { ascending: false })
+      .limit(2000);
 
     if (salesErr) throw salesErr;
 
-    // Join parcels with sales
-    const saleMap = new Map<string, number>();
-    for (const s of sales ?? []) {
-      if (s.parcel_id && s.sale_price) {
-        saleMap.set(s.parcel_id, s.sale_price);
-      }
-    }
-
-    const joined = (parcels ?? [])
-      .filter((p) => saleMap.has(p.id) && p.building_area && p.building_area > 0)
-      .map((p) => ({
+    // Keep the most recent sale per parcel.
+    const seen = new Set<string>();
+    const joined: {
+      parcel_id: string; sale_price: number; assessed_value: number | null;
+      building_area: number; land_area: number; age: number;
+      bedrooms: number; bathrooms: number; neighborhood_code: string;
+    }[] = [];
+    for (const r of (rows ?? []) as any[]) {
+      const p = Array.isArray(r.parcels) ? r.parcels[0] : r.parcels;
+      if (!p || seen.has(p.id)) continue;
+      seen.add(p.id);
+      joined.push({
         parcel_id: p.id,
-        sale_price: saleMap.get(p.id)!,
+        sale_price: Number(r.sale_price),
         assessed_value: p.assessed_value,
-        building_area: p.building_area!,
+        building_area: Number(p.building_area),
         land_area: p.land_area ?? 0,
         age: p.year_built ? new Date().getFullYear() - p.year_built : 0,
         bedrooms: p.bedrooms ?? 0,
         bathrooms: p.bathrooms ?? 0,
         neighborhood_code: p.neighborhood_code ?? "Unknown",
-      }));
+      });
+    }
 
     if (joined.length < 10) {
       return new Response(
