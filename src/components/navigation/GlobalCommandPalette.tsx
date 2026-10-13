@@ -36,6 +36,11 @@ export function GlobalCommandPalette({
   const [searchValue, setSearchValue] = useState("");
   const parcelResults = useParcelLookup(open ? searchValue : "");
   const { recents } = useRecentParcels();
+  useEffect(() => {
+    const openSearch = () => onOpenChange(true);
+    window.addEventListener("tf:open-search", openSearch);
+    return () => window.removeEventListener("tf:open-search", openSearch);
+  }, [onOpenChange]);
 
   // Keyboard shortcuts for module switching (⌘1–4)
   useEffect(() => {

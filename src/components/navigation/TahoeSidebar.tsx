@@ -21,7 +21,7 @@ export function TahoeSidebar({ onNavigate }: TahoeSidebarProps) {
       <div className="flex items-center gap-2"><div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary/15 text-xs font-bold text-primary">TF</div><div className="min-w-0 group-data-[collapsible=icon]:hidden"><p className="text-sm font-semibold">TerraFusion OS</p><p className="truncate text-xs text-muted-foreground">{county?.name ?? "County workspace"}</p></div></div>
     </SidebarHeader>
     <SidebarGroup className="px-2">
-      <SidebarMenu><SidebarMenuItem><SidebarMenuButton aria-label="Open command palette (⌘K)" tooltip="Search all tools" onClick={() => window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true }))}><Search /><span>Search all tools</span></SidebarMenuButton></SidebarMenuItem></SidebarMenu>
+      <SidebarMenu><SidebarMenuItem><SidebarMenuButton aria-label="Open command palette (⌘K)" tooltip="Search all tools" onClick={() => window.dispatchEvent(new Event("tf:open-search"))}><Search /><span>Search all tools</span></SidebarMenuButton></SidebarMenuItem></SidebarMenu>
     </SidebarGroup>
     <SidebarSeparator />
     <SidebarContent className="px-2">
