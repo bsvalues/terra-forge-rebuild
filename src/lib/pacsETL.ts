@@ -333,7 +333,10 @@ export function joinPACSTables(tables: PACSParsedTable[]): PACSJoinResult {
   // Prop val: master valuation record with neighborhood codes, property class, assessed values
   const propValByProp = new Map<string, { hood_cd: string | null; property_use_cd: string | null; property_use_desc: string | null; appraised_val: number; assessed_val: number; land_hstd: number; land_non_hstd: number; imprv_hstd: number; imprv_non_hstd: number; legal_acreage: number | null; geo_id: string | null }>();
   if (propValTable) {
-    for (const row of propValTable.rows) {
+    // Only the latest certified-active valuation row per account may supply
+    // the neighborhood/value (sup_num 0, no inactive date). Without this, row
+    // order decided the label and a re-import could revert certified labels.
+    for (const row of selectCertifiedActivePropVal(propValTable.rows)) {
       const pid = row.prop_id?.trim();
       if (!pid) continue;
       propValByProp.set(pid, {
@@ -493,4 +496,24 @@ export function joinPACSTables(tables: PACSParsedTable[]): PACSJoinResult {
       joinedExemptions: exemptions.length,
     },
   };
+}
+
+/**
+ * Pick one prop_val row per prop_id: rows with a supplement other than 0 or an
+ * inactive date are excluded, then the highest prop_val_yr wins. Exports that
+ * omit these columns are treated as single-year certified rows.
+ */
+export function selectCertifiedActivePropVal<T extends Record<string, string | undefined>>(rows: T[]): T[] {
+  const best = new Map<string, { row: T; yr: number }>();
+  for (const row of rows) {
+    const pid = row.prop_id?.trim();
+    if (!pid) continue;
+    const sup = row.sup_num?.trim();
+    if (sup !== undefined && sup !== "" && Number(sup) !== 0) continue;
+    if (row.prop_inactive_dt?.trim()) continue;
+    const yr = Number(row.prop_val_yr?.trim() || 0) || 0;
+    const cur = best.get(pid);
+    if (!cur || yr > cur.yr) best.set(pid, { row, yr });
+  }
+  return [...best.values()].map((b) => b.row);
 }
