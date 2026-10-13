@@ -62,17 +62,19 @@ export function WorkbenchProvider({ children }: WorkbenchProviderProps) {
   const [windowId] = useState(createWindowId);
   const [studyPeriod, setStudyPeriodState] = useState<StudyPeriodContext>(defaultStudyPeriod);
   const [workMode, setWorkModeState] = useState<WorkMode>("overview");
-  const [activeTab, setActiveTabState] = useWorkspaceTool<SuiteTab>("work", ["summary", "forge", "atlas", "dais", "dossier", "pilot", "sketch"], "summary");
+  const [activeTab] = useWorkspaceTool<SuiteTab>("work", ["summary", "forge", "atlas", "dais", "dossier", "pilot", "sketch"], "summary");
   const [pilotMode, setPilotModeState] = useState<PilotMode>("pilot");
   const [systemState, setSystemStateState] = useState<SystemState>("idle");
 
   // Announce parcel changes made in this window (only when the parcel itself changes).
   const lastPublished = useRef<string | null>(parcel.id);
+  const focusedParcelId = useRef<string | null>(parcel.id);
 
   // Returning from county work or refreshing restores the parcel from its
   // authoritative snapshot, not from a potentially stale recent-list record.
   useEffect(() => {
     if (!routeParcelId || !routeSnapshot || parcel.id === routeParcelId) return;
+    focusedParcelId.current = routeParcelId;
     setParcelState({
       id: routeParcelId, parcelNumber: routeSnapshot.identity.parcelNumber,
       address: routeSnapshot.identity.address, city: routeSnapshot.identity.city,
@@ -93,9 +95,11 @@ export function WorkbenchProvider({ children }: WorkbenchProviderProps) {
     if (!linkEnabled) return;
     return subscribeParcelLink(windowId, (p) => {
       lastPublished.current = p.id;
+      focusedParcelId.current = p.id;
       setParcelState(p);
+      setParams(current => { const next = new URLSearchParams(current); if (p.id) next.set("parcel", p.id); else next.delete("parcel"); return next; }, { replace: true });
     });
-  }, [windowId, linkEnabled]);
+  }, [windowId, linkEnabled, setParams]);
   useEffect(() => {
     if (linkEnabled && parcel.id && parcel.id !== lastPublished.current) {
       lastPublished.current = parcel.id;
@@ -105,11 +109,13 @@ export function WorkbenchProvider({ children }: WorkbenchProviderProps) {
 
   const setParcel = useCallback((updates: Partial<ParcelContext>) => {
     setParcelState(prev => ({ ...(updates.id && updates.id !== prev.id ? defaultParcel : prev), ...updates }));
+    if (updates.id) focusedParcelId.current = updates.id;
     if (updates.id) setParams(current => { const next = new URLSearchParams(current); next.set("parcel", updates.id ?? ""); return next; }, { replace: true });
   }, [setParams]);
 
   const clearParcel = useCallback(() => {
     setParcelState(defaultParcel);
+    focusedParcelId.current = null;
     setParams(current => { const next = new URLSearchParams(current); next.delete("parcel"); next.delete("work"); return next; }, { replace: true });
   }, [setParams]);
 
@@ -121,12 +127,12 @@ export function WorkbenchProvider({ children }: WorkbenchProviderProps) {
     setWorkModeState(mode);
     // Auto-switch to default tab for this mode
     const config = WORK_MODE_CONFIGS[mode];
-    setActiveTabState(config.defaultTab);
-  }, [setActiveTabState]);
+    setParams(current => { const next = new URLSearchParams(current); next.set("work", config.defaultTab); if (focusedParcelId.current) next.set("parcel", focusedParcelId.current); return next; }, { replace: true });
+  }, [setParams]);
 
   const setActiveTab = useCallback((tab: SuiteTab) => {
-    setActiveTabState(tab);
-  }, [setActiveTabState]);
+    setParams(current => { const next = new URLSearchParams(current); next.set("work", tab); if (focusedParcelId.current) next.set("parcel", focusedParcelId.current); return next; }, { replace: true });
+  }, [setParams]);
 
   const setPilotMode = useCallback((mode: PilotMode) => {
     setPilotModeState(mode);
