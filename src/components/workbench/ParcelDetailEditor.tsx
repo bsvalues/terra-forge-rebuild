@@ -22,6 +22,9 @@ import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useWorkbench } from "./WorkbenchContext";
 import { useParcelFullDetails, useUpdateParcel, ParcelUpdatePayload } from "@/hooks/useParcelMutations";
+import { saveDraft, loadDraft, clearDraft } from "@/lib/workDraft";
+
+const DRAFT_KIND = "parcel-details";
 
 interface FieldConfig {
   key: string;
@@ -75,60 +78,64 @@ export function ParcelDetailEditor() {
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState<Record<string, any>>({});
 
-  // Sync form data when parcel data loads
+  const [restoredAt, setRestoredAt] = useState<number | null>(null);
+
+  // Load saved data, then reopen any unsaved draft for this parcel.
   useEffect(() => {
-    if (fullParcel) {
+    if (!fullParcel || !parcel.id) return;
+    const draft = loadDraft<Record<string, any>>(DRAFT_KIND, parcel.id);
+    if (draft) {
+      setFormData({ ...fullParcel, ...draft.data });
+      setIsEditing(true);
+      setRestoredAt(draft.savedAt);
+    } else {
       setFormData({ ...fullParcel });
+      setRestoredAt(null);
     }
-  }, [fullParcel]);
+  }, [fullParcel, parcel.id]);
 
   const handleEdit = useCallback(() => {
-    if (fullParcel) {
-      setFormData({ ...fullParcel });
-    }
+    if (fullParcel) setFormData({ ...fullParcel });
     setIsEditing(true);
   }, [fullParcel]);
 
   const handleCancel = useCallback(() => {
-    if (fullParcel) {
-      setFormData({ ...fullParcel });
-    }
+    if (fullParcel) setFormData({ ...fullParcel });
+    if (parcel.id) clearDraft(DRAFT_KIND, parcel.id);
+    setRestoredAt(null);
     setIsEditing(false);
-  }, [fullParcel]);
+  }, [fullParcel, parcel.id]);
 
   const handleSave = useCallback(async () => {
-    if (!fullParcel) return;
-
-    // Build only the changed fields
+    if (!fullParcel || !parcel.id) return;
     const changes: ParcelUpdatePayload = {};
     let hasChanges = false;
-
     for (const field of FIELD_CONFIG) {
       if (field.readOnly) continue;
       const key = field.key as keyof ParcelUpdatePayload;
       const newVal = formData[field.key];
       const oldVal = (fullParcel as Record<string, unknown>)[field.key];
-
-      // Normalize comparison
       const normalizedNew = newVal === "" || newVal === undefined ? null : newVal;
       const normalizedOld = oldVal === "" || oldVal === undefined ? null : oldVal;
-
-      if (normalizedNew !== normalizedOld) {
-        (changes as Record<string, unknown>)[key] = field.type === "number" || field.type === "currency"
-          ? normalizedNew === null ? null : Number(normalizedNew)
-          : normalizedNew;
+      const isNumeric = field.type === "number" || field.type === "currency";
+      const nextValue = isNumeric ? (normalizedNew === null ? null : Number(normalizedNew)) : normalizedNew;
+      const previousValue = isNumeric ? (normalizedOld === null ? null : Number(normalizedOld)) : normalizedOld;
+      if (nextValue !== previousValue) {
+        (changes as Record<string, unknown>)[key] = nextValue;
         hasChanges = true;
       }
     }
-
     if (!hasChanges) {
+      clearDraft(DRAFT_KIND, parcel.id);
+      setRestoredAt(null);
       setIsEditing(false);
       return;
     }
-
-    const result = await updateMutation.mutateAsync(changes);
-
-    // Sync the workbench context with updated values
+    // On failure the mutation toasts and the draft stays on this device.
+    let result;
+    try { result = await updateMutation.mutateAsync(changes); } catch { return; }
+    clearDraft(DRAFT_KIND, parcel.id);
+    setRestoredAt(null);
     if (result) {
       setParcel({
         id: result.id,
@@ -138,17 +145,24 @@ export function ParcelDetailEditor() {
         propertyClass: result.property_class,
         assessedValue: result.assessed_value,
         neighborhoodCode: result.neighborhood_code,
-        latitude: result.latitude,
-        longitude: result.longitude,
+        latitude: (result as any).latitude_wgs84 ?? parcel.latitude,
+        longitude: (result as any).longitude_wgs84 ?? parcel.longitude,
       });
     }
-
     setIsEditing(false);
-  }, [fullParcel, formData, updateMutation, setParcel]);
+  }, [fullParcel, formData, updateMutation, setParcel, parcel.id, parcel.latitude, parcel.longitude]);
 
   const handleFieldChange = useCallback((key: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [key]: value }));
-  }, []);
+    setFormData((prev) => {
+      const next = { ...prev, [key]: value };
+      if (parcel.id) {
+        const edited: Record<string, unknown> = {};
+        for (const field of FIELD_CONFIG) if (!field.readOnly) edited[field.key] = next[field.key];
+        saveDraft(DRAFT_KIND, parcel.id, edited);
+      }
+      return next;
+    });
+  }, [parcel.id]);
 
   const formatDisplay = (field: FieldConfig, value: any): string => {
     if (value === null || value === undefined || value === "") return "—";
@@ -194,8 +208,8 @@ export function ParcelDetailEditor() {
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-lg font-medium text-foreground">Parcel Details</h3>
-          <p className="text-xs text-muted-foreground">
-            {isEditing ? "Unsaved changes" : ""}
+          <p className="text-xs text-muted-foreground" role="status">
+            {restoredAt ? `Unsaved edits from ${new Date(restoredAt).toLocaleString()} restored on this device` : isEditing ? "Editing — changes are kept on this device until saved or cancelled" : ""}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -264,13 +278,14 @@ export function ParcelDetailEditor() {
 
                 return (
                   <div key={field.key} className="space-y-1.5">
-                    <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
+                    <Label htmlFor={`parcel-field-${field.key}`} className="text-xs text-muted-foreground flex items-center gap-1.5">
                       <Icon className="w-3 h-3" />
                       {field.label}
                     </Label>
 
                     {isEditing && !field.readOnly ? (
                       <Input
+                        id={`parcel-field-${field.key}`}
                         type={field.type === "text" ? "text" : "number"}
                         value={value ?? ""}
                         onChange={(e) => handleFieldChange(field.key, e.target.value)}
@@ -278,7 +293,7 @@ export function ParcelDetailEditor() {
                         step={field.key === "bathrooms" ? "0.5" : field.type === "currency" ? "1000" : "1"}
                       />
                     ) : (
-                      <div className={`h-9 flex items-center px-3 rounded-md bg-muted/30 text-sm ${
+                      <div id={`parcel-field-${field.key}`} className={`h-9 flex items-center px-3 rounded-md bg-muted/30 text-sm ${
                         field.type === "currency" ? "text-tf-green font-medium" : "text-foreground"
                       }`}>
                         {formatDisplay(field, value)}

@@ -29,6 +29,27 @@
       "when": 1791900587457,
       "tag": "0003_neighborhood_year_lineage_and_reconciliation",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1791928765163,
+      "tag": "0004_fix_wgs84_backfill_scope",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1791928826917,
+      "tag": "0005_fix_trace_hash_null_parcel",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1791928884558,
+      "tag": "0006_wgs84_backfill_actor",
+      "breakpoints": true
     }
   ]
 }

@@ -237,8 +237,11 @@ export function useParcel360(parcelId: string | null): Parcel360Snapshot | null 
       bathrooms: p.bathrooms ? Number(p.bathrooms) : null,
       buildingArea: p.building_area ? Number(p.building_area) : null,
       landArea: p.land_area ? Number(p.land_area) : null,
-      lat: p.latitude,
-      lng: p.longitude,
+      // Geographic degrees come from the derived WGS84 columns; raw fields may hold
+      // projected source values (e.g. Benton State Plane feet) and are only used
+      // when the WGS84 derivation is absent.
+      lat: pAny.latitude_wgs84 ?? p.latitude,
+      lng: pAny.longitude_wgs84 ?? p.longitude,
     };
 
     // Valuation

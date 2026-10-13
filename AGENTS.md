@@ -33,3 +33,6 @@
 - The shell renders the active route in a DesktopWindow over a wallpaper with a SpacesDock; an optional side window loads the same app in embed mode (tf_embed=1) in an iframe, so each window keeps independent routing without nested routers or IA_MAP changes.
 - Workbench windows in one tab share the focused parcel via BroadcastChannel + sessionStorage (src/lib/parcelLink.ts); it shares focus only, never writes, so write lanes stay intact.
 - PACS neighborhoods are valuation-year records (parcel_neighborhood_year, keyed by county-scoped prop_id, certified-active = sup_num 0 and no inactive date, exact code match) with run lineage in neighborhood_reconciliation_runs/items; parcels.neighborhood_code is only a derived current-year display, so a sync can never erase historical labels.
+
+- Parcel360 maps read derived WGS84 columns; raw PACS fields may be projected.
+- Unsaved edits recover via device-local src/lib/workDraft; drafts never write data.
