@@ -1,5 +1,14 @@
 # Roadmap
 
+## Complete application audit and redesign (current priority)
+- [ ] Audit signed-in navigation and representative workspaces; record concrete usability failures.
+- [ ] Replace hidden module switching with persistent, suite-grounded navigation and searchable access to every registered tool.
+- [ ] Replace the overloaded Home briefing with a direct work directory and genuine recent parcel work.
+- [ ] Establish visible workspace orientation and related-tool access in primary and embedded windows.
+- [ ] Redesign ingestion entry and remove misleading promises; preserve import behavior.
+- [ ] Verify navigation, search, ingestion entry, and narrow-window access with tests and signed-in browser checks.
+- [ ] Complete remaining legacy interiors and validate their real task flows; do not claim the overall redesign finished prematurely.
+
 ## Tasks
 - [x] Add Google sign-in button to the app (Auth.tsx + provider enabled)
 - [x] Add Microsoft sign-in button to the app (Auth.tsx + provider enabled)
