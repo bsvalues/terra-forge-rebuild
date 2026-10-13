@@ -69,11 +69,13 @@ export function WorkbenchProvider({ children }: WorkbenchProviderProps) {
   // Announce parcel changes made in this window (only when the parcel itself changes).
   const lastPublished = useRef<string | null>(parcel.id);
   const focusedParcelId = useRef<string | null>(parcel.id);
+  const hydratedSnapshot = useRef<typeof routeSnapshot>(null);
 
   // Returning from county work or refreshing restores the parcel from its
   // authoritative snapshot, not from a potentially stale recent-list record.
   useEffect(() => {
-    if (!routeParcelId || !routeSnapshot || parcel.id === routeParcelId) return;
+    if (!routeParcelId || !routeSnapshot || routeSnapshot === hydratedSnapshot.current) return;
+    hydratedSnapshot.current = routeSnapshot;
     focusedParcelId.current = routeParcelId;
     setParcelState({
       id: routeParcelId, parcelNumber: routeSnapshot.identity.parcelNumber,
@@ -83,7 +85,7 @@ export function WorkbenchProvider({ children }: WorkbenchProviderProps) {
       neighborhoodCode: routeSnapshot.identity.neighborhoodCode,
       latitude: routeSnapshot.characteristics.lat, longitude: routeSnapshot.characteristics.lng,
     });
-  }, [routeParcelId, routeSnapshot, parcel.id]);
+  }, [routeParcelId, routeSnapshot]);
 
   // Link on/off: when off, this window keeps its own parcel so two different
   // parcels can be compared side by side.
@@ -115,6 +117,7 @@ export function WorkbenchProvider({ children }: WorkbenchProviderProps) {
 
   const clearParcel = useCallback(() => {
     setParcelState(defaultParcel);
+    hydratedSnapshot.current = null;
     focusedParcelId.current = null;
     setParams(current => { const next = new URLSearchParams(current); next.delete("parcel"); next.delete("work"); return next; }, { replace: true });
   }, [setParams]);

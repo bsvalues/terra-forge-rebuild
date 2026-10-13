@@ -7,8 +7,8 @@ vi.mock("@/integrations/supabase/client", () => ({
         eq: vi.fn(function(this: unknown) { return this; }),
         order: vi.fn(function(this: unknown) { return this; }),
         neq: vi.fn(function(this: unknown) { return this; }),
-        abortSignal: vi.fn(function(this: unknown) { return this; }),
-        limit: vi.fn(() => Promise.resolve({ data: [], error: null })),
+        abortSignal: vi.fn(() => Promise.resolve({ data: [], error: null })),
+        limit: vi.fn(function(this: unknown) { return this; }),
       })),
     })),
   },
@@ -57,14 +57,15 @@ describe("useComparableSales", () => {
     const { supabase } = await import("@/integrations/supabase/client");
     const { useComparableSales } = await import("./useComparableSales");
     useComparableSales({ neighborhoodCode: "14061", propertyClass: "11", countyId: "county-benton", excludeParcelId: "subject", limit: 15 });
-    const options = vi.mocked(useQuery).mock.calls[0][0];
-    await options.queryFn?.({} as never);
+    const options = vi.mocked(useQuery).mock.calls[0][0] as unknown as { queryFn: () => Promise<unknown>; queryKey: unknown[] };
+    await options.queryFn();
     const query = vi.mocked(supabase.from).mock.results[0].value;
     expect(query.select).toHaveBeenCalledWith(expect.stringContaining("address"));
     expect(query.select).toHaveBeenCalledWith(expect.stringContaining("building_area"));
     expect(query.select).not.toHaveBeenCalledWith(expect.stringContaining("site_address"));
     const filter = vi.mocked(query.select).mock.results[0].value as any;
     expect(filter.eq).toHaveBeenCalledWith("county_id", "county-benton");
+    expect(filter.eq).toHaveBeenCalledWith("is_qualified", true);
     expect(filter.eq).toHaveBeenCalledWith("parcels.property_class", "11");
     expect(filter.neq).toHaveBeenCalledWith("parcel_id", "subject");
     expect(filter.limit).toHaveBeenCalledWith(15);

@@ -39,11 +39,11 @@ export function useComparableSales(opts: UseComparableSalesOpts) {
       let query = (supabase
         .from("sales")
         .select(`
-          id, parcel_id, sale_date, sale_price, qualified,
+          id, parcel_id, sale_date, sale_price, is_qualified,
           parcels!inner(parcel_number, address, property_class, neighborhood_code, year_built, building_area)
         `) as any)
         .eq("county_id", countyId)
-        .eq("qualified", true)
+        .eq("is_qualified", true)
         .eq("parcels.neighborhood_code", neighborhoodCode);
       if (propertyClass) query = query.eq("parcels.property_class", propertyClass);
       if (excludeParcelId) query = query.neq("parcel_id", excludeParcelId);
@@ -70,7 +70,7 @@ export function useComparableSales(opts: UseComparableSalesOpts) {
             sqft,
             yearBuilt: p?.year_built ?? null,
             neighborhoodCode: p?.neighborhood_code ?? null,
-            qualified: s.qualified ?? false,
+            qualified: s.is_qualified ?? false,
           };
         });
     },
