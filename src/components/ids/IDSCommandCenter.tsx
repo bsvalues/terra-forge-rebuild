@@ -1,14 +1,9 @@
-import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { 
-  Database, 
-  Upload, 
-  ShieldCheck, 
-  GitBranch, 
-  Route,
-  Zap,
-} from "lucide-react";
+import { Database, Upload, ShieldCheck, GitBranch, Route } from "lucide-react";
+import { ModuleHeader } from "@/components/layout/ModuleHeader";
+import { useCountyMeta } from "@/hooks/useCountyMeta";
 import { InventoryPillar } from "./pillars/InventoryPillar";
 import { IngestWizard } from "./IngestWizard";
 import { QualityPillar } from "./pillars/QualityPillar";
@@ -21,101 +16,35 @@ interface IDSCommandCenterProps {
   highlightJobId?: string | null;
   onJobIdConsumed?: () => void;
 }
+const PANELS = ["ingest", "inventory", "quality", "versions", "routing"];
 
 export function IDSCommandCenter({ initialPillar, onPillarConsumed, highlightJobId, onJobIdConsumed }: IDSCommandCenterProps = {}) {
-  const [activePillar, setActivePillar] = useState(initialPillar || "inventory");
-
+  const [params, setParams] = useSearchParams();
+  const county = useCountyMeta();
+  const requested = params.get("panel");
+  const activePillar = requested && PANELS.includes(requested) ? requested : "ingest";
+  const setPanel = (panel: string) => setParams(current => { const next = new URLSearchParams(current); next.set("panel", panel); return next; }, { replace: true });
   useEffect(() => {
-    if (initialPillar) {
-      setActivePillar(initialPillar);
+    if (initialPillar && PANELS.includes(initialPillar)) {
+      setParams(current => { const next = new URLSearchParams(current); next.set("panel", initialPillar); return next; }, { replace: true });
       onPillarConsumed?.();
     }
-  }, [initialPillar, onPillarConsumed]);
-
-  return (
-    <div className="p-6 space-y-6">
-      {/* IDS Header */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="flex items-center gap-4"
-      >
-        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-tf-cyan/20 to-tf-bright-cyan/10 flex items-center justify-center border border-tf-cyan/30">
-          <Zap className="w-6 h-6 text-tf-cyan" />
-        </div>
-        <div>
-          <h2 className="text-xl font-light text-foreground flex items-center gap-2">
-            Intelligent Data Suite
-            <span className="text-xs px-2 py-0.5 rounded-full bg-tf-cyan/20 text-tf-cyan font-medium">
-              Nervous System
-            </span>
-          </h2>
-          <p className="text-sm text-muted-foreground">
-            Zero-engineering data orchestration • Court-ready defensibility • Three-click onboarding
-          </p>
-        </div>
-      </motion.div>
-
-      {/* 5 Pillars Navigation */}
-      <Tabs value={activePillar} onValueChange={setActivePillar} className="space-y-6">
-        <TabsList className="bg-tf-elevated/50 p-1 grid grid-cols-5 w-full">
-          <TabsTrigger 
-            value="inventory" 
-            className="gap-2 data-[state=active]:bg-tf-gold/20 data-[state=active]:text-tf-gold"
-          >
-            <Database className="w-4 h-4" />
-            <span className="hidden sm:inline">Inventory</span>
-          </TabsTrigger>
-          <TabsTrigger 
-            value="ingest"
-            className="gap-2 data-[state=active]:bg-tf-cyan/20 data-[state=active]:text-tf-cyan"
-          >
-            <Upload className="w-4 h-4" />
-            <span className="hidden sm:inline">Ingest</span>
-          </TabsTrigger>
-          <TabsTrigger 
-            value="quality"
-            className="gap-2 data-[state=active]:bg-tf-green/20 data-[state=active]:text-tf-green"
-          >
-            <ShieldCheck className="w-4 h-4" />
-            <span className="hidden sm:inline">Quality</span>
-          </TabsTrigger>
-          <TabsTrigger 
-            value="versions"
-            className="gap-2 data-[state=active]:bg-purple-500/20 data-[state=active]:text-purple-400"
-          >
-            <GitBranch className="w-4 h-4" />
-            <span className="hidden sm:inline">Versions</span>
-          </TabsTrigger>
-          <TabsTrigger 
-            value="routing"
-            className="gap-2 data-[state=active]:bg-orange-500/20 data-[state=active]:text-orange-400"
-          >
-            <Route className="w-4 h-4" />
-            <span className="hidden sm:inline">Routing</span>
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="inventory" className="mt-0">
-          <InventoryPillar />
-        </TabsContent>
-
-        <TabsContent value="ingest" className="mt-0">
-          <IngestWizard />
-        </TabsContent>
-
-        <TabsContent value="quality" className="mt-0">
-          <QualityPillar />
-        </TabsContent>
-
-        <TabsContent value="versions" className="mt-0">
-          <VersionsPillar highlightJobId={highlightJobId} onJobIdConsumed={onJobIdConsumed} />
-        </TabsContent>
-
-        <TabsContent value="routing" className="mt-0">
-          <RoutingPillar />
-        </TabsContent>
-      </Tabs>
-    </div>
-  );
+  }, [initialPillar, onPillarConsumed, setParams]);
+  return <div className="module-page space-y-5">
+    <ModuleHeader title="Data Ingestion" icon={Database} actions={<span className="text-sm text-muted-foreground">{county?.name ?? "County workspace"}</span>} />
+    <Tabs value={activePillar} onValueChange={setPanel} className="space-y-5">
+      <TabsList aria-label="Data ingestion sections">
+        <TabsTrigger value="ingest" className="gap-2"><Upload className="h-4 w-4" />Import data</TabsTrigger>
+        <TabsTrigger value="inventory" className="gap-2"><Database className="h-4 w-4" />Inventory</TabsTrigger>
+        <TabsTrigger value="quality" className="gap-2"><ShieldCheck className="h-4 w-4" />Quality</TabsTrigger>
+        <TabsTrigger value="versions" className="gap-2"><GitBranch className="h-4 w-4" />Import history</TabsTrigger>
+        <TabsTrigger value="routing" className="gap-2"><Route className="h-4 w-4" />Routing</TabsTrigger>
+      </TabsList>
+      <TabsContent value="ingest"><IngestWizard /></TabsContent>
+      <TabsContent value="inventory"><InventoryPillar /></TabsContent>
+      <TabsContent value="quality"><QualityPillar /></TabsContent>
+      <TabsContent value="versions"><VersionsPillar highlightJobId={highlightJobId} onJobIdConsumed={onJobIdConsumed} /></TabsContent>
+      <TabsContent value="routing"><RoutingPillar /></TabsContent>
+    </Tabs>
+  </div>;
 }
