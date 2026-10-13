@@ -7,7 +7,7 @@ import { lazy, type LazyExoticComponent, type ComponentType } from "react";
 // ── Lazy component imports ────────────────────────────────────────
 
 // Home views
-const SuiteHub = lazy(() => import("@/components/dashboard/SuiteHub").then(m => ({ default: m.SuiteHub })));
+const WorkspaceHome = lazy(() => import("@/components/dashboard/WorkspaceHome").then(m => ({ default: m.WorkspaceHome })));
 const IDSCommandCenter = lazy(() => import("@/components/ids/IDSCommandCenter").then(m => ({ default: m.IDSCommandCenter })));
 const DataQualityScoringEngine = lazy(() => import("@/components/quality/DataQualityScoringEngine").then(m => ({ default: m.DataQualityScoringEngine })));
 const RollReadinessDashboard = lazy(() => import("@/components/certification").then(m => ({ default: m.RollReadinessDashboard })));
@@ -90,8 +90,8 @@ export interface ViewEntry {
  */
 export const VIEW_COMPONENT_MAP: Record<string, ViewEntry> = {
   // ── Home module ─────────────────────────────────────────────
-  "home:_default": { component: SuiteHub },
-  "home:dashboard": { component: SuiteHub },
+  "home:_default": { component: WorkspaceHome },
+  "home:dashboard": { component: WorkspaceHome },
   "home:ids": { component: IDSCommandCenter },
   "home:quality": { component: DataQualityScoringEngine, wrapperClass: "p-6 max-w-7xl mx-auto" },
   "home:readiness": { component: RollReadinessDashboard, wrapperClass: "p-6 max-w-5xl mx-auto" },
@@ -165,5 +165,5 @@ export const VIEW_COMPONENT_MAP: Record<string, ViewEntry> = {
 /** Look up a view component. Returns the default for the module if viewId is null. */
 export function getViewEntry(moduleId: string, viewId: string | null): ViewEntry | null {
   const key = viewId ? `${moduleId}:${viewId}` : `${moduleId}:_default`;
-  return VIEW_COMPONENT_MAP[key] ?? VIEW_COMPONENT_MAP[`${moduleId}:_default`] ?? null;
+  return VIEW_COMPONENT_MAP[key] ?? null;
 }

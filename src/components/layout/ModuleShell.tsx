@@ -112,12 +112,9 @@ export function ModuleShell() {
 
   const handleParcelNavigate = useCallback(
     (parcel: { id: string; parcelNumber: string; address: string; assessedValue: number }) => {
-      // Navigate to workbench with parcel context
-      // For now, store in sessionStorage since we can't pass state through URL
-      sessionStorage.setItem("tf:pendingParcel", JSON.stringify(parcel));
-      navigateToLegacy("workbench:property");
+      routerNavigate("/workbench/property", { state: { initialParcel: parcel } });
     },
-    [navigateToLegacy],
+    [routerNavigate],
   );
 
   // tf:navigate — allow non-React components to trigger navigation

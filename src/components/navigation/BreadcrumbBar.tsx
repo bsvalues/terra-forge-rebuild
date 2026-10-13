@@ -1,73 +1,21 @@
-// TerraFusion OS — BreadcrumbBar
-// Shows navigation path: Home > Data Operations > IDS Command Center
-// With optional "Next: [view] →" hint.
-
-import { ChevronRight, ArrowRight } from "lucide-react";
+import { ChevronRight, LayoutGrid } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { useAppNavigation } from "@/hooks/useAppNavigation";
-import { getModule, getViewGroup } from "@/config/IA_MAP";
-import { NEXT_STEPS } from "@/config/NEXT_STEPS";
+import { findWorkspace, WORKSPACES } from "@/config/workspaces";
 
-interface BreadcrumbBarProps {
-  onNavigate: (target: string) => void;
-}
-
-export function BreadcrumbBar({ onNavigate }: BreadcrumbBarProps) {
+export function BreadcrumbBar({ onNavigate }: { onNavigate: (target: string) => void }) {
   const { activeModule, activeView } = useAppNavigation();
-
-  const mod = getModule(activeModule);
-  if (!mod) return null;
-
-  // Don't show breadcrumbs if we're at the module root (dashboard/landing)
-  if (!activeView || activeView === "dashboard" || activeView === "property" || activeView === "calibration") {
-    return null;
-  }
-
-  const group = getViewGroup(activeModule, activeView);
-  const view = mod.views.find((v) => v.id === activeView);
-  const nextStep = activeView ? NEXT_STEPS[activeView] : undefined;
-
-  return (
-    <div className="border-b border-border/30 bg-background/40 backdrop-blur-sm px-4 sm:px-5 py-1.5 flex items-center justify-between min-h-[32px]">
-      <nav className="flex items-center gap-0.5 text-[12px]" aria-label="Breadcrumb">
-        {/* Module */}
-        <button
-          onClick={() => onNavigate(activeModule)}
-          className="text-muted-foreground/60 hover:text-muted-foreground transition-colors px-1 py-0.5 rounded hover:bg-muted/30"
-        >
-          {mod.label}
-        </button>
-
-        {/* Group (if applicable) */}
-        {group && (
-          <>
-            <ChevronRight className="w-3 h-3 text-muted-foreground/30 flex-shrink-0" />
-            <span className="text-muted-foreground/55 px-1">
-              {group.label}
-            </span>
-          </>
-        )}
-
-        {/* Current view */}
-        {view && (
-          <>
-            <ChevronRight className="w-3 h-3 text-muted-foreground/30 flex-shrink-0" />
-            <span className="text-foreground/80 font-medium px-1">
-              {view.label}
-            </span>
-          </>
-        )}
-      </nav>
-
-      {/* Next Step suggestion */}
-      {nextStep && (
-        <button
-          onClick={() => onNavigate(nextStep.target)}
-          className="hidden sm:flex items-center gap-1 text-[11px] text-muted-foreground/50 hover:text-primary transition-colors px-2 py-0.5 rounded hover:bg-primary/8"
-        >
-          <span>{nextStep.label}</span>
-          <ArrowRight className="w-2.5 h-2.5" />
-        </button>
-      )}
-    </div>
-  );
+  const workspace = findWorkspace(activeModule, activeView);
+  if (!workspace || workspace.id === "home") return null;
+  const tool = workspace.tools.find(t => t.module === activeModule && t.view === activeView) ?? workspace.tools[0];
+  return <div className="workspace-orientation">
+    <nav aria-label="Breadcrumb" className="flex min-w-0 flex-wrap items-center gap-1 text-xs">
+      <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" onClick={() => onNavigate("home")}>Home</Button>
+      <ChevronRight className="h-3 w-3 shrink-0 text-muted-foreground" />
+      <DropdownMenu><DropdownMenuTrigger asChild><Button variant="ghost" size="sm" className="h-7 px-2 text-xs">{workspace.label}</Button></DropdownMenuTrigger><DropdownMenuContent align="start">{WORKSPACES.filter(w => w.id !== "home").map(w => <DropdownMenuItem key={w.id} onSelect={() => { const first = w.tools[0]; if (first) onNavigate(`${first.module}:${first.view}`); }}><w.icon className="mr-2 h-4 w-4" />{w.label}</DropdownMenuItem>)}</DropdownMenuContent></DropdownMenu>
+      <ChevronRight className="h-3 w-3 shrink-0 text-muted-foreground" /><span className="px-1 font-medium" aria-current="page">{tool?.label ?? "Unavailable tool"}</span>
+    </nav>
+    <DropdownMenu><DropdownMenuTrigger asChild><Button variant="outline" size="sm" className="h-7 shrink-0 gap-2 text-xs"><LayoutGrid className="h-3 w-3" />Workspace tools</Button></DropdownMenuTrigger><DropdownMenuContent align="end" className="max-h-80 overflow-auto"><DropdownMenuLabel>{workspace.label}</DropdownMenuLabel><DropdownMenuSeparator />{workspace.tools.map(t => <DropdownMenuItem key={`${t.module}:${t.view}`} onSelect={() => onNavigate(`${t.module}:${t.view}`)}><t.icon className="mr-2 h-4 w-4" />{t.label}</DropdownMenuItem>)}</DropdownMenuContent></DropdownMenu>
+  </div>;
 }

@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/command";
 import { Search, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { WORKSPACES } from "@/config/workspaces";
 import { IA_MODULES } from "@/config/IA_MAP";
 import { useParcelLookup } from "@/hooks/useParcelLookup";
 import { useRecentParcels } from "@/hooks/useRecentParcels";
@@ -35,11 +36,16 @@ export function GlobalCommandPalette({
   const [searchValue, setSearchValue] = useState("");
   const parcelResults = useParcelLookup(open ? searchValue : "");
   const { recents } = useRecentParcels();
+  useEffect(() => {
+    const openSearch = () => onOpenChange(true);
+    window.addEventListener("tf:open-search", openSearch);
+    return () => window.removeEventListener("tf:open-search", openSearch);
+  }, [onOpenChange]);
 
   // Keyboard shortcuts for module switching (⌘1–4)
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
-      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
+      if (e.key === "k" && (e.metaKey || e.ctrlKey) && !e.shiftKey && !e.altKey) {
         e.preventDefault();
         onOpenChange(!open);
       }
@@ -86,7 +92,7 @@ export function GlobalCommandPalette({
   return (
     <CommandDialog open={open} onOpenChange={onOpenChange}>
       <CommandInput
-        placeholder="Search parcels by PIN or address, jump to modules..."
+        placeholder="Search properties, workspaces and tools…"
         value={searchValue}
         onValueChange={setSearchValue}
       />
@@ -176,31 +182,15 @@ export function GlobalCommandPalette({
           })}
         </CommandGroup>
 
-        {/* Sub-views within current module */}
-        {IA_MODULES.find((m) => m.id === activeModule)?.views && (
-          <>
-            <CommandSeparator />
-            <CommandGroup heading={`${IA_MODULES.find((m) => m.id === activeModule)?.label} Views`}>
-              {IA_MODULES.find((m) => m.id === activeModule)!.views.map((view) => {
-                const Icon = view.icon;
-                return (
-                  <CommandItem
-                    key={view.id}
-                    value={`view ${view.label}`}
-                    onSelect={() => handleSelectModule(`${activeModule}:${view.id}`)}
-                    className="flex items-center gap-3"
-                  >
-                    <Icon className="w-4 h-4 text-muted-foreground" />
-                    <span>{view.label}</span>
-                    <Badge variant="outline" className="text-[10px] px-1.5 py-0 ml-auto">
-                      {view.scope}
-                    </Badge>
-                  </CommandItem>
-                );
-              })}
-            </CommandGroup>
-          </>
-        )}
+        <CommandSeparator />
+        {WORKSPACES.map(workspace => <CommandGroup key={workspace.id} heading={workspace.label}>
+          {workspace.tools.map(tool => {
+            const Icon = tool.icon;
+            return <CommandItem key={`${tool.module}:${tool.view}`} value={`${workspace.label} ${tool.label} ${tool.view}`} onSelect={() => handleSelectModule(`${tool.module}:${tool.view}`)} className="flex items-center gap-3">
+              <Icon className="h-4 w-4 text-muted-foreground" /><span>{tool.label}</span><span className="ml-auto text-xs text-muted-foreground">{tool.scope}</span>
+            </CommandItem>;
+          })}
+        </CommandGroup>)}
       </CommandList>
     </CommandDialog>
   );

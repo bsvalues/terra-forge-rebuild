@@ -13,10 +13,11 @@ export default function Property() {
   const { data: parcel, isLoading, error } = useQuery({
     queryKey: ["property-route", parcelId],
     queryFn: async () => {
+      if (!parcelId) throw new Error("Parcel ID is required");
       const { data, error } = await supabase
         .from("parcels")
         .select("*")
-        .eq("id", parcelId!)
+        .eq("id", parcelId)
         .single();
       if (error) throw error;
       return data;
@@ -24,10 +25,10 @@ export default function Property() {
     enabled: !!parcelId,
   });
 
-  // Navigate to Index with parcel pre-selected via URL state
+  // Open the live Workbench route, preserving the selected parcel.
   useEffect(() => {
     if (parcel) {
-      navigate("/", {
+      navigate("/workbench/property", {
         state: {
           initialParcel: {
             id: parcel.id,
@@ -68,7 +69,7 @@ export default function Property() {
             The parcel ID <code className="text-xs bg-muted px-1.5 py-0.5 rounded">{parcelId}</code> does not exist or you don't have access.
           </p>
           <Button onClick={() => navigate("/")} variant="outline">
-            Return to Dashboard
+            Return Home
           </Button>
         </div>
       </div>

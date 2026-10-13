@@ -11,7 +11,6 @@ import {
   ArrowLeft,
   FileSpreadsheet,
   AlertTriangle,
-  Fingerprint,
   Loader2,
   X,
 } from "lucide-react";
@@ -82,108 +81,24 @@ export function IngestWizard() {
   if (pipeline.step === "select") {
     return (
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-        <Card className="bg-gradient-to-br from-tf-cyan/10 to-tf-bright-cyan/5 border-tf-cyan/30">
-          <CardContent className="p-6">
-            <div className="flex items-center gap-4">
-              <div className="p-3 rounded-xl bg-tf-cyan/20">
-                <Fingerprint className="w-6 h-6 text-tf-cyan" />
-              </div>
-              <div>
-                <h3 className="text-lg font-medium">The Three-Click Promise</h3>
-                <p className="text-sm text-muted-foreground">
-                  AI handles 40+ field mappings. You confirm only the{" "}
-                  <span className="text-tf-gold font-medium">Holy Trinity</span>:{" "}
-                  <span className="text-tf-cyan">Parcel ID</span>,{" "}
-                  <span className="text-tf-green">Total Value</span>,{" "}
-                  <span className="text-purple-400">Situs Address</span>
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <h3 className="text-lg font-medium">What are you importing?</h3>
-        
-        {/* PACS Migration Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Card
-            className="bg-gradient-to-br from-amber-500/10 to-tf-cyan/10 border-amber-500/30 hover:border-amber-500/60 cursor-pointer transition-all"
-            onClick={() => setShowPACSMulti(true)}
-          >
-            <CardContent className="p-6">
-              <div className="flex items-start gap-4">
-                <span className="text-4xl">🏛️</span>
-                <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <h4 className="font-medium text-lg">PACS Multi-Table Import</h4>
-                    <Badge className="bg-tf-green/20 text-tf-green border-tf-green/30 text-xs">Recommended</Badge>
-                  </div>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Drop all PACS CSV exports at once — auto-joins situs, imprv, land, permits on <code className="text-tf-cyan">prop_id</code>
-                  </p>
-                  <div className="flex gap-1.5 mt-2 flex-wrap">
-                    {["situs", "imprv", "imprv_items", "land_detail", "permits"].map(t => (
-                      <Badge key={t} variant="outline" className="text-xs font-mono">{t}</Badge>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card
-            className="bg-gradient-to-br from-amber-500/5 to-transparent border-amber-500/20 hover:border-amber-500/40 cursor-pointer transition-all"
-            onClick={() => {
-              pipeline.setImportProfile("pacs");
-              pipeline.setTargetTable("parcels");
-              pipeline.setStep("upload");
-            }}
-          >
-            <CardContent className="p-6">
-              <div className="flex items-start gap-4">
-                <span className="text-4xl">📄</span>
-                <div className="flex-1">
-                  <h4 className="font-medium text-lg">PACS Single File</h4>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Import one pre-joined CSV with PACS field aliases (prop_id, appraised_val, etc.)
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        <h3 className="text-lg font-medium">Or import standard data:</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {([
-            { id: "parcels" as TargetTable, label: "County Roll / Parcels", desc: "Property records, values, and characteristics", icon: "🏠" },
-            { id: "sales" as TargetTable, label: "Sales Stream", desc: "Arms-length transaction history for ratio studies", icon: "💰" },
-            { id: "assessments" as TargetTable, label: "Assessments", desc: "Assessment values by tax year", icon: "📋" },
-            { id: "combined" as TargetTable, label: "Combined Import", desc: "Auto-split file with both parcel & sales data into two parallel jobs", icon: "🔀" },
-          ]).map((item) => (
-            <Card
-              key={item.id}
-              className={cn(
-                "bg-tf-elevated/50 border-tf-border hover:border-tf-cyan/50 cursor-pointer transition-all",
-                item.id === "combined" && "border-tf-gold/30 bg-gradient-to-br from-tf-gold/5 to-tf-cyan/5"
-              )}
-              onClick={() => {
-                pipeline.setImportProfile("generic");
-                pipeline.setTargetTable(item.id);
-                pipeline.setStep("upload");
-              }}
-            >
-              <CardContent className="p-6 text-center">
-                <span className="text-4xl mb-4 block">{item.icon}</span>
-                <h4 className="font-medium mb-1">{item.label}</h4>
-                <p className="text-xs text-muted-foreground">{item.desc}</p>
-                {item.id === "combined" && (
-                  <Badge className="mt-2 bg-tf-gold/20 text-tf-gold border-tf-gold/30 text-xs">AI Auto-Split</Badge>
-                )}
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+        <section aria-labelledby="import-source-title">
+          <h2 id="import-source-title" className="text-lg font-semibold">Choose an import</h2>
+          <div className="import-choice-list mt-4">
+            <Button variant="outline" className="import-choice" onClick={() => setShowPACSMulti(true)}><FileSpreadsheet className="h-5 w-5 shrink-0" /><span className="min-w-0 text-left"><span className="block font-medium">PACS multiple files</span><span className="block text-xs font-normal text-muted-foreground">Property, values, improvements, land and permits</span></span><ArrowRight className="ml-auto h-4 w-4 shrink-0" /></Button>
+            <Button variant="outline" className="import-choice" onClick={() => { pipeline.setImportProfile("pacs"); pipeline.setTargetTable("parcels"); pipeline.setStep("upload"); }}><FileSpreadsheet className="h-5 w-5 shrink-0" /><span className="min-w-0 text-left"><span className="block font-medium">PACS single file</span><span className="block text-xs font-normal text-muted-foreground">A pre-joined property export</span></span><ArrowRight className="ml-auto h-4 w-4 shrink-0" /></Button>
+          </div>
+        </section>
+        <section aria-labelledby="standard-import-title">
+          <h3 id="standard-import-title" className="text-sm font-semibold">Standard files</h3>
+          <div className="import-choice-list mt-3">
+            {([
+              { id: "parcels" as TargetTable, label: "Parcels", desc: "Property identity, values and characteristics" },
+              { id: "sales" as TargetTable, label: "Sales", desc: "Transaction records" },
+              { id: "assessments" as TargetTable, label: "Assessments", desc: "Assessment values by year" },
+              { id: "combined" as TargetTable, label: "Parcels and sales", desc: "Combined records from one file" },
+            ]).map(item => <Button key={item.id} variant="outline" className="import-choice" onClick={() => { pipeline.setImportProfile("generic"); pipeline.setTargetTable(item.id); pipeline.setStep("upload"); }}><FileSpreadsheet className="h-5 w-5 shrink-0" /><span className="min-w-0 text-left"><span className="block font-medium">{item.label}</span><span className="block text-xs font-normal text-muted-foreground">{item.desc}</span></span><ArrowRight className="ml-auto h-4 w-4 shrink-0" /></Button>)}
+          </div>
+        </section>
       </motion.div>
     );
   }
@@ -191,13 +106,13 @@ export function IngestWizard() {
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
       {/* Pipeline Progress Bar */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between overflow-x-auto gap-3 pb-2" role="list" aria-label="Import progress">
         {PIPELINE_STEPS.map((s, i) => {
           const si = STEP_ORDER.indexOf(s.id);
           const isActive = pipeline.step === s.id;
           const isComplete = stepIndex > si;
           return (
-            <div key={s.id} className="flex items-center flex-1">
+            <div key={s.id} className="flex items-center flex-1 shrink-0 min-w-16" role="listitem" aria-current={isActive ? "step" : undefined}>
               <div className="flex flex-col items-center">
                 <div className={cn(
                   "w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all",
@@ -252,13 +167,13 @@ export function IngestWizard() {
             )}
 
             <Card className="bg-tf-elevated/50 border-tf-border">
-              <CardContent className="p-8">
+              <CardContent className="p-4">
                 <div
                   onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
                   onDragLeave={() => setIsDragging(false)}
                   onDrop={handleDrop}
                   className={cn(
-                    "border-2 border-dashed rounded-xl p-12 text-center transition-all",
+                    "border-2 border-dashed rounded-md p-5 text-center transition-colors",
                     isDragging ? "border-tf-cyan bg-tf-cyan/5" : "border-tf-border hover:border-tf-cyan/50"
                   )}
                 >
@@ -318,7 +233,7 @@ export function IngestWizard() {
                     }}
                   >
                     {loadingSample ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <FileSpreadsheet className="w-4 h-4 mr-2" />}
-                    Load Benton County WA (22K records)
+                    Load Benton sales file
                   </Button>
                 </div>
               </CardContent>
@@ -338,7 +253,7 @@ export function IngestWizard() {
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-base flex items-center gap-2">
                     <Brain className="w-4 h-4 text-tf-cyan" />
-                    AI Field Mapping
+                    Field mapping
                     <Badge className="bg-tf-cyan/20 text-tf-cyan border-tf-cyan/30">{pipeline.parsedFile.rowCount.toLocaleString()} rows</Badge>
                   </CardTitle>
                   <Badge variant="outline">
@@ -349,7 +264,7 @@ export function IngestWizard() {
               <CardContent>
                 {/* Holy Trinity highlight */}
                 <div className="mb-4 p-3 rounded-lg bg-tf-gold/10 border border-tf-gold/30">
-                  <p className="text-sm text-tf-gold font-medium mb-1">🔱 Holy Trinity — Please confirm these critical fields:</p>
+                  <p className="text-sm text-tf-gold font-medium mb-1">Required fields</p>
                   <div className="flex gap-2 flex-wrap">
                     {pipeline.holyTrinity.map(ht => {
                       const mapped = pipeline.mappings.find(m => m.targetColumn === ht);
@@ -403,7 +318,7 @@ export function IngestWizard() {
                                   const taken = pipeline.mappings.some(m => m.targetColumn === f.name && m.sourceColumn !== mapping.sourceColumn);
                                   return (
                                     <SelectItem key={f.name} value={f.name} disabled={taken}>
-                                      {f.label} {taken && "(mapped)"} {pipeline.holyTrinity.includes(f.name) && "🔱"}
+                                      {f.label} {taken && "(mapped)"} {pipeline.holyTrinity.includes(f.name) && "(required)"}
                                     </SelectItem>
                                   );
                                 })}

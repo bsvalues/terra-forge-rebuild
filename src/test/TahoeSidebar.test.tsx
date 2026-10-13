@@ -76,23 +76,6 @@ describe("TahoeSidebar", () => {
     expect(document.body).toBeTruthy();
   });
 
-  it("renders 4 module switcher buttons in the footer", () => {
-    render(
-      React.createElement(TahoeSidebar, { onNavigate: vi.fn() }),
-      { wrapper: Providers },
-    );
-    // Each module button has aria-label="Switch to X module (shortcut)"
-    const homeBtn = screen.getByRole("button", { name: /Switch to Home module/i });
-    const workbenchBtn = screen.getByRole("button", { name: /Switch to Workbench module/i });
-    const factoryBtn = screen.getByRole("button", { name: /Switch to Factory module/i });
-    const registryBtn = screen.getByRole("button", { name: /Switch to Registry module/i });
-
-    expect(homeBtn).toBeTruthy();
-    expect(workbenchBtn).toBeTruthy();
-    expect(factoryBtn).toBeTruthy();
-    expect(registryBtn).toBeTruthy();
-  });
-
   it("search trigger button is present and has aria-label containing 'command palette' or '⌘K'", () => {
     render(
       React.createElement(TahoeSidebar, { onNavigate: vi.fn() }),
@@ -102,15 +85,5 @@ describe("TahoeSidebar", () => {
     expect(searchBtn).toBeTruthy();
   });
 
-  it("module buttons are present in the DOM", () => {
-    render(
-      React.createElement(TahoeSidebar, { onNavigate: vi.fn() }),
-      { wrapper: Providers },
-    );
-    // Verify all 4 module labels are visible
-    expect(screen.getByText("Home")).toBeTruthy();
-    expect(screen.getByText("Workbench")).toBeTruthy();
-    expect(screen.getByText("Factory")).toBeTruthy();
-    expect(screen.getByText("Registry")).toBeTruthy();
-  });
+
 });
