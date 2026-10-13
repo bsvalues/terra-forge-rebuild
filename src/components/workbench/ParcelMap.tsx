@@ -3,6 +3,7 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { useWorkbench } from "./WorkbenchContext";
 import { useParcel360 } from "@/hooks/useParcel360";
+import { hasGeographicCoordinates } from "@/lib/geographicCoordinates";
 
 /** Geographic position from the authoritative parcel snapshot, not a diagram. */
 export function ParcelMap() {
@@ -11,7 +12,7 @@ export function ParcelMap() {
   const node = useRef<HTMLDivElement>(null);
   const latitude = snapshot?.characteristics.lat ?? parcel.latitude;
   const longitude = snapshot?.characteristics.lng ?? parcel.longitude;
-  const hasCoordinates = latitude != null && longitude != null && Number.isFinite(latitude) && Number.isFinite(longitude) && Math.abs(latitude) <= 90 && Math.abs(longitude) <= 180;
+  const hasCoordinates = hasGeographicCoordinates(latitude, longitude);
   useEffect(() => {
     if (!node.current || latitude == null || longitude == null || !hasCoordinates) return;
     const map = L.map(node.current).setView([latitude, longitude], 17);
