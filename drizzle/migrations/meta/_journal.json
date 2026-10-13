@@ -36,6 +36,13 @@
       "when": 1791928765163,
       "tag": "0004_fix_wgs84_backfill_scope",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1791928826917,
+      "tag": "0005_fix_trace_hash_null_parcel",
+      "breakpoints": true
     }
   ]
 }
