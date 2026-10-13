@@ -45,16 +45,19 @@
 - [x] Make Adjustment Ledger states and actions accessible; verify real narrow windows and regressions, then record handoff (419 tests; preview build OK; no browser errors/overflow).
 
 ## TerraFusion Sync 2.0 (foundation slice, plan pending approval)
-- [ ] Additive Sync schema: sources, runs, evidence, mapping versions, entity links, assertions, reconciliation, publications
+- [x] Additive Sync schema: sources, runs, evidence, mapping versions, entity links, assertions, reconciliation, publications
+- [x] Read-only Benton source/canonical inventory check (110,029 parcels; 87,443 sales; 21,788 assessments)
+- [x] Move Benton PACS archives + sales CSV out of public/uploads into private storage
 - [ ] Run engine with checkpoints, replay keys, manifest hash + TerraTrace receipts
-- [ ] Read-only Benton source/canonical inventory check
-- [ ] Move Benton PACS archives + sales CSV out of public/uploads into private storage
+- [ ] Repair county-file sample import to read from private storage (IngestWizard still points at /uploads/benton-county-sales.csv)
+- [ ] Ratio codes: preserve sl_ratio_type_cd / sl_county_ratio_cd on sales (blocked: columns absent; needs sale export with both codes)
+- [ ] Resolve 4,454 active roll accounts missing from app (blocked: needs property export for those prop_ids)
 
 ## Benton 2026 neighborhood correction
 - [x] Stage 2026 certified neighborhoods as year records with lineage; classify every account
 - [x] Fix sync mapping (hood_cd from property_val, certified-active rule, documented living-area rule) + tests
 - [x] Fill account 318135 characteristics
-- [ ] Promote derived current-year label to parcels (blocked: owner approval; preview and live share one database)
-- [ ] Preserve sl_ratio_type_cd / sl_county_ratio_cd on sales (blocked: columns absent; needs sale export with both codes)
-- [ ] Resolve 4,454 active roll accounts missing from app (blocked: needs property export for those prop_ids)
+- [x] Promote 2026 label to parcels (approved; 84,870 certified-active parcels updated; prior labels retained for rollback)
+- [x] Guard re-import: county file import no longer lets a stale valuation row erase the promoted 2026 label (with regression test)
 - [ ] App walkthrough after promotion (search, Workbench, neighborhoods, Value Change, AVM)
+- [ ] Sync rerun against live PACS (blocked: no PACS server access from this environment)
