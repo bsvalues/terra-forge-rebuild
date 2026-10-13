@@ -99,12 +99,13 @@ export function CommandPalette({ open: controlledOpen, onOpenChange }: CommandPa
   // Cmd+K to open
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
-      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
+      // The OS owns Cmd+K; the parcel-local palette uses Cmd+Shift+K.
+      if (e.key.toLowerCase() === "k" && (e.metaKey || e.ctrlKey) && e.shiftKey) {
         e.preventDefault();
         setOpen(!open);
       }
       
-      if ((e.metaKey || e.ctrlKey) && !e.shiftKey && ["1", "2", "3", "4", "5", "6"].includes(e.key)) {
+      if ((e.metaKey || e.ctrlKey) && e.altKey && !e.shiftKey && ["1", "2", "3", "4", "5", "6"].includes(e.key)) {
         e.preventDefault();
         const index = parseInt(e.key) - 1;
         if (SUITE_ITEMS[index]) setActiveTab(SUITE_ITEMS[index].tab);
