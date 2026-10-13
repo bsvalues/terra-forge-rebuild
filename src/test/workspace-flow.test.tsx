@@ -12,7 +12,8 @@ function ToolProbe() {
 }
 function ParcelProbe() {
   const { parcel, setParcel, setWorkMode, activeTab } = useWorkbench();
-  return <><output>{parcel.id}:{activeTab}</output><button onClick={() => setParcel({ id: "test-parcel", address: "Test address" })}>Select</button><button onClick={() => setWorkMode("admin")}>Admin</button></>;
+  const location = useLocation();
+  return <><output>{parcel.id}:{activeTab}:{location.search}</output><button onClick={() => setParcel({ id: "test-parcel", address: "Test address" })}>Select</button><button onClick={() => setWorkMode("admin")}>Admin</button><button onClick={() => { setParcel({ id: "next-parcel" }); setWorkMode("admin"); }}>Select and work</button></>;
 }
 describe("workspace continuity", () => {
   it("preserves county scope and embedded mode while changing tools", () => {
@@ -31,5 +32,12 @@ describe("workspace continuity", () => {
     fireEvent.click(screen.getByText("Select"));
     fireEvent.click(screen.getByText("Admin"));
     expect(screen.getByRole("status")).toHaveTextContent("test-parcel:dais");
+  });
+  it("retains parcel URL identity when selection and task happen in the same event", () => {
+    render(<MemoryRouter initialEntries={["/?tf_embed=1"]}><WorkbenchProvider><ParcelProbe /></WorkbenchProvider></MemoryRouter>);
+    fireEvent.click(screen.getByText("Select and work"));
+    expect(screen.getByRole("status")).toHaveTextContent("next-parcel:dais:");
+    expect(screen.getByRole("status")).toHaveTextContent("parcel=next-parcel");
+    expect(screen.getByRole("status")).toHaveTextContent("tf_embed=1");
   });
 });
