@@ -278,13 +278,14 @@ export function ParcelDetailEditor() {
 
                 return (
                   <div key={field.key} className="space-y-1.5">
-                    <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
+                    <Label htmlFor={`parcel-field-${field.key}`} className="text-xs text-muted-foreground flex items-center gap-1.5">
                       <Icon className="w-3 h-3" />
                       {field.label}
                     </Label>
 
                     {isEditing && !field.readOnly ? (
                       <Input
+                        id={`parcel-field-${field.key}`}
                         type={field.type === "text" ? "text" : "number"}
                         value={value ?? ""}
                         onChange={(e) => handleFieldChange(field.key, e.target.value)}
@@ -292,7 +293,7 @@ export function ParcelDetailEditor() {
                         step={field.key === "bathrooms" ? "0.5" : field.type === "currency" ? "1000" : "1"}
                       />
                     ) : (
-                      <div className={`h-9 flex items-center px-3 rounded-md bg-muted/30 text-sm ${
+                      <div id={`parcel-field-${field.key}`} className={`h-9 flex items-center px-3 rounded-md bg-muted/30 text-sm ${
                         field.type === "currency" ? "text-tf-green font-medium" : "text-foreground"
                       }`}>
                         {formatDisplay(field, value)}
