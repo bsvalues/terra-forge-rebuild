@@ -49,3 +49,12 @@
 - [ ] Run engine with checkpoints, replay keys, manifest hash + TerraTrace receipts
 - [ ] Read-only Benton source/canonical inventory check
 - [ ] Move Benton PACS archives + sales CSV out of public/uploads into private storage
+
+## Benton 2026 neighborhood correction
+- [x] Stage 2026 certified neighborhoods as year records with lineage; classify every account
+- [x] Fix sync mapping (hood_cd from property_val, certified-active rule, documented living-area rule) + tests
+- [x] Fill account 318135 characteristics
+- [ ] Promote derived current-year label to parcels (blocked: owner approval; preview and live share one database)
+- [ ] Preserve sl_ratio_type_cd / sl_county_ratio_cd on sales (blocked: columns absent; needs sale export with both codes)
+- [ ] Resolve 4,454 active roll accounts missing from app (blocked: needs property export for those prop_ids)
+- [ ] App walkthrough after promotion (search, Workbench, neighborhoods, Value Change, AVM)
