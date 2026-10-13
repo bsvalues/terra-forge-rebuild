@@ -11,7 +11,7 @@ export function ParcelMap() {
   const node = useRef<HTMLDivElement>(null);
   const latitude = snapshot?.characteristics.lat ?? parcel.latitude;
   const longitude = snapshot?.characteristics.lng ?? parcel.longitude;
-  const hasCoordinates = latitude != null && longitude != null && Number.isFinite(latitude) && Number.isFinite(longitude);
+  const hasCoordinates = latitude != null && longitude != null && Number.isFinite(latitude) && Number.isFinite(longitude) && Math.abs(latitude) <= 90 && Math.abs(longitude) <= 180;
   useEffect(() => {
     if (!node.current || latitude == null || longitude == null || !hasCoordinates) return;
     const map = L.map(node.current).setView([latitude, longitude], 17);
@@ -24,6 +24,6 @@ export function ParcelMap() {
     observer.observe(node.current);
     return () => { observer.disconnect(); map.remove(); };
   }, [latitude, longitude, hasCoordinates, snapshot?.identity.address, parcel.address, parcel.parcelNumber]);
-  if (!hasCoordinates) return <p className="py-8 text-sm text-muted-foreground">No geographic coordinates available for this parcel</p>;
+  if (!hasCoordinates) return <p className="py-8 text-sm text-muted-foreground">No valid geographic coordinates available for this parcel</p>;
   return <div ref={node} role="region" aria-label="Selected parcel map" className="relative z-0 w-full h-[440px] min-h-72" />;
 }
