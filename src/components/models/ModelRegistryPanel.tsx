@@ -1,28 +1,30 @@
+import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { ModuleHeader } from "@/components/layout/ModuleHeader";
 // TerraFusion OS — Phase 56: Model Registry Panel
 // Unified view of all valuation model runs across approaches
 
 import { useState, useMemo } from "react";
-import { motion } from "framer-motion";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { useModelRegistry, computeModelStats } from "@/hooks/useModelRegistry";
-import { Search, Activity, TrendingUp, BarChart3, Layers } from "lucide-react";
+import { Search, ExternalLink } from "lucide-react";
 
 const APPROACH_COLORS: Record<string, string> = {
-  Regression: "bg-orange-500/10 text-orange-600 border-orange-500/20",
-  AVM: "bg-blue-500/10 text-blue-600 border-blue-500/20",
-  Cost: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20",
-  Income: "bg-purple-500/10 text-purple-600 border-purple-500/20",
+  Regression: "bg-suite-forge/10 text-suite-forge border-suite-forge/20",
+  AVM: "bg-primary/10 text-primary border-primary/20",
+  Cost: "bg-chart-5/10 text-chart-5 border-chart-5/20",
+  Income: "bg-chart-4/10 text-chart-4 border-chart-4/20",
 };
 
 const STATUS_VARIANT: Record<string, string> = {
-  completed: "bg-green-500/10 text-green-600",
+  completed: "bg-chart-5/10 text-chart-5",
   draft: "bg-muted text-muted-foreground",
-  running: "bg-amber-500/10 text-amber-600",
+  running: "bg-chart-4/10 text-chart-4",
   failed: "bg-destructive/10 text-destructive",
 };
 
@@ -36,7 +38,8 @@ function formatDate(iso: string): string {
 }
 
 export function ModelRegistryPanel() {
-  const { data: runs, isLoading } = useModelRegistry();
+  const navigate = useNavigate();
+  const { data: runs, isLoading, error } = useModelRegistry();
   const [search, setSearch] = useState("");
   const [approachFilter, setApproachFilter] = useState<string | null>(null);
 
@@ -62,53 +65,9 @@ export function ModelRegistryPanel() {
   const approaches = ["Regression", "AVM", "Cost", "Income"];
 
   return (
-    <div className="space-y-6 p-6 max-w-7xl mx-auto">
-      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
-        <h1 className="text-2xl sm:text-3xl font-light text-[hsl(var(--tf-transcend-cyan))] tracking-tight">
-          Model Registry
-        </h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Unified inventory of all valuation model runs — regression, AVM, cost, and income approaches
-        </p>
-      </motion.div>
-
-      {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <Card className="border-border/50">
-          <CardContent className="p-3 text-center">
-            <Activity className="w-4 h-4 mx-auto mb-1 text-muted-foreground" />
-            <p className="text-2xl font-semibold text-foreground">{stats.totalRuns}</p>
-            <p className="text-[11px] text-muted-foreground">Total Runs</p>
-          </CardContent>
-        </Card>
-        <Card className="border-border/50">
-          <CardContent className="p-3 text-center">
-            <Layers className="w-4 h-4 mx-auto mb-1 text-muted-foreground" />
-            <p className="text-2xl font-semibold text-foreground">
-              {Object.keys(stats.byApproach).length}
-            </p>
-            <p className="text-[11px] text-muted-foreground">Approaches</p>
-          </CardContent>
-        </Card>
-        <Card className="border-border/50">
-          <CardContent className="p-3 text-center">
-            <TrendingUp className="w-4 h-4 mx-auto mb-1 text-muted-foreground" />
-            <p className="text-2xl font-semibold text-foreground">
-              {formatMetric(stats.avgRSquared)}
-            </p>
-            <p className="text-[11px] text-muted-foreground">Avg R²</p>
-          </CardContent>
-        </Card>
-        <Card className="border-border/50">
-          <CardContent className="p-3 text-center">
-            <BarChart3 className="w-4 h-4 mx-auto mb-1 text-muted-foreground" />
-            <p className="text-2xl font-semibold text-foreground">
-              {formatMetric(stats.avgCod, 1)}
-            </p>
-            <p className="text-[11px] text-muted-foreground">Avg COD</p>
-          </CardContent>
-        </Card>
-      </div>
+    <div className="module-page space-y-5">
+      <ModuleHeader title="Valuation run records" icon={ExternalLink} actions={<Button variant="outline" onClick={() => navigate("/factory/calibration")}>Open valuation tools</Button>} />
+      {error && <p className="text-sm text-destructive">Valuation run records unavailable</p>}
 
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3">
@@ -121,23 +80,23 @@ export function ModelRegistryPanel() {
             className="pl-9 h-9 text-sm"
           />
         </div>
-        <div className="flex gap-1.5">
-          <Badge
-            variant={approachFilter === null ? "default" : "outline"}
+        <div className="flex flex-wrap gap-1.5">
+          <Button size="sm"
+            variant={approachFilter === null ? "secondary" : "ghost"}
             className="cursor-pointer text-xs"
             onClick={() => setApproachFilter(null)}
           >
             All ({stats.totalRuns})
-          </Badge>
+          </Button>
           {approaches.map((a) => (
-            <Badge
+            <Button size="sm"
               key={a}
-              variant={approachFilter === a ? "default" : "outline"}
+              variant={approachFilter === a ? "secondary" : "ghost"}
               className={`cursor-pointer text-xs ${approachFilter !== a ? APPROACH_COLORS[a] : ""}`}
               onClick={() => setApproachFilter(approachFilter === a ? null : a)}
             >
               {a} ({stats.byApproach[a] ?? 0})
-            </Badge>
+            </Button>
           ))}
         </div>
       </div>
@@ -162,13 +121,13 @@ export function ModelRegistryPanel() {
                   <TableHead className="text-xs text-right">RMSE</TableHead>
                   <TableHead className="text-xs text-right">COD</TableHead>
                   <TableHead className="text-xs text-right">Median Ratio</TableHead>
-                  <TableHead className="text-xs text-right">Date</TableHead>
+                  <TableHead className="text-xs text-right">Date</TableHead><TableHead className="text-xs">Work</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filtered.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={10} className="text-center text-sm text-muted-foreground py-8">
+                    <TableCell colSpan={11} className="text-center text-sm text-muted-foreground py-8">
                       No model runs found.
                     </TableCell>
                   </TableRow>
@@ -207,6 +166,7 @@ export function ModelRegistryPanel() {
                       <TableCell className="text-xs text-right text-muted-foreground">
                         {formatDate(r.createdAt)}
                       </TableCell>
+                      <TableCell><Button variant="ghost" size="sm" className="gap-2" onClick={() => navigate(`/factory/${r.approachLabel === "AVM" ? "avm" : "calibration"}?mode=${({Cost:"cost",Income:"income"} as Record<string,string>)[r.approachLabel] ?? "regression"}${r.neighborhood && r.neighborhood !== "—" ? `&neighborhood=${encodeURIComponent(r.neighborhood)}` : ""}`)}>Open tools<ExternalLink className="h-3 w-3" /></Button></TableCell>
                     </TableRow>
                   ))
                 )}

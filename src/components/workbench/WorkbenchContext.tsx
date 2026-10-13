@@ -1,5 +1,8 @@
 import { createContext, useContext, useState, useCallback, useEffect, useRef, ReactNode } from "react";
 import { isEmbedMode } from "@/lib/splitView";
+import { useSearchParams } from "react-router-dom";
+import { useWorkspaceTool } from "@/hooks/useWorkspaceTool";
+import { useParcel360 } from "@/hooks/useParcel360";
 import { createWindowId, isParcelLinkEnabled, loadLastLinkedParcel, publishParcel, subscribeParcelLink, subscribeParcelLinkToggle } from "@/lib/parcelLink";
 import { 
   WorkbenchContext as WorkbenchContextType, 
@@ -49,6 +52,9 @@ const defaultStudyPeriod: StudyPeriodContext = {
 const WorkbenchCtx = createContext<WorkbenchContextValue | null>(null);
 
 export function WorkbenchProvider({ children }: WorkbenchProviderProps) {
+  const [params, setParams] = useSearchParams();
+  const routeParcelId = params.get("parcel");
+  const routeSnapshot = useParcel360(routeParcelId);
   // A side window (embed mode) opens on the parcel already in focus in this tab.
   const [parcel, setParcelState] = useState<ParcelContext>(() =>
     (typeof window !== "undefined" && isEmbedMode(window.location.search) && loadLastLinkedParcel()) || defaultParcel
@@ -56,12 +62,26 @@ export function WorkbenchProvider({ children }: WorkbenchProviderProps) {
   const [windowId] = useState(createWindowId);
   const [studyPeriod, setStudyPeriodState] = useState<StudyPeriodContext>(defaultStudyPeriod);
   const [workMode, setWorkModeState] = useState<WorkMode>("overview");
-  const [activeTab, setActiveTabState] = useState<SuiteTab>("summary");
+  const [activeTab, setActiveTabState] = useWorkspaceTool<SuiteTab>("work", ["summary", "forge", "atlas", "dais", "dossier", "pilot", "sketch"], "summary");
   const [pilotMode, setPilotModeState] = useState<PilotMode>("pilot");
   const [systemState, setSystemStateState] = useState<SystemState>("idle");
 
   // Announce parcel changes made in this window (only when the parcel itself changes).
   const lastPublished = useRef<string | null>(parcel.id);
+
+  // Returning from county work or refreshing restores the parcel from its
+  // authoritative snapshot, not from a potentially stale recent-list record.
+  useEffect(() => {
+    if (!routeParcelId || !routeSnapshot || parcel.id === routeParcelId) return;
+    setParcelState({
+      id: routeParcelId, parcelNumber: routeSnapshot.identity.parcelNumber,
+      address: routeSnapshot.identity.address, city: routeSnapshot.identity.city,
+      propertyClass: routeSnapshot.identity.propertyClass,
+      assessedValue: routeSnapshot.valuation.assessedValue,
+      neighborhoodCode: routeSnapshot.identity.neighborhoodCode,
+      latitude: routeSnapshot.characteristics.lat, longitude: routeSnapshot.characteristics.lng,
+    });
+  }, [routeParcelId, routeSnapshot, parcel.id]);
 
   // Link on/off: when off, this window keeps its own parcel so two different
   // parcels can be compared side by side.
@@ -84,12 +104,14 @@ export function WorkbenchProvider({ children }: WorkbenchProviderProps) {
   }, [parcel, windowId, linkEnabled]);
 
   const setParcel = useCallback((updates: Partial<ParcelContext>) => {
-    setParcelState(prev => ({ ...prev, ...updates }));
-  }, []);
+    setParcelState(prev => ({ ...(updates.id && updates.id !== prev.id ? defaultParcel : prev), ...updates }));
+    if (updates.id) setParams(current => { const next = new URLSearchParams(current); next.set("parcel", updates.id ?? ""); return next; }, { replace: true });
+  }, [setParams]);
 
   const clearParcel = useCallback(() => {
     setParcelState(defaultParcel);
-  }, []);
+    setParams(current => { const next = new URLSearchParams(current); next.delete("parcel"); next.delete("work"); return next; }, { replace: true });
+  }, [setParams]);
 
   const setStudyPeriod = useCallback((updates: Partial<StudyPeriodContext>) => {
     setStudyPeriodState(prev => ({ ...prev, ...updates }));
@@ -100,11 +122,11 @@ export function WorkbenchProvider({ children }: WorkbenchProviderProps) {
     // Auto-switch to default tab for this mode
     const config = WORK_MODE_CONFIGS[mode];
     setActiveTabState(config.defaultTab);
-  }, []);
+  }, [setActiveTabState]);
 
   const setActiveTab = useCallback((tab: SuiteTab) => {
     setActiveTabState(tab);
-  }, []);
+  }, [setActiveTabState]);
 
   const setPilotMode = useCallback((mode: PilotMode) => {
     setPilotModeState(mode);

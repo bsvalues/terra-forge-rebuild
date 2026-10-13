@@ -1,11 +1,10 @@
-import { useState, useCallback, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
+import { WorkToolBar } from "@/components/navigation/WorkToolBar";
+import { useWorkspaceTool } from "@/hooks/useWorkspaceTool";
 import { motion } from "framer-motion";
 import { ModuleHeader } from "@/components/layout/ModuleHeader";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { NeighborhoodSelector } from "./NeighborhoodSelector";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { useActiveCountyId } from "@/hooks/useActiveCounty";
 import { FactoryDashboardHeader } from "./FactoryDashboardHeader";
 import { RegressionMode } from "./regression/RegressionMode";
 import { CostMode } from "./cost/CostMode";
@@ -36,54 +35,15 @@ const MODE_META: Record<FactoryMode, { label: string; icon: React.ElementType; d
 const MODES: FactoryMode[] = ["regression", "cost", "income", "comps", "scenarios", "calibration"];
 
 export function FactoryLayout({ initialMode }: FactoryLayoutProps) {
-  const [activeMode, setActiveMode] = useState<FactoryMode>(
-    (MODES.includes(initialMode as FactoryMode) ? initialMode : "regression") as FactoryMode
-  );
-  const [neighborhood, setNeighborhood] = useState<string | null>(null);
+  const [activeMode, handleModeChange] = useWorkspaceTool<FactoryMode>("mode", MODES, MODES.find(mode => mode === initialMode) ?? "regression");
+  const [params, setParams] = useSearchParams();
+  const neighborhood = params.get("neighborhood");
+  const setNeighborhood = (value: string | null) => setParams(current => { const next = new URLSearchParams(current); if (value) next.set("neighborhood", value); else next.delete("neighborhood"); return next; }, { replace: true });
   const { data: vitals } = useCountyVitals();
-  const countyId = useActiveCountyId();
-
-  // Auto-select highest-density neighborhood on first load
-  const { data: topNeighborhood } = useQuery({
-    queryKey: ["factory-top-neighborhood", countyId],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("parcels")
-        .select("neighborhood_code")
-        .eq("county_id", countyId!)
-        .not("neighborhood_code", "is", null)
-        .limit(5000);
-      if (!data?.length) return null;
-      const counts = new Map<string, number>();
-      for (const p of data) {
-        const code = p.neighborhood_code!;
-        counts.set(code, (counts.get(code) || 0) + 1);
-      }
-      let best = "";
-      let bestN = 0;
-      for (const [code, n] of counts) {
-        if (n > bestN) { best = code; bestN = n; }
-      }
-      return best || null;
-    },
-    enabled: !!countyId,
-    staleTime: 300_000,
-  });
-
-  useEffect(() => {
-    if (!neighborhood && topNeighborhood) {
-      setNeighborhood(topNeighborhood);
-    }
-  }, [topNeighborhood, neighborhood]);
-
-  const handleModeChange = useCallback((val: string) => {
-    setActiveMode(val as FactoryMode);
-  }, []);
 
   return (
     <div className="module-page space-y-4">
-      <ModuleHeader title="Mass Appraisal Factory" icon={FactoryIcon}
-        description="Neighborhood calibration and valuation review"
+      <ModuleHeader title="Neighborhood valuation" icon={FactoryIcon}
         actions={<>
           <ScopeHeader scope={neighborhood ? "neighborhood" : "county"} label={neighborhood || "All Neighborhoods"} source="county-vitals" fetchedAt={vitals?.fetchedAt} />
           <NeighborhoodSelector value={neighborhood} onChange={setNeighborhood} />
@@ -91,26 +51,11 @@ export function FactoryLayout({ initialMode }: FactoryLayoutProps) {
       />
 
       {/* Aggregate Stats Dashboard Header */}
-      <FactoryDashboardHeader />
+      <details><summary className="cursor-pointer text-sm text-muted-foreground">County valuation summary</summary><div className="mt-4"><FactoryDashboardHeader /></div></details>
 
       {/* Mode Tabs */}
       <Tabs value={activeMode} onValueChange={handleModeChange} className="space-y-6">
-        <TabsList aria-label="Factory modes">
-          {MODES.map((mode) => {
-            const meta = MODE_META[mode];
-            const Icon = meta.icon;
-            return (
-              <TabsTrigger
-                key={mode}
-                value={mode}
-                className="gap-2"
-              >
-                <Icon className="w-4 h-4" />
-                <span className="text-sm font-medium">{meta.label}</span>
-              </TabsTrigger>
-            );
-          })}
-        </TabsList>
+        <WorkToolBar active={activeMode} onSelect={handleModeChange} primary={["regression", "cost", "income"]} tools={MODES.map(mode => ({ id: mode, label: MODE_META[mode].label, icon: MODE_META[mode].icon, group: "Review & reconciliation" }))} />
 
         {/* Mode Content */}
         {MODES.map((mode) => {

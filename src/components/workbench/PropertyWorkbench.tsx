@@ -25,9 +25,6 @@ import { DossierTab } from "./tabs/DossierTab";
 import { PilotTab } from "./tabs/PilotTab";
 import { SketchTab } from "./tabs/SketchTab";
 
-// Admin Dashboard
-import { AdminDashboard } from "@/components/admin";
-
 // Command Palette
 import { CommandPalette } from "./CommandPalette";
 
@@ -55,9 +52,10 @@ interface WorkbenchContentProps {
 }
 
 function WorkbenchContent({ initialParcel, onParcelConsumed, initialTab, onTabConsumed, initialSubTab, onSubTabConsumed }: WorkbenchContentProps) {
-  const { activeTab, workMode, setParcel, setActiveTab } = useWorkbench();
+  const { activeTab, parcel, setParcel, setActiveTab } = useWorkbench();
   const [daisCategory, setDaisCategory] = useState<string | null>(null);
   const [pilotPanelOpen, setPilotPanelOpen] = useState(false);
+  const [queueOpen, setQueueOpen] = useState(false);
   const { addRecent } = useRecentParcels();
 
   // Enable global scrape job notifications
@@ -95,19 +93,6 @@ function WorkbenchContent({ initialParcel, onParcelConsumed, initialTab, onTabCo
 
   const TabComponent = TAB_COMPONENTS[activeTab];
 
-  // Show Admin Dashboard when in admin mode
-  if (workMode === "admin") {
-    return (
-      <div className="flex flex-col h-[calc(100dvh-11rem)] min-h-[28rem] bg-background">
-        <CommandPalette />
-        <ContextRibbon />
-        <div className="flex-1 overflow-auto">
-          <AdminDashboard />
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="flex flex-col h-[calc(100dvh-11rem)] min-h-[28rem] bg-background">
       {/* Command Palette - Global keyboard shortcut handler */}
@@ -117,13 +102,14 @@ function WorkbenchContent({ initialParcel, onParcelConsumed, initialTab, onTabCo
       <ContextRibbon />
 
       {/* Review Queue Bar */}
-      <ReviewQueueBar />
+      {parcel.id && queueOpen && <ReviewQueueBar />}
 
       {/* Suite Tab Navigation */}
-      <div className="flex flex-wrap items-center justify-between gap-2 px-4 bg-tf-surface border-b border-border">
+      {parcel.id && <div className="flex flex-wrap items-center justify-between gap-2 px-4 bg-tf-surface border-b border-border">
         <div className="min-w-0 overflow-x-auto"><SuiteTabNavigation /></div>
+        <Button variant="ghost" size="sm" aria-pressed={queueOpen} onClick={() => setQueueOpen(open => !open)}>Review queue</Button>
         {activeTab !== "pilot" && <Button variant="ghost" size="sm" className="gap-2 shrink-0" aria-label="Toggle TerraPilot panel" aria-pressed={pilotPanelOpen} title="Toggle TerraPilot panel" onClick={() => setPilotPanelOpen((open) => !open)}><PanelRight className="h-4 w-4" />TerraPilot</Button>}
-      </div>
+      </div>}
 
       {/* Main Content Area with Queue Sidebar + Pilot Panel */}
       <div className="flex-1 overflow-hidden flex">
@@ -146,7 +132,7 @@ function WorkbenchContent({ initialParcel, onParcelConsumed, initialTab, onTabCo
                   transition={{ duration: 0.2 }}
                   className="h-full overflow-auto"
                 >
-                  {activeTab === "dais" ? (
+                  {!parcel.id ? <SummaryTab /> : activeTab === "dais" ? (
                     <DaisTab initialCategory={daisCategory} onCategoryConsumed={() => setDaisCategory(null)} />
                   ) : (
                     <TabComponent />

@@ -1,6 +1,7 @@
 # Roadmap
 
 ## Complete application audit and redesign (current priority)
+- [ ] Current request: remove competing Workbench navigation, put parcel search first, simplify assessment/admin/evidence interiors, and verify real read and import-preview flows; do not claim untested writes complete.
 - [x] Audit signed-in navigation and representative workspaces; findings and next-session handoff in docs/application-redesign-audit.md.
 - [x] Replace hidden module switching with persistent, suite-grounded navigation and searchable access to every registered tool.
 - [x] Replace the overloaded Home briefing with a direct work directory and access to recent properties.

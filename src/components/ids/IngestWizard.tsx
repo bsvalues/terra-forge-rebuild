@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Upload,
@@ -38,11 +38,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useIngestPipeline, type IngestStep, type TargetTable } from "@/hooks/useIngestPipeline";
 import { PACS_EXPORT_GUIDE } from "@/config/pacsFieldMappings";
+import { useNavigate } from "react-router-dom";
 import { PACSMultiTableImport } from "./PACSMultiTableImport";
 
 const PIPELINE_STEPS: { id: IngestStep; label: string; icon: React.ReactNode }[] = [
   { id: "upload", label: "Upload", icon: <Upload className="w-4 h-4" /> },
-  { id: "mapping", label: "Map", icon: <Brain className="w-4 h-4" /> },
+  { id: "mapping", label: "Fields", icon: <Brain className="w-4 h-4" /> },
   { id: "validate", label: "Validate", icon: <ShieldCheck className="w-4 h-4" /> },
   { id: "preview", label: "Preview", icon: <Eye className="w-4 h-4" /> },
   { id: "publish", label: "Publish", icon: <Rocket className="w-4 h-4" /> },
@@ -52,6 +53,12 @@ const STEP_ORDER: IngestStep[] = ["select", "upload", "mapping", "validate", "pr
 
 export function IngestWizard() {
   const pipeline = useIngestPipeline();
+  const navigate = useNavigate();
+  useEffect(() => {
+    const warn = (event: BeforeUnloadEvent) => { if (pipeline.parsedFile && pipeline.step !== "complete") { event.preventDefault(); event.returnValue = ""; } };
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [pipeline.parsedFile, pipeline.step]);
   const [isDragging, setIsDragging] = useState(false);
   const [loadingSample, setLoadingSample] = useState(false);
   const [showPACSMulti, setShowPACSMulti] = useState(false);
@@ -105,6 +112,7 @@ export function IngestWizard() {
 
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+      {pipeline.parsedFile && pipeline.step !== "complete" && <p className="text-xs text-muted-foreground">{pipeline.parsedFile.fileName} · {pipeline.parsedFile.rowCount.toLocaleString()} rows · Unpublished changes stay here while viewing other data sections; leaving this workspace discards the in-memory preview.</p>}
       {/* Pipeline Progress Bar */}
       <div className="flex items-center justify-between overflow-x-auto gap-3 pb-2" role="list" aria-label="Import progress">
         {PIPELINE_STEPS.map((s, i) => {
@@ -115,9 +123,9 @@ export function IngestWizard() {
             <div key={s.id} className="flex items-center flex-1 shrink-0 min-w-16" role="listitem" aria-current={isActive ? "step" : undefined}>
               <div className="flex flex-col items-center">
                 <div className={cn(
-                  "w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all",
+                  "w-8 h-8 rounded-md flex items-center justify-center border transition-colors",
                   isComplete ? "bg-tf-green/20 border-tf-green" :
-                  isActive ? "bg-tf-cyan/20 border-tf-cyan animate-core-pulse" :
+                  isActive ? "bg-tf-cyan/20 border-tf-cyan" :
                   "bg-tf-elevated border-tf-border"
                 )}>
                   {isComplete ? <CheckCircle2 className="w-5 h-5 text-tf-green" /> :
@@ -139,12 +147,12 @@ export function IngestWizard() {
           <motion.div key="upload" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
             {/* PACS Profile Banner */}
             {pipeline.importProfile === "pacs" && (
-              <Card className="bg-gradient-to-r from-amber-500/10 to-transparent border-amber-500/30 mb-4">
+              <Card className="bg-muted border-border mb-4">
                 <CardContent className="p-4">
                   <div className="flex items-center gap-3">
                     <span className="text-2xl">🏛️</span>
                     <div className="flex-1">
-                      <h4 className="font-medium text-amber-400">PACS Migration Mode Active</h4>
+                      <h4 className="font-medium text-chart-4">PACS field mapping</h4>
                       <p className="text-xs text-muted-foreground">
                         True Automation field aliases loaded — prop_id, appraised_val, sl_price, etc. will auto-map
                       </p>
@@ -154,7 +162,7 @@ export function IngestWizard() {
                         <Badge
                           key={t}
                           variant={pipeline.targetTable === t ? "default" : "outline"}
-                          className={cn("cursor-pointer text-xs", pipeline.targetTable === t && "bg-amber-500/20 text-amber-400 border-amber-500/30")}
+                          className={cn("cursor-pointer text-xs", pipeline.targetTable === t && "bg-chart-4/20 text-chart-4 border-chart-4/30")}
                           onClick={() => pipeline.setTargetTable(t)}
                         >
                           {t}
@@ -206,8 +214,7 @@ export function IngestWizard() {
                 )}
 
                 {/* Sample Data Loader */}
-                <div className="mt-4 pt-4 border-t border-tf-border">
-                  <p className="text-xs text-muted-foreground mb-2">Or load sample county data:</p>
+                <details className="mt-4 pt-4 border-t border-tf-border"><summary className="cursor-pointer text-sm text-muted-foreground">Stored Benton example</summary>
                   <Button
                     variant="outline"
                     size="sm"
@@ -235,7 +242,7 @@ export function IngestWizard() {
                     {loadingSample ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <FileSpreadsheet className="w-4 h-4 mr-2" />}
                     Load Benton sales file
                   </Button>
-                </div>
+                </details>
               </CardContent>
             </Card>
             <div className="flex justify-between mt-4">
@@ -364,23 +371,24 @@ export function IngestWizard() {
               <Card className="bg-tf-green/10 border-tf-green/30">
                 <CardContent className="p-4 text-center">
                   <p className="text-3xl font-bold text-tf-green">{pipeline.validation.validRows.toLocaleString()}</p>
-                  <p className="text-xs text-muted-foreground">Valid Rows</p>
+                  <p className="text-xs text-muted-foreground">{(pipeline.parsedFile?.rowCount ?? 0) > 1000 ? "Estimated valid rows" : "Valid rows"}</p>
                 </CardContent>
               </Card>
               <Card className="bg-destructive/10 border-destructive/30">
                 <CardContent className="p-4 text-center">
                   <p className="text-3xl font-bold text-destructive">{pipeline.validation.invalidRows.toLocaleString()}</p>
-                  <p className="text-xs text-muted-foreground">Invalid Rows</p>
+                  <p className="text-xs text-muted-foreground">{(pipeline.parsedFile?.rowCount ?? 0) > 1000 ? "Estimated invalid rows" : "Invalid rows"}</p>
                 </CardContent>
               </Card>
               <Card className="bg-tf-cyan/10 border-tf-cyan/30">
                 <CardContent className="p-4 text-center">
                   <p className="text-3xl font-bold text-tf-cyan">{((pipeline.validation.validRows / pipeline.validation.totalRows) * 100).toFixed(1)}%</p>
-                  <p className="text-xs text-muted-foreground">Pass Rate</p>
+                  <p className="text-xs text-muted-foreground">Sample pass rate</p>
                 </CardContent>
               </Card>
             </div>
 
+            {(pipeline.parsedFile?.rowCount ?? 0) > 1000 && <p className="text-sm text-muted-foreground">Validation sampled the first 1,000 rows. Counts are estimates, not full-file verification.</p>}
             {/* Field completeness */}
             <Card className="bg-tf-elevated/50 border-tf-border">
               <CardHeader><CardTitle className="text-base">Field Completeness</CardTitle></CardHeader>
@@ -531,13 +539,14 @@ export function IngestWizard() {
             <Card className="bg-tf-elevated/50 border-tf-border">
               <CardContent className="p-12 text-center">
                 <CheckCircle2 className="w-16 h-16 mx-auto mb-4 text-tf-green" />
-                <h3 className="text-xl font-medium mb-2">Import Complete!</h3>
+                <h3 className="text-xl font-medium mb-2">Publishing finished</h3>
                 <p className="text-sm text-muted-foreground mb-6">
-                  Your data has been published and is now available across the TerraFusion ecosystem.
+                  Publishing finished. Review the import record before starting assessment work.
                 </p>
                 <Button onClick={pipeline.reset} className="bg-tf-cyan hover:bg-tf-cyan/80">
-                  Import More Data
+                  Import another file
                 </Button>
+                <Button variant="outline" className="ml-3" onClick={() => navigate("/home/ids?panel=versions")}>Review import history</Button>
               </CardContent>
             </Card>
           </motion.div>

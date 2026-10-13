@@ -20,6 +20,9 @@
 
 - Workbench county summaries consume the shared County Vitals read model, never independent count queries or absent comparison snapshots; this keeps county scope and caching consistent.
 - Workbench opens with direct parcel controls and an optional toolbar-toggled TerraPilot inspector; this keeps deterministic work primary and prevents floating AI controls from covering the desktop dock.
+- Workspace interiors expose a small primary tool row and grouped specialist menu; URL search parameters retain tool/scope independently per window, reducing competing navigation without removing registered tools.
+- Parcel maps render authoritative snapshot coordinates on a geographic basemap, never normalized point diagrams presented as GIS; missing coordinates remain explicitly unavailable.
+- The ingestion wizard stays mounted across data-section changes, preserving unpublished previews in memory; refresh warns about unsaved previews and must not imply durable draft recovery.
 
 - Model the OS as Home/county context, countywide Forge/Atlas/Dais/Dossier, OS-owned Property Workbench, and shared services; each domain retains its constitutional write owner.
 - Home is a direct work directory; contextual intelligence and evidence belong in their workspaces, not competing dashboard prescriptions.
