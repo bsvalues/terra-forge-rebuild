@@ -105,12 +105,6 @@ export function CommandPalette({ open: controlledOpen, onOpenChange }: CommandPa
         setOpen(!open);
       }
       
-      if ((e.metaKey || e.ctrlKey) && e.altKey && !e.shiftKey && ["1", "2", "3", "4", "5", "6"].includes(e.key)) {
-        e.preventDefault();
-        const index = parseInt(e.key) - 1;
-        if (SUITE_ITEMS[index]) setActiveTab(SUITE_ITEMS[index].tab);
-      }
-      
       if ((e.metaKey || e.ctrlKey) && e.shiftKey) {
         const modeMap: Record<string, WorkMode> = { o: "overview", v: "valuation", m: "mapping", a: "admin", c: "case" };
         const mode = modeMap[e.key.toLowerCase()];

@@ -45,7 +45,7 @@ export function GlobalCommandPalette({
   // Keyboard shortcuts for module switching (⌘1–4)
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
-      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
+      if (e.key === "k" && (e.metaKey || e.ctrlKey) && !e.shiftKey && !e.altKey) {
         e.preventDefault();
         onOpenChange(!open);
       }

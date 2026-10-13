@@ -1,13 +1,15 @@
 # Roadmap
 
 ## Complete application audit and redesign (current priority)
-- [ ] Audit signed-in navigation and representative workspaces; record concrete usability failures.
-- [ ] Replace hidden module switching with persistent, suite-grounded navigation and searchable access to every registered tool.
-- [ ] Replace the overloaded Home briefing with a direct work directory and genuine recent parcel work.
-- [ ] Establish visible workspace orientation and related-tool access in primary and embedded windows.
-- [ ] Redesign ingestion entry and remove misleading promises; preserve import behavior.
-- [ ] Verify navigation, search, ingestion entry, and narrow-window access with tests and signed-in browser checks.
-- [ ] Complete remaining legacy interiors and validate their real task flows; do not claim the overall redesign finished prematurely.
+- [x] Audit signed-in navigation and representative workspaces; findings and next-session handoff in docs/application-redesign-audit.md.
+- [x] Replace hidden module switching with persistent, suite-grounded navigation and searchable access to every registered tool.
+- [x] Replace the overloaded Home briefing with a direct work directory and access to recent properties.
+- [x] Establish visible workspace orientation and related-tool access in primary and embedded windows.
+- [x] Redesign ingestion entry and remove misleading promises; preserve import behavior.
+- [x] Verify navigation, search, ingestion entry, and narrow-window access: signed-in real parcel selection, no browser errors/overflow, 432 tests passed; preview build OK.
+- [ ] Workbench hierarchy, admin continuity, and real valuation/evidence flows still require redesign and verification.
+- [ ] Unfinished import interruption handling and real-file mapping/preview verification remain open; no publish performed.
+- [ ] Factory/Registry mode persistence and remaining legacy county interiors remain open; broader redesign is NOT complete.
 
 ## Tasks
 - [x] Add Google sign-in button to the app (Auth.tsx + provider enabled)
