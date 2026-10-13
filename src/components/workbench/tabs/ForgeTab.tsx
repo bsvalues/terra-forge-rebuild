@@ -82,7 +82,7 @@ export function ForgeTab() {
         {activeView === "anatomy" && <ValuationAnatomyDashboard />}
         {activeView === "comps" && <ComparableSalesPanel />}
         {activeView === "avmrun" && <AvmRunPanel />}
-        {activeView === "cost" && <CostApproachPanel />}
+        {activeView === "cost" && <div className="module-page space-y-4"><div className="flex flex-wrap items-center justify-between gap-3"><h3 className="text-base font-semibold">County cost records</h3><Button variant="outline" onClick={() => navigate(`/factory/calibration?mode=cost${parcel.neighborhoodCode ? `&neighborhood=${encodeURIComponent(parcel.neighborhoodCode)}` : ""}`)}>Open cost tools<ExternalLink className="ml-2 h-4 w-4" /></Button></div><CostApproachPanel /></div>}
         {activeView === "ratio" && <RatioStudyPanel />}
         {activeView === "compare" && <div className="p-6"><ParcelComparisonView /></div>}
         {activeView === "nbhd-ratio" && <NeighborhoodRatioStudyDashboard />}
