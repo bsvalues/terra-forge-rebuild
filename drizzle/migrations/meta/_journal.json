@@ -29,6 +29,13 @@
       "when": 1791900587457,
       "tag": "0003_neighborhood_year_lineage_and_reconciliation",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1791928765163,
+      "tag": "0004_fix_wgs84_backfill_scope",
+      "breakpoints": true
     }
   ]
 }
