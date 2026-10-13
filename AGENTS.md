@@ -34,5 +34,5 @@
 - Workbench windows in one tab share the focused parcel via BroadcastChannel + sessionStorage (src/lib/parcelLink.ts); it shares focus only, never writes, so write lanes stay intact.
 - PACS neighborhoods are valuation-year records (parcel_neighborhood_year, keyed by county-scoped prop_id, certified-active = sup_num 0 and no inactive date, exact code match) with run lineage in neighborhood_reconciliation_runs/items; parcels.neighborhood_code is only a derived current-year display, so a sync can never erase historical labels.
 
-- Parcel360 map coordinates read the derived latitude_wgs84/longitude_wgs84 columns (filled by backfill_parcel_wgs84_from_raw), falling back to raw only in degree range; raw PACS fields may be projected.
-- Unsaved record edits recover via src/lib/workDraft (device-local, cleared on save/cancel); drafts never write county data.
+- Parcel360 maps read derived WGS84 columns; raw PACS fields may be projected.
+- Unsaved edits recover via device-local src/lib/workDraft; drafts never write data.
