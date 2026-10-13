@@ -5,6 +5,7 @@
 import { Suspense } from "react";
 import { getViewEntry } from "@/config/VIEW_COMPONENT_MAP";
 import { useAppNavigation } from "@/hooks/useAppNavigation";
+import { useLocation } from "react-router-dom";
 
 function ViewFallback() {
   return (
@@ -38,6 +39,7 @@ interface ViewRendererProps {
 
 export function ViewRenderer({ onNavigate, onParcelNavigate }: ViewRendererProps) {
   const { activeModule, activeView } = useAppNavigation();
+  const location = useLocation();
 
   const entry = getViewEntry(activeModule, activeView);
 
@@ -50,6 +52,10 @@ export function ViewRenderer({ onNavigate, onParcelNavigate }: ViewRendererProps
   // Build props object — only pass handlers that the component might accept
   // Components are typed loosely because we can't know each one's exact props here
   const passProps: Record<string, unknown> = {};
+  const state = location.state as { initialParcel?: { id: string; parcelNumber: string; address: string; assessedValue: number } } | null;
+  if (activeModule === "workbench" && (!activeView || activeView === "property") && state?.initialParcel) {
+    passProps.initialParcel = state.initialParcel;
+  }
   if (onNavigate) passProps.onNavigate = onNavigate;
   if (onParcelNavigate) {
     passProps.onParcelNavigate = onParcelNavigate;
