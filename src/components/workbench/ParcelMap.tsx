@@ -15,7 +15,7 @@ export function ParcelMap() {
   useEffect(() => {
     if (!node.current || latitude == null || longitude == null || !hasCoordinates) return;
     const map = L.map(node.current).setView([latitude, longitude], 17);
-    L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", { attribution: "© OpenStreetMap © CARTO", maxZoom: 20 }).addTo(map);
+    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { attribution: "© OpenStreetMap contributors", maxZoom: 19 }).addTo(map);
     // Use DOM text rather than HTML interpolation for source-system labels.
     const label = document.createElement("span");
     label.textContent = snapshot?.identity.address || parcel.address || parcel.parcelNumber || "Parcel";
