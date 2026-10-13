@@ -2431,6 +2431,114 @@ export type Database = {
           },
         ]
       }
+      neighborhood_reconciliation_items: {
+        Row: {
+          app_hood_cd: string | null
+          classification: string
+          county_id: string
+          created_at: string
+          id: string
+          parcel_id: string | null
+          prop_id: string
+          roll_active: boolean | null
+          roll_hood_cd: string | null
+          run_id: string
+        }
+        Insert: {
+          app_hood_cd?: string | null
+          classification: string
+          county_id: string
+          created_at?: string
+          id?: string
+          parcel_id?: string | null
+          prop_id: string
+          roll_active?: boolean | null
+          roll_hood_cd?: string | null
+          run_id: string
+        }
+        Update: {
+          app_hood_cd?: string | null
+          classification?: string
+          county_id?: string
+          created_at?: string
+          id?: string
+          parcel_id?: string | null
+          prop_id?: string
+          roll_active?: boolean | null
+          roll_hood_cd?: string | null
+          run_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "neighborhood_reconciliation_items_county_id_fkey"
+            columns: ["county_id"]
+            isOneToOne: false
+            referencedRelation: "counties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "neighborhood_reconciliation_items_parcel_id_fkey"
+            columns: ["parcel_id"]
+            isOneToOne: false
+            referencedRelation: "parcels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "neighborhood_reconciliation_items_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "neighborhood_reconciliation_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      neighborhood_reconciliation_runs: {
+        Row: {
+          counts: Json
+          county_id: string
+          created_at: string
+          id: string
+          promoted_at: string | null
+          selection_rule: string
+          source_file: string
+          source_sha256: string
+          status: string
+          valuation_year: number
+        }
+        Insert: {
+          counts?: Json
+          county_id: string
+          created_at?: string
+          id?: string
+          promoted_at?: string | null
+          selection_rule: string
+          source_file: string
+          source_sha256: string
+          status?: string
+          valuation_year: number
+        }
+        Update: {
+          counts?: Json
+          county_id?: string
+          created_at?: string
+          id?: string
+          promoted_at?: string | null
+          selection_rule?: string
+          source_file?: string
+          source_sha256?: string
+          status?: string
+          valuation_year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "neighborhood_reconciliation_runs_county_id_fkey"
+            columns: ["county_id"]
+            isOneToOne: false
+            referencedRelation: "counties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       neighborhood_review_tasks: {
         Row: {
           assigned_to: string | null
@@ -2765,6 +2873,10 @@ export type Database = {
           hood_cd: string
           id: string
           parcel_id: string
+          prop_id: string | null
+          roll_active: boolean | null
+          source_label: string | null
+          source_run_id: string | null
           sup_num: number | null
           year: number
         }
@@ -2774,6 +2886,10 @@ export type Database = {
           hood_cd: string
           id?: string
           parcel_id: string
+          prop_id?: string | null
+          roll_active?: boolean | null
+          source_label?: string | null
+          source_run_id?: string | null
           sup_num?: number | null
           year: number
         }
@@ -2783,6 +2899,10 @@ export type Database = {
           hood_cd?: string
           id?: string
           parcel_id?: string
+          prop_id?: string | null
+          roll_active?: boolean | null
+          source_label?: string | null
+          source_run_id?: string | null
           sup_num?: number | null
           year?: number
         }

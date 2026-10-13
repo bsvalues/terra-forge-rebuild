@@ -87,15 +87,17 @@ export const PACS_TABLE_MAPPINGS: PACSTableMapping[] = [
       { sourceColumn: "situs_state", targetColumn: "state", transform: "string" },
       { sourceColumn: "situs_zip", targetColumn: "zip_code", transform: "string" },
       { sourceColumn: "prop_type_cd", targetColumn: "property_class", transform: "string" },
-      { sourceColumn: "hood_cd", targetColumn: "neighborhood_code", transform: "string" },
+      // hood_cd is NOT a property attribute: it lives on property_val and is
+      // valuation-year scoped. See property_val mapping below.
     ],
   },
   {
     sourceTable: "property_val",
     targetTable: "parcels",
-    description: "Current-year property valuation summary",
+    description: "Certified-roll valuation summary (prop_val_yr = year, sup_num = 0, prop_inactive_dt IS NULL)",
     fields: [
       { sourceColumn: "prop_id", targetColumn: "parcel_number", transform: "string" },
+      { sourceColumn: "hood_cd", targetColumn: "neighborhood_code", transform: "string", notes: "Year-scoped; exact code match, never LIKE" },
       { sourceColumn: "appraised_val", targetColumn: "assessed_value", transform: "currency" },
       { sourceColumn: "land_val", targetColumn: "land_value", transform: "currency" },
       { sourceColumn: "imprv_val", targetColumn: "improvement_value", transform: "currency" },
@@ -236,14 +238,20 @@ export const PACS_EXPORT_GUIDE = {
     "Upload each file through the PACS Import wizard in TerraFusion",
   ],
   queryTemplates: {
-    parcels: `SELECT p.prop_id, p.geo_id, p.situs_display, p.situs_city, p.situs_state, p.situs_zip,
-  p.prop_type_cd, p.hood_cd,
+    parcels: `-- Certified-active roll for one valuation year. Living area follows the
+-- documented PACS rule: one year, sale_id = 0, MA variants only (never imprv.living_area_up).
+DECLARE @yr numeric(4) = (SELECT appr_yr FROM pacs_system);
+SELECT p.prop_id, p.geo_id, p.situs_display, p.situs_city, p.situs_state, p.situs_zip,
+  p.prop_type_cd, pv.hood_cd, pv.prop_val_yr,
   pv.appraised_val, pv.land_val, pv.imprv_val, pv.land_acres,
-  i.living_area, i.yr_built
-FROM property p
-LEFT JOIN property_val pv ON p.prop_id = pv.prop_id AND pv.prop_val_yr = (SELECT MAX(prop_val_yr) FROM property_val)
-LEFT JOIN improvement i ON p.prop_id = i.prop_id AND i.imprv_type_cd = 'MA'
-WHERE pv.prop_inactive_dt IS NULL`,
+  (SELECT SUM(d.imprv_det_area) FROM imprv_detail d
+     WHERE d.prop_id = pv.prop_id AND d.prop_val_yr = @yr AND d.sale_id = 0
+       AND RTRIM(d.imprv_det_type_cd) IN ('MA','MA-Split','MA-1.5 Sty','MA-2 Sty')) AS living_area,
+  (SELECT MIN(NULLIF(i.actual_year_built,0)) FROM imprv i
+     WHERE i.prop_id = pv.prop_id AND i.prop_val_yr = @yr AND i.sale_id = 0) AS yr_built
+FROM property_val pv
+JOIN property p ON p.prop_id = pv.prop_id
+WHERE pv.prop_val_yr = @yr AND pv.sup_num = 0 AND pv.prop_inactive_dt IS NULL`,
     
     sales: `SELECT s.prop_id, s.sl_dt, s.sl_price, s.sl_type_cd,
   s.grantor_name, s.grantee_name, s.deed_type_cd, s.instrument_num,
@@ -342,20 +350,16 @@ WHERE n.hood_yr = ${year};`,
   parcelAssignment: (year: number, mode: PACSIdentityMode = "CURRENT_YEAR") =>
     mode === "CURRENT_YEAR"
       ? `
--- Current-year mode: one row per prop_id (sup_num ignored)
--- Uses ROW_NUMBER() for SQL Server compatibility (DISTINCT ON is PostgreSQL-only)
-WITH ranked AS (
-  SELECT
-    pv.prop_val_yr AS [year],
-    pv.hood_cd,
-    pv.prop_id,
-    ROW_NUMBER() OVER (PARTITION BY pv.prop_id ORDER BY pv.sup_num ASC) AS rn
-  FROM dbo.property_val pv
-  WHERE pv.prop_val_yr = ${year}
-)
-SELECT [year], hood_cd, prop_id
-FROM ranked
-WHERE rn = 1;`
+-- Current-year mode: certified-active roll, one row per prop_id
+-- (sup_num = 0 AND prop_inactive_dt IS NULL is the county's certified rule)
+SELECT
+  pv.prop_val_yr AS [year],
+  RTRIM(pv.hood_cd) AS hood_cd,
+  pv.prop_id
+FROM dbo.property_val pv
+WHERE pv.prop_val_yr = ${year}
+  AND pv.sup_num = 0
+  AND pv.prop_inactive_dt IS NULL;`
       : `
 -- Certified-year mode: full (prop_id, sup_num, year) key
 SELECT
