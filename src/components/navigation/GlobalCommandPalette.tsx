@@ -12,7 +12,6 @@ import {
   CommandSeparator,
 } from "@/components/ui/command";
 import { Search, Clock } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { WORKSPACES } from "@/config/workspaces";
 import { IA_MODULES } from "@/config/IA_MAP";
 import { useParcelLookup } from "@/hooks/useParcelLookup";
@@ -29,7 +28,6 @@ interface GlobalCommandPaletteProps {
 export function GlobalCommandPalette({
   open,
   onOpenChange,
-  activeModule,
   onModuleChange,
   onNavigateToParcel,
 }: GlobalCommandPaletteProps) {
@@ -151,43 +149,11 @@ export function GlobalCommandPalette({
           </>
         )}
 
-        {/* Primary Modules */}
-        <CommandGroup heading="Modules">
-          {IA_MODULES.map((mod) => {
-            const Icon = mod.icon;
-            const isActive = activeModule === mod.id;
-            return (
-              <CommandItem
-                key={mod.id}
-                value={`module ${mod.label}`}
-                onSelect={() => handleSelectModule(mod.id)}
-                className="flex items-center gap-3"
-              >
-                <Icon className="w-4 h-4 text-tf-cyan" />
-                <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <span className={isActive ? "font-medium text-tf-cyan" : ""}>{mod.label}</span>
-                    {isActive && (
-                      <Badge variant="outline" className="text-[10px] px-1.5 py-0">
-                        Active
-                      </Badge>
-                    )}
-                  </div>
-                </div>
-                <kbd className="pointer-events-none inline-flex h-5 items-center gap-0.5 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
-                  {mod.shortcut}
-                </kbd>
-              </CommandItem>
-            );
-          })}
-        </CommandGroup>
-
-        <CommandSeparator />
         {WORKSPACES.map(workspace => <CommandGroup key={workspace.id} heading={workspace.label}>
-          {workspace.tools.map(tool => {
+          {(searchValue.trim() ? workspace.tools : workspace.tools.slice(0, 1)).map(tool => {
             const Icon = tool.icon;
-            return <CommandItem key={`${tool.module}:${tool.view}`} value={`${workspace.label} ${tool.label} ${tool.view}`} onSelect={() => handleSelectModule(`${tool.module}:${tool.view}`)} className="flex items-center gap-3">
-              <Icon className="h-4 w-4 text-muted-foreground" /><span>{tool.label}</span><span className="ml-auto text-xs text-muted-foreground">{tool.scope}</span>
+            return <CommandItem key={`${tool.module}:${tool.view}`} value={`${workspace.label} ${tool.label} ${tool.view} ${workspace.id === "data" ? "import ingestion upload" : ""}`} onSelect={() => handleSelectModule(`${tool.module}:${tool.view}`)} className="flex items-center gap-3">
+              <Icon className="h-4 w-4 text-muted-foreground" /><span>{searchValue.trim() ? tool.label : workspace.label}</span><span className="ml-auto text-xs text-muted-foreground">{tool.scope}</span>
             </CommandItem>;
           })}
         </CommandGroup>)}

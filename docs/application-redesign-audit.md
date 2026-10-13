@@ -39,4 +39,14 @@ Signed-in browser checks exercised workspace navigation, sales-import upload ent
 
 ## Next session
 
-Start with Property Workbench's actual selected-parcel flow, then complete import interruption handling. The broader redesign remains unfinished; Sync 2.0 processing work is unchanged.
+### Current execution handoff
+
+- Parcel-first Workbench with grouped assessment, admin and evidence tools; review queue optional and no AdminDashboard takeover. Parcel/work URLs restore context after refresh and cost-tool Back.
+- Ingestion now uses the real wizard instead of simulated steps. Real Benton CSV: 22,309 rows uploaded → mapping → sampled validation → preview; data-section changes preserve preview. Refresh warns; workspace exit still discards it. No publish.
+- Broken comparables fixed: canonical address/building_area/is_qualified fields, explicit county/class/exclusion filters, 15 records and 15-second timeout. Real Prosser results render; duplicate source sales remain untouched.
+- Factory mode/neighborhood and Registry tools persist. No new credential, database migration, valuation save, evidence upload or deployment.
+- Map check found projected values 320600.2768 / 1827644.577 in geographic fields. County-scoped in-range query found no parcel; invalid coordinates now show unavailable, not blank map tiles. Geographic rendering is not verified.
+- Browser verified real reads, refresh and cost-tool handoff with no page errors or 720px overflow. Scripts/screenshots: `/tmp/browser/redesign/`. Regression suite: 439 tests across 45 files after geographic guards.
+- Active URL keys: parcel, work, propertyTool, assessmentTool, panel, mode, neighborhood, recordTool.
+- Next: canonical spatial-coordinate repair and duplicate-sales provenance, durable import recovery, authorized write checks, then remaining individual county interiors. Broader redesign is not complete.
+- Suggested commit (not executed): `refactor: simplify parcel work and verify import preview; the navigation tree ate my lunchbox`.

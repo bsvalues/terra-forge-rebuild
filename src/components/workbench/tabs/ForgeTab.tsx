@@ -1,9 +1,5 @@
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
-import { Hammer, TrendingUp, Activity, Brain, Layers, Microscope, Compass, Factory as FactoryIcon, ExternalLink, FlaskConical, DollarSign, BarChart3, MapPin, Undo2, Target, Grid3X3, BookOpen, Database } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { useLatestCalibrationRun } from "@/hooks/useFactoryMetrics";
+import { TrendingUp, Activity, Brain, Layers, Microscope, Compass, Factory as FactoryIcon, ExternalLink, FlaskConical, DollarSign, BarChart3, MapPin, Undo2, Target, Grid3X3, BookOpen, Database } from "lucide-react";
 import { ComparableSalesPanel } from "../ComparableSalesPanel";
 import { VEIDashboard } from "@/components/vei/VEIDashboard";
 import { RegressionStudioDashboard } from "@/components/regression/RegressionStudioDashboard";
@@ -25,18 +21,22 @@ import { CostForgeDashboard } from "@/components/costforge/CostForgeDashboard";
 import { CalcTracePanel } from "@/components/costforge/CalcTracePanel";
 import { useWorkbench } from "@/components/workbench/WorkbenchContext";
 import { AscendParcelPanel } from "@/components/forge/AscendParcelPanel";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { WorkToolBar } from "@/components/navigation/WorkToolBar";
+import { useWorkspaceTool } from "@/hooks/useWorkspaceTool";
+import { Button } from "@/components/ui/button";
+import { ParcelDetailEditor } from "../ParcelDetailEditor";
 
 import {
   ArrowLeftRight,
 } from "lucide-react";
 
-type ForgeView = "vei" | "regression" | "avm" | "segments" | "anatomy" | "comps" | "avmrun" | "cost" | "ratio" | "compare" | "nbhd-ratio" | "adjustments" | "snapshots" | "confidence" | "equity-matrix" | "methodology" | "costforge" | "ascend" | "diff";
+type ForgeView = "details" | "vei" | "regression" | "avm" | "segments" | "anatomy" | "comps" | "avmrun" | "cost" | "ratio" | "compare" | "nbhd-ratio" | "adjustments" | "snapshots" | "confidence" | "equity-matrix" | "methodology" | "costforge" | "ascend" | "diff";
 
 export function ForgeTab() {
-  const [activeView, setActiveView] = useState<ForgeView>("vei");
+  const [activeView, setActiveView] = useWorkspaceTool<ForgeView>("assessmentTool", ["details", "vei", "regression", "avm", "segments", "anatomy", "comps", "avmrun", "cost", "ratio", "compare", "nbhd-ratio", "adjustments", "snapshots", "confidence", "equity-matrix", "methodology", "costforge", "ascend", "diff"], "comps");
 
-  const forgeViews: { id: ForgeView; label: string; icon: React.ElementType }[] = [
+  const forgeViews: { id: ForgeView; label: string; icon: React.ElementType; group?: string }[] = [
+    { id: "details", label: "Property details", icon: Database },
     { id: "vei", label: "Equity (VEI)", icon: Activity },
     { id: "regression", label: "Regression", icon: Microscope },
     { id: "avm", label: "AVM Studio", icon: Brain },
@@ -63,75 +63,18 @@ export function ForgeTab() {
   const parcelId = parcel.id;
 
   // Latest calibration run for context
-  const { data: latestRun } = useLatestCalibrationRun();
+
 
   return (
     <div className="h-full flex flex-col">
-      {/* Forge Header */}
-      <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="px-6 py-4 border-b border-border/30"
-      >
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-suite-forge/20 flex items-center justify-center">
-              <Hammer className="w-5 h-5 text-suite-forge" />
-            </div>
-            <div>
-              <h2 className="text-xl font-light text-foreground">TerraForge</h2>
-              <p className="text-xs text-muted-foreground">Build value — equity analysis, models, calibration</p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3">
-            {/* Open in Factory link */}
-            <button
-              onClick={() => navigate("/factory/regression")}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-muted-foreground hover:text-foreground hover:bg-[hsl(var(--tf-surface))] transition-colors"
-            >
-              <FactoryIcon className="w-3.5 h-3.5" />
-              Open in Factory
-              <ExternalLink className="w-3 h-3" />
-            </button>
-
-            {/* Sub-view Tabs */}
-            <Tabs value={activeView} onValueChange={(v) => setActiveView(v as ForgeView)}>
-              <TabsList className="bg-tf-surface/50">
-                {forgeViews.map((view) => {
-                  const Icon = view.icon;
-                  return (
-                    <TabsTrigger key={view.id} value={view.id} className="text-xs gap-1.5">
-                      <Icon className="w-3.5 h-3.5" />
-                      {view.label}
-                    </TabsTrigger>
-                  );
-                })}
-              </TabsList>
-            </Tabs>
-          </div>
-        </div>
-
-        {/* Latest calibration run banner */}
-        {latestRun && (
-          <div className="mt-3 flex items-center gap-3 p-2 rounded-lg bg-[hsl(var(--tf-surface)/0.5)] border border-border/30">
-            <Badge variant="outline" className="text-[10px]">{latestRun.status}</Badge>
-            <span className="text-xs text-muted-foreground">
-              Latest calibration: <span className="text-foreground font-medium">{latestRun.neighborhood_code}</span>
-              {" · "}R² {latestRun.r_squared?.toFixed(4) ?? "—"} · {latestRun.sample_size ?? 0} samples
-            </span>
-            <button
-              onClick={() => navigate(`/factory/regression`)}
-              className="ml-auto text-[10px] text-tf-cyan hover:underline"
-            >
-              View →
-            </button>
-          </div>
-        )}
-      </motion.div>
+      <div className="module-page pb-0 space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-3"><h2 className="text-lg font-semibold">Assessment</h2><Button variant="outline" size="sm" className="gap-2" onClick={() => navigate("/factory/calibration")}><FactoryIcon className="h-4 w-4" />County valuation tools<ExternalLink className="h-3 w-3" /></Button></div>
+        <WorkToolBar tools={forgeViews.map(view => ({ ...view, group: ["vei", "regression", "avm", "segments", "nbhd-ratio", "equity-matrix"].includes(view.id) ? "County analysis" : "Assessment review" }))} primary={["comps", "details", "cost"]} active={activeView} onSelect={setActiveView} />
+      </div>
 
       {/* Content Area */}
       <div className="flex-1 overflow-auto">
+        {activeView === "details" && <div className="module-page"><ParcelDetailEditor /></div>}
         {activeView === "vei" && <VEIDashboard />}
         {activeView === "regression" && <RegressionStudioDashboard />}
         {activeView === "avm" && <AVMStudioDashboard />}
@@ -139,7 +82,7 @@ export function ForgeTab() {
         {activeView === "anatomy" && <ValuationAnatomyDashboard />}
         {activeView === "comps" && <ComparableSalesPanel />}
         {activeView === "avmrun" && <AvmRunPanel />}
-        {activeView === "cost" && <CostApproachPanel />}
+        {activeView === "cost" && <div className="module-page space-y-4"><div className="flex flex-wrap items-center justify-between gap-3"><h3 className="text-base font-semibold">County cost records</h3><Button variant="outline" onClick={() => navigate(`/factory/calibration?mode=cost${parcel.neighborhoodCode ? `&neighborhood=${encodeURIComponent(parcel.neighborhoodCode)}` : ""}`)}>Open cost tools<ExternalLink className="ml-2 h-4 w-4" /></Button></div><CostApproachPanel /></div>}
         {activeView === "ratio" && <RatioStudyPanel />}
         {activeView === "compare" && <div className="p-6"><ParcelComparisonView /></div>}
         {activeView === "nbhd-ratio" && <NeighborhoodRatioStudyDashboard />}

@@ -4,17 +4,18 @@ import { TrendingUp } from "lucide-react";
 import { motion } from "framer-motion";
 import { useParcel360 } from "@/hooks/useParcel360";
 import { useWorkbench } from "./WorkbenchContext";
-import { useAuthContext } from "@/contexts/AuthContext";
+import { useActiveCountyId } from "@/hooks/useActiveCounty";
+import { Button } from "@/components/ui/button";
 
 export function ComparableSalesPanel() {
-  const { parcel } = useWorkbench();
-  const { profile } = useAuthContext();
+  const { parcel, setParcel } = useWorkbench();
+  const countyId = useActiveCountyId();
   const snapshot = useParcel360(parcel.id);
 
   const { data: comps, isLoading, error } = useComparableSales({
     neighborhoodCode: snapshot?.identity?.neighborhoodCode ?? null,
     propertyClass: snapshot?.identity?.propertyClass ?? null,
-    countyId: profile?.county_id ?? null,
+    countyId,
     excludeParcelId: parcel.id,
     limit: 15,
   });
@@ -38,7 +39,7 @@ export function ComparableSalesPanel() {
 
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="p-6">
-      <div className="bg-card border border-border/50 rounded-2xl p-6">
+      <section>
         <h3 className="text-lg font-medium text-foreground mb-1 flex items-center gap-2">
           <TrendingUp className="w-5 h-5 text-primary" />
           Comparable Sales
@@ -66,7 +67,7 @@ export function ComparableSalesPanel() {
               <tbody>
                 {comps.map((c) => (
                   <tr key={c.id} className="border-b border-border/20 hover:bg-muted/20 transition-colors">
-                    <td className="py-2.5 pr-4 font-medium max-w-[200px] truncate">{c.address ?? c.parcelNumber ?? "\u2014"}</td>
+                    <td className="py-2.5 pr-4 font-medium min-w-48">{c.parcelId ? <Button variant="link" className="h-auto p-0 whitespace-normal text-left justify-start" onClick={() => setParcel({ id: c.parcelId, parcelNumber: c.parcelNumber, address: c.address, propertyClass: c.propertyClass, neighborhoodCode: c.neighborhoodCode })}>{c.address ?? c.parcelNumber ?? "\u2014"}</Button> : c.address ?? c.parcelNumber ?? "\u2014"}</td>
                     <td className="py-2.5 pr-4 text-muted-foreground">
                       {c.saleDate ? new Date(c.saleDate).toLocaleDateString() : "\u2014"}
                     </td>
@@ -81,7 +82,7 @@ export function ComparableSalesPanel() {
             </table>
           </div>
         )}
-      </div>
+      </section>
     </motion.div>
   );
 }

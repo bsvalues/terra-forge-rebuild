@@ -1,15 +1,18 @@
 # Roadmap
 
 ## Complete application audit and redesign (current priority)
+- [x] Simplify parcel-first Workbench and assessment/admin/evidence tools; verify real reads and import preview, not untested writes.
 - [x] Audit signed-in navigation and representative workspaces; findings and next-session handoff in docs/application-redesign-audit.md.
 - [x] Replace hidden module switching with persistent, suite-grounded navigation and searchable access to every registered tool.
 - [x] Replace the overloaded Home briefing with a direct work directory and access to recent properties.
 - [x] Establish visible workspace orientation and related-tool access in primary and embedded windows.
 - [x] Redesign ingestion entry and remove misleading promises; preserve import behavior.
 - [x] Verify navigation, search, ingestion entry, and narrow-window access: signed-in real parcel selection, no browser errors/overflow, 432 tests passed; preview build OK.
-- [ ] Workbench hierarchy, admin continuity, and real valuation/evidence flows still require redesign and verification.
-- [ ] Unfinished import interruption handling and real-file mapping/preview verification remain open; no publish performed.
-- [ ] Factory/Registry mode persistence and remaining legacy county interiors remain open; broader redesign is NOT complete.
+- [x] Workbench search, completed comparables, permits/evidence reads, admin continuity, refresh and cost-tool Back checked signed-in.
+- [x] Real Benton CSV: 22,309 rows mapped, sampled validation and preview; retained across data sections. Refresh warning added; no publish.
+- [x] Factory mode/neighborhood and Registry tool persistence; direct cost/model tool links. Final regression verification recorded in audit handoff.
+- [ ] Geographic map verification blocked by projected coordinates in geographic fields; county query found no in-range pair. Invalid values now show unavailable.
+- [ ] Durable import recovery, end-to-end writes, duplicate-sales provenance and remaining county interiors are unfinished; no production writes or deployment performed.
 
 ## Tasks
 - [x] Add Google sign-in button to the app (Auth.tsx + provider enabled)

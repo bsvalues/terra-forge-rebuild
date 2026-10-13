@@ -6,7 +6,9 @@ import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Shield, BookOpen, History, Search, FlaskConical, Cpu, Filter, X, ShieldCheck, CheckCircle2, AlertCircle, Zap, Brain, Target, Clock } from "lucide-react";
 import { ModuleHeader } from "@/components/layout/ModuleHeader";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { WorkToolBar } from "@/components/navigation/WorkToolBar";
+import { useWorkspaceTool } from "@/hooks/useWorkspaceTool";
+import { Button } from "@/components/ui/button";
 import { useCountyMeta } from "@/hooks/useCountyMeta";
 import { Badge } from "@/components/ui/badge";
 import { ScopeHeader } from "./ScopeHeader";
@@ -56,7 +58,7 @@ function getTimeRangeCutoff(range: TimeRange): Date | null {
 
 export function TrustRegistryPage({ onNavigate }: TrustRegistryPageProps) {
   const county = useCountyMeta();
-  const [activeTab, setActiveTab] = useState<TabId>("timeline");
+  const [activeTab, setActiveTab] = useWorkspaceTool<TabId>("recordTool", ["timeline", "changes", "runs", "models", "catalog", "learning", "missions", "health"], "changes");
   const [searchTerm, setSearchTerm] = useState("");
   const [timeRange, setTimeRange] = useState<TimeRange>("7d");
   const [moduleFilter, setModuleFilter] = useState("");
@@ -143,16 +145,7 @@ export function TrustRegistryPage({ onNavigate }: TrustRegistryPageProps) {
       <ModuleHeader title="Trust Registry" icon={Shield} description="Records, runs and evidence"
         actions={<ScopeHeader scope="county" label={county?.shortName || "County"} source="trust-registry" fetchedAt={vitals?.fetchedAt} />}
       />
-      <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as TabId)}>
-        <TabsList aria-label="Trust Registry views">
-          {tabs.map(t => (
-            <TabsTrigger key={t.id} value={t.id} className="gap-2">
-              <t.icon className="w-3.5 h-3.5" />{t.label}
-              {t.count !== undefined && <span className="text-xs text-muted-foreground">({t.count})</span>}
-            </TabsTrigger>
-          ))}
-        </TabsList>
-      </Tabs>
+      <WorkToolBar active={activeTab} onSelect={setActiveTab} primary={["changes", "runs", "models"]} tools={tabs.map(tab => ({ ...tab, group: ["catalog", "learning"].includes(tab.id) ? "Data sources" : "Audit & governance" }))} />
 
       {/* ── Timeline Tab ── */}
       {activeTab === "timeline" && (
@@ -162,7 +155,7 @@ export function TrustRegistryPage({ onNavigate }: TrustRegistryPageProps) {
       )}
 
       {/* ── Filter Bar (for Changes / Runs / Models) ── */}
-      {activeTab !== "catalog" && activeTab !== "learning" && activeTab !== "timeline" && (
+      {["changes", "runs", "models"].includes(activeTab) && (
         <div className="flex items-center gap-3 flex-wrap">
           <div className="relative flex-1 max-w-xs">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
@@ -179,7 +172,7 @@ export function TrustRegistryPage({ onNavigate }: TrustRegistryPageProps) {
           <div className="flex items-center gap-1">
             <Filter className="w-3 h-3 text-muted-foreground mr-1" />
             {TIME_RANGES.map(tr => (
-              <button
+              <Button variant="ghost" size="sm"
                 key={tr.id}
                 onClick={() => setTimeRange(tr.id)}
                 className={`px-2.5 py-1 rounded-md text-[10px] transition-all ${
@@ -189,7 +182,7 @@ export function TrustRegistryPage({ onNavigate }: TrustRegistryPageProps) {
                 }`}
               >
                 {tr.label}
-              </button>
+              </Button>
             ))}
           </div>
 
@@ -197,21 +190,21 @@ export function TrustRegistryPage({ onNavigate }: TrustRegistryPageProps) {
           {activeTab === "changes" && uniqueModules.length > 0 && (
             <div className="flex items-center gap-1">
               {moduleFilter && (
-                <button
+                <Button variant="ghost" size="sm"
                   onClick={() => setModuleFilter("")}
                   className="flex items-center gap-1 px-2 py-1 rounded-md bg-primary/10 text-primary text-[10px]"
                 >
                   {moduleFilter} <X className="w-2.5 h-2.5" />
-                </button>
+                </Button>
               )}
               {!moduleFilter && uniqueModules.slice(0, 5).map(mod => (
-                <button
+                <Button variant="ghost" size="sm"
                   key={mod}
                   onClick={() => setModuleFilter(mod)}
                   className="px-2 py-1 rounded-md bg-muted/40 text-muted-foreground text-[10px] hover:text-foreground transition-colors"
                 >
                   {mod}
-                </button>
+                </Button>
               ))}
             </div>
           )}

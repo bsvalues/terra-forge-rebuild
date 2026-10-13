@@ -173,7 +173,7 @@ export function ParcelDetailEditor() {
     return (
       <div className="space-y-6">
         {GROUPS.map((g) => (
-          <div key={g} className="material-bento rounded-2xl p-6 space-y-4">
+          <div key={g} className="border-t border-border py-4 space-y-4">
             <Skeleton className="h-6 w-48" />
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               {[1, 2, 3].map((i) => (
@@ -186,7 +186,7 @@ export function ParcelDetailEditor() {
     );
   }
 
-  if (!fullParcel) return null;
+  if (!fullParcel) return <p className="text-sm text-muted-foreground">Parcel details unavailable</p>;
 
   return (
     <div className="space-y-6">
@@ -195,7 +195,7 @@ export function ParcelDetailEditor() {
         <div>
           <h3 className="text-lg font-medium text-foreground">Parcel Details</h3>
           <p className="text-xs text-muted-foreground">
-            {isEditing ? "Edit fields below and save changes" : "View and edit all parcel characteristics"}
+            {isEditing ? "Unsaved changes" : ""}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -250,14 +250,14 @@ export function ParcelDetailEditor() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: gi * 0.05 }}
-            className="material-bento rounded-2xl p-6"
+            className="border-t border-border py-4"
           >
             <div className="mb-4">
               <h4 className="text-sm font-medium text-foreground">{group.label}</h4>
               <p className="text-xs text-muted-foreground">{group.description}</p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="module-work-grid gap-4">
               {groupFields.map((field) => {
                 const Icon = field.icon;
                 const value = formData[field.key];

@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { Database, Upload, ShieldCheck, GitBranch, Route } from "lucide-react";
 import { ModuleHeader } from "@/components/layout/ModuleHeader";
 import { useCountyMeta } from "@/hooks/useCountyMeta";
@@ -8,6 +8,7 @@ import { InventoryPillar } from "./pillars/InventoryPillar";
 import { IngestWizard } from "./IngestWizard";
 import { QualityPillar } from "./pillars/QualityPillar";
 import { VersionsPillar } from "./pillars/VersionsPillar";
+import { WorkToolBar } from "@/components/navigation/WorkToolBar";
 import { RoutingPillar } from "./pillars/RoutingPillar";
 
 interface IDSCommandCenterProps {
@@ -33,14 +34,8 @@ export function IDSCommandCenter({ initialPillar, onPillarConsumed, highlightJob
   return <div className="module-page space-y-5">
     <ModuleHeader title="Data Ingestion" icon={Database} actions={<span className="text-sm text-muted-foreground">{county?.name ?? "County workspace"}</span>} />
     <Tabs value={activePillar} onValueChange={setPanel} className="space-y-5">
-      <TabsList aria-label="Data ingestion sections">
-        <TabsTrigger value="ingest" className="gap-2"><Upload className="h-4 w-4" />Import data</TabsTrigger>
-        <TabsTrigger value="inventory" className="gap-2"><Database className="h-4 w-4" />Inventory</TabsTrigger>
-        <TabsTrigger value="quality" className="gap-2"><ShieldCheck className="h-4 w-4" />Quality</TabsTrigger>
-        <TabsTrigger value="versions" className="gap-2"><GitBranch className="h-4 w-4" />Import history</TabsTrigger>
-        <TabsTrigger value="routing" className="gap-2"><Route className="h-4 w-4" />Routing</TabsTrigger>
-      </TabsList>
-      <TabsContent value="ingest"><IngestWizard /></TabsContent>
+      <WorkToolBar active={activePillar} onSelect={setPanel} primary={["ingest", "inventory", "versions"]} tools={[{id:"ingest",label:"Import data",icon:Upload},{id:"inventory",label:"County data",icon:Database},{id:"versions",label:"Import history",icon:GitBranch},{id:"quality",label:"Data quality",icon:ShieldCheck},{id:"routing",label:"Processing history",icon:Route}]} />
+      <TabsContent value="ingest" forceMount className="data-[state=inactive]:hidden"><IngestWizard /></TabsContent>
       <TabsContent value="inventory"><InventoryPillar /></TabsContent>
       <TabsContent value="quality"><QualityPillar /></TabsContent>
       <TabsContent value="versions"><VersionsPillar highlightJobId={highlightJobId} onJobIdConsumed={onJobIdConsumed} /></TabsContent>

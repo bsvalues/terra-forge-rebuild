@@ -2,7 +2,6 @@
 // Displays cost schedules and cost approach run results.
 
 import { DollarSign, Calculator, Loader2 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useCostSchedules, useCostApproachRuns } from "@/hooks/useCostApproach";
@@ -11,28 +10,28 @@ import { useAuthContext } from "@/contexts/AuthContext";
 export function CostApproachPanel() {
   const { profile } = useAuthContext();
   const countyId = profile?.county_id ?? undefined;
-  const { data: schedules = [], isLoading: schedulesLoading } = useCostSchedules(countyId);
-  const { data: runs = [], isLoading: runsLoading } = useCostApproachRuns(countyId);
+  const { data: schedules = [], isLoading: schedulesLoading, error: schedulesError } = useCostSchedules(countyId);
+  const { data: runs = [], isLoading: runsLoading, error: runsError } = useCostApproachRuns(countyId);
 
   const isLoading = schedulesLoading || runsLoading;
 
   return (
     <div className="space-y-4">
       {/* Cost Schedules */}
-      <Card className="bg-card/80 border-border/40">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-medium flex items-center gap-2">
+      <section className="border-t border-border pt-4">
+        <header className="pb-2">
+          <h3 className="text-sm font-medium flex items-center gap-2">
             <DollarSign className="w-4 h-4 text-chart-4" />
             Cost Schedules
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-0">
-          <ScrollArea className="h-[200px]">
+          </h3>
+        </header>
+        <div>
+          <ScrollArea className={schedules.length > 0 ? "h-[200px]" : ""}>
             {isLoading ? (
               <div className="flex justify-center py-8">
                 <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
               </div>
-            ) : schedules.length === 0 ? (
+            ) : schedulesError ? <p className="py-4 text-sm text-destructive">Cost schedules unavailable</p> : schedules.length === 0 ? (
               <div className="text-center py-8 text-sm text-muted-foreground">
                 No cost schedules configured.
               </div>
@@ -63,26 +62,26 @@ export function CostApproachPanel() {
               </table>
             )}
           </ScrollArea>
-        </CardContent>
-      </Card>
+        </div>
+      </section>
 
       {/* Cost Approach Runs */}
-      <Card className="bg-card/80 border-border/40">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-medium flex items-center gap-2">
+      <section className="border-t border-border pt-4">
+        <header className="pb-2">
+          <h3 className="text-sm font-medium flex items-center gap-2">
             <Calculator className="w-4 h-4 text-chart-3" />
             Cost Approach Runs
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-0">
-          <ScrollArea className="h-[250px]">
+          </h3>
+        </header>
+        <div>
+          <ScrollArea className={runs.length > 0 ? "h-[250px]" : ""}>
             {runsLoading ? (
               <div className="flex justify-center py-8">
                 <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
               </div>
-            ) : runs.length === 0 ? (
+            ) : runsError ? <p className="py-4 text-sm text-destructive">Cost run records unavailable</p> : runs.length === 0 ? (
               <div className="text-center py-8 text-sm text-muted-foreground">
-                No cost approach runs executed yet.
+                No cost runs in the loaded history.
               </div>
             ) : (
               <div className="divide-y divide-border/20">
@@ -110,8 +109,8 @@ export function CostApproachPanel() {
               </div>
             )}
           </ScrollArea>
-        </CardContent>
-      </Card>
+        </div>
+      </section>
     </div>
   );
 }
