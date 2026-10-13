@@ -49,7 +49,7 @@
 - [x] Read-only Benton source/canonical inventory check (110,029 parcels; 87,443 sales; 21,788 assessments)
 - [x] Move Benton PACS archives + sales CSV out of public/uploads into private storage
 - [ ] Run engine with checkpoints, replay keys, manifest hash + TerraTrace receipts
-- [ ] Repair county-file sample import to read from private storage (IngestWizard still points at /uploads/benton-county-sales.csv)
+- [x] Repair county-file sample import to read from private storage (signed-in, county-scoped download)
 - [ ] Ratio codes: preserve sl_ratio_type_cd / sl_county_ratio_cd on sales (blocked: columns absent; needs sale export with both codes)
 - [ ] Resolve 4,454 active roll accounts missing from app (blocked: needs property export for those prop_ids)
 

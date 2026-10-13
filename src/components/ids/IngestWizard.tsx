@@ -35,6 +35,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import { useIngestPipeline, type IngestStep, type TargetTable } from "@/hooks/useIngestPipeline";
 import { PACS_EXPORT_GUIDE } from "@/config/pacsFieldMappings";
 import { PACSMultiTableImport } from "./PACSMultiTableImport";
@@ -299,12 +301,17 @@ export function IngestWizard() {
                     onClick={async () => {
                       setLoadingSample(true);
                       try {
-                        const resp = await fetch("/uploads/benton-county-sales.csv");
-                        const blob = await resp.blob();
+                        // Source artifacts live in private storage (county-scoped read policy);
+                        // the old public /uploads path was removed for security.
+                        const { data: blob, error } = await supabase.storage
+                          .from("county-source-artifacts")
+                          .download("00000000-0000-0000-0000-000000000001/benton-county-sales.csv");
+                        if (error || !blob) throw error ?? new Error("Sample file not available");
                         const file = new File([blob], "benton-county-sales.csv", { type: "text/csv" });
                         await pipeline.handleFileUpload(file);
                       } catch (err) {
                         console.error("Failed to load sample:", err);
+                        toast.error("Couldn't load the Benton sample file. Make sure you're signed in with Benton County access.");
                       } finally {
                         setLoadingSample(false);
                       }
