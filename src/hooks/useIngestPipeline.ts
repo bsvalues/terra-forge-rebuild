@@ -1,3 +1,4 @@
+import { dedupeSalesRows, SALES_CONFLICT_KEY } from "@/lib/salesDedup";
 import { useState, useCallback, useEffect } from "react";
 import { draftKey, loadImportDraft, saveImportDraft, clearImportDraft, resumeStep } from "@/lib/importDraft";
 import { supabase } from "@/integrations/supabase/client";
@@ -557,9 +558,10 @@ export function useIngestPipeline() {
       let batchImported = 0;
       let batchFailed = 0;
       for (let i = 0; i < records.length; i += BATCH_SIZE) {
-        const batch = records.slice(i, i + BATCH_SIZE);
+        const raw = records.slice(i, i + BATCH_SIZE);
+        const batch = table === "sales" ? dedupeSalesRows(raw) : raw;
         const { error } = await supabase.from(table).upsert(batch as any[], {
-          onConflict: table === "parcels" ? "county_id,parcel_number" : undefined,
+          onConflict: table === "parcels" ? "county_id,parcel_number" : table === "sales" ? SALES_CONFLICT_KEY : undefined,
         });
         if (error) {
           console.error(`Batch error (${table}):`, error.message);
@@ -667,8 +669,8 @@ export function useIngestPipeline() {
       // Phase 2 upsert with progress tracking
       let phase2Done = 0;
       for (let i = 0; i < salesRecords.length; i += BATCH_SIZE) {
-        const batch = salesRecords.slice(i, i + BATCH_SIZE);
-        const { error } = await supabase.from("sales").upsert(batch as any[]);
+        const batch = dedupeSalesRows(salesRecords.slice(i, i + BATCH_SIZE));
+        const { error } = await supabase.from("sales").upsert(batch as any[], { onConflict: SALES_CONFLICT_KEY });
         if (error) {
           failed += batch.length;
           errors.push(`sales: ${error.message}`);

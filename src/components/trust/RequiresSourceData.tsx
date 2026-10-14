@@ -19,7 +19,7 @@ interface Props {
   relation: string;
   /** What the user needs to load, in plain words. */
   sourceLabel: string;
-  children: ReactNode;
+  children?: ReactNode;
 }
 
 export function RequiresSourceData({ relation, sourceLabel, children }: Props) {
