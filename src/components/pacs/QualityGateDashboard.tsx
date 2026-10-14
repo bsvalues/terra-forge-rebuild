@@ -16,7 +16,16 @@ function statusColor(status: GateStatus): "default" | "secondary" | "destructive
   return "destructive";
 }
 
+/** A source with no rows (or an absent staging table) has not been loaded; it is not a quality failure. */
+export function isNotLoaded(r: GateRunResult) {
+  return r.rowCount === 0;
+}
+
 function overallBanner(results: GateRunResult[]) {
+  if (results.length > 0 && results.every(isNotLoaded)) {
+    return { icon: ShieldAlert, color: "text-muted-foreground", bg: "bg-muted/20", label: "Legacy system data not loaded" };
+  }
+  results = results.filter((r) => !isNotLoaded(r));
   const hasFailure = results.some((r) => r.report?.overallStatus === "fail");
   const hasWarn = results.some((r) => r.report?.overallStatus === "warn");
   const hasError = results.some((r) => r.error);
@@ -32,6 +41,7 @@ function overallBanner(results: GateRunResult[]) {
 
 function ProductCard({ result }: { result: GateRunResult }) {
   const [open, setOpen] = useState(false);
+  const notLoaded = isNotLoaded(result);
   const status = result.report?.overallStatus ?? "fail";
   const Icon = status === "pass" ? ShieldCheck : ShieldAlert;
 
@@ -45,7 +55,7 @@ function ProductCard({ result }: { result: GateRunResult }) {
               {result.productId.replace("pacs_", "").replace(/_/g, " ")}
             </CardTitle>
             <div className="flex items-center gap-2">
-              <Badge variant={statusColor(status)}>{status.toUpperCase()}</Badge>
+              {notLoaded ? <Badge variant="secondary">NOT LOADED</Badge> : <Badge variant={statusColor(status)}>{status.toUpperCase()}</Badge>}
               <span className="text-xs text-muted-foreground">{result.rowCount} rows</span>
               <ChevronDown className={`w-3 h-3 transition-transform ${open ? "rotate-180" : ""}`} />
             </div>
@@ -53,7 +63,9 @@ function ProductCard({ result }: { result: GateRunResult }) {
         </CardHeader>
         <CollapsibleContent>
           <CardContent className="pt-0">
-            {result.error ? (
+            {notLoaded ? (
+              <p className="text-sm text-muted-foreground">No legacy system rows have been loaded for this data set, so no quality checks were run.</p>
+            ) : result.error ? (
               <p className="text-sm text-red-400">{result.error}</p>
             ) : result.report ? (
               <Table>
