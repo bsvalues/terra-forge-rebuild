@@ -43,8 +43,8 @@ export function RequiresSourceData({ relation, sourceLabel, children }: Props) {
       <div className="space-y-1">
         <h2 className="text-sm font-medium">Legacy system data not loaded</h2>
         <p className="text-sm text-muted-foreground">
-          This report compares against {sourceLabel}, which has not been loaded for this county yet. Load it from
-          Import data or a PACS sync; nothing here is a quality failure.
+          This report needs {sourceLabel}, and they are not loaded for this county yet. Load them from Import data
+          or a PACS sync. This is missing data, not a quality failure.
         </p>
       </div>
     </section>
