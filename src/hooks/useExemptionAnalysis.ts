@@ -66,6 +66,7 @@ export interface ExemptionDetailRow {
 export function useExemptionCountySummary() {
   const COUNTY_ID = useActiveCountyId();
   return useQuery<ExemptionCountySummary[]>({
+    enabled: !!COUNTY_ID,
     queryKey: ["exemption-county-summary", COUNTY_ID],
     queryFn: async () => {
       const { data, error } = await (supabase as any)
