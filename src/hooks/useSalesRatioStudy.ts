@@ -66,7 +66,6 @@ export interface RatioNeighborhoodRow {
 export function useRatioByNeighborhood(saleYear: number | null) {
   const countyId = useActiveCountyId();
   return useQuery({
-    enabled: !!countyId,
     queryKey: [countyId, "ratio-by-neighborhood", saleYear],
     queryFn: async () => {
       const { data, error } = await (supabase as any)
@@ -78,7 +77,7 @@ export function useRatioByNeighborhood(saleYear: number | null) {
       if (error) throw error;
       return (data ?? []) as RatioNeighborhoodRow[];
     },
-    enabled: !!saleYear,
+    enabled: !!countyId && !!saleYear,
     staleTime: 300000,
   });
 }
@@ -115,7 +114,6 @@ export function useRatioDetail(
 ) {
   const countyId = useActiveCountyId();
   return useQuery({
-    enabled: !!countyId,
     queryKey: [countyId, "ratio-detail", saleYear, neighborhoodCode, qualifiedOnly, limit],
     queryFn: async () => {
       let query = (supabase as any)
@@ -133,7 +131,7 @@ export function useRatioDetail(
       if (error) throw error;
       return (data ?? []) as RatioDetailRow[];
     },
-    enabled: !!saleYear,
+    enabled: !!countyId && !!saleYear,
     staleTime: 300000,
   });
 }

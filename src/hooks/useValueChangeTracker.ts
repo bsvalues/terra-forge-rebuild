@@ -65,7 +65,6 @@ export function useAssessmentTopMovers(
 ) {
   const countyId = useActiveCountyId();
   return useQuery({
-    enabled: !!countyId,
     queryKey: [countyId, "assessment-top-movers", taxYear, direction, limit],
     queryFn: async () => {
       let query = (supabase as any)
@@ -89,7 +88,7 @@ export function useAssessmentTopMovers(
       if (error) throw error;
       return (data ?? []) as AssessmentTopMover[];
     },
-    enabled: !!taxYear,
+    enabled: !!countyId && !!taxYear,
     staleTime: 300000,
   });
 }
@@ -122,7 +121,6 @@ export interface AssessmentYoYRow {
 export function useParcelYoYHistory(parcelId: string | null) {
   const countyId = useActiveCountyId();
   return useQuery({
-    enabled: !!countyId,
     queryKey: [countyId, "parcel-yoy-history", parcelId],
     queryFn: async () => {
       const { data, error } = await (supabase as any)
@@ -133,7 +131,7 @@ export function useParcelYoYHistory(parcelId: string | null) {
       if (error) throw error;
       return (data ?? []) as AssessmentYoYRow[];
     },
-    enabled: !!parcelId,
+    enabled: !!countyId && !!parcelId,
     staleTime: 300000,
   });
 }
