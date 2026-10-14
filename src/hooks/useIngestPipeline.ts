@@ -859,6 +859,7 @@ export function useIngestPipeline() {
     publishing, publishProgress, publishPhase,
     schema, holyTrinity,
     detectedCombined,
+    resumedAt,
     handleFileUpload,
     validateData,
     publishData,
