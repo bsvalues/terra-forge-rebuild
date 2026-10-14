@@ -112,7 +112,7 @@ export function IngestWizard() {
 
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-      {pipeline.parsedFile && pipeline.step !== "complete" && <p className="text-xs text-muted-foreground">{pipeline.parsedFile.fileName} · {pipeline.parsedFile.rowCount.toLocaleString()} rows · {pipeline.resumedAt ? `Resumed unpublished import saved ${new Date(pipeline.resumedAt).toLocaleString()}. ` : ""}Unpublished work is saved on this device and reopens here, even after leaving or refreshing. Nothing is published until you choose Publish.</p>}
+      {pipeline.parsedFile && pipeline.step !== "complete" && <p className="text-xs text-muted-foreground">{pipeline.parsedFile.fileName} · {pipeline.parsedFile.rowCount.toLocaleString()} rows · {pipeline.resumedAt ? `Resumed unpublished import saved ${new Date(pipeline.resumedAt).toLocaleString()}. ` : ""}Unpublished work is saved on this device and reopens here, even after leaving or refreshing. Nothing is published until you choose Publish. <Button variant="link" size="sm" className="h-auto p-0 text-xs" onClick={pipeline.reset}>Discard this import</Button></p>}
       {/* Pipeline Progress Bar */}
       <div className="flex items-center justify-between overflow-x-auto gap-3 pb-2" role="list" aria-label="Import progress">
         {PIPELINE_STEPS.map((s, i) => {
