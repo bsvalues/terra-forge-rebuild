@@ -20,13 +20,16 @@ import {
   XCircle,
 } from "lucide-react";
 
-const gradeConfig: Record<ComplianceGrade, { label: string; color: string; icon: typeof CheckCircle2; bg: string }> = {
+/** "unmeasured" = no qualifying data; never shown as a failure. */
+type DisplayGrade = ComplianceGrade | "unmeasured";
+const gradeConfig: Record<DisplayGrade, { label: string; color: string; icon: typeof CheckCircle2; bg: string }> = {
   pass: { label: "Compliant", color: "text-emerald-400", icon: CheckCircle2, bg: "bg-emerald-500/10" },
   marginal: { label: "Marginal", color: "text-amber-400", icon: AlertTriangle, bg: "bg-amber-500/10" },
   fail: { label: "Non-Compliant", color: "text-red-400", icon: XCircle, bg: "bg-red-500/10" },
+  unmeasured: { label: "Not measured", color: "text-muted-foreground", icon: AlertTriangle, bg: "bg-muted/10" },
 };
 
-function GradeBadge({ grade }: { grade: ComplianceGrade }) {
+function GradeBadge({ grade }: { grade: DisplayGrade }) {
   const cfg = gradeConfig[grade];
   const Icon = cfg.icon;
   return (
@@ -47,7 +50,7 @@ function MetricCard({
   label: string;
   value: number | null;
   threshold: string;
-  grade: ComplianceGrade;
+  grade: DisplayGrade;
   delay: number;
 }) {
   const cfg = gradeConfig[grade];
@@ -142,16 +145,16 @@ export function IAAOComplianceDashboard() {
 
   const countyMedianGrade = data?.countyMedianRatio != null
     ? (data!.countyMedianRatio! >= 0.90 && data!.countyMedianRatio! <= 1.10 ? "pass" : data!.countyMedianRatio! >= 0.85 && data!.countyMedianRatio! <= 1.15 ? "marginal" : "fail")
-    : "fail";
+    : "unmeasured";
   const countyCODGrade = data?.countyCOD != null
     ? (data!.countyCOD! <= 10 ? "pass" : data!.countyCOD! <= 15 ? "marginal" : "fail")
-    : "fail";
+    : "unmeasured";
   const countyPRDGrade = data?.countyPRD != null
     ? (data!.countyPRD! >= 0.98 && data!.countyPRD! <= 1.03 ? "pass" : data!.countyPRD! >= 0.95 && data!.countyPRD! <= 1.05 ? "marginal" : "fail")
-    : "fail";
+    : "unmeasured";
   const countyPRBGrade = data?.countyPRB != null
     ? (Math.abs(data!.countyPRB!) <= 0.05 ? "pass" : Math.abs(data!.countyPRB!) <= 0.10 ? "marginal" : "fail")
-    : "fail";
+    : "unmeasured";
 
   return (
     <div className="space-y-6 p-6 max-w-7xl mx-auto">
@@ -210,19 +213,19 @@ export function IAAOComplianceDashboard() {
             <>
               <MetricCard
                 label="Median Ratio" value={data?.countyMedianRatio ?? null}
-                threshold="0.90 – 1.10" grade={countyMedianGrade as ComplianceGrade} delay={0.15}
+                threshold="0.90 – 1.10" grade={countyMedianGrade as DisplayGrade} delay={0.15}
               />
               <MetricCard
                 label="COD" value={data?.countyCOD ?? null}
-                threshold="≤ 15.0" grade={countyCODGrade as ComplianceGrade} delay={0.2}
+                threshold="≤ 15.0" grade={countyCODGrade as DisplayGrade} delay={0.2}
               />
               <MetricCard
                 label="PRD" value={data?.countyPRD ?? null}
-                threshold="0.98 – 1.03" grade={countyPRDGrade as ComplianceGrade} delay={0.25}
+                threshold="0.98 – 1.03" grade={countyPRDGrade as DisplayGrade} delay={0.25}
               />
               <MetricCard
                 label="PRB" value={data?.countyPRB ?? null}
-                threshold="± 0.05" grade={countyPRBGrade as ComplianceGrade} delay={0.3}
+                threshold="± 0.05" grade={countyPRBGrade as DisplayGrade} delay={0.3}
               />
             </>
           )}
