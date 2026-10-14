@@ -55,10 +55,10 @@ export function IngestWizard() {
   const pipeline = useIngestPipeline();
   const navigate = useNavigate();
   useEffect(() => {
-    const warn = (event: BeforeUnloadEvent) => { if (pipeline.parsedFile && pipeline.step !== "complete") { event.preventDefault(); event.returnValue = ""; } };
+    const warn = (event: BeforeUnloadEvent) => { if (pipeline.publishing) { event.preventDefault(); event.returnValue = ""; } };
     window.addEventListener("beforeunload", warn);
     return () => window.removeEventListener("beforeunload", warn);
-  }, [pipeline.parsedFile, pipeline.step]);
+  }, [pipeline.publishing]);
   const [isDragging, setIsDragging] = useState(false);
   const [loadingSample, setLoadingSample] = useState(false);
   const [showPACSMulti, setShowPACSMulti] = useState(false);
@@ -112,7 +112,7 @@ export function IngestWizard() {
 
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-      {pipeline.parsedFile && pipeline.step !== "complete" && <p className="text-xs text-muted-foreground">{pipeline.parsedFile.fileName} · {pipeline.parsedFile.rowCount.toLocaleString()} rows · Unpublished changes stay here while viewing other data sections; leaving this workspace discards the in-memory preview.</p>}
+      {pipeline.parsedFile && pipeline.step !== "complete" && <p className="text-xs text-muted-foreground">{pipeline.parsedFile.fileName} · {pipeline.parsedFile.rowCount.toLocaleString()} rows · {pipeline.resumedAt ? `Resumed unpublished import saved ${new Date(pipeline.resumedAt).toLocaleString()}. ` : ""}Unpublished work is saved on this device and reopens here, even after leaving or refreshing. Nothing is published until you choose Publish. <Button variant="link" size="sm" className="h-auto p-0 text-xs" onClick={pipeline.reset}>Discard this import</Button></p>}
       {/* Pipeline Progress Bar */}
       <div className="flex items-center justify-between overflow-x-auto gap-3 pb-2" role="list" aria-label="Import progress">
         {PIPELINE_STEPS.map((s, i) => {
