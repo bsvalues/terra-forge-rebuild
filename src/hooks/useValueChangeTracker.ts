@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-const BENTON_COUNTY_ID = "842a6c54-c7c0-4b2d-aa43-0e3ba63fa57d";
+import { useActiveCountyId } from "@/hooks/useActiveCounty";
 
 // ── YoY Summary ───────────────────────────────────────────────────
 export interface AssessmentYoYSummary {
@@ -23,13 +23,15 @@ export interface AssessmentYoYSummary {
 }
 
 export function useAssessmentYoYSummary() {
+  const countyId = useActiveCountyId();
   return useQuery({
-    queryKey: ["assessment-yoy-summary"],
+    enabled: !!countyId,
+    queryKey: [countyId, "assessment-yoy-summary"],
     queryFn: async () => {
       const { data, error } = await (supabase as any)
         .from("vw_assessment_yoy_summary")
         .select("*")
-        .eq("county_id", BENTON_COUNTY_ID)
+        .eq("county_id", countyId!)
         .order("tax_year", { ascending: false });
       if (error) throw error;
       return (data ?? []) as AssessmentYoYSummary[];
@@ -61,13 +63,15 @@ export function useAssessmentTopMovers(
   direction: "gainers" | "losers" | "all" = "all",
   limit = 50,
 ) {
+  const countyId = useActiveCountyId();
   return useQuery({
-    queryKey: ["assessment-top-movers", taxYear, direction, limit],
+    enabled: !!countyId,
+    queryKey: [countyId, "assessment-top-movers", taxYear, direction, limit],
     queryFn: async () => {
       let query = (supabase as any)
         .from("vw_assessment_top_movers")
         .select("*")
-        .eq("county_id", BENTON_COUNTY_ID)
+        .eq("county_id", countyId!)
         .limit(limit);
 
       if (taxYear) {
@@ -116,8 +120,10 @@ export interface AssessmentYoYRow {
 }
 
 export function useParcelYoYHistory(parcelId: string | null) {
+  const countyId = useActiveCountyId();
   return useQuery({
-    queryKey: ["parcel-yoy-history", parcelId],
+    enabled: !!countyId,
+    queryKey: [countyId, "parcel-yoy-history", parcelId],
     queryFn: async () => {
       const { data, error } = await (supabase as any)
         .from("vw_assessment_yoy")

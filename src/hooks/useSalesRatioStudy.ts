@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-const BENTON_COUNTY_ID = "842a6c54-c7c0-4b2d-aa43-0e3ba63fa57d";
+import { useActiveCountyId } from "@/hooks/useActiveCounty";
 
 // ── County Summary by Year ────────────────────────────────────────
 export interface RatioCountySummary {
@@ -21,13 +21,15 @@ export interface RatioCountySummary {
 }
 
 export function useRatioCountySummary() {
+  const countyId = useActiveCountyId();
   return useQuery({
-    queryKey: ["ratio-county-summary"],
+    enabled: !!countyId,
+    queryKey: [countyId, "ratio-county-summary"],
     queryFn: async () => {
       const { data, error } = await (supabase as any)
         .from("vw_sales_ratio_county_summary")
         .select("*")
-        .eq("county_id", BENTON_COUNTY_ID)
+        .eq("county_id", countyId!)
         .order("sale_year", { ascending: false });
       if (error) throw error;
       return (data ?? []) as RatioCountySummary[];
@@ -62,13 +64,15 @@ export interface RatioNeighborhoodRow {
 }
 
 export function useRatioByNeighborhood(saleYear: number | null) {
+  const countyId = useActiveCountyId();
   return useQuery({
-    queryKey: ["ratio-by-neighborhood", saleYear],
+    enabled: !!countyId,
+    queryKey: [countyId, "ratio-by-neighborhood", saleYear],
     queryFn: async () => {
       const { data, error } = await (supabase as any)
         .from("vw_sales_ratio_by_neighborhood")
         .select("*")
-        .eq("county_id", BENTON_COUNTY_ID)
+        .eq("county_id", countyId!)
         .eq("sale_year", saleYear!)
         .order("sale_count", { ascending: false });
       if (error) throw error;
@@ -109,13 +113,15 @@ export function useRatioDetail(
   qualifiedOnly = false,
   limit = 100,
 ) {
+  const countyId = useActiveCountyId();
   return useQuery({
-    queryKey: ["ratio-detail", saleYear, neighborhoodCode, qualifiedOnly, limit],
+    enabled: !!countyId,
+    queryKey: [countyId, "ratio-detail", saleYear, neighborhoodCode, qualifiedOnly, limit],
     queryFn: async () => {
       let query = (supabase as any)
         .from("vw_sales_ratio_detail")
         .select("*")
-        .eq("county_id", BENTON_COUNTY_ID)
+        .eq("county_id", countyId!)
         .limit(limit)
         .order("ratio", { ascending: true });
 
