@@ -1,4 +1,5 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
+import { draftKey, loadImportDraft, saveImportDraft, clearImportDraft, resumeStep } from "@/lib/importDraft";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -160,6 +161,32 @@ export function useIngestPipeline() {
 
   // Combined mode: detect if file has both parcel and sales fields
   const [detectedCombined, setDetectedCombined] = useState(false);
+
+  // Resume an unpublished import saved on this device for this county and user.
+  const draftStoreKey = profile?.county_id && profile?.user_id ? draftKey(profile.county_id, profile.user_id) : null;
+  const [draftLoaded, setDraftLoaded] = useState(false);
+  const [resumedAt, setResumedAt] = useState<number | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    setDraftLoaded(false);
+    if (!draftStoreKey) return;
+    loadImportDraft(draftStoreKey).then(draft => {
+      if (cancelled) return;
+      if (draft) {
+        setTargetTable(draft.targetTable as TargetTable);
+        setImportProfile(draft.importProfile as ImportProfile);
+        setParsedFile(draft.parsedFile as ParsedFile);
+        setMappings(draft.mappings as FieldMapping[]);
+        setValidation(draft.validation as ValidationResult | null);
+        setDetectedCombined(draft.detectedCombined);
+        setJobId(draft.jobId);
+        setStep(draft.step as IngestStep);
+        setResumedAt(draft.savedAt);
+      }
+      setDraftLoaded(true);
+    });
+    return () => { cancelled = true; };
+  }, [draftStoreKey]);
 
   // Use PACS-enhanced aliases when profile is "pacs"
   const effectiveAliases = importProfile === "pacs" ? getPACSEnhancedAliases(FIELD_ALIASES) : FIELD_ALIASES;
@@ -797,6 +824,8 @@ export function useIngestPipeline() {
   }, [parsedFile, mappings, schema, profile, targetTable, jobId]);
 
   const reset = useCallback(() => {
+    if (draftStoreKey) void clearImportDraft(draftStoreKey);
+    setResumedAt(null);
     setStep("select");
     setParsedFile(null);
     setMappings([]);
@@ -806,7 +835,18 @@ export function useIngestPipeline() {
     setPublishProgress(0);
     setPublishPhase("");
     setImportProfile("generic");
-  }, []);
+  }, [draftStoreKey]);
+
+  // Persist unpublished work so leaving the import area or refreshing resumes it.
+  useEffect(() => {
+    if (!draftStoreKey || !draftLoaded) return;
+    if (step === "complete") { void clearImportDraft(draftStoreKey); return; }
+    if (!parsedFile || !resumeStep(step)) return;
+    const timer = setTimeout(() => {
+      void saveImportDraft(draftStoreKey, { savedAt: Date.now(), step, targetTable, importProfile, parsedFile, mappings, validation, detectedCombined, jobId });
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [draftStoreKey, draftLoaded, step, targetTable, importProfile, parsedFile, mappings, validation, detectedCombined, jobId]);
 
   return {
     step, setStep,
