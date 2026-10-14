@@ -143,13 +143,13 @@ export function IAAOComplianceDashboard() {
   const countyMedianGrade = data?.countyMedianRatio != null
     ? (data!.countyMedianRatio! >= 0.90 && data!.countyMedianRatio! <= 1.10 ? "pass" : data!.countyMedianRatio! >= 0.85 && data!.countyMedianRatio! <= 1.15 ? "marginal" : "fail")
     : "fail";
-  const countyCODGrade = data?.countyCOD !== null
+  const countyCODGrade = data?.countyCOD != null
     ? (data!.countyCOD! <= 10 ? "pass" : data!.countyCOD! <= 15 ? "marginal" : "fail")
     : "fail";
-  const countyPRDGrade = data?.countyPRD !== null
+  const countyPRDGrade = data?.countyPRD != null
     ? (data!.countyPRD! >= 0.98 && data!.countyPRD! <= 1.03 ? "pass" : data!.countyPRD! >= 0.95 && data!.countyPRD! <= 1.05 ? "marginal" : "fail")
     : "fail";
-  const countyPRBGrade = data?.countyPRB !== null
+  const countyPRBGrade = data?.countyPRB != null
     ? (Math.abs(data!.countyPRB!) <= 0.05 ? "pass" : Math.abs(data!.countyPRB!) <= 0.10 ? "marginal" : "fail")
     : "fail";
 
