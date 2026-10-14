@@ -3875,6 +3875,57 @@ export type Database = {
         }
         Relationships: []
       }
+      seed_audit_log: {
+        Row: {
+          county_slug: string
+          coverage_pct: number | null
+          created_at: string
+          dry_run: boolean
+          duration_ms: number | null
+          error_msg: string | null
+          id: string
+          layer_name: string | null
+          rows_fetched: number
+          rows_skipped: number
+          rows_upserted: number
+          source: string
+          success: boolean
+          vendor: string | null
+        }
+        Insert: {
+          county_slug: string
+          coverage_pct?: number | null
+          created_at?: string
+          dry_run?: boolean
+          duration_ms?: number | null
+          error_msg?: string | null
+          id?: string
+          layer_name?: string | null
+          rows_fetched?: number
+          rows_skipped?: number
+          rows_upserted?: number
+          source: string
+          success?: boolean
+          vendor?: string | null
+        }
+        Update: {
+          county_slug?: string
+          coverage_pct?: number | null
+          created_at?: string
+          dry_run?: boolean
+          duration_ms?: number | null
+          error_msg?: string | null
+          id?: string
+          layer_name?: string | null
+          rows_fetched?: number
+          rows_skipped?: number
+          rows_upserted?: number
+          source?: string
+          success?: boolean
+          vendor?: string | null
+        }
+        Relationships: []
+      }
       segment_calibration_runs: {
         Row: {
           calibration_run_id: string | null
@@ -5620,6 +5671,75 @@ export type Database = {
           },
         ]
       }
+      webhook_dispatch_queue: {
+        Row: {
+          attempt_count: number
+          available_at: string
+          completed_at: string | null
+          county_id: string
+          created_at: string
+          endpoint_id: string
+          event_type: string
+          id: string
+          last_attempt_at: string | null
+          last_error: string | null
+          payload: Json
+          provider_key: string
+          queued_reason: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          attempt_count?: number
+          available_at?: string
+          completed_at?: string | null
+          county_id?: string
+          created_at?: string
+          endpoint_id: string
+          event_type: string
+          id?: string
+          last_attempt_at?: string | null
+          last_error?: string | null
+          payload?: Json
+          provider_key: string
+          queued_reason?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          attempt_count?: number
+          available_at?: string
+          completed_at?: string | null
+          county_id?: string
+          created_at?: string
+          endpoint_id?: string
+          event_type?: string
+          id?: string
+          last_attempt_at?: string | null
+          last_error?: string | null
+          payload?: Json
+          provider_key?: string
+          queued_reason?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "webhook_dispatch_queue_county_id_fkey"
+            columns: ["county_id"]
+            isOneToOne: false
+            referencedRelation: "counties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "webhook_dispatch_queue_endpoint_id_fkey"
+            columns: ["endpoint_id"]
+            isOneToOne: false
+            referencedRelation: "webhook_endpoints"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       webhook_endpoints: {
         Row: {
           county_id: string
@@ -5669,6 +5789,80 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "webhook_endpoints_county_id_fkey"
+            columns: ["county_id"]
+            isOneToOne: false
+            referencedRelation: "counties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      webhook_provider_health: {
+        Row: {
+          circuit_state: string
+          consecutive_failures: number
+          county_id: string
+          created_at: string
+          id: string
+          last_failure_at: string | null
+          last_refill_at: string
+          last_request_at: string | null
+          last_success_at: string | null
+          open_until: string | null
+          provider_key: string
+          queued_requests: number
+          refill_per_minute: number
+          token_capacity: number
+          tokens_available: number
+          total_delivered: number
+          total_failed: number
+          total_requests: number
+          updated_at: string
+        }
+        Insert: {
+          circuit_state?: string
+          consecutive_failures?: number
+          county_id?: string
+          created_at?: string
+          id?: string
+          last_failure_at?: string | null
+          last_refill_at?: string
+          last_request_at?: string | null
+          last_success_at?: string | null
+          open_until?: string | null
+          provider_key: string
+          queued_requests?: number
+          refill_per_minute?: number
+          token_capacity?: number
+          tokens_available?: number
+          total_delivered?: number
+          total_failed?: number
+          total_requests?: number
+          updated_at?: string
+        }
+        Update: {
+          circuit_state?: string
+          consecutive_failures?: number
+          county_id?: string
+          created_at?: string
+          id?: string
+          last_failure_at?: string | null
+          last_refill_at?: string
+          last_request_at?: string | null
+          last_success_at?: string | null
+          open_until?: string | null
+          provider_key?: string
+          queued_requests?: number
+          refill_per_minute?: number
+          token_capacity?: number
+          tokens_available?: number
+          total_delivered?: number
+          total_failed?: number
+          total_requests?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "webhook_provider_health_county_id_fkey"
             columns: ["county_id"]
             isOneToOne: false
             referencedRelation: "counties"

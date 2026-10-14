@@ -85,15 +85,20 @@ function useCrossCountyBenchmarks() {
             };
           }
 
-          // Pull ratio summary if sales data exists
-           
-          const { data: ratios } = await (supabase as any)
-            .from("vw_sales_reconciliation_summary")
-            .select("median_ratio, cod, prd")
-            .eq("county_id", county.id)
-            .order("period_end", { ascending: false })
-            .limit(1)
-            .maybeSingle();
+          // County-scoped IAAO ratio statistics over the last 24 months of qualified sales.
+          // RLS limits each caller to counties they may read; unreadable counties return no sample.
+          const end = new Date();
+          const start = new Date(end); start.setMonth(start.getMonth() - 24);
+          const { data: statRows } = await (supabase.rpc as any)("compute_ratio_statistics_county", {
+            p_county_id: county.id,
+            p_tax_year: end.getFullYear(),
+            p_sales_start_date: start.toISOString().slice(0, 10),
+            p_sales_end_date: end.toISOString().slice(0, 10),
+            p_neighborhood_code: null,
+            p_outlier_method: "iqr",
+          });
+          const st = Array.isArray(statRows) ? statRows[0] : statRows;
+          const ratios = st?.sample_size ? st : null;
 
           return {
             county: COUNTY_NAMES[slug],

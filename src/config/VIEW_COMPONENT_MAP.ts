@@ -1,3 +1,4 @@
+import { createElement } from "react";
 // TerraFusion OS — View Component Map
 // Maps viewId → lazy-loaded component. Extracted from AppLayout's renderStage().
 // This is consumed by ViewRenderer to render the correct component for a URL.
@@ -36,10 +37,10 @@ const RevaluationReportDashboard = lazy(() => import("@/components/revaluation/R
 const RevaluationNoticeGenerator = lazy(() => import("@/components/revaluation/RevaluationNoticeGenerator").then(m => ({ default: m.RevaluationNoticeGenerator })));
 const NeighborhoodReviewOrchestrator = lazy(() => import("@/components/review").then(m => ({ default: m.NeighborhoodReviewOrchestrator })));
 const AppealRiskDashboard = lazy(() => import("@/components/appeal-risk").then(m => ({ default: m.AppealRiskDashboard })));
-const NeighborhoodRollupDashboard = lazy(() => import("@/components/pacs/NeighborhoodRollupDashboard").then(m => ({ default: m.NeighborhoodRollupDashboard })));
+const NeighborhoodRollupDashboard = lazy(() => Promise.all([import("@/components/pacs/NeighborhoodRollupDashboard"), import("@/components/trust/RequiresSourceData")]).then(([m, g]) => ({ default: () => createElement(g.RequiresSourceData, { relation: "vw_neighborhood_land_summary", sourceLabel: "PACS land, improvement and sale records" }, createElement(m.NeighborhoodRollupDashboard)) })));
 const QualityGateDashboard = lazy(() => import("@/components/pacs/QualityGateDashboard").then(m => ({ default: m.QualityGateDashboard })));
-const ReconciliationDashboard = lazy(() => import("@/components/pacs/ReconciliationDashboard").then(m => ({ default: m.ReconciliationDashboard })));
-const PacsAnalyticsDashboard = lazy(() => import("@/components/pacs/PacsAnalyticsDashboard").then(m => ({ default: m.PacsAnalyticsDashboard })));
+const ReconciliationDashboard = lazy(() => Promise.all([import("@/components/pacs/ReconciliationDashboard"), import("@/components/trust/RequiresSourceData")]).then(([m, g]) => ({ default: () => createElement(g.RequiresSourceData, { relation: "vw_sales_reconciliation_summary", sourceLabel: "PACS sales and assessment roll records" }, createElement(m.ReconciliationDashboard)) })));
+const PacsAnalyticsDashboard = lazy(() => Promise.all([import("@/components/pacs/PacsAnalyticsDashboard"), import("@/components/trust/RequiresSourceData")]).then(([m, g]) => ({ default: () => createElement(g.RequiresSourceData, { relation: "vw_pacs_table_stats", sourceLabel: "PACS staging tables" }, createElement(m.PacsAnalyticsDashboard)) })));
 const ValueChangeDashboard = lazy(() => import("@/components/assessment/ValueChangeDashboard").then(m => ({ default: m.ValueChangeDashboard })));
 const SalesRatioStudy = lazy(() => import("@/components/analytics/SalesRatioStudy").then(m => ({ default: m.SalesRatioStudy })));
 const ExemptionAnalysis = lazy(() => import("@/components/assessment/ExemptionAnalysis").then(m => ({ default: m.ExemptionAnalysis })));

@@ -30,7 +30,7 @@ export function useNeighborhoodEquityOverlay(countyId: string | null) {
     staleTime: 300_000,
     queryFn: async () => {
       const { data, error } = await supabase.rpc("get_neighborhood_equity_overlays" as any, {
-        p_county_id: countyId!,
+        p_study_period_id: null, // county comes from the signed-in user's profile
       });
       if (error) throw new Error(error.message);
       return data;

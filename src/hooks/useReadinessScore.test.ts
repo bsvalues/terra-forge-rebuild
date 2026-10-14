@@ -18,6 +18,8 @@ vi.mock("@/integrations/supabase/client", () => ({
   },
 }));
 
+vi.mock("@/hooks/useActiveCounty", () => ({ useActiveCountyId: () => "county-1" }));
+
 import { getComboLabel, getFieldLabel, useReadinessScore } from "./useReadinessScore";
 
 // ── Wrapper factory ────────────────────────────────────────────────────────────
