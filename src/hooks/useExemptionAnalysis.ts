@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-const COUNTY_ID = "842a6c54-c7c0-4b2d-aa43-0e3ba63fa57d";
+import { useActiveCountyId } from "@/hooks/useActiveCounty";
 
 // ── Interfaces ────────────────────────────────────────────────────
 
@@ -64,7 +64,9 @@ export interface ExemptionDetailRow {
 
 /** County-level exemption summary by year */
 export function useExemptionCountySummary() {
+  const COUNTY_ID = useActiveCountyId();
   return useQuery<ExemptionCountySummary[]>({
+    enabled: !!COUNTY_ID,
     queryKey: ["exemption-county-summary", COUNTY_ID],
     queryFn: async () => {
       const { data, error } = await (supabase as any)
@@ -81,6 +83,7 @@ export function useExemptionCountySummary() {
 
 /** Exemption breakdown by type for a given tax year */
 export function useExemptionByType(taxYear: number | null) {
+  const COUNTY_ID = useActiveCountyId();
   return useQuery<ExemptionByType[]>({
     queryKey: ["exemption-by-type", COUNTY_ID, taxYear],
     queryFn: async () => {
@@ -93,7 +96,7 @@ export function useExemptionByType(taxYear: number | null) {
       if (error) throw error;
       return (data ?? []) as ExemptionByType[];
     },
-    enabled: !!taxYear,
+    enabled: !!COUNTY_ID && !!taxYear,
     staleTime: 300000,
   });
 }
@@ -105,6 +108,7 @@ export function useExemptionDetail(
   status: string | null = null,
   limit = 150
 ) {
+  const COUNTY_ID = useActiveCountyId();
   return useQuery<ExemptionDetailRow[]>({
     queryKey: ["exemption-detail", COUNTY_ID, taxYear, exemptionType, status, limit],
     queryFn: async () => {
@@ -120,7 +124,7 @@ export function useExemptionDetail(
       if (resultError) throw resultError;
       return (resultData ?? []) as ExemptionDetailRow[];
     },
-    enabled: !!taxYear,
+    enabled: !!COUNTY_ID && !!taxYear,
     staleTime: 300000,
   });
 }

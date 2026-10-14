@@ -76,7 +76,17 @@ function MetricCard({
   );
 }
 
-function ScoreGauge({ score, loading }: { score: number; loading: boolean }) {
+function ScoreGauge({ score, loading }: { score: number | null; loading: boolean }) {
+  if (!loading && score === null) {
+    return (
+      <div className="flex flex-col items-center gap-2 text-center px-4">
+        <Shield className="w-10 h-10 text-muted-foreground" />
+        <span className="text-sm font-medium">Not measured</span>
+        <span className="text-xs text-muted-foreground">No neighborhood has 3+ qualified sales in the last 24 months.</span>
+      </div>
+    );
+  }
+  score = score ?? 0;
   const color = score >= 80 ? "text-emerald-400" : score >= 60 ? "text-amber-400" : "text-red-400";
   const Icon = score >= 80 ? ShieldCheck : score >= 60 ? Shield : ShieldAlert;
 
@@ -186,7 +196,7 @@ export function IAAOComplianceDashboard() {
           transition={{ duration: 0.5, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
         >
           <Card className="border-border/40 h-full flex flex-col items-center justify-center py-6">
-            <ScoreGauge score={data?.overallScore ?? 0} loading={isLoading} />
+            <ScoreGauge score={data ? data.overallScore : null} loading={isLoading} />
             {data && !isLoading && (
               <div className="flex gap-4 mt-4 text-[10px]">
                 <span className="text-emerald-400">{data.passingCount} pass</span>

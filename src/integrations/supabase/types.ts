@@ -6681,6 +6681,28 @@ export type Database = {
               tier_slope: number
             }[]
           }
+      compute_ratio_statistics_county: {
+        Args: {
+          p_county_id: string
+          p_neighborhood_code?: string
+          p_outlier_method?: string
+          p_sales_end_date?: string
+          p_sales_start_date?: string
+          p_tax_year?: number
+        }
+        Returns: {
+          cod: number
+          high_tier_median: number
+          low_tier_median: number
+          mean_ratio: number
+          median_ratio: number
+          mid_tier_median: number
+          prb: number
+          prd: number
+          sample_size: number
+          tier_slope: number
+        }[]
+      }
       compute_readiness_score: { Args: { p_county_id?: string }; Returns: Json }
       count_duplicate_addresses: {
         Args: { p_county_id: string }
@@ -6692,6 +6714,13 @@ export type Database = {
         Args: { p_county_id: string }
         Returns: {
           count: number
+        }[]
+      }
+      county_neighborhood_codes: {
+        Args: { p_county_id: string }
+        Returns: {
+          neighborhood_code: string
+          parcel_count: number
         }[]
       }
       create_notification: {
@@ -7015,6 +7044,23 @@ export type Database = {
       }
       postgis_version: { Args: never; Returns: string }
       postgis_wagyu_version: { Args: never; Returns: string }
+      ratio_statistics_by_neighborhood: {
+        Args: {
+          p_county_id: string
+          p_sales_end_date: string
+          p_sales_start_date: string
+          p_tax_year: number
+        }
+        Returns: {
+          cod: number
+          mean_ratio: number
+          median_ratio: number
+          neighborhood_code: string
+          prb: number
+          prd: number
+          sample_size: number
+        }[]
+      }
       redact_trace_event: { Args: { p_event_id: string }; Returns: boolean }
       st_3dclosestpoint: {
         Args: { geom1: unknown; geom2: unknown }

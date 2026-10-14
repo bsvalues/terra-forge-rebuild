@@ -4,6 +4,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useActiveCountyId } from "@/hooks/useActiveCounty";
 
 // IAAO Standard Thresholds (residential)
 export const IAAO_THRESHOLDS = {
@@ -36,7 +37,7 @@ export interface IAAOComplianceSummary {
   passingCount: number;
   marginalCount: number;
   failingCount: number;
-  overallScore: number; // 0-100
+  overallScore: number | null; // 0-100; null when no neighborhood had enough sales to grade
   countyMedianRatio: number | null;
   countyCOD: number | null;
   countyPRD: number | null;
@@ -78,69 +79,63 @@ function overallGrade(n: NeighborhoodCompliance): ComplianceGrade {
   return "marginal";
 }
 
+/** Share of graded neighborhoods passing (marginal counts half); null when nothing was gradable. */
+export function complianceScore(passing: number, marginal: number, total: number): number | null {
+  return total > 0 ? Math.round(((passing + marginal * 0.5) / total) * 100) : null;
+}
+
 export function useIAAOCompliance(taxYear?: number) {
+  const countyId = useActiveCountyId();
   const year = taxYear || new Date().getFullYear();
   const salesStart = new Date(Date.now() - 24 * 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
   const salesEnd = new Date().toISOString().split("T")[0];
 
   return useQuery<IAAOComplianceSummary>({
-    queryKey: ["iaao-compliance", year, salesStart, salesEnd],
+    queryKey: ["iaao-compliance", countyId, year, salesStart, salesEnd],
+    enabled: !!countyId,
     staleTime: 5 * 60 * 1000,
     queryFn: async () => {
-      // Get unique neighborhood codes
-      const { data: parcels, error: pErr } = await supabase
-        .from("parcels")
-        .select("neighborhood_code")
-        .not("neighborhood_code", "is", null);
+      const stats = (code: string | null) =>
+        (supabase.rpc as any)("compute_ratio_statistics_county", {
+          p_county_id: countyId,
+          p_tax_year: year,
+          p_sales_start_date: salesStart,
+          p_sales_end_date: salesEnd,
+          p_neighborhood_code: code,
+          p_outlier_method: "iqr",
+        }).abortSignal(AbortSignal.timeout(30000));
 
-      if (pErr) throw pErr;
-
-      const codes = [...new Set(parcels?.map((p) => p.neighborhood_code).filter(Boolean) || [])];
-
-      // Compute stats for each neighborhood (cap at 30)
-      const results = await Promise.all(
-        codes.slice(0, 30).map(async (code) => {
-          const { data, error } = await (supabase.rpc as Function)("compute_ratio_statistics", {
-            p_tax_year: year,
-            p_sales_start_date: salesStart,
-            p_sales_end_date: salesEnd,
-            p_neighborhood_code: code,
-            p_outlier_method: "iqr",
-          });
-          if (error) return null;
-          const stats = Array.isArray(data) ? data[0] : data;
-          if (!stats || !stats.sample_size || stats.sample_size < 3) return null;
-
-          const n: NeighborhoodCompliance = {
-            neighborhood_code: code!,
-            sample_size: stats.sample_size,
-            median_ratio: stats.median_ratio,
-            mean_ratio: stats.mean_ratio,
-            cod: stats.cod,
-            prd: stats.prd,
-            prb: stats.prb,
-            cod_grade: gradeCOD(stats.cod),
-            prd_grade: gradePRD(stats.prd),
-            prb_grade: gradePRB(stats.prb),
-            median_grade: gradeMedian(stats.median_ratio),
-            overall_grade: "pass", // placeholder
-          };
-          n.overall_grade = overallGrade(n);
-          return n;
-        })
-      );
-
-      const neighborhoods = results.filter(Boolean) as NeighborhoodCompliance[];
-
-      // County-wide stats
-      const { data: countyData } = await (supabase.rpc as Function)("compute_ratio_statistics", {
+      const { data: rows, error: hErr } = await (supabase.rpc as any)("ratio_statistics_by_neighborhood", {
+        p_county_id: countyId,
         p_tax_year: year,
         p_sales_start_date: salesStart,
         p_sales_end_date: salesEnd,
-        p_neighborhood_code: null,
-        p_outlier_method: "iqr",
+      }).abortSignal(AbortSignal.timeout(30000));
+      if (hErr) throw hErr;
+      const results = ((rows ?? []) as any[]).map((st) => {
+        const n: NeighborhoodCompliance = {
+          neighborhood_code: st.neighborhood_code,
+          sample_size: st.sample_size,
+          median_ratio: st.median_ratio,
+          mean_ratio: st.mean_ratio,
+          cod: st.cod,
+          prd: st.prd,
+          prb: st.prb,
+          cod_grade: gradeCOD(st.cod),
+          prd_grade: gradePRD(st.prd),
+          prb_grade: gradePRB(st.prb),
+          median_grade: gradeMedian(st.median_ratio),
+          overall_grade: "pass",
+        };
+        n.overall_grade = overallGrade(n);
+        return n;
       });
+
+      const neighborhoods = results.filter(Boolean) as NeighborhoodCompliance[];
+      const { data: countyData, error: countyErr } = await stats(null);
+      if (countyErr) throw countyErr;
       const countyStats = Array.isArray(countyData) ? countyData[0] : countyData;
+      const hasCounty = !!countyStats?.sample_size;
 
       const passingCount = neighborhoods.filter((n) => n.overall_grade === "pass").length;
       const marginalCount = neighborhoods.filter((n) => n.overall_grade === "marginal").length;
@@ -153,11 +148,11 @@ export function useIAAOCompliance(taxYear?: number) {
         passingCount,
         marginalCount,
         failingCount,
-        overallScore: total > 0 ? Math.round(((passingCount + marginalCount * 0.5) / total) * 100) : 0,
-        countyMedianRatio: countyStats?.median_ratio ?? null,
-        countyCOD: countyStats?.cod ?? null,
-        countyPRD: countyStats?.prd ?? null,
-        countyPRB: countyStats?.prb ?? null,
+        overallScore: complianceScore(passingCount, marginalCount, total),
+        countyMedianRatio: hasCounty ? countyStats.median_ratio : null,
+        countyCOD: hasCounty ? countyStats.cod : null,
+        countyPRD: hasCounty ? countyStats.prd : null,
+        countyPRB: hasCounty ? countyStats.prb : null,
       };
     },
   });
