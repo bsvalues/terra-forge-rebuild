@@ -7044,6 +7044,23 @@ export type Database = {
       }
       postgis_version: { Args: never; Returns: string }
       postgis_wagyu_version: { Args: never; Returns: string }
+      ratio_statistics_by_neighborhood: {
+        Args: {
+          p_county_id: string
+          p_sales_end_date: string
+          p_sales_start_date: string
+          p_tax_year: number
+        }
+        Returns: {
+          cod: number
+          mean_ratio: number
+          median_ratio: number
+          neighborhood_code: string
+          prb: number
+          prd: number
+          sample_size: number
+        }[]
+      }
       redact_trace_event: { Args: { p_event_id: string }; Returns: boolean }
       st_3dclosestpoint: {
         Args: { geom1: unknown; geom2: unknown }
