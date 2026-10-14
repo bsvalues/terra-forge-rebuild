@@ -35,4 +35,6 @@
 - PACS neighborhoods are valuation-year records (parcel_neighborhood_year, keyed by county-scoped prop_id, certified-active = sup_num 0 and no inactive date, exact code match) with run lineage in neighborhood_reconciliation_runs/items; parcels.neighborhood_code is only a derived current-year display, so a sync can never erase historical labels.
 
 - Parcel360 maps read derived WGS84 columns; raw PACS fields may be projected.
+- Reports that need legacy PACS staging data are wrapped in RequiresSourceData in VIEW_COMPONENT_MAP, so absent source tables read as "not loaded", never as errors or quality failures.
+- Ratio statistics are county-scoped server functions (compute_ratio_statistics_county, ratio_statistics_by_neighborhood); never call the unscoped compute_ratio_statistics from county screens, because it mixes counties.
 - Unsaved edits recover via device-local src/lib/workDraft; drafts never write data.
