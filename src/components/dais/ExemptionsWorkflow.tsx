@@ -88,8 +88,9 @@ const EXEMPTION_TYPES = {
   nonprofit: { label: "Non-Profit", icon: Heart, color: "text-pink-400" },
 };
 
-export function ExemptionsWorkflow() {
-  const { setParcel, setActiveTab } = useWorkbench();
+/** parcelId: when set (parcel lane), list only that parcel's exemptions and file new ones against it. */
+export function ExemptionsWorkflow({ parcelId }: { parcelId?: string | null } = {}) {
+  const { parcel: workbenchParcel, setParcel, setActiveTab } = useWorkbench();
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -122,6 +123,7 @@ export function ExemptionsWorkflow() {
   const { data: exemptions = [], isLoading } = useExemptionsWorkflow(statusFilter);
 
   const filteredExemptions = exemptions.filter((exemption) => {
+    if (parcelId && exemption.parcel?.id !== parcelId) return false;
     if (!searchQuery) return true;
     const search = searchQuery.toLowerCase();
     return (
@@ -196,7 +198,7 @@ export function ExemptionsWorkflow() {
         </Button>
       </div>
 
-      <NewExemptionDialog open={showNewExemptionDialog} onOpenChange={setShowNewExemptionDialog} />
+      <NewExemptionDialog open={showNewExemptionDialog} onOpenChange={setShowNewExemptionDialog} parcel={parcelId ? workbenchParcel : undefined} />
 
       {/* Filters */}
       <div className="flex items-center gap-4">

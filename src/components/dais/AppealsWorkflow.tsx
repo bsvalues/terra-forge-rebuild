@@ -106,8 +106,9 @@ const STATUS_CONFIG = {
   },
 };
 
-export function AppealsWorkflow() {
-  const { setParcel, setActiveTab } = useWorkbench();
+/** parcelId: when set (parcel lane), list only that parcel's appeals and file new ones against it. */
+export function AppealsWorkflow({ parcelId }: { parcelId?: string | null } = {}) {
+  const { parcel: workbenchParcel, setParcel, setActiveTab } = useWorkbench();
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -138,6 +139,7 @@ export function AppealsWorkflow() {
   const { data: appeals = [], isLoading } = useAppealsWorkflowQuery(statusFilter);
 
   const filteredAppeals = appeals.filter((appeal) => {
+    if (parcelId && appeal.parcel?.id !== parcelId) return false;
     if (!searchQuery) return true;
     const search = searchQuery.toLowerCase();
     return (
@@ -479,7 +481,7 @@ export function AppealsWorkflow() {
       </Dialog>
 
       {/* New Appeal Dialog */}
-      <NewAppealDialog open={showNewDialog} onOpenChange={setShowNewDialog} />
+      <NewAppealDialog open={showNewDialog} onOpenChange={setShowNewDialog} parcel={parcelId ? workbenchParcel : undefined} />
     </div>
   );
 }
