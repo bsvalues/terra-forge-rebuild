@@ -153,7 +153,7 @@ async function fetchCatalogData(): Promise<CatalogDomain[]> {
           .select("*")
           .order("created_at", { ascending: false })
           .limit(1)
-          .single();
+          .maybeSingle();
         lastUpdated = (latest as Record<string, unknown>)?.updated_at as string ?? null;
       }
 
