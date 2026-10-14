@@ -79,16 +79,6 @@ function overallGrade(n: NeighborhoodCompliance): ComplianceGrade {
   return "marginal";
 }
 
-/** Runs async jobs with bounded concurrency so large counties don't flood the API. */
-async function mapLimit<T, R>(items: T[], limit: number, fn: (t: T) => Promise<R>): Promise<R[]> {
-  const out: R[] = new Array(items.length);
-  let next = 0;
-  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, async () => {
-    while (next < items.length) { const i = next++; out[i] = await fn(items[i]); }
-  }));
-  return out;
-}
-
 /** Share of graded neighborhoods passing (marginal counts half); null when nothing was gradable. */
 export function complianceScore(passing: number, marginal: number, total: number): number | null {
   return total > 0 ? Math.round(((passing + marginal * 0.5) / total) * 100) : null;
@@ -115,18 +105,16 @@ export function useIAAOCompliance(taxYear?: number) {
           p_outlier_method: "iqr",
         }).abortSignal(AbortSignal.timeout(30000));
 
-      const { data: codeRows, error: cErr } = await (supabase.rpc as any)("county_neighborhood_codes", { p_county_id: countyId })
-        .abortSignal(AbortSignal.timeout(30000));
-      if (cErr) throw cErr;
-      const codes = ((codeRows ?? []) as { neighborhood_code: string }[]).map((r) => r.neighborhood_code);
-
-      const results = await mapLimit(codes, 6, async (code) => {
-        const { data, error } = await stats(code);
-        if (error) return null;
-        const st = Array.isArray(data) ? data[0] : data;
-        if (!st || !st.sample_size || st.sample_size < 3) return null;
+      const { data: rows, error: hErr } = await (supabase.rpc as any)("ratio_statistics_by_neighborhood", {
+        p_county_id: countyId,
+        p_tax_year: year,
+        p_sales_start_date: salesStart,
+        p_sales_end_date: salesEnd,
+      }).abortSignal(AbortSignal.timeout(30000));
+      if (hErr) throw hErr;
+      const results = ((rows ?? []) as any[]).map((st) => {
         const n: NeighborhoodCompliance = {
-          neighborhood_code: code,
+          neighborhood_code: st.neighborhood_code,
           sample_size: st.sample_size,
           median_ratio: st.median_ratio,
           mean_ratio: st.mean_ratio,
