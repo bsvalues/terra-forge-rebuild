@@ -64,6 +64,27 @@
       "when": 1791983204172,
       "tag": "0008_notifications_hardening",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1791983253015,
+      "tag": "0009_value_change_tracker",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1791983265098,
+      "tag": "0010_exemption_analysis",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1791983283319,
+      "tag": "0011_sales_ratio_study",
+      "breakpoints": true
     }
   ]
 }
