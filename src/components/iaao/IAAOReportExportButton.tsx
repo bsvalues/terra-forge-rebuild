@@ -110,10 +110,12 @@ function buildReportHTML(data: IAAOComplianceSummary, countyName: string): strin
   <div class="summary-box">
     <strong>Executive Summary</strong><br/>
     <span style="font-size:11px; color:#374151;">
-      Overall compliance score: <strong>${data.overallScore}/100</strong> —
+      Overall compliance score: <strong>${data.overallScore === null ? "Not measured" : `${data.overallScore}/100`}</strong> —
       ${data.passingCount} of ${data.totalNeighborhoods} neighborhoods fully compliant,
       ${data.marginalCount} marginal, ${data.failingCount} non-compliant.
-      ${data.overallScore >= 80
+      ${data.overallScore === null
+        ? "No neighborhood had enough qualified sales to grade."
+        : data.overallScore >= 80
         ? "The assessment roll meets IAAO standards for mass appraisal quality."
         : data.overallScore >= 60
           ? "The assessment roll requires targeted remediation in flagged neighborhoods."
