@@ -1,3 +1,4 @@
+import { resolveParcelIds } from "@/lib/resolveParcelIds";
 import { dedupeSalesRows, SALES_CONFLICT_KEY } from "@/lib/salesDedup";
 import { useState, useCallback, useEffect } from "react";
 import { draftKey, loadImportDraft, saveImportDraft, clearImportDraft, resumeStep } from "@/lib/importDraft";
@@ -613,24 +614,10 @@ export function useIngestPipeline() {
 
       // Phase 1.5: Fetch parcel IDs for join
       setPublishPhase("Resolving parcel IDs for sales join...");
-      const parcelLookup: Record<string, string> = {};
-      let offset = 0;
-      const PAGE_SIZE = 1000;
-      let hasMore = true;
-      while (hasMore) {
-        const { data: parcels } = await supabase
-          .from("parcels")
-          .select("id, parcel_number")
-          .eq("county_id", profile.county_id)
-          .range(offset, offset + PAGE_SIZE - 1);
-        if (parcels && parcels.length > 0) {
-          for (const p of parcels) parcelLookup[p.parcel_number] = p.id;
-          offset += parcels.length;
-          hasMore = parcels.length === PAGE_SIZE;
-        } else {
-          hasMore = false;
-        }
-      }
+      const pnCol = activeMapping.find(m => m.targetColumn === "parcel_number")?.sourceColumn;
+      const parcelLookup = pnCol
+        ? await resolveParcelIds(profile.county_id, parsedFile.rows.map(r => String(r[pnCol] ?? "")))
+        : {};
       setPublishProgress(50);
 
       // Phase 3: Build and upsert sales records (only rows with sale_price & sale_date)
@@ -683,26 +670,11 @@ export function useIngestPipeline() {
 
     } else {
       // ---- SINGLE TABLE MODE (existing logic) ----
-      const parcelLookup: Record<string, string> = {};
-      if (targetTable === "sales" || targetTable === "assessments") {
-        let offset = 0;
-        const PAGE_SIZE = 1000;
-        let hasMore = true;
-        while (hasMore) {
-          const { data: parcels } = await supabase
-            .from("parcels")
-            .select("id, parcel_number")
-            .eq("county_id", profile.county_id)
-            .range(offset, offset + PAGE_SIZE - 1);
-          if (parcels && parcels.length > 0) {
-            for (const p of parcels) parcelLookup[p.parcel_number] = p.id;
-            offset += parcels.length;
-            hasMore = parcels.length === PAGE_SIZE;
-          } else {
-            hasMore = false;
-          }
-        }
-      }
+      const pnColSingle = activeMapping.find(m => m.targetColumn === "parcel_number")?.sourceColumn;
+      const parcelLookup: Record<string, string> =
+        (targetTable === "sales" || targetTable === "assessments") && pnColSingle
+          ? await resolveParcelIds(profile.county_id, parsedFile.rows.map(r => String(r[pnColSingle] ?? "")))
+          : {};
 
       const deduped = new Map<string, Record<string, unknown>>();
       for (const row of parsedFile.rows) {
