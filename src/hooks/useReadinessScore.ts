@@ -4,6 +4,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useActiveCountyId } from "@/hooks/useActiveCounty";
 
 export interface ReadinessSummary {
   total_parcels: number;
@@ -107,10 +108,12 @@ export function getFieldLabel(field: string): string {
 }
 
 export function useReadinessScore() {
+  const countyId = useActiveCountyId();
   return useQuery({
-    queryKey: ["readiness-score"],
+    queryKey: ["readiness-score", countyId],
+    enabled: !!countyId,
     queryFn: async (): Promise<ReadinessScoreData> => {
-      const { data, error } = await (supabase.rpc as Function)("compute_readiness_score");
+      const { data, error } = await (supabase.rpc as Function)("compute_readiness_score", { p_county_id: countyId });
       if (error) throw error;
       return data as unknown as ReadinessScoreData;
     },

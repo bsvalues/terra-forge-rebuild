@@ -127,6 +127,34 @@
       "when": 1791984874535,
       "tag": "0017_ratio_statistics_by_neighborhood",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1791985452032,
+      "tag": "0018_equity_overlays_wgs84_latest_sale",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1791985479337,
+      "tag": "0019_seed_audit_log",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1791985525887,
+      "tag": "0020_webhook_rate_limiting",
+      "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1791986273761,
+      "tag": "0021_fix_readiness_worst_field",
+      "breakpoints": true
     }
   ]
 }

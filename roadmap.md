@@ -15,10 +15,10 @@
 - [x] Unsaved property-detail edits survive reload on this device; save → reload → reopen verified with a reverted real edit.
 - [x] Durable import recovery: leaving, refreshing and returning resumes the unpublished import (verified signed-in; discard clears it).
 - [x] Signed-in sweep of all 60 workspace screens; notifications, ratio study, value change and exemption reports installed and scoped to the active county; missing data shows "not loaded"/"not measured" instead of failures.
-- [ ] 9 screens still depend on legacy-system data or reports not yet installed (reconciliation, legacy analytics, ingest audit, factory analytics, neighborhood rollup, GeoEquity overlays, webhooks).
+- [x] Remaining screens: readiness calc repaired (county-guarded), GeoEquity uses converted map points + latest sale, webhooks service installed, ingest audit log installed, county benchmarks use real county ratio stats; reconciliation, legacy analytics and neighborhood rollup show "Legacy system data not loaded". 60/60 screens load without errors (only expected missing-legacy probes).
 - [x] IAAO Compliance: county-scoped single-pass stats per neighborhood (fixed price/ratio pairing, true median, IAAO PRB); "Not measured" when nothing gradable. Exemption Analysis scoped to active county with empty message.
 - [ ] End-to-end county writes (publish, appeals, exemptions, notices): blocked on founder naming a test parcel/account/county.
-- [ ] Duplicate-sales provenance.
+- [ ] Duplicate sales: Benton has 21,711 sales recorded 2-4 times by repeated imports (65,137 extra rows, same instrument number). Blocked: founder approval to remove the extra copies, then a uniqueness rule to stop re-imports duplicating.
 
 ## Tasks
 - [x] Add Google sign-in button to the app (Auth.tsx + provider enabled)
