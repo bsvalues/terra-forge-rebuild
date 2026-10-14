@@ -6681,6 +6681,28 @@ export type Database = {
               tier_slope: number
             }[]
           }
+      compute_ratio_statistics_county: {
+        Args: {
+          p_county_id: string
+          p_neighborhood_code?: string
+          p_outlier_method?: string
+          p_sales_end_date?: string
+          p_sales_start_date?: string
+          p_tax_year?: number
+        }
+        Returns: {
+          cod: number
+          high_tier_median: number
+          low_tier_median: number
+          mean_ratio: number
+          median_ratio: number
+          mid_tier_median: number
+          prb: number
+          prd: number
+          sample_size: number
+          tier_slope: number
+        }[]
+      }
       compute_readiness_score: { Args: { p_county_id?: string }; Returns: Json }
       count_duplicate_addresses: {
         Args: { p_county_id: string }
