@@ -66,11 +66,11 @@ export function DaisTab({ initialCategory, onCategoryConsumed }: DaisTabProps) {
 
         <TabsContent value="exemptions" className="mt-0 space-y-4">
           <ExemptionsPanel parcelId={parcel.id} />
-          <details><summary className="cursor-pointer text-sm font-medium">Exemption decisions</summary><div className="mt-4 space-y-4"><ExemptionsWorkflow /><ExemptionEligibilityChecker /></div></details>
+          <details><summary className="cursor-pointer text-sm font-medium">Exemption decisions</summary><div className="mt-4 space-y-4"><ExemptionsWorkflow parcelId={parcel.id} /><ExemptionEligibilityChecker /></div></details>
         </TabsContent>
 
         <TabsContent value="appeals" className="mt-0 space-y-4">
-          <AppealsWorkflow />
+          <AppealsWorkflow parcelId={parcel.id} />
           <details><summary className="cursor-pointer text-sm font-medium">Appeal analysis</summary><div className="mt-4 space-y-4"><AppealRiskDashboard /><AppealOutcomePredictor /></div></details>
         </TabsContent>
 

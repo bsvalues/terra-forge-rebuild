@@ -81,3 +81,4 @@
 - [x] Guard re-import: county file import no longer lets a stale valuation row erase the promoted 2026 label (with regression test)
 - [ ] App walkthrough after promotion (search, Workbench, neighborhoods, Value Change, AVM)
 - [ ] Sync rerun against live PACS (blocked: no PACS server access from this environment)
+- [ ] Verify appeal/exemption/notice/import-publish writes on Benton parcel 68347 (106 Oakmont Ct) and reopen

@@ -1,7 +1,8 @@
 // TerraFusion OS — Phase 29: New Appeal Dialog
 // Constitutional owner: TerraDais (workflow states)
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import type { ParcelContext } from "@/components/workbench/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createAppealRecord } from "@/services/suites/daisService";
 import { invalidateWorkflows } from "@/lib/queryInvalidation";
@@ -27,9 +28,11 @@ import { cn } from "@/lib/utils";
 interface NewAppealDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /** Open parcel to file against (skips the parcel search). */
+  parcel?: ParcelContext;
 }
 
-export function NewAppealDialog({ open, onOpenChange }: NewAppealDialogProps) {
+export function NewAppealDialog({ open, onOpenChange, parcel }: NewAppealDialogProps) {
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearch = useDebounce(searchTerm, 300);
@@ -45,6 +48,13 @@ export function NewAppealDialog({ open, onOpenChange }: NewAppealDialogProps) {
   const [originalValue, setOriginalValue] = useState("");
   const [requestedValue, setRequestedValue] = useState("");
   const [notes, setNotes] = useState("");
+
+  // Preselect the open parcel and its current assessed value each time the dialog opens.
+  useEffect(() => {
+    if (!open || !parcel?.id) return;
+    setSelectedParcel({ id: parcel.id, parcel_number: parcel.parcelNumber ?? "", address: parcel.address ?? "", city: parcel.city });
+    if (parcel.assessedValue) setOriginalValue(String(parcel.assessedValue));
+  }, [open, parcel?.id, parcel?.parcelNumber, parcel?.address, parcel?.city, parcel?.assessedValue]);
 
   const createMutation = useMutation({
     mutationFn: async () => {

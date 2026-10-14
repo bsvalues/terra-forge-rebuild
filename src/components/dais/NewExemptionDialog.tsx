@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -50,9 +50,11 @@ type ExemptionFormData = z.infer<typeof exemptionSchema>;
 interface NewExemptionDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /** Open parcel to file against (skips the parcel search). */
+  parcel?: import("@/components/workbench/types").ParcelContext;
 }
 
-export function NewExemptionDialog({ open, onOpenChange }: NewExemptionDialogProps) {
+export function NewExemptionDialog({ open, onOpenChange, parcel }: NewExemptionDialogProps) {
   const queryClient = useQueryClient();
   const [parcelSearch, setParcelSearch] = useState("");
 
@@ -100,7 +102,14 @@ export function NewExemptionDialog({ open, onOpenChange }: NewExemptionDialogPro
     },
   });
 
-  const selectedParcel = parcels.find((p) => p.id === form.watch("parcel_id"));
+  useEffect(() => {
+    if (open && parcel?.id) form.setValue("parcel_id", parcel.id);
+  }, [open, parcel?.id, form]);
+
+  const selectedParcel = parcels.find((p) => p.id === form.watch("parcel_id"))
+    ?? (parcel?.id && form.watch("parcel_id") === parcel.id
+      ? { id: parcel.id, parcel_number: parcel.parcelNumber ?? "", address: parcel.address ?? "", city: parcel.city, assessed_value: parcel.assessedValue ?? 0 }
+      : undefined);
 
   const formatCurrency = (value: number | null) => {
     if (!value) return "—";
