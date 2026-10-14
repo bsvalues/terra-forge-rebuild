@@ -2816,6 +2816,53 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          action_url: string | null
+          body: string | null
+          county_id: string | null
+          created_at: string
+          id: string
+          notification_type: string
+          read_at: string | null
+          severity: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          action_url?: string | null
+          body?: string | null
+          county_id?: string | null
+          created_at?: string
+          id?: string
+          notification_type?: string
+          read_at?: string | null
+          severity?: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          action_url?: string | null
+          body?: string | null
+          county_id?: string | null
+          created_at?: string
+          id?: string
+          notification_type?: string
+          read_at?: string | null
+          severity?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_county_id_fkey"
+            columns: ["county_id"]
+            isOneToOne: false
+            referencedRelation: "counties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pacs_schema_registry: {
         Row: {
           actual_columns: Json | null
@@ -6344,6 +6391,18 @@ export type Database = {
         Returns: {
           count: number
         }[]
+      }
+      create_notification: {
+        Args: {
+          p_action_url?: string
+          p_body?: string
+          p_county_id: string
+          p_severity?: string
+          p_title: string
+          p_type: string
+          p_user_id: string
+        }
+        Returns: string
       }
       disablelongtransactions: { Args: never; Returns: string }
       discover_unregistered_neighborhoods: { Args: never; Returns: Json }

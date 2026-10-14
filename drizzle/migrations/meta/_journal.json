@@ -50,6 +50,20 @@
       "when": 1791928884558,
       "tag": "0006_wgs84_backfill_actor",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1791983183217,
+      "tag": "0007_phase85_notifications",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1791983204172,
+      "tag": "0008_notifications_hardening",
+      "breakpoints": true
     }
   ]
 }
