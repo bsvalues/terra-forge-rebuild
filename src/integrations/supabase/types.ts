@@ -372,6 +372,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "assessment_ratios_sale_id_fkey"
+            columns: ["sale_id"]
+            isOneToOne: false
+            referencedRelation: "vw_sales_ratio_detail"
+            referencedColumns: ["sale_id"]
+          },
+          {
             foreignKeyName: "assessment_ratios_study_period_id_fkey"
             columns: ["study_period_id"]
             isOneToOne: false
@@ -2812,6 +2819,53 @@ export type Database = {
             columns: ["parcel_id"]
             isOneToOne: false
             referencedRelation: "parcels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          action_url: string | null
+          body: string | null
+          county_id: string | null
+          created_at: string
+          id: string
+          notification_type: string
+          read_at: string | null
+          severity: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          action_url?: string | null
+          body?: string | null
+          county_id?: string | null
+          created_at?: string
+          id?: string
+          notification_type?: string
+          read_at?: string | null
+          severity?: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          action_url?: string | null
+          body?: string | null
+          county_id?: string | null
+          created_at?: string
+          id?: string
+          notification_type?: string
+          read_at?: string | null
+          severity?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_county_id_fkey"
+            columns: ["county_id"]
+            isOneToOne: false
+            referencedRelation: "counties"
             referencedColumns: ["id"]
           },
         ]
@@ -6097,6 +6151,301 @@ export type Database = {
         }
         Relationships: []
       }
+      vw_assessment_top_movers: {
+        Row: {
+          abs_delta: number | null
+          address: string | null
+          county_id: string | null
+          improvement_delta: number | null
+          land_delta: number | null
+          neighborhood_code: string | null
+          parcel_id: string | null
+          parcel_number: string | null
+          prev_tax_year: number | null
+          prev_total_value: number | null
+          tax_year: number | null
+          total_delta: number | null
+          total_pct_change: number | null
+          total_value: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assessments_county_id_fkey"
+            columns: ["county_id"]
+            isOneToOne: false
+            referencedRelation: "counties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assessments_parcel_id_fkey"
+            columns: ["parcel_id"]
+            isOneToOne: false
+            referencedRelation: "parcels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vw_assessment_yoy: {
+        Row: {
+          address: string | null
+          assessment_id: string | null
+          certified: boolean | null
+          county_id: string | null
+          improvement_delta: number | null
+          improvement_pct_change: number | null
+          improvement_value: number | null
+          land_delta: number | null
+          land_pct_change: number | null
+          land_value: number | null
+          neighborhood_code: string | null
+          parcel_id: string | null
+          parcel_number: string | null
+          prev_improvement_value: number | null
+          prev_land_value: number | null
+          prev_tax_year: number | null
+          prev_total_value: number | null
+          tax_year: number | null
+          total_delta: number | null
+          total_pct_change: number | null
+          total_value: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assessments_county_id_fkey"
+            columns: ["county_id"]
+            isOneToOne: false
+            referencedRelation: "counties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assessments_parcel_id_fkey"
+            columns: ["parcel_id"]
+            isOneToOne: false
+            referencedRelation: "parcels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vw_assessment_yoy_summary: {
+        Row: {
+          avg_pct_change: number | null
+          avg_total_delta: number | null
+          avg_value: number | null
+          county_id: string | null
+          decreased_count: number | null
+          increased_count: number | null
+          max_pct_decrease: number | null
+          max_pct_increase: number | null
+          parcel_count: number | null
+          prev_tax_year: number | null
+          sum_total_delta: number | null
+          tax_year: number | null
+          total_roll_value: number | null
+          unchanged_count: number | null
+          yoy_parcel_count: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assessments_county_id_fkey"
+            columns: ["county_id"]
+            isOneToOne: false
+            referencedRelation: "counties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vw_exemption_by_type: {
+        Row: {
+          approved_count: number | null
+          avg_exemption_amount: number | null
+          avg_exemption_pct: number | null
+          county_id: string | null
+          denied_count: number | null
+          exemption_type: string | null
+          max_exemption_amount: number | null
+          min_exemption_amount: number | null
+          parcel_count: number | null
+          pending_count: number | null
+          tax_year: number | null
+          total_assessed_in_type: number | null
+          total_count: number | null
+          total_exemption_value: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "parcels_county_id_fkey"
+            columns: ["county_id"]
+            isOneToOne: false
+            referencedRelation: "counties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vw_exemption_county_summary: {
+        Row: {
+          approved_count: number | null
+          avg_exemption_amount: number | null
+          avg_exemption_pct: number | null
+          county_id: string | null
+          denied_count: number | null
+          distinct_types: number | null
+          parcel_count: number | null
+          pct_of_assessed_roll: number | null
+          pending_count: number | null
+          tax_year: number | null
+          total_assessed_roll: number | null
+          total_count: number | null
+          total_exemption_value: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "parcels_county_id_fkey"
+            columns: ["county_id"]
+            isOneToOne: false
+            referencedRelation: "counties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vw_exemption_detail: {
+        Row: {
+          address: string | null
+          applicant_name: string | null
+          application_date: string | null
+          approval_date: string | null
+          assessed_value: number | null
+          computed_pct_of_assessed: number | null
+          county_id: string | null
+          exemption_amount: number | null
+          exemption_id: string | null
+          exemption_percentage: number | null
+          exemption_type: string | null
+          expiration_date: string | null
+          neighborhood_code: string | null
+          notes: string | null
+          parcel_id: string | null
+          parcel_number: string | null
+          property_class: string | null
+          status: string | null
+          tax_year: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exemptions_parcel_id_fkey"
+            columns: ["parcel_id"]
+            isOneToOne: false
+            referencedRelation: "parcels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "parcels_county_id_fkey"
+            columns: ["county_id"]
+            isOneToOne: false
+            referencedRelation: "counties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vw_sales_ratio_by_neighborhood: {
+        Row: {
+          avg_assessed: number | null
+          avg_sale_price: number | null
+          cod: number | null
+          cod_iaao_grade: string | null
+          county_id: string | null
+          max_ratio: number | null
+          mean_ratio: number | null
+          median_iaao_grade: string | null
+          median_ratio: number | null
+          min_ratio: number | null
+          neighborhood_code: string | null
+          prd: number | null
+          prd_iaao_grade: string | null
+          qualified_count: number | null
+          sale_count: number | null
+          sale_year: number | null
+          stddev_ratio: number | null
+          total_assessed: number | null
+          total_sale_volume: number | null
+          within_10pct_count: number | null
+          within_10pct_pct: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sales_county_id_fkey"
+            columns: ["county_id"]
+            isOneToOne: false
+            referencedRelation: "counties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vw_sales_ratio_county_summary: {
+        Row: {
+          cod: number | null
+          county_id: string | null
+          max_ratio: number | null
+          mean_ratio: number | null
+          median_ratio: number | null
+          min_ratio: number | null
+          prd: number | null
+          qualified_sales: number | null
+          sale_year: number | null
+          stddev_ratio: number | null
+          total_assessed: number | null
+          total_sale_volume: number | null
+          total_sales: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sales_county_id_fkey"
+            columns: ["county_id"]
+            isOneToOne: false
+            referencedRelation: "counties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vw_sales_ratio_detail: {
+        Row: {
+          address: string | null
+          assessed_value: number | null
+          assessment_id: string | null
+          certified: boolean | null
+          county_id: string | null
+          deed_type: string | null
+          improvement_value: number | null
+          is_qualified: boolean | null
+          land_value: number | null
+          neighborhood_code: string | null
+          parcel_id: string | null
+          parcel_number: string | null
+          pct_over_under: number | null
+          ratio: number | null
+          sale_date: string | null
+          sale_id: string | null
+          sale_price: number | null
+          sale_year: number | null
+          tax_year: number | null
+          value_delta: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sales_county_id_fkey"
+            columns: ["county_id"]
+            isOneToOne: false
+            referencedRelation: "counties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_parcel_id_fkey"
+            columns: ["parcel_id"]
+            isOneToOne: false
+            referencedRelation: "parcels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       _postgis_deprecate: {
@@ -6344,6 +6693,18 @@ export type Database = {
         Returns: {
           count: number
         }[]
+      }
+      create_notification: {
+        Args: {
+          p_action_url?: string
+          p_body?: string
+          p_county_id: string
+          p_severity?: string
+          p_title: string
+          p_type: string
+          p_user_id: string
+        }
+        Returns: string
       }
       disablelongtransactions: { Args: never; Returns: string }
       discover_unregistered_neighborhoods: { Args: never; Returns: Json }

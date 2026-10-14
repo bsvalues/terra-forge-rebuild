@@ -235,10 +235,10 @@ export function AppealRiskDashboard() {
               ) : scores.length === 0 ? (
                 <div className="p-8 text-center">
                   <ShieldAlert className="h-10 w-10 text-muted-foreground/20 mx-auto mb-3" />
-                  {rpcSummary ? (
+                  {typeof rpcSummary?.totalParcels === "number" ? (
                     <>
                       <p className="text-sm text-muted-foreground mb-3">
-                        {rpcSummary.totalParcels.toLocaleString()} parcels analyzed
+                        {rpcSummary.totalParcels.toLocaleString()} parcels flagged by the latest scoring run
                       </p>
                       <div className="grid grid-cols-3 gap-3 max-w-sm mx-auto mb-4">
                         <div className="p-2 rounded-lg bg-destructive/10 border border-destructive/20">

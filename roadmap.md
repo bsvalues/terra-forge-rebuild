@@ -14,7 +14,10 @@
 - [x] Benton maps: 19,678 State Plane points converted to stored WGS84 (traced); Parcel360 reads them; map verified at a Kennewick parcel. ~90k Benton parcels have no source point at all.
 - [x] Unsaved property-detail edits survive reload on this device; save → reload → reopen verified with a reverted real edit.
 - [x] Durable import recovery: leaving, refreshing and returning resumes the unpublished import (verified signed-in; discard clears it).
-- [ ] End-to-end county writes (publish, appeals, exemptions, notices),  duplicate-sales provenance and remaining county interiors are unfinished; no production writes or deployment performed.
+- [x] Signed-in sweep of all 60 workspace screens; notifications, ratio study, value change and exemption reports installed and scoped to the active county; missing data shows "not loaded"/"not measured" instead of failures.
+- [ ] 9 screens still depend on legacy-system data or reports not yet installed (reconciliation, legacy analytics, ingest audit, factory analytics, neighborhood rollup, GeoEquity overlays, webhooks).
+- [ ] End-to-end county writes (publish, appeals, exemptions, notices): blocked on founder naming a test parcel/account/county.
+- [ ] Duplicate-sales provenance.
 
 ## Tasks
 - [x] Add Google sign-in button to the app (Auth.tsx + provider enabled)
