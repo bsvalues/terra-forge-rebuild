@@ -6716,6 +6716,13 @@ export type Database = {
           count: number
         }[]
       }
+      county_neighborhood_codes: {
+        Args: { p_county_id: string }
+        Returns: {
+          neighborhood_code: string
+          parcel_count: number
+        }[]
+      }
       create_notification: {
         Args: {
           p_action_url?: string
