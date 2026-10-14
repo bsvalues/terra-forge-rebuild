@@ -1,3 +1,4 @@
+import { dedupeSalesRows, SALES_CONFLICT_KEY } from "@/lib/salesDedup";
 import { useState, useCallback, useEffect } from "react";
 import { draftKey, loadImportDraft, saveImportDraft, clearImportDraft, resumeStep } from "@/lib/importDraft";
 import { supabase } from "@/integrations/supabase/client";
