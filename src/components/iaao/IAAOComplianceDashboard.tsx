@@ -140,7 +140,7 @@ export function IAAOComplianceDashboard() {
     return sortAsc ? cmp : -cmp;
   });
 
-  const countyMedianGrade = data?.countyMedianRatio !== null
+  const countyMedianGrade = data?.countyMedianRatio != null
     ? (data!.countyMedianRatio! >= 0.90 && data!.countyMedianRatio! <= 1.10 ? "pass" : data!.countyMedianRatio! >= 0.85 && data!.countyMedianRatio! <= 1.15 ? "marginal" : "fail")
     : "fail";
   const countyCODGrade = data?.countyCOD !== null
