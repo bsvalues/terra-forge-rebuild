@@ -57,6 +57,7 @@ function CountyOverviewTab({ onDrill }: { onDrill: (year: number) => void }) {
   const latest = data?.[0];
 
   if (isLoading) return <p className="text-sm text-muted-foreground">Loading…</p>;
+  if (!latest) return <p className="text-sm text-muted-foreground">No exemption records are loaded for this county yet. Exemptions appear here once they are imported or recorded in Dais.</p>;
 
   return (
     <div className="space-y-4">
