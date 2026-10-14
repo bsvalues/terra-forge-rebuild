@@ -15,6 +15,26 @@ export interface AppealRiskSummary {
   topRiskNeighborhoods: { code: string; avgScore: number; count: number }[];
 }
 
+/**
+ * get_appeal_risk_summary returns flagged-score counts by tier (critical/high/
+ * medium/low, total_flagged). Critical and high are both "high risk" here.
+ * Neighborhood rankings are not part of the RPC, so none are reported.
+ */
+export function toAppealRiskSummary(raw: unknown): AppealRiskSummary | null {
+  if (!raw || typeof raw !== "object") return null;
+  const r = raw as Record<string, unknown>;
+  const n = (k: string) => (typeof r[k] === "number" ? (r[k] as number) : 0);
+  if (typeof r.total_flagged !== "number") return null;
+  return {
+    totalParcels: n("total_flagged"),
+    highRiskCount: n("critical") + n("high"),
+    mediumRiskCount: n("medium"),
+    lowRiskCount: n("low"),
+    avgScore: 0,
+    topRiskNeighborhoods: [],
+  };
+}
+
 export function useAppealRiskSummary() {
   const countyId = useActiveCountyId();
 
@@ -29,7 +49,7 @@ export function useAppealRiskSummary() {
         { p_county_id: countyId }
       );
       if (error) throw new Error(error.message);
-      return data as AppealRiskSummary | null;
+      return toAppealRiskSummary(data);
     },
   });
 }

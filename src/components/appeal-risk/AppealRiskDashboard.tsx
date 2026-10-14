@@ -238,7 +238,7 @@ export function AppealRiskDashboard() {
                   {typeof rpcSummary?.totalParcels === "number" ? (
                     <>
                       <p className="text-sm text-muted-foreground mb-3">
-                        {rpcSummary.totalParcels.toLocaleString()} parcels analyzed
+                        {rpcSummary.totalParcels.toLocaleString()} parcels flagged by the latest scoring run
                       </p>
                       <div className="grid grid-cols-3 gap-3 max-w-sm mx-auto mb-4">
                         <div className="p-2 rounded-lg bg-destructive/10 border border-destructive/20">

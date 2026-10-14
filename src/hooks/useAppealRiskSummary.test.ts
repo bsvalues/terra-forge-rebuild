@@ -1,46 +1,12 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-
-vi.mock("@/integrations/supabase/client", () => ({
-  supabase: {
-    rpc: vi.fn(() => Promise.resolve({ data: { totalParcels: 5000, highRiskCount: 120 }, error: null })),
-  },
-}));
-
-vi.mock("@/hooks/useActiveCounty", () => ({
-  useActiveCountyId: () => "test-county-id",
-}));
-
-vi.mock("@tanstack/react-query", () => ({
-  useQuery: vi.fn((_opts: { queryKey: string[]; queryFn: () => Promise<unknown>; enabled?: boolean }) => {
-    return { data: undefined, isLoading: false, error: null };
-  }),
-}));
-
-describe("useAppealRiskSummary", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    vi.resetModules();
+import { describe, it, expect } from "vitest";
+import { toAppealRiskSummary } from "./useAppealRiskSummary";
+describe("appeal risk summary mapping", () => {
+  it("counts critical and high together as high risk", () => {
+    const s = toAppealRiskSummary({ total_flagged: 10, critical: 2, high: 3, medium: 4, low: 1 });
+    expect(s).toMatchObject({ totalParcels: 10, highRiskCount: 5, mediumRiskCount: 4, lowRiskCount: 1 });
   });
-
-  it("exports useAppealRiskSummary as a function", async () => {
-    const mod = await import("./useAppealRiskSummary");
-    expect(mod.useAppealRiskSummary).toBeTypeOf("function");
-  });
-
-  it("uses appeal-risk-summary-rpc query key with countyId", async () => {
-    const { useQuery } = await import("@tanstack/react-query");
-    const { useAppealRiskSummary } = await import("./useAppealRiskSummary");
-    useAppealRiskSummary();
-    expect(useQuery).toHaveBeenCalledWith(
-      expect.objectContaining({
-        queryKey: ["appeal-risk-summary-rpc", "test-county-id"],
-        enabled: true,
-      })
-    );
-  });
-
-  it("exports AppealRiskSummary interface shape", () => {
-    const summary = { totalParcels: 5000, highRiskCount: 120, mediumRiskCount: 340, lowRiskCount: 4540, avgScore: 42.5, topRiskNeighborhoods: [] };
-    expect(summary.totalParcels).toBe(5000);
+  it("returns nothing for an unexpected shape instead of crashing", () => {
+    expect(toAppealRiskSummary({ foo: 1 })).toBeNull();
+    expect(toAppealRiskSummary(null)).toBeNull();
   });
 });
