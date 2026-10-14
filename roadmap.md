@@ -16,6 +16,7 @@
 - [x] Durable import recovery: leaving, refreshing and returning resumes the unpublished import (verified signed-in; discard clears it).
 - [x] Signed-in sweep of all 60 workspace screens; notifications, ratio study, value change and exemption reports installed and scoped to the active county; missing data shows "not loaded"/"not measured" instead of failures.
 - [ ] 9 screens still depend on legacy-system data or reports not yet installed (reconciliation, legacy analytics, ingest audit, factory analytics, neighborhood rollup, GeoEquity overlays, webhooks).
+- [x] IAAO Compliance: county-scoped single-pass stats per neighborhood (fixed price/ratio pairing, true median, IAAO PRB); "Not measured" when nothing gradable. Exemption Analysis scoped to active county with empty message.
 - [ ] End-to-end county writes (publish, appeals, exemptions, notices): blocked on founder naming a test parcel/account/county.
 - [ ] Duplicate-sales provenance.
 
