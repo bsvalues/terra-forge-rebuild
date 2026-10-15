@@ -497,7 +497,7 @@ export function IngestWizard() {
                   </p>
                 ) : (
                   <p className="text-sm text-tf-gold">
-                    <strong>Publishing saves to county records.</strong> {pipeline.parsedFile.rowCount.toLocaleString()} rows will be saved as {pipeline.targetTable === "combined" ? "parcels and sales" : pipeline.targetTable}. {pipeline.targetTable === "sales" ? "A sale with the same parcel and recording number updates the existing sale instead of adding a copy." : pipeline.targetTable === "combined" ? "Parcels with the same parcel number are updated; sales with the same parcel and recording number are updated instead of copied." : "Records with the same parcel number are updated."}
+                    <strong>Publishing saves to county records.</strong> {pipeline.parsedFile.rowCount.toLocaleString()} rows will be saved as {pipeline.targetTable}. {pipeline.targetTable === "sales" ? "A sale with the same parcel and recording number updates the existing sale instead of adding a copy." : "Records with the same parcel number are updated."}
                   </p>
                 )}
               </CardContent>
