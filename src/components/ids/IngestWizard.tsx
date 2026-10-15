@@ -497,7 +497,7 @@ export function IngestWizard() {
                   </p>
                 ) : (
                   <p className="text-sm text-tf-gold">
-                    <strong>⚠ Publish is permanent.</strong> This will upsert {pipeline.parsedFile.rowCount.toLocaleString()} records into the <code>{pipeline.targetTable}</code> table. Existing records with matching parcel numbers will be updated.
+                    <strong>Publishing saves to county records.</strong> {pipeline.parsedFile.rowCount.toLocaleString()} rows will be saved as {pipeline.targetTable}. {pipeline.targetTable === "sales" ? "A sale with the same parcel and recording number updates the existing sale instead of adding a copy." : "Records with the same parcel number are updated."}
                   </p>
                 )}
               </CardContent>
