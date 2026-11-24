@@ -176,6 +176,13 @@
       "when": 1795535633335,
       "tag": "0024_scope_counties_gis_layers_reads",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1795535729683,
+      "tag": "0025_harden_assign_parcels_from_polygon_layer",
+      "breakpoints": true
     }
   ]
 }
