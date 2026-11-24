@@ -21,6 +21,9 @@ interface NoticeRequest {
   method: string;
   noticeType: string;
   recipientName?: string;
+  officeName?: string;
+  countyName?: string;
+  state?: string;
 }
 
 serve(async (req) => {
@@ -43,14 +46,18 @@ serve(async (req) => {
     const {
       parcelNumber, address, previousValue, newValue,
       neighborhoodCode, rSquared, method, noticeType,
-      recipientName
+      recipientName, officeName, countyName, state
     } = body;
+    const clean = (v: unknown, max = 80) =>
+      typeof v === "string" ? v.replace(/[\r\n]+/g, " ").trim().slice(0, max) : "";
+    const office = clean(officeName) || "County Assessor's Office";
+    const jurisdiction = [clean(countyName), clean(state, 20)].filter(Boolean).join(", ");
 
     const delta = newValue - previousValue;
     const deltaPct = previousValue > 0 ? ((delta / previousValue) * 100).toFixed(1) : "N/A";
     const direction = delta >= 0 ? "increase" : "decrease";
 
-    const systemPrompt = `You are an official County Assessor's Office notice drafter for TerraFusion OS.
+    const systemPrompt = `You are an official notice drafter for the ${office}${jurisdiction ? ` (${jurisdiction})` : ""}.
 Generate formal, professional assessment change notices that are legally compliant and clearly written.
 
 Guidelines:
@@ -61,6 +68,7 @@ Guidelines:
 - Include contact information placeholder for the Assessor's Office
 - Format dates as Month Day, Year
 - Format currency with $ and commas
+- Sign the notice as "${office}" and name the jurisdiction as "${jurisdiction || "the county"}"; never name software, vendors or "TerraFusion" as the sender or jurisdiction
 - Keep the notice concise but complete (under 400 words)
 
 Today's date: ${new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}`;

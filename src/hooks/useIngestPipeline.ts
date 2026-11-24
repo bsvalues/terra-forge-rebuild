@@ -57,7 +57,7 @@ const FIELD_ALIASES: Record<string, string[]> = {
   // Sales fields
   sale_date: ["sale_date", "saledate", "sold_date", "closing_date", "transfer_date", "recording_date", "rec_date"],
   sale_price: ["sale_price", "saleprice", "sale_amt", "sold_price", "consideration", "sale_amount", "price", "adjustedsaleprice", "originalsaleprice"],
-  sale_type: ["sale_type", "saletype", "transaction_type", "conv_type", "sl_ratio_type_cd"],
+  sale_type: ["sale_type", "saletype", "transaction_type", "conv_type"],
   grantor: ["grantor", "seller", "seller_name", "from_name"],
   grantee: ["grantee", "buyer", "buyer_name", "to_name"],
   deed_type: ["deed_type", "deedtype", "instrument_type", "doc_type", "deed_type_cd"],

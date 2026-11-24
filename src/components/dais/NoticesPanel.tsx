@@ -26,6 +26,8 @@ import {
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
+import { useActiveCountyId } from "@/hooks/useActiveCounty";
+import { useCountyMeta } from "@/hooks/useCountyMeta";
 import { useWorkbench } from "@/components/workbench/WorkbenchContext";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -39,14 +41,12 @@ const NOTICE_TEMPLATES = [
 
 export function NoticesPanel() {
   const { parcel } = useWorkbench();
-  const { data: countyId } = useQuery({
-    queryKey: ["county-id-for-notices"],
-    queryFn: async () => {
-      const { data } = await supabase.from("counties").select("id").limit(1).maybeSingle();
-      return data?.id as string | null;
-    },
-    staleTime: 5 * 60_000,
-  });
+  // Notices belong to the signed-in user's county; never guess a county.
+  const countyId = useActiveCountyId();
+  const countyMeta = useCountyMeta();
+  const officeName = countyMeta
+    ? `${countyMeta.shortName} County Assessor's Office`
+    : "County Assessor's Office";
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState("all");
@@ -82,6 +82,9 @@ export function NoticesPanel() {
             method: "Manual Review",
             noticeType: "assessment_change",
             recipientName: recipientName || "Property Owner",
+            officeName,
+            countyName: countyMeta ? `${countyMeta.shortName} County` : undefined,
+            state: countyMeta?.state,
           });
           noticeContent = data?.notice || "";
           aiDrafted = true;
@@ -142,9 +145,9 @@ export function NoticesPanel() {
     const val = (parcel.assessedValue || 0).toLocaleString();
 
     const templates: Record<string, string> = {
-      assessment_change: `Dear ${name},\n\nThis notice is to inform you that the assessed value of your property located at ${addr} (Parcel ${pin}) has been adjusted for the current tax year.\n\nPrevious Assessed Value: $${val}\nRevised Assessed Value: [To be determined]\n\nYou have the right to appeal this assessment within 30 days of this notice.\n\nSincerely,\nCounty Assessor's Office`,
-      hearing_notice: `Dear ${name},\n\nYou are hereby notified that a hearing has been scheduled for your appeal regarding property at ${addr} (Parcel ${pin}).\n\nHearing Date: [Scheduled Date]\nLocation: County Board of Equalization\n\nPlease bring all supporting documentation.\n\nSincerely,\nBoard of Equalization`,
-      exemption_decision: `Dear ${name},\n\nThis letter is regarding your exemption application for the property located at ${addr} (Parcel ${pin}).\n\nDecision: [Approved/Denied]\nEffective Date: [Date]\n\nSincerely,\nCounty Assessor's Office`,
+      assessment_change: `Dear ${name},\n\nThis notice is to inform you that the assessed value of your property located at ${addr} (Parcel ${pin}) has been adjusted for the current tax year.\n\nPrevious Assessed Value: $${val}\nRevised Assessed Value: [To be determined]\n\nYou have the right to appeal this assessment within 30 days of this notice.\n\nSincerely,\n${officeName}`,
+      hearing_notice: `Dear ${name},\n\nYou are hereby notified that a hearing has been scheduled for your appeal regarding property at ${addr} (Parcel ${pin}).\n\nHearing Date: [Scheduled Date]\nLocation: ${countyMeta ? `${countyMeta.shortName} County` : "County"} Board of Equalization\n\nPlease bring all supporting documentation.\n\nSincerely,\nBoard of Equalization`,
+      exemption_decision: `Dear ${name},\n\nThis letter is regarding your exemption application for the property located at ${addr} (Parcel ${pin}).\n\nDecision: [Approved/Denied]\nEffective Date: [Date]\n\nSincerely,\n${officeName}`,
       general_correspondence: "No content provided.",
     };
     return templates[type] || "";

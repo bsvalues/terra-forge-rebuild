@@ -53,7 +53,7 @@ export const PACS_FIELD_ALIASES: Record<string, string[]> = {
   // Sales
   sale_date: ["sl_dt", "sale_dt", "deed_dt", "instrument_dt", "recording_dt", "transfer_dt"],
   sale_price: ["sl_price", "consideration", "adjusted_price", "deed_amt"],
-  sale_type: ["sl_type_cd", "sl_ratio_type_cd", "conv_type"],
+  sale_type: ["sl_type_cd", "conv_type"],
   grantor: ["grantor_name", "seller_name", "grantor1", "grantor_1"],
   grantee: ["grantee_name", "buyer_name", "grantee1", "grantee_1"],
   deed_type: ["deed_type_cd", "instrument_type", "deed_cd"],
