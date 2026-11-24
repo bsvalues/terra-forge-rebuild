@@ -169,6 +169,13 @@
       "when": 1795535452488,
       "tag": "0023_restrict_seed_audit_log_reads",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1795535633335,
+      "tag": "0024_scope_counties_gis_layers_reads",
+      "breakpoints": true
     }
   ]
 }
