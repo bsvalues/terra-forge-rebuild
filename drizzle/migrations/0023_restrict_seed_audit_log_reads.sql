@@ -1,0 +1,2 @@
+DROP POLICY IF EXISTS "seed_audit_log: authenticated read" ON public.seed_audit_log;
+CREATE POLICY "seed_audit_log: admin read" ON public.seed_audit_log FOR SELECT TO authenticated USING (public.has_role(auth.uid(), 'admin'));
